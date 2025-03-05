@@ -1,101 +1,182 @@
-import Image from "next/image";
+import { Button } from "@/components/ui/button"
+import { ArrowRight, Rss, Headphones, Laptop, Smartphone } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div id="home-container" className="flex flex-col min-h-screen">
+      {/* Hero Section */}
+      <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
+        <div className="container px-4 md:px-6">
+          <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
+            <div className="flex flex-col justify-center space-y-4">
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+                  Digests: Your Modern RSS Reader
+                </h1>
+                <p className="max-w-[600px] text-muted-foreground md:text-xl">
+                  Subscribe, manage, and read your favorite RSS feeds and podcasts in one beautiful interface.
+                </p>
+              </div>
+              <div className="flex flex-col gap-2 min-[400px]:flex-row">
+                <Link href="/app">
+                  <Button size="lg" className="gap-1.5">
+                    Launch Web App <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Link href="#download">
+                  <Button size="lg" variant="outline">
+                    Download Apps
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            <div className="flex items-center justify-center">
+              <div className="relative aspect-video overflow-hidden rounded-xl border bg-background">
+                <Image
+                  src="/placeholder.svg?height=720&width=1280"
+                  width={1280}
+                  height={720}
+                  alt="App screenshot"
+                  className="object-cover"
+                />
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </section>
+
+      {/* Features Section */}
+      <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/40">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="space-y-2">
+              <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Key Features</div>
+              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
+                Everything you need in an RSS reader
+              </h2>
+              <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Digests combines the best features of modern content consumption with the timeless utility of RSS.
+              </p>
+            </div>
+          </div>
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:grid-cols-3">
+            <div className="flex flex-col items-center space-y-2 rounded-lg border p-6">
+              <div className="rounded-full border p-2">
+                <Rss className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold">RSS Feeds</h3>
+              <p className="text-center text-muted-foreground">
+                Subscribe to your favorite websites and blogs with a simple URL.
+              </p>
+            </div>
+            <div className="flex flex-col items-center space-y-2 rounded-lg border p-6">
+              <div className="rounded-full border p-2">
+                <Headphones className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold">Podcast Support</h3>
+              <p className="text-center text-muted-foreground">
+                Listen to podcasts with our built-in player that follows you as you browse.
+              </p>
+            </div>
+            <div className="flex flex-col items-center space-y-2 rounded-lg border p-6">
+              <div className="rounded-full border p-2">
+                <Laptop className="h-6 w-6" />
+              </div>
+              <h3 className="text-xl font-bold">Reader View</h3>
+              <p className="text-center text-muted-foreground">
+                Enjoy distraction-free reading with our clean reader view for articles.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Download Section */}
+      <section id="download" className="w-full py-12 md:py-24 lg:py-32">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center justify-center space-y-4 text-center">
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">Available on all your devices</h2>
+              <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Download Digests for your preferred platform and stay in sync across all your devices.
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link href="#mac">
+                <Button variant="outline" size="lg" className="gap-1.5">
+                  <Laptop className="h-5 w-5" />
+                  macOS
+                </Button>
+              </Link>
+              <Link href="#windows">
+                <Button variant="outline" size="lg" className="gap-1.5">
+                  <Laptop className="h-5 w-5" />
+                  Windows
+                </Button>
+              </Link>
+              <Link href="#ios">
+                <Button variant="outline" size="lg" className="gap-1.5">
+                  <Smartphone className="h-5 w-5" />
+                  iOS
+                </Button>
+              </Link>
+              <Link href="#android">
+                <Button variant="outline" size="lg" className="gap-1.5">
+                  <Smartphone className="h-5 w-5" />
+                  Android
+                </Button>
+              </Link>
+              <Link href="#linux">
+                <Button variant="outline" size="lg" className="gap-1.5">
+                  <Laptop className="h-5 w-5" />
+                  Linux
+                </Button>
+              </Link>
+            </div>
+          </div>
+          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 py-12 md:grid-cols-2 lg:grid-cols-3">
+            <div className="flex flex-col items-center space-y-2">
+              <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
+                <Image
+                  src="/placeholder.svg?height=400&width=600"
+                  width={600}
+                  height={400}
+                  alt="Desktop app screenshot"
+                  className="object-cover"
+                />
+              </div>
+              <h3 className="text-xl font-bold">Desktop</h3>
+            </div>
+            <div className="flex flex-col items-center space-y-2">
+              <div className="relative aspect-[9/16] w-[225px] overflow-hidden rounded-lg border">
+                <Image
+                  src="/placeholder.svg?height=400&width=225"
+                  width={225}
+                  height={400}
+                  alt="Mobile app screenshot"
+                  className="object-cover"
+                />
+              </div>
+              <h3 className="text-xl font-bold">Mobile</h3>
+            </div>
+            <div className="flex flex-col items-center space-y-2">
+              <div className="relative aspect-[4/3] w-[300px] overflow-hidden rounded-lg border">
+                <Image
+                  src="/placeholder.svg?height=225&width=300"
+                  width={300}
+                  height={225}
+                  alt="Tablet app screenshot"
+                  className="object-cover"
+                />
+              </div>
+              <h3 className="text-xl font-bold">Tablet</h3>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-  );
+  )
 }
+
