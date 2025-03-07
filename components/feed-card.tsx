@@ -77,6 +77,7 @@ export const FeedCard = memo(function FeedCard({ feed }: FeedCardProps) {
         })
       }
       if (feed.type === "podcast") {
+        console.log("opening podcast details")
         setIsPodcastDetailsOpen(true)
       } else {
         setIsReaderViewOpen(true)
@@ -157,18 +158,18 @@ export const FeedCard = memo(function FeedCard({ feed }: FeedCardProps) {
     <>
       <Card
         ref={cardRef}
-        className="w-full overflow-hidden transition-all hover:shadow-md cursor-pointer"
+        className="w-full overflow-hidden transition-all hover:shadow-md cursor-pointer rounded-[40px]"
         onClick={handleCardClick}
       >
-        <div className="relative w-full">
+        <div className="relative w-full p-2">
           <img
             src={feed.thumbnail || feed.thumbnail || "/placeholder.svg"}
             alt={feed.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover rounded-[32px]"
             style={{ aspectRatio: "16/9" }}
           />
           {feed.type === "podcast" && (
-            <Button size="icon" className="absolute bottom-2 right-2 rounded-full" onClick={handlePlayClick}>
+            <Button size="icon" className="absolute bottom-4 right-4 rounded-full" onClick={handlePlayClick}>
               {isCurrentlyPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               <span className="sr-only">{isCurrentlyPlaying ? "Pause" : "Play"}</span>
             </Button>

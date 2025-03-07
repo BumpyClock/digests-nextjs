@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react"
-import { useAudio } from "./AudioContext"
+import { useAudio } from "./audio-player-provider"
 
 export function AudioControls() {
   const { isPlaying, currentTime, duration, volume, isMuted, togglePlayPause, seek, setVolume, toggleMute } = useAudio()

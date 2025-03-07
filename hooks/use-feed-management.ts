@@ -13,6 +13,16 @@ export function useFeedManagement() {
   const [refreshing, setRefreshing] = useState(false)
   const { toast } = useToast()
 
+  // Helper function to sort feed items by published date
+  const sortFeedItemsByDate = (items: FeedItem[]): FeedItem[] => {
+    return [...items].sort((a, b) => {
+      const dateA = new Date(a.published).getTime()
+      const dateB = new Date(b.published).getTime()
+      // Sort in descending order (newest first)
+      return dateB - dateA
+    })
+  }
+
   const loadFeeds = useCallback(async () => {
     setLoading(true)
     try {
@@ -20,7 +30,8 @@ export function useFeedManagement() {
       const storedItems = getFeedItems()
 
       setFeeds(storedFeeds)
-      setFeedItems(storedItems)
+      // Sort items by published date before setting state
+      setFeedItems(sortFeedItemsByDate(storedItems))
 
       console.log("Loaded feeds:", storedFeeds)
       console.log("Loaded feed items:", storedItems)
@@ -42,7 +53,8 @@ export function useFeedManagement() {
 
       if (result.success && result.feeds && result.items) {
         const updatedFeeds = [...feeds, ...result.feeds]
-        const updatedItems = [...feedItems, ...result.items]
+        // Combine existing items with new ones and sort by date
+        const updatedItems = sortFeedItemsByDate([...feedItems, ...result.items])
 
         saveFeeds(updatedFeeds)
         saveFeedItems(updatedItems)
@@ -62,7 +74,7 @@ export function useFeedManagement() {
         })
       }
     },
-    [feeds, feedItems, toast],
+    [feeds, feedItems, toast]
   )
 
   const refreshFeeds = useCallback(async () => {
@@ -72,11 +84,14 @@ export function useFeedManagement() {
     const result = await refreshFeedsAction(feedUrls)
 
     if (result.success && result.feeds && result.items) {
+      // Sort items by published date
+      const sortedItems = sortFeedItemsByDate(result.items)
+      
       saveFeeds(result.feeds)
-      saveFeedItems(result.items)
+      saveFeedItems(sortedItems)
 
       setFeeds(result.feeds)
-      setFeedItems(result.items)
+      setFeedItems(sortedItems)
 
       toast({
         title: "Feeds refreshed",
@@ -99,4 +114,3 @@ export function useFeedManagement() {
 
   return { feeds: feedItems, loading, refreshing, addFeed, refreshFeeds, setFeeds: setFeedItems }
 }
-

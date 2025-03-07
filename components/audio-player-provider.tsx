@@ -1,7 +1,9 @@
 "use client"
 
-import type React from "react"
-import { createContext, useContext, useState, useRef, useEffect, useCallback } from "react"
+import React, { createContext, useContext, useState, useRef, useEffect, useCallback, useMemo } from "react"
+import { Card, CardContent } from "@/components/ui/card"
+import { AudioControls } from "@/components/AudioControls"
+import { AudioMiniPlayer } from "@/components/AudioMiniPlayer"
 
 interface AudioInfo {
   id: string
@@ -11,7 +13,7 @@ interface AudioInfo {
   image?: string
 }
 
-interface AudioContextType {
+interface AudioPlayerContextType {
   currentAudio: AudioInfo | null
   isPlaying: boolean
   duration: number
@@ -19,25 +21,29 @@ interface AudioContextType {
   volume: number
   isMuted: boolean
   isMinimized: boolean
+  showMiniPlayer: boolean
   playAudio: (audioInfo: AudioInfo) => void
   togglePlayPause: () => void
   seek: (value: number) => void
   setVolume: (value: number) => void
   toggleMute: () => void
   toggleMinimize: () => void
+  setShowMiniPlayer: (show: boolean) => void
 }
 
-const AudioContext = createContext<AudioContextType | undefined>(undefined)
+const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(undefined)
 
 export const useAudioPlayer = () => {
-  const context = useContext(AudioContext)
+  const context = useContext(AudioPlayerContext)
   if (context === undefined) {
     throw new Error("useAudioPlayer must be used within an AudioPlayerProvider")
   }
   return context
 }
 
-export const AudioPlayerProvider = ({ children }: { children: React.ReactNode }) => {
+export const useAudio = useAudioPlayer
+
+const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentAudio, setCurrentAudio] = useState<AudioInfo | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [duration, setDuration] = useState(0)
@@ -45,23 +51,30 @@ export const AudioPlayerProvider = ({ children }: { children: React.ReactNode })
   const [volume, setVolume] = useState(1)
   const [isMuted, setIsMuted] = useState(false)
   const [isMinimized, setIsMinimized] = useState(false)
+  const [showMiniPlayer, setShowMiniPlayer] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const animationRef = useRef<number>()
 
-  const playAudio = useCallback(
-    (audioInfo: AudioInfo) => {
-      if (currentAudio && currentAudio.id === audioInfo.id) {
-        setIsPlaying(!isPlaying)
-      } else {
-        setCurrentAudio(audioInfo)
-        setIsPlaying(true)
+  const playAudio = useCallback((audioInfo: AudioInfo) => {
+    setCurrentAudio((prev) => {
+      if (prev && prev.id === audioInfo.id) {
+        setIsPlaying((prevPlaying) => !prevPlaying)
+        return prev
       }
-    },
-    [currentAudio, isPlaying],
-  )
+      setIsPlaying(true)
+      setShowMiniPlayer(true)
+      setIsMinimized(true)
+      return audioInfo
+    })
+  }, [])
 
   const togglePlayPause = useCallback(() => {
-    setIsPlaying((prev) => !prev)
+    setIsPlaying((prev) => {
+      if (!prev) {
+        setShowMiniPlayer(true)
+      }
+      return !prev
+    })
   }, [])
 
   const seek = useCallback((value: number) => {
@@ -82,6 +95,10 @@ export const AudioPlayerProvider = ({ children }: { children: React.ReactNode })
 
   const toggleMinimize = useCallback(() => {
     setIsMinimized((prev) => !prev)
+  }, [])
+
+  const setShowMiniPlayerHandler = useCallback((show: boolean) => {
+    setShowMiniPlayer(show)
   }, [])
 
   const updateTime = useCallback(() => {
@@ -125,24 +142,45 @@ export const AudioPlayerProvider = ({ children }: { children: React.ReactNode })
     }
   }, [])
 
-  const value = {
-    currentAudio,
-    isPlaying,
-    duration,
-    currentTime,
-    volume,
-    isMuted,
-    isMinimized,
-    playAudio,
-    togglePlayPause,
-    seek,
-    setVolume: updateVolume,
-    toggleMute,
-    toggleMinimize,
-  }
+  const contextValue = useMemo(
+    () => ({
+      currentAudio,
+      isPlaying,
+      duration,
+      currentTime,
+      volume,
+      isMuted,
+      isMinimized,
+      showMiniPlayer,
+      playAudio,
+      togglePlayPause,
+      seek,
+      setVolume: updateVolume,
+      toggleMute,
+      toggleMinimize,
+      setShowMiniPlayer: setShowMiniPlayerHandler,
+    }),
+    [
+      currentAudio,
+      isPlaying,
+      duration,
+      currentTime,
+      volume,
+      isMuted,
+      isMinimized,
+      showMiniPlayer,
+      playAudio,
+      togglePlayPause,
+      seek,
+      updateVolume,
+      toggleMute,
+      toggleMinimize,
+      setShowMiniPlayerHandler,
+    ],
+  )
 
   return (
-    <AudioContext.Provider value={value}>
+    <AudioPlayerContext.Provider value={contextValue}>
       {children}
       {currentAudio && (
         <audio
@@ -152,9 +190,53 @@ export const AudioPlayerProvider = ({ children }: { children: React.ReactNode })
           onEnded={() => setIsPlaying(false)}
         />
       )}
-    </AudioContext.Provider>
+    </AudioPlayerContext.Provider>
   )
 }
 
-export const useAudio = useAudioPlayer
+const AudioControlsWrapper = React.memo(() => <AudioControls />)
+
+const AudioPlayer = React.memo(() => {
+  const { currentAudio, isMinimized, showMiniPlayer } = useAudioPlayer()
+
+  if (!currentAudio || !showMiniPlayer) return null
+
+  if (isMinimized) {
+    return <AudioMiniPlayer />
+  }
+
+  return (
+    <Card className="fixed bottom-0 left-0 right-0 z-40">
+      <CardContent className="p-4 flex items-center">
+        <div className="flex items-center flex-1">
+          {currentAudio.image && (
+            <div className="w-12 h-12 rounded overflow-hidden mr-3 flex-shrink-0">
+              <img
+                src={currentAudio.image || "/placeholder.svg"}
+                alt={currentAudio.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+          <div className="flex-1">
+            <div className="font-medium truncate">{currentAudio.title}</div>
+            <div className="text-xs text-muted-foreground">{currentAudio.source}</div>
+          </div>
+        </div>
+        <AudioControlsWrapper />
+      </CardContent>
+    </Card>
+  )
+})
+
+AudioPlayer.displayName = "AudioPlayer"
+
+export function AudioPlayerProvider({ children }: { children: React.ReactNode }) {
+  return (
+    <AudioProvider>
+      {children}
+      <AudioPlayer />
+    </AudioProvider>
+  )
+}
 

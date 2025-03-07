@@ -21,15 +21,15 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast, initialPosition 
       id: podcast.id,
       title: podcast.title,
       source: podcast.siteTitle,
-      audioUrl: podcast.enclosures[0]?.url || "",
-      image: podcast.thumbnail || podcast.feedImage,
+      audioUrl: podcast.enclosures?.[0]?.url || "",
+      image: podcast.thumbnail,
     })
   }
 
   const isCurrentlyPlaying = currentAudio && currentAudio.id === podcast.id && isPlaying
 
   const duration = formatDuration(
-    Number.parseInt(podcast.duration) || Number.parseInt(podcast.enclosures?.[0]?.length) || 0,
+    podcast.duration || podcast.enclosures?.[0]?.length || "0"
   )
 
   return (
@@ -43,7 +43,7 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast, initialPosition 
       <div className="flex flex-col md:flex-row gap-6 mb-6">
         <div className="relative w-full md:w-1/3 aspect-square overflow-hidden rounded-lg">
           <img
-            src={podcast.thumbnail || podcast.feedImage || "/placeholder.svg"}
+            src={podcast.thumbnail ||  "/placeholder.svg"}
             alt={podcast.title}
             className="object-cover w-full h-full"
           />

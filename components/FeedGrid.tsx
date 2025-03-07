@@ -6,7 +6,6 @@ import { FeedCard } from "@/components/feed-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useWindowSize } from "@/hooks/use-window-size"
 import { FeedItem } from "@/lib/rss"
-import { Scrollbars } from "react-custom-scrollbars-2"
 
 interface FeedGridProps {
   feeds: FeedItem[]
@@ -23,7 +22,7 @@ const LoadingSkeleton = ({ columnCount = 3, skeletonCount = 9 }: { columnCount?:
 
   if (!mounted) {
     return (
-      <div className="grid gap-6" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+      <div id="loading-skeleton" className="grid gap-6" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
         {Array(skeletonCount).fill(0).map((_, i) => (
           <div key={i} className="flex flex-col space-y-3">
             <Skeleton className="w-full" style={{ aspectRatio: "16/9" }} />
@@ -60,7 +59,7 @@ export function FeedGrid({ feeds, isLoading, skeletonCount = 9 }: FeedGridProps)
     setMounted(true)
   }, [])
   
-  const columnWidth = 300
+  const columnWidth = 350
   const columnGutter = 24
   const columnCount = Math.max(1, Math.floor((width - 48) / (columnWidth + columnGutter)))
   
@@ -80,34 +79,19 @@ export function FeedGrid({ feeds, isLoading, skeletonCount = 9 }: FeedGridProps)
   }
 
   return (
-    <div className="h-full">
-      <Scrollbars
-        style={{ height: "100%" }}
-        autoHide
-        universal
-        renderThumbVertical={({ style, ...props }) => (
-          <div
-            {...props}
-            style={{
-              ...style,
-              backgroundColor: "var(--scrollbar-thumb)",
-              borderRadius: "4px",
-              cursor: "pointer",
-            }}
-          />
-        )}
-      >
-        <div className="p-6">
-          <Masonry
-            items={feeds}
-            columnGutter={columnGutter}
-            columnWidth={columnWidth}
-            render={renderItem}
-            overscanBy={5}
-            itemKey={(item) => item.id}
-          />
-        </div>
-      </Scrollbars>
+    <div id="feed-grid" className="h-full w-full">
+      <div className="p-2 pt-6">
+        
+        <Masonry
+          items={feeds}
+          maxColumnCount={columnCount}
+          columnGutter={columnGutter}
+          columnWidth={columnWidth}
+          render={renderItem}
+          overscanBy={5}
+          itemKey={(item) => item.id}
+        />
+      </div>
     </div>
   )
 } 

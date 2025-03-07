@@ -7,18 +7,18 @@ import { Button } from "@/components/ui/button"
 import { Bookmark, Share2, ExternalLink, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
-import { Scrollbars } from "react-custom-scrollbars-2"
 
 interface BaseModalProps {
   isOpen: boolean
   onClose: () => void
-  title: string
+  title?: string
   link: string
   initialPosition: { x: number; y: number; width: number; height: number }
   children: React.ReactNode
+  className?: string
 }
 
-export function BaseModal({ isOpen, onClose, title, link, initialPosition, children }: BaseModalProps) {
+export function BaseModal({ isOpen, onClose, title, link, initialPosition, children, className }: BaseModalProps) {
   const [isBookmarked, setIsBookmarked] = useState(false)
   const { toast } = useToast()
 
@@ -47,8 +47,11 @@ export function BaseModal({ isOpen, onClose, title, link, initialPosition, child
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-4xl h-[90vh] max-h-[90vh] p-0 gap-0" style={modalStyle}>
-        <DialogTitle className="sr-only">{title}</DialogTitle>
+      <DialogTitle className="sr-only">{title || "Content"}</DialogTitle>
+      <DialogContent
+        className={`xs:max-w-full xs:rounded-none xs:border-none xs:h-screen xs:max-h-screen sm:rounded-[32px] sm:border-none sm:h-screen sm:max-h-screen sm:w-screen sm:max-w-screen md:max-w-7xl md:h-[99vh] lg:max-h-[95vh] lg:w-[65vw] lg:max-w-[1050px] p-0 gap-0  ${className || ""}`}
+        style={modalStyle}
+      >
         <div className="fixed top-0 right-0 p-4 z-50 flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={handleBookmark}>
             <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
@@ -69,27 +72,17 @@ export function BaseModal({ isOpen, onClose, title, link, initialPosition, child
             <span className="sr-only">Close</span>
           </Button>
         </div>
-        <Scrollbars
-          autoHide
-          universal
-          style={{ height: "100%" }}
-          renderThumbVertical={({ style, ...props }) => (
-            <div
-              {...props}
-              style={{
-                ...style,
-                backgroundColor: "var(--scrollbar-thumb)",
-                borderRadius: "4px",
-                cursor: "pointer",
-              }}
-            />
-          )}
+        <div
+          className="h-full overflow-y-auto scrollbar-thin"
+          style={{
+            scrollbarWidth: "thin",
+            scrollbarColor: "var(--scrollbar-thumb) transparent",
+          }}
         >
-          <div className="max-w-3xl mx-auto px-6 py-12">
-            <h1 className="text-3xl font-bold mb-6">{title}</h1>
+          <div className=" mx-auto  p-12 ">
             {children}
           </div>
-        </Scrollbars>
+        </div>
       </DialogContent>
     </Dialog>
   )
