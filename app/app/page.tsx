@@ -1,72 +1,133 @@
 "use client"
 
-import { useState, useCallback, useMemo } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useFeedManagement } from "@/hooks/use-feed-management"
 import { SearchBar } from "@/components/SearchBar"
 import { RefreshButton } from "@/components/RefreshButton"
 import { EmptyState } from "@/components/EmptyState"
 import { FeedGrid } from "@/components/FeedGrid"
+import { useFeedStore } from "@/store/useFeedStore"
 
 export default function AppPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const { feeds, loading, refreshing, refreshFeeds } = useFeedManagement()
+  const { 
+    feedItems, 
+    loading, 
+    refreshing, 
+    refreshFeeds,
+    initialized,
+    setInitialized 
+  } = useFeedStore()
 
-  const filteredFeeds = useMemo(() => {
+  // Initialize store when component mounts
+  useEffect(() => {
+    if (!initialized) {
+      refreshFeeds().then(() => {
+        setInitialized(true)
+      })
+    }
+  }, [initialized, refreshFeeds, setInitialized])
+
+  // Handle manual refresh
+  const handleRefresh = useCallback(() => {
+    refreshFeeds()
+  }, [refreshFeeds])
+
+  const filteredItems = useMemo(() => {
     const searchLower = searchQuery.toLowerCase()
-    return feeds.filter((feed) => {
+    return feedItems.filter((item) => {
       return (
-        (feed.title && feed.title.toLowerCase().includes(searchLower)) ||
-        (feed.description && feed.description.toLowerCase().includes(searchLower)) ||
-        (feed.siteTitle && feed.siteTitle.toLowerCase().includes(searchLower))
+        (item.title && item.title.toLowerCase().includes(searchLower)) ||
+        (item.description && item.description.toLowerCase().includes(searchLower)) ||
+        (item.feedTitle && item.feedTitle.toLowerCase().includes(searchLower))
       )
     })
-  }, [feeds, searchQuery])
+  }, [feedItems, searchQuery])
 
-  const articleFeeds = useMemo(() => filteredFeeds.filter((feed) => feed.type === "article"), [filteredFeeds])
-  const podcastFeeds = useMemo(() => filteredFeeds.filter((feed) => feed.type === "podcast"), [filteredFeeds])
-  const favoriteFeeds = useMemo(() => filteredFeeds.filter((feed) => feed.favorite), [filteredFeeds])
+  const articleItems = useMemo(() => 
+    filteredItems.filter((item) => item.type === "article"), 
+    [filteredItems]
+  )
+
+  const podcastItems = useMemo(() => 
+    filteredItems.filter((item) => item.type === "podcast"), 
+    [filteredItems]
+  )
+
+  const favoriteItems = useMemo(() => 
+    filteredItems.filter((item) => item.favorite), 
+    [filteredItems]
+  )
 
   const handleSearch = useCallback((value: string) => {
     setSearchQuery(value)
   }, [])
+
+  const isLoading = loading || (!initialized && feedItems.length === 0)
 
   return (
     <div className="container py-6 max-w-[1600px] mx-auto">
       <Tabs defaultValue="all" className="space-y-6">
         <div className="flex justify-between items-center">
           <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="articles">Articles</TabsTrigger>
-            <TabsTrigger value="podcasts">Podcasts</TabsTrigger>
-            <TabsTrigger value="favorites">Favorites</TabsTrigger>
+            <TabsTrigger value="all">
+              All
+              {feedItems.length > 0 && ` (${feedItems.length})`}
+            </TabsTrigger>
+            <TabsTrigger value="articles">
+              Articles
+              {articleItems.length > 0 && ` (${articleItems.length})`}
+            </TabsTrigger>
+            <TabsTrigger value="podcasts">
+              Podcasts
+              {podcastItems.length > 0 && ` (${podcastItems.length})`}
+            </TabsTrigger>
+            <TabsTrigger value="favorites">
+              Favorites
+              {favoriteItems.length > 0 && ` (${favoriteItems.length})`}
+            </TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2">
             <SearchBar value={searchQuery} onChange={handleSearch} />
-            <RefreshButton onClick={refreshFeeds} isLoading={loading || refreshing} />
+            <RefreshButton 
+              onClick={handleRefresh} 
+              isLoading={loading || refreshing} 
+            />
           </div>
         </div>
 
-        <TabsContent value="all" className="h-[calc(100vh-11rem)]">
-          {loading ? (
-            <FeedGrid feeds={[]} isLoading={true} />
-          ) : feeds.length === 0 ? (
+        <TabsContent value="all" className="h-[calc(100vh-11rem)] overflow-auto">
+          {isLoading ? (
+            <FeedGrid items={[]} isLoading={true} />
+          ) : feedItems.length === 0 ? (
             <EmptyState />
           ) : (
-            <FeedGrid feeds={filteredFeeds} isLoading={false} />
+            <FeedGrid items={filteredItems} isLoading={false} />
           )}
         </TabsContent>
 
-        <TabsContent value="articles" className="h-[calc(100vh-11rem)]">
-          <FeedGrid feeds={articleFeeds} isLoading={loading} skeletonCount={6} />
+        <TabsContent value="articles" className="h-[calc(100vh-11rem)] overflow-auto">
+          <FeedGrid 
+            items={articleItems} 
+            isLoading={isLoading} 
+            skeletonCount={6} 
+          />
         </TabsContent>
 
-        <TabsContent value="podcasts" className="h-[calc(100vh-11rem)]">
-          <FeedGrid feeds={podcastFeeds} isLoading={loading} skeletonCount={3} />
+        <TabsContent value="podcasts" className="h-[calc(100vh-11rem)] overflow-auto">
+          <FeedGrid 
+            items={podcastItems} 
+            isLoading={isLoading} 
+            skeletonCount={3} 
+          />
         </TabsContent>
 
-        <TabsContent value="favorites" className="h-[calc(100vh-11rem)]">
-          <FeedGrid feeds={favoriteFeeds} isLoading={loading} skeletonCount={4} />
+        <TabsContent value="favorites" className="h-[calc(100vh-11rem)] overflow-auto">
+          <FeedGrid 
+            items={favoriteItems} 
+            isLoading={isLoading} 
+            skeletonCount={4} 
+          />
         </TabsContent>
       </Tabs>
     </div>

@@ -53,7 +53,7 @@ const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const [isMinimized, setIsMinimized] = useState(false)
   const [showMiniPlayer, setShowMiniPlayer] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const animationRef = useRef<number>()
+  const animationRef = useRef<number | undefined>(undefined)
 
   const playAudio = useCallback((audioInfo: AudioInfo) => {
     setCurrentAudio((prev) => {

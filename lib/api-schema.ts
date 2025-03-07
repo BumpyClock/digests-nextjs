@@ -1,6 +1,6 @@
 export interface FetchFeedsResponse {
   feeds: Feed[]
-  items: FeedItem[]
+  items?: FeedItem[]
 }
 
 // API Response for fetching reader view
@@ -32,7 +32,7 @@ export interface Feed {
   language: string
   favicon: string
   categories: string
-  items: FeedItem[]
+  items?: FeedItem[]
 }
 
 // FeedItem schema

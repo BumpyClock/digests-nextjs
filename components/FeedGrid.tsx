@@ -8,7 +8,7 @@ import { useWindowSize } from "@/hooks/use-window-size"
 import { FeedItem } from "@/lib/rss"
 
 interface FeedGridProps {
-  feeds: FeedItem[]
+  items: FeedItem[]
   isLoading: boolean
   skeletonCount?: number
 }
@@ -51,7 +51,7 @@ const LoadingSkeleton = ({ columnCount = 3, skeletonCount = 9 }: { columnCount?:
   )
 }
 
-export function FeedGrid({ feeds, isLoading, skeletonCount = 9 }: FeedGridProps) {
+export function FeedGrid({ items, isLoading, skeletonCount = 6 }: FeedGridProps) {
   const { width } = useWindowSize()
   const [mounted, setMounted] = useState(false)
 
@@ -75,7 +75,13 @@ export function FeedGrid({ feeds, isLoading, skeletonCount = 9 }: FeedGridProps)
   }
 
   if (isLoading) {
-    return <LoadingSkeleton columnCount={columnCount} skeletonCount={skeletonCount} />
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array(skeletonCount).fill(0).map((_, i) => (
+          <LoadingSkeleton key={i} />
+        ))}
+      </div>
+    )
   }
 
   return (
@@ -83,7 +89,7 @@ export function FeedGrid({ feeds, isLoading, skeletonCount = 9 }: FeedGridProps)
       <div className="p-2 pt-6">
         
         <Masonry
-          items={feeds}
+          items={items}
           maxColumnCount={columnCount}
           columnGutter={columnGutter}
           columnWidth={columnWidth}
