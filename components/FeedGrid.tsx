@@ -5,7 +5,7 @@ import { Masonry } from "masonic"
 import { FeedCard } from "@/components/feed-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useWindowSize } from "@/hooks/use-window-size"
-import { FeedItem } from "@/lib/rss"
+import { FeedItem } from "@/types"
 
 interface FeedGridProps {
   items: FeedItem[]

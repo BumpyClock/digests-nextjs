@@ -5,7 +5,7 @@ import { persist, createJSONStorage } from "zustand/middleware"
 import localforage from "localforage"
 import { useState, useEffect } from "react"
 
-import type { Feed, FeedItem } from "@/lib/rss"
+import type { Feed, FeedItem } from "@/types"
 import { fetchFeedsAction, refreshFeedsAction } from "@/app/actions"
 
 /** 

@@ -1,60 +1,9 @@
-export interface FeedItem {
-  type: string
-  id: string
-  title: string
-  description: string
-  link: string
-  author: string
-  published: string
-  content: string
-  created: string
-  content_encoded: string
-  categories: string
-  enclosures: any[] | null
-  thumbnail: string
-  thumbnailColor: {
-    r: number
-    g: number
-    b: number
-  }
-  thumbnailColorComputed: string
-  siteTitle: string
-  feedTitle: string
-  feedUrl: string
-  favicon: string
-  favorite?: boolean
-  duration?: number
-}
-
-export interface Feed {
-  type: string
-  guid: string
-  status: string
-  siteTitle: string
-  feedTitle: string
-  feedUrl: string
-  description: string
-  link: string
-  lastUpdated: string
-  lastRefreshed: string
-  published: string
-  author: string | null
-  language: string
-  favicon: string
-  categories: string
-  items: FeedItem[]
-}
-
-export interface ReaderViewResponse {
-  url: string
-  status: string
-  content: string
-  title: string
-  siteName: string
-  image: string
-  favicon: string
-  textContent: string
-}
+import type { 
+  Feed, 
+  FeedItem, 
+  FetchFeedsResponse, 
+  ReaderViewResponse 
+} from '@/types'
 
 export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
   try {
@@ -95,7 +44,7 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
       language: feed.language,
       favicon: feed.favicon,
       categories: feed.categories,
-      items: feed.items.map((item: any) => ({
+      items: Array.isArray(feed.items) ? feed.items.map((item: any) => ({
         type: item.type,
         id: item.id,
         title: item.title,
@@ -116,10 +65,11 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
         feedUrl: feed.feedUrl,
         favicon: feed.favicon,
         favorite: false,
-      })),
+      })) : [],
     }))
 
-    const items: FeedItem[] = feeds.flatMap((feed) => feed.items)
+    const items: FeedItem[] = feeds
+      .flatMap(feed => feed.items || [])
 
     console.log(`Processed ${feeds.length} feeds and ${items.length} items`)
 

@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast"
 import { ReaderViewModal } from "@/components/reader-view-modal"
 import { PodcastDetailsModal } from "@/components/podcast-details-modal"
 import { formatDuration } from "@/utils/formatDuration"
-import type { FeedItem } from "@/lib/rss"
+import type { FeedItem } from "@/types"
 import Image from "next/image"
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'

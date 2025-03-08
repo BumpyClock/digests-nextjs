@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { fetchFeeds } from "@/lib/rss"
-import type { Feed, FeedItem } from "@/lib/rss"
+import type { Feed, FeedItem } from "@/types"
 
 interface FeedActionResult {
   success: boolean

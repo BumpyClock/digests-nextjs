@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchReaderView, type ReaderViewResponse } from "@/lib/rss";
+import { type ReaderViewResponse } from "@/types";
+import { fetchReaderView } from "@/lib/rss";
 import { useToast } from "@/hooks/use-toast";
 import { BaseModal } from "./base-modal";
 import Image from "next/image";
