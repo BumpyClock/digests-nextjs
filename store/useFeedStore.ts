@@ -3,6 +3,7 @@
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import localforage from "localforage"
+import { useState, useEffect } from "react"
 
 import type { Feed, FeedItem } from "@/lib/rss"
 import { fetchFeedsAction, refreshFeedsAction } from "@/app/actions"
@@ -18,10 +19,12 @@ interface FeedState {
   refreshing: boolean
   initialized: boolean
   lastRefreshed: number | null
+  hydrated: boolean
 
   // Setters
   setFeeds: (feeds: Feed[]) => void
   setFeedItems: (items: FeedItem[]) => void
+  setHydrated: (state: boolean) => void
 
   // Actions
   addFeed: (url: string) => Promise<{ success: boolean; message: string }>
@@ -36,6 +39,19 @@ interface FeedState {
   }>
 }
 
+// Add hydration flag at top of file
+let hydrated = false
+
+// Add this helper function at the top of the file after imports
+const normalizeUrl = (url: string): string => {
+  try {
+    // Remove protocol and any trailing slashes
+    return url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+  } catch {
+    return url;
+  }
+};
+
 /**
  * Create a Zustand store with persist middleware, storing data in IndexedDB.
  */
@@ -49,10 +65,12 @@ export const useFeedStore = create<FeedState>()(
       refreshing: false,
       initialized: false,
       lastRefreshed: null,
+      hydrated: false,
 
       // === SETTERS ===
       setFeeds: (feeds) => set({ feeds }),
       setFeedItems: (items) => set({ feedItems: items }),
+      setHydrated: (state) => set({ hydrated: state }),
 
       // === ACTIONS ===
 
@@ -63,6 +81,18 @@ export const useFeedStore = create<FeedState>()(
       addFeed: async (url) => {
         set({ loading: true })
         const { feeds, feedItems, sortFeedItemsByDate } = get()
+        
+        // Check if feed already exists (protocol-agnostic)
+        const normalizedNewUrl = normalizeUrl(url)
+        const feedExists = feeds.some(f => normalizeUrl(f.feedUrl) === normalizedNewUrl)
+        
+        if (feedExists) {
+          set({ loading: false })
+          return { 
+            success: false, 
+            message: "This feed is already in your subscriptions" 
+          }
+        }
 
         try {
           const result = await fetchFeedsAction(url)
@@ -94,8 +124,8 @@ export const useFeedStore = create<FeedState>()(
       refreshFeeds: async () => {
         const { feeds, feedItems, shouldRefresh: needsRefresh } = get()
         
-        // If we have items and don't need a refresh, just return
-        if (feedItems.length > 0 && !needsRefresh()) {
+        // Only skip refresh if we have feeds AND items AND don't need refresh
+        if (feeds.length > 0 && feedItems.length > 0 && !needsRefresh()) {
           set({ initialized: true })
           return
         }
@@ -103,14 +133,17 @@ export const useFeedStore = create<FeedState>()(
         set({ refreshing: true })
         try {
           const feedUrls = feeds.map((f) => f.feedUrl)
+          if (feedUrls.length === 0) {
+            console.log('No feeds to refresh')
+            set({ refreshing: false, initialized: true })
+            return
+          }
+          
           const result = await refreshFeedsAction(feedUrls)
           
           if (result.success && result.feeds && result.items) {
-            // Deduplicate items by ID
             const existingIds = new Set(feedItems.map(item => item.id))
             const newItems = result.items.filter(item => !existingIds.has(item.id))
-            
-            // Merge and sort
             const mergedItems = [...feedItems, ...newItems]
             const sorted = get().sortFeedItemsByDate(mergedItems)
 
@@ -166,7 +199,6 @@ export const useFeedStore = create<FeedState>()(
 
       /**
        * addFeeds: Batch version to add multiple feeds at once
-       * Properly accumulates results to prevent race conditions
        */
       addFeeds: async (urls) => {
         set({ loading: true })
@@ -179,8 +211,11 @@ export const useFeedStore = create<FeedState>()(
             // Get current state for each iteration
             const { feeds, feedItems, sortFeedItemsByDate } = get()
             
-            // Check if this feed already exists
-            if (feeds.some(f => f.feedUrl === url)) {
+            // Check if this feed already exists (protocol-agnostic)
+            const normalizedNewUrl = normalizeUrl(url)
+            const feedExists = feeds.some(f => normalizeUrl(f.feedUrl) === normalizedNewUrl)
+            
+            if (feedExists) {
               failed.push({ 
                 url, 
                 message: "This feed is already in your subscriptions" 
@@ -215,10 +250,8 @@ export const useFeedStore = create<FeedState>()(
       },
     }),
     {
-      // Name of the storage key
       name: "digests-feed-store",
       version: 1,
-      // Store as JSON in IndexedDB via localforage
       storage: createJSONStorage(() => localforage),
       partialize: (state) => ({
         feeds: state.feeds,
@@ -226,7 +259,27 @@ export const useFeedStore = create<FeedState>()(
         initialized: state.initialized,
         lastRefreshed: state.lastRefreshed,
       }),
-      // If you need to transform older data when version changes, implement migrate()
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          hydrated = true
+          useFeedStore.getState().setHydrated(true)
+        }
+      },
     }
   )
 )
+
+// Add helper function after store definition
+export const useHydratedStore = <T>(selector: (state: FeedState) => T): T => {
+  const [hydrationDone, setHydrationDone] = useState(false);
+  
+  useEffect(() => {
+    if (hydrated) {
+      setHydrationDone(true);
+    }
+  }, []);
+
+  const value = useFeedStore(selector);
+  
+  return hydrationDone ? value : (Array.isArray(value) ? [] as T : undefined as T);
+};

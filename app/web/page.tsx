@@ -8,9 +8,22 @@ import { EmptyState } from "@/components/EmptyState"
 import { FeedGrid } from "@/components/FeedGrid"
 import { useFeedStore } from "@/store/useFeedStore"
 
+const useHydration = () => {
+  const [hydrated, setHydrated] = useState(false)
+  const storeHydrated = useFeedStore(state => state.hydrated)
+  
+  useEffect(() => {
+    setHydrated(true)
+  }, [])
+  
+  return hydrated && storeHydrated
+}
+
 export default function AppPage() {
+  const isHydrated = useHydration()
   const [searchQuery, setSearchQuery] = useState("")
   const { 
+    feeds,
     feedItems, 
     loading, 
     refreshing, 
@@ -19,14 +32,15 @@ export default function AppPage() {
     setInitialized 
   } = useFeedStore()
 
-  // Initialize store when component mounts
   useEffect(() => {
-    if (!initialized) {
+    if (isHydrated && !initialized) {
+      console.log('Initializing store...', { feeds: feeds.length, items: feedItems.length })
       refreshFeeds().then(() => {
         setInitialized(true)
+        console.log('Store initialized', { feeds: feeds.length, items: feedItems.length })
       })
     }
-  }, [initialized, refreshFeeds, setInitialized])
+  }, [isHydrated, initialized, refreshFeeds, setInitialized, feeds.length, feedItems.length])
 
   // Handle manual refresh
   const handleRefresh = useCallback(() => {
@@ -66,7 +80,7 @@ export default function AppPage() {
   const isLoading = loading || (!initialized && feedItems.length === 0)
 
   return (
-    <div className="container py-6 max-w-[1600px] mx-auto">
+    <div className="container py-6 max-w-[1600px] mx-auto max-h-screen ">
       <Tabs defaultValue="all" className="space-y-6">
         <div className="flex justify-between items-center">
           <TabsList>
@@ -96,7 +110,7 @@ export default function AppPage() {
           </div>
         </div>
 
-        <TabsContent value="all" className="h-[calc(100vh-11rem)] overflow-auto">
+        <TabsContent value="all" className="h-[calc(100vh-11rem)] ">
           {isLoading ? (
             <FeedGrid items={[]} isLoading={true} />
           ) : feedItems.length === 0 ? (
@@ -106,7 +120,7 @@ export default function AppPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="articles" className="h-[calc(100vh-11rem)] overflow-auto">
+        <TabsContent value="articles" className="h-[calc(100vh-11rem)] ">
           <FeedGrid 
             items={articleItems} 
             isLoading={isLoading} 
@@ -114,7 +128,7 @@ export default function AppPage() {
           />
         </TabsContent>
 
-        <TabsContent value="podcasts" className="h-[calc(100vh-11rem)] overflow-auto">
+        <TabsContent value="podcasts" className="h-[calc(100vh-11rem)] ">
           <FeedGrid 
             items={podcastItems} 
             isLoading={isLoading} 
@@ -122,7 +136,7 @@ export default function AppPage() {
           />
         </TabsContent>
 
-        <TabsContent value="favorites" className="h-[calc(100vh-11rem)] overflow-auto">
+        <TabsContent value="favorites" className="h-[calc(100vh-11rem)] ">
           <FeedGrid 
             items={favoriteItems} 
             isLoading={isLoading} 

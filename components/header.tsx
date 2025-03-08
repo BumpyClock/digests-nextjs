@@ -9,7 +9,7 @@ import { Menu, Settings, Home, Rss, Headphones, BookMarked } from "lucide-react"
 
 export function Header() {
   const pathname = usePathname()
-  const isApp = pathname?.startsWith("/app")
+  const isApp = pathname?.startsWith("/web")
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -36,11 +36,11 @@ export function Header() {
               </>
             ) : (
               <>
-                <Link href="/app">
-                  <Button variant={pathname === "/app" ? "default" : "ghost"}>Feeds</Button>
+                <Link href="/web">
+                  <Button variant={pathname === "/web" ? "default" : "ghost"}>Feeds</Button>
                 </Link>
-                <Link href="/app/settings">
-                  <Button variant={pathname === "/app/settings" ? "default" : "ghost"}>Settings</Button>
+                <Link href="/web/settings">
+                  <Button variant={pathname === "/web/settings" ? "default" : "ghost"}>Settings</Button>
                 </Link>
               </>
             )}
@@ -75,18 +75,18 @@ export function Header() {
                           <Headphones className="h-5 w-5" />
                           Download
                         </Link>
-                        <Link href="/app" className="flex items-center gap-2">
+                        <Link href="/web" className="flex items-center gap-2">
                           <BookMarked className="h-5 w-5" />
                           Launch App
                         </Link>
                       </>
                     ) : (
                       <>
-                        <Link href="/app" className="flex items-center gap-2">
+                        <Link href="/web" className="flex items-center gap-2">
                           <Rss className="h-5 w-5" />
                           Feeds
                         </Link>
-                        <Link href="/app/settings" className="flex items-center gap-2">
+                        <Link href="/web/settings" className="flex items-center gap-2">
                           <Settings className="h-5 w-5" />
                           Settings
                         </Link>

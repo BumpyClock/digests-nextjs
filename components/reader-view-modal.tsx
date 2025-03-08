@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchReaderView, type ReaderViewResponse } from "@/lib/rss";
 import { useToast } from "@/hooks/use-toast";
 import { BaseModal } from "./base-modal";
+import Image from "next/image";
 
 interface ReaderViewModalProps {
   isOpen: boolean;
@@ -76,6 +77,7 @@ const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string): string
         }
       }
     } catch (err) {
+      console.error("Error parsing URL:", err)
       // If the URL cannot be parsed, quality defaults remain.
     }
     return { w, cropWidth };
@@ -146,6 +148,20 @@ export function ReaderViewModal({
   const [readerView, setReaderView] = useState<ReaderViewResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+ 
+
+  // Use useMemo to create a stable onClose callback to prevent prop changes
+  const memoizedOnClose = useCallback(() => {
+    onClose();
+  }, [onClose]);
+
+  // Memoize initialPosition object to maintain reference equality
+  const memoizedPosition = useMemo(() => initialPosition, [
+    initialPosition.x,
+    initialPosition.y,
+    initialPosition.width,
+    initialPosition.height
+  ]);
 
   useEffect(() => {
     async function loadReaderView() {
@@ -173,12 +189,17 @@ export function ReaderViewModal({
   return (
     <BaseModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={memoizedOnClose}
       link={articleUrl}
       title={readerView?.title || "Loading..."}
-      initialPosition={initialPosition}
-        className="xs:max-w-full xs:rounded-none xs:border-none xs:h-full xs:max-h-full xs:max-w-full "
-    >
+      initialPosition={memoizedPosition}
+        className="xs:max-w-full xs:rounded-none xs:border-none xs:h-full xs:max-h-full xs:max-w-full [&::-webkit-scrollbar]:w-2
+  [&::-webkit-scrollbar-track]:bg-gray-100
+  [&::-webkit-scrollbar-thumb]:bg-gray-300
+  dark:[&::-webkit-scrollbar-track]:bg-neutral-700
+  dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500 "
+    >       
+
       {loading ? (
         <div className="space-y-4">
           <Skeleton className="h-4 w-full" />
@@ -192,10 +213,13 @@ export function ReaderViewModal({
       ) : readerView ? (
         <article>
           {readerView.image && (
-            <img
+            <Image
               src={readerView.image || "/placeholder.svg"}
               alt={readerView.title}
               className="w-full h-auto mb-6 rounded-[24px]"
+              width={500}
+              height={500}
+              
             />
           )}
           <div className="flex flex-col items-center space-x-4 text-sm  mb-6">
@@ -205,10 +229,12 @@ export function ReaderViewModal({
 
           <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-6 ">
             {readerView.favicon && (
-              <img
+              <Image
                 src={readerView.favicon || "/placeholder.svg"}
                 alt={readerView.siteName}
                 className=" rounded max-h-6 max-w-6"
+                height={100}
+                width={100}
               />
             )}
             <span>{readerView.siteName}</span>

@@ -5,7 +5,7 @@ import { useAudio } from "@/components/audio-player-provider"
 import { formatDuration } from "@/utils/formatDuration"
 import type { FeedItem } from "@/lib/rss"
 import { BaseModal } from "./base-modal"
-
+import Image from "next/image"
 interface PodcastDetailsModalProps {
   isOpen: boolean
   onClose: () => void
@@ -42,10 +42,12 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast, initialPosition 
     >
       <div className="flex flex-col md:flex-row gap-6 mb-6">
         <div className="relative w-full md:w-1/3 aspect-square overflow-hidden rounded-lg">
-          <img
+            <Image
             src={podcast.thumbnail ||  "/placeholder.svg"}
             alt={podcast.title}
             className="object-cover w-full h-full"
+            width={100}
+            height={100}
           />
         </div>
         <div className="flex-1">

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useCallback, memo, useMemo } from "react"
+import { useState, useRef, useCallback, memo } from "react"
 import { Card, CardContent, CardFooter as CardFooterUI } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Heart, MessageSquare, Share2, Play, Pause } from "lucide-react"
@@ -12,6 +12,11 @@ import { ReaderViewModal } from "@/components/reader-view-modal"
 import { PodcastDetailsModal } from "@/components/podcast-details-modal"
 import { formatDuration } from "@/utils/formatDuration"
 import type { FeedItem } from "@/lib/rss"
+import Image from "next/image"
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+
+dayjs.extend(relativeTime)
 
 interface FeedCardProps {
   feed: FeedItem
@@ -53,14 +58,13 @@ const CardFooter = memo(function CardFooter({
   )
 })
 
-export const FeedCard = memo(function FeedCard({ feed }: FeedCardProps) {
-  const [liked, setLiked] = useState(feed.favorite || false)
+export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps) {
+  const [liked, setLiked] = useState(feedItem.favorite || false)
   const [isTogglingFavorite, setIsTogglingFavorite] = useState(false)
   const [isReaderViewOpen, setIsReaderViewOpen] = useState(false)
   const [isPodcastDetailsOpen, setIsPodcastDetailsOpen] = useState(false)
   const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0, width: 0, height: 0 })
   const cardRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
   const { playAudio, isPlaying, currentAudio } = useAudio()
   const { toast } = useToast()
 
@@ -76,30 +80,30 @@ export const FeedCard = memo(function FeedCard({ feed }: FeedCardProps) {
           height: rect.height,
         })
       }
-      if (feed.type === "podcast") {
+      if (feedItem.type === "podcast") {
         console.log("opening podcast details")
         setIsPodcastDetailsOpen(true)
       } else {
         setIsReaderViewOpen(true)
       }
     },
-    [feed.type],
+    [feedItem.type],
   )
 
   const handlePlayClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation()
-      if (feed.type === "podcast") {
+      if (feedItem.type === "podcast") {
         playAudio({
-          id: feed.id,
-          title: feed.title,
-          source: feed.siteTitle,
-          audioUrl: feed.enclosures?.[0]?.url || "",
-          image: feed.favicon || feed.thumbnail,
+          id: feedItem.id,
+          title: feedItem.title,
+          source: feedItem.siteTitle,
+          audioUrl: feedItem.enclosures?.[0]?.url || "",
+          image: feedItem.favicon || feedItem.thumbnail,
         })
       }
     },
-    [feed, playAudio],
+    [feedItem, playAudio],
   )
 
   const handleLikeClick = useCallback(
@@ -133,26 +137,11 @@ export const FeedCard = memo(function FeedCard({ feed }: FeedCardProps) {
     [isTogglingFavorite, toast],
   )
 
-  const formatDate = useMemo(() => {
-    return (dateString: string) => {
-      const date = new Date(dateString)
-      const now = new Date()
-      const diffMs = now.getTime() - date.getTime()
-      const diffSecs = Math.floor(diffMs / 1000)
-      const diffMins = Math.floor(diffSecs / 60)
-      const diffHours = Math.floor(diffMins / 60)
-      const diffDays = Math.floor(diffHours / 24)
-
-      if (diffSecs < 60) return "just now"
-      if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? "s" : ""} ago`
-      if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`
-      if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`
-
-      return date.toLocaleDateString()
-    }
+  const formatDate = useCallback((dateString: string) => {
+    return dayjs(dateString).fromNow()
   }, [])
 
-  const isCurrentlyPlaying = currentAudio && currentAudio.id === feed.id && isPlaying
+  const isCurrentlyPlaying = currentAudio && currentAudio.id === feedItem.id && isPlaying
 
   return (
     <>
@@ -162,13 +151,17 @@ export const FeedCard = memo(function FeedCard({ feed }: FeedCardProps) {
         onClick={handleCardClick}
       >
         <div className="relative w-full p-2">
-          <img
-            src={feed.thumbnail || feed.thumbnail || "/placeholder.svg"}
-            alt={feed.title}
-            className="w-full h-full object-cover rounded-[32px]"
-            style={{ aspectRatio: "16/9" }}
-          />
-          {feed.type === "podcast" && (
+          <div className="relative w-full aspect-[16/9]">
+            <Image
+              src={feedItem.thumbnail || feedItem.thumbnail || "/placeholder.svg"}
+              alt={feedItem.title}
+              height={300}
+              width={300}
+              className="w-full h-full object-cover rounded-[32px] aspect-auto"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
+          {feedItem.type === "podcast" && (
             <Button size="icon" className="absolute bottom-4 right-4 rounded-full" onClick={handlePlayClick}>
               {isCurrentlyPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               <span className="sr-only">{isCurrentlyPlaying ? "Pause" : "Play"}</span>
@@ -177,46 +170,48 @@ export const FeedCard = memo(function FeedCard({ feed }: FeedCardProps) {
         </div>
         <CardContent className="p-4">
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {feed.favicon && (
-                  <img 
-                    src={feed.favicon} 
-                    alt={`${feed.siteTitle} favicon`}
-                    className="w-4 h-4 rounded-full"
+            <div id={`feed-card-header-${feedItem.id}`} className="flex flex-wrap items-center justify-between gap-2 font-regular">
+              <div className="flex space-between gap-2 align-center items-center ">
+                {feedItem.favicon && (
+                  <Image 
+                    src={feedItem.favicon} 
+                    alt={`${feedItem.siteTitle} favicon`}
+                    className="w-5 h-5 rounded-[4px] border border-black-500"
+                    height={48}
+                    width={48}
                   />
                 )}
-                <div className="text-sm font-medium">{feed.siteTitle}</div>
+                <div className="text-xs  line-clamp-1 font-regular">{feedItem.feedTitle}</div>
               </div>
-              <div className="text-xs text-muted-foreground">{formatDate(feed.published)}</div>
+              <div className="text-xs text-muted-foreground w-fit font-medium">{formatDate(feedItem.published)}</div>
             </div>
-            <h3 className="font-semibold">{feed.title}</h3>
-            {feed.author && (
-              <div className="text-sm text-muted-foreground">By {feed.author}</div>
+            <h3 className="font-medium">{feedItem.title}</h3>
+            {feedItem.author && (
+              <div className="text-sm text-muted-foreground">By {feedItem.author}</div>
             )}
-            <p className="text-sm text-muted-foreground line-clamp-3">{feed.description}</p>
+            <p className="text-sm text-muted-foreground line-clamp-3">{feedItem.description}</p>
           </div>
         </CardContent>
         <CardFooter
           liked={liked}
           isTogglingFavorite={isTogglingFavorite}
           handleLikeClick={handleLikeClick}
-          feedType={feed.type}
-          duration={feed.duration ? feed.duration : undefined}
+          feedType={feedItem.type}
+          duration={feedItem.duration ? feedItem.duration : undefined}
         />
       </Card>
-      {feed.type === "podcast" ? (
+      {feedItem.type === "podcast" ? (
         <PodcastDetailsModal
           isOpen={isPodcastDetailsOpen}
           onClose={() => setIsPodcastDetailsOpen(false)}
-          podcast={feed}
+          podcast={feedItem}
           initialPosition={initialPosition}
         />
       ) : (
         <ReaderViewModal
           isOpen={isReaderViewOpen}
           onClose={() => setIsReaderViewOpen(false)}
-          articleUrl={feed.link}
+          articleUrl={feedItem.link}
           initialPosition={initialPosition}
         />
       )}

@@ -467,3 +467,50 @@ background-color: #f4e7d8
   border-radius: 0; /* Remove border radius if any */
 }
 }
+
+@media (prefers-color-scheme: dark) {
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+::-webkit-scrollbar-thumb:vertical:active {
+  background: rgba(255,255,255,0.61); /* Some darker color when you click it */
+  -webkit-border-radius: 100px;
+}
+
+}
+
+@media (prefers-color-scheme: light) {
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 5px;
+}
+
+
+}

@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Play, Pause, SkipBack, SkipForward, Repeat, Heart } from "lucide-react"
 import { useAudio } from "./audio-player-provider"
 import { Slider } from "@/components/ui/slider"
-
+import Image from "next/image"
 export function AudioMiniPlayer() {
   const { currentAudio, isPlaying, togglePlayPause, currentTime, duration, seek } = useAudio()
 
@@ -30,7 +30,6 @@ export function AudioMiniPlayer() {
 
   // Memoize togglePlayPause and seek functions from useAudio hook - performance optimization (though likely already memoized by the hook)
   const memoizedTogglePlayPause = useCallback(togglePlayPause, [togglePlayPause])
-  const memoizedSeek = useCallback(seek, [seek])
 
   // Return early if no audio is playing - improves performance by avoiding rendering when not needed
   if (!currentAudio) return null
@@ -45,11 +44,13 @@ export function AudioMiniPlayer() {
           {/* Album Art - Only render if image exists - efficient conditional rendering */}
           {currentAudio.image && (
             <div className="w-[180px] h-[180px] overflow-hidden flex-shrink-0 rounded-[16px]">
-              <img
+              <Image
                 src={currentAudio.image || "/placeholder.svg"}
                 alt={currentAudio.title || "Album cover"}
                 className="w-full h-full object-cover"
                 loading="lazy" // Lazy loading for images - performance optimization
+                width={180}
+                height={180}
               />
             </div>
           )}

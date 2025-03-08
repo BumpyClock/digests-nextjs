@@ -1,0 +1,55 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="48" height="48" rx="8" fill="#F3F4F6"/>
+  
+  <!-- Podcast Icon -->
+  <g transform="translate(14,10)">
+    <!-- Microphone Body -->
+    <rect 
+      x="7" 
+      y="2" 
+      width="6" 
+      height="14" 
+      rx="3" 
+      fill="#9CA3AF"
+    />
+    
+    <!-- Microphone Stand -->
+    <path 
+      d="M7 12C4 12 4 16 4 19M19 19C19 16 19 12 16 12"
+      stroke="#9CA3AF"
+      stroke-width="2"
+      stroke-linecap="round"
+    />
+    
+    <!-- Base -->
+    <path 
+      d="M4 19H19"
+      stroke="#9CA3AF"
+      stroke-width="2"
+      stroke-linecap="round"
+    />
+    
+    <!-- Center Stand -->
+    <path 
+      d="M10 16V24"
+      stroke="#9CA3AF"
+      stroke-width="2"
+      stroke-linecap="round"
+    />
+    
+    <!-- Sound Waves -->
+    <path 
+      d="M6 8C6 8 3 8 3 10M17 10C17 8 14 8 14 8"
+      stroke="#9CA3AF"
+      stroke-width="1.5"
+      stroke-linecap="round"
+    />
+    <path 
+      d="M7 5C7 5 4 5 4 7M16 7C16 5 13 5 13 5"
+      stroke="#9CA3AF"
+      stroke-width="1.5"
+      stroke-linecap="round"
+    />
+  </g>
+</svg>

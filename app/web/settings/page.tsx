@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
-import { Trash2, Plus, RefreshCw, ExternalLink, Download, Upload } from "lucide-react"
+import { Trash2, Plus, RefreshCw, ExternalLink, Download, Upload, Copy } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import type { Feed } from "@/lib/rss"
@@ -16,6 +16,7 @@ import Image from "next/image"
 import { useFeedStore } from "@/store/useFeedStore"
 import { getFeeds } from "@/lib/clientStorage"
 import { fetchFeedsAction } from "@/app/actions"
+import { SettingsFeedGrid } from "./settingsFeedGrid"
 
 function exportOPML(feeds: Feed[]) {
   const opml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -250,8 +251,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-3.5rem)] overflow-hidden">
-      <div className="container py-6 max-w-4xl h-full">
+    <div className="h-[calc(100vh-3.5rem)] ">
+      <div className="container py-6 max-w-7xl h-full">
         <div className="flex flex-col space-y-6 h-full">
           <div>
             <h1 className="text-3xl font-bold mb-2">Settings</h1>
@@ -265,7 +266,7 @@ export default function SettingsPage() {
               <TabsTrigger value="account">Account</TabsTrigger>
             </TabsList>
 
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 ">
               <TabsContent value="feeds" className="h-full">
                 <Card>
                   <CardHeader>
@@ -305,6 +306,7 @@ export default function SettingsPage() {
                   <div className="flex gap-2">
                     <input
                       type="file"
+                      title="Import OPML"
                       accept=".opml,.xml"
                       onChange={handleImportOPML}
                       ref={fileInputRef}
@@ -341,49 +343,10 @@ export default function SettingsPage() {
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="space-y-4">
-                    {feeds.map((feed) => (
-                      <Card key={feed.feedUrl}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                              <div className="w-12 h-12 rounded-md bg-muted flex items-center justify-center overflow-hidden">
-                                {feed.favicon ? (
-                                  <Image
-                                    src={feed.favicon || "/placeholder.svg"}
-                                    alt={`${feed.feedTitle} favicon`}
-                                    width={48}
-                                    height={48}
-                                    className="object-cover"
-                                  />
-                                ) : (
-                                  feed.feedTitle && feed.feedTitle.charAt(0).toUpperCase()
-                                )}
-                              </div>
-                              <div>
-                                <h3 className="font-medium">{feed.feedTitle}</h3>
-                                <p className="text-sm text-muted-foreground truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
-                                  {feed.feedUrl}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Button variant="ghost" size="icon" asChild>
-                                <a href={feed.feedUrl} target="_blank" rel="noopener noreferrer">
-                                  <ExternalLink className="h-4 w-4" />
-                                  <span className="sr-only">Open original</span>
-                                </a>
-                              </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleRemoveFeed(feed.feedUrl)}>
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Remove</span>
-                              </Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+                  <SettingsFeedGrid
+                    feeds={feeds.map(feed => feed)}
+                    onDelete={handleRemoveFeed}
+                  />
                 )}
               </TabsContent>
 

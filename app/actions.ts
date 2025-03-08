@@ -2,87 +2,90 @@
 
 import { revalidatePath } from "next/cache"
 import { fetchFeeds } from "@/lib/rss"
+import type { Feed, FeedItem } from "@/lib/rss"
 
-export async function fetchFeedsAction(url: string) {
+interface FeedActionResult {
+  success: boolean
+  message: string
+  feeds?: Feed[]
+  items?: FeedItem[]
+}
+
+export async function fetchFeedsAction(url: string): Promise<FeedActionResult> {
   try {
-    console.log("Fetching feeds for URL:", url)
     const { feeds, items } = await fetchFeeds([url])
-
-    console.log(`Fetched ${feeds.length} feeds and ${items.length} items`)
 
     if (feeds.length === 0) {
       return {
         success: false,
-        message: "No valid feeds found at the provided URL. Please check the URL and try again.",
+        message: "No valid feeds found at the provided URL.",
       }
     }
 
     if (items.length === 0) {
       return {
         success: false,
-        message: "The feed was found, but it contains no items. Please try a different feed.",
+        message: "Feed found but contains no items.",
       }
     }
 
-    console.log("Revalidating paths...")
-    revalidatePath("/app")
-    revalidatePath("/app/settings")
-
+    revalidatePath("/web")
+    
     return {
       success: true,
-      message: `Successfully fetched feed: ${feeds[0].feedTitle}`,
+      message: `Added: ${feeds[0].feedTitle}`,
       feeds,
       items,
     }
   } catch (error) {
-    console.error("Error fetching feed:", error)
     return {
       success: false,
-      message:
-        error instanceof Error
-          ? `Error: ${error.message}. Please check the URL and try again.`
-          : "An unknown error occurred while fetching the feed. Please try again.",
+      message: error instanceof Error ? error.message : "Failed to fetch feed",
     }
   }
 }
 
-export async function refreshFeedsAction(feedUrls: string[]) {
-  try {
-    const { feeds, items } = await fetchFeeds(feedUrls)
-    revalidatePath("/app")
+export async function refreshFeedsAction(feedUrls: string[]): Promise<FeedActionResult> {
+  if (!feedUrls.length) {
     return {
       success: true,
-      message: "Feeds refreshed successfully",
+      message: "No feeds to refresh",
+      feeds: [],
+      items: [],
+    }
+  }
+
+  try {
+    const { feeds, items } = await fetchFeeds(feedUrls)
+    revalidatePath("/web")
+    
+    return {
+      success: true,
+      message: `Refreshed ${feeds.length} feeds`,
       feeds,
       items,
     }
   } catch (error) {
-    console.error("Error refreshing feeds:", error)
     return {
       success: false,
-      message: "An error occurred while refreshing feeds. Please try again.",
+      message: "Failed to refresh feeds",
     }
   }
 }
 
 export async function toggleFavoriteAction(itemId: string) {
   try {
-    // TODO: Implement toggle favorite logic
-    // For now, we'll just simulate a successful toggle
-    const success = true
-    const message = "Favorite toggled successfully"
-
-    revalidatePath("/app")
+    revalidatePath("/web")
     return {
-      success,
-      message,
+      success: true,
+      message: "Favorite toggled",
     }
   } catch (error) {
-    console.error("Error toggling favorite:", error)
     return {
       success: false,
-      message: "An error occurred while toggling favorite. Please try again.",
+      message: "Failed to toggle favorite",
     }
   }
 }
+
 

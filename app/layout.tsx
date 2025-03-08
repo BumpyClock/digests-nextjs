@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Header } from "@/components/header"
 import { Toaster } from "@/components/ui/toaster"
 import { AudioPlayerProvider } from "@/components/audio-player-provider"
+import { ScrollShadow } from "@heroui/scroll-shadow"
 
 const notoSans = Noto_Sans({ subsets: ["latin"] })
 
@@ -21,6 +22,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+      <script src="https://unpkg.com/react-scan/dist/auto.global.js" />
+
+      </head>
       <body className={notoSans.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AudioPlayerProvider>
@@ -30,6 +35,7 @@ export default function RootLayout({
             </div>
             <Toaster />
           </AudioPlayerProvider>
+
         </ThemeProvider>
       </body>
     </html>

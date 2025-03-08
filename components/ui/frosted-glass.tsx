@@ -32,14 +32,13 @@ const FrostedGlass: React.FC<FrostedGlassProps> = ({
   const bgColorClass = bgColor.startsWith('bg-') ? bgColor : `bg-${bgColor}`;
 
   return (
-    <div className={`relative ${className}`} style={{ borderRadius: `${rounded}px` }}>
+    <div className={`relative ${className} rounded-[${rounded}px]`} >
       {/* Extended container to allow for blur to consider neighboring pixels */}
       <div className="absolute -inset-16">
         {/* Backdrop element with blur filter */}
         <div
-          className={`absolute inset-16 ${blurClass} ${bgColorClass} ${bgOpacityClass}`}
+          className={`absolute inset-16 ${blurClass} ${bgColorClass} ${bgOpacityClass} rounded-[${rounded}px]`}
           style={{
-            borderRadius: `${rounded}px`,
             maskImage: `url(#${maskId})`,
           }}
         />

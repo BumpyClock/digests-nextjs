@@ -47,6 +47,7 @@ export function BaseModal({ isOpen, onClose, title, link, initialPosition, child
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
+      
       <DialogTitle className="sr-only">{title || "Content"}</DialogTitle>
       <DialogContent
         className={`xs:max-w-full xs:rounded-none xs:border-none xs:h-screen xs:max-h-screen sm:rounded-[32px] sm:border-none sm:h-screen sm:max-h-screen sm:w-screen sm:max-w-screen md:max-w-7xl md:h-[99vh] lg:max-h-[95vh] lg:w-[65vw] lg:max-w-[1050px] p-0 gap-0  ${className || ""}`}
@@ -74,16 +75,14 @@ export function BaseModal({ isOpen, onClose, title, link, initialPosition, child
         </div>
         <div
           className="h-full overflow-y-auto scrollbar-thin"
-          style={{
-            scrollbarWidth: "thin",
-            scrollbarColor: "var(--scrollbar-thumb) transparent",
-          }}
+          
         >
           <div className=" mx-auto  p-12 ">
             {children}
           </div>
         </div>
       </DialogContent>
+   
     </Dialog>
   )
 }

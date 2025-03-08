@@ -21,7 +21,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Link href="/app">
+                <Link href="/web">
                   <Button size="lg" className="gap-1.5">
                     Launch Web App <ArrowRight className="h-4 w-4" />
                   </Button>

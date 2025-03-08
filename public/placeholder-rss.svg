@@ -1,0 +1,39 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="48" height="48" rx="8" fill="#F3F4F6"/>
+  
+  <!-- RSS Icon -->
+  <g transform="translate(12,12)">
+    <!-- Outer arc -->
+    <path 
+      d="M4 4.5C14.5 4.5 19.5 9.5 19.5 20"
+      stroke="#9CA3AF"
+      stroke-width="3"
+      stroke-linecap="round"
+      fill="none"
+    />
+    <!-- Middle arc -->
+    <path 
+      d="M4 10.5C11 10.5 13.5 13 13.5 20"
+      stroke="#9CA3AF"
+      stroke-width="3"
+      stroke-linecap="round"
+      fill="none"
+    />
+    <!-- Inner arc -->
+    <path 
+      d="M4 16.5C7.5 16.5 7.5 16.5 7.5 20"
+      stroke="#9CA3AF"
+      stroke-width="3"
+      stroke-linecap="round"
+      fill="none"
+    />
+    <!-- Dot -->
+    <circle 
+      cx="4" 
+      cy="20" 
+      r="2" 
+      fill="#9CA3AF"
+    />
+  </g>
+</svg>

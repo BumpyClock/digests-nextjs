@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState, useEffect } from "react"
+import { useCallback, useState, useEffect, useMemo } from "react"
 import { Masonry } from "masonic"
 import { FeedCard } from "@/components/feed-card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -22,7 +22,7 @@ const LoadingSkeleton = ({ columnCount = 3, skeletonCount = 9 }: { columnCount?:
 
   if (!mounted) {
     return (
-      <div id="loading-skeleton" className="grid gap-6" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
+      <div id="loading-skeleton" className="grid gap-6 grid-tem" style={{ gridTemplateColumns: `repeat(${columnCount}, 1fr)` }}>
         {Array(skeletonCount).fill(0).map((_, i) => (
           <div key={i} className="flex flex-col space-y-3">
             <Skeleton className="w-full" style={{ aspectRatio: "16/9" }} />
@@ -61,14 +61,21 @@ export function FeedGrid({ items, isLoading, skeletonCount = 6 }: FeedGridProps)
   
   const columnWidth = 350
   const columnGutter = 24
-  const columnCount = Math.max(1, Math.floor((width - 48) / (columnWidth + columnGutter)))
+  const columnCount = useMemo(() => 
+    Math.max(1, Math.floor((width - 48) / (columnWidth + columnGutter))),
+    [width]
+  )
   
   const renderItem = useCallback(
-    ({ data: feed, width }: { data: FeedItem; width: number }) => (
+    ({ data: feed }: { data: FeedItem }) => (
       <FeedCard feed={feed} />
     ),
     []
   )
+
+  const memoizedItems = useMemo(() => items, [items])
+
+  const itemKey = useCallback((item: FeedItem) => item.id, [])
 
   if (!mounted) {
     return <LoadingSkeleton columnCount={3} skeletonCount={skeletonCount} />
@@ -85,19 +92,16 @@ export function FeedGrid({ items, isLoading, skeletonCount = 6 }: FeedGridProps)
   }
 
   return (
-    <div id="feed-grid" className="h-full w-full">
-      <div className="p-2 pt-6">
-        
-        <Masonry
-          items={items}
-          maxColumnCount={columnCount}
-          columnGutter={columnGutter}
-          columnWidth={columnWidth}
-          render={renderItem}
-          overscanBy={5}
-          itemKey={(item) => item.id}
-        />
-      </div>
+    <div id="feed-grid" className="p-2 pt-6 h-screen">
+      <Masonry
+        items={memoizedItems}
+        maxColumnCount={columnCount}
+        columnGutter={columnGutter}
+        columnWidth={columnWidth}
+        render={renderItem}
+        overscanBy={1}
+        itemKey={itemKey}
+      />
     </div>
   )
 } 
