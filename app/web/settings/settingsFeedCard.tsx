@@ -15,10 +15,10 @@ interface FeedCardProps {
 
 export function SettingsFeedCard({ feed, onDelete, onCopy }: FeedCardProps) {
   return (
-    <div className="relative overflow-hidden group transition-all duration-200 group-hover:scale-105 group-hover:translate-y-[-8px]">
+    <div className="relative  group transition-all duration-200 group-hover:scale-105 group-hover:translate-y-[-8px]">
     <div id={`settings-feed-card-${feed.feedUrl}`} className=" relative  p-5 flex flex-col h-full z-2">
       <div className="flex-1">
-        <div className="mb-4  transition-all duration-300 group-hover:translate-y-[-8px]">
+        <div className="mb-4  transition-all duration-300 group-hover:translate-y-[-4px]">
           <Image src={feed.favicon || (feed.type === 'podcast' ? placeholderPodcast : placeholderRss)} alt={`${feed.siteTitle} icon`} width={48} height={48} className="rounded-sm group-hover:scale-110 transition-all duration-200" />
         </div>
         <h3 className="font-bold text-sm mb-1 line-clamp-2">{feed.siteTitle}</h3>
@@ -42,11 +42,11 @@ export function SettingsFeedCard({ feed, onDelete, onCopy }: FeedCardProps) {
         </button>
       </div>
     </div>
-    <div className="absolute top-0 left-0 w-full h-full z-[-1]">
-    <div id={`settings-feed-card-${feed.feedUrl}-noise`} className="absolute top-0 left-0 w-full h-full opacity-5 bg-cover bg-center rounded-xl z-[-1]" style={{ backgroundImage: `url(${noise.src})` }} />
-    <div id={`settings-feed-card-${feed.feedUrl}-imageblur`} className="absolute top-0 left-0 w-full h-full bg-cover bg-center rounded-xl z-[-1] blur-[80px] brightness-50 opacity-15 transition-opacity duration-200 group-hover:opacity-30" style={{ backgroundImage: `url(${feed.favicon})` }} />
+    <div className="overflow-hidden rounded-2xl absolute top-0 left-0 w-full h-full z-[-1]">
+    <div id={`settings-feed-card-${feed.feedUrl}-noise`} className="overflow-hidden absolute top-0 left-0 w-full h-full opacity-5 bg-cover bg-center" style={{ backgroundImage: `url(${noise.src})` }} />
+    <div id={`settings-feed-card-${feed.feedUrl}-imageblur`} className="absolute overflow-hidden top-0 left-0 w-full h-full bg-cover bg-center  blur-[80px] brightness-80 opacity-15 transition-all duration-200 group-hover:opacity-30 group-hover:blur-[100px] group-hover:brightness-120" style={{ backgroundImage: `url(${feed.favicon})` }} />
     </div>
-    <div className="absolute top-0 left-0 w-full h-full bg-card border rounded-xl shadow-2xl z-[-3]"></div>
+    <div className="absolute top-0 left-0 w-full h-full bg-card border rounded-xl shadow-md z-[-3] group-hover:shadow-xl transition-all duration-200"></div>
     </div>
   )
 }

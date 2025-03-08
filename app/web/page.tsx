@@ -77,6 +77,8 @@ export default function AppPage() {
     setSearchQuery(value)
   }, [])
 
+ 
+
   const isLoading = loading || (!initialized && feedItems.length === 0)
 
   return (
@@ -116,7 +118,7 @@ export default function AppPage() {
           ) : feedItems.length === 0 ? (
             <EmptyState />
           ) : (
-            <FeedGrid items={filteredItems} isLoading={false} />
+            <FeedGrid items={filteredItems} isLoading={false}  />
           )}
         </TabsContent>
 
@@ -125,6 +127,7 @@ export default function AppPage() {
             items={articleItems} 
             isLoading={isLoading} 
             skeletonCount={6} 
+          
           />
         </TabsContent>
 
@@ -133,6 +136,7 @@ export default function AppPage() {
             items={podcastItems} 
             isLoading={isLoading} 
             skeletonCount={3} 
+           
           />
         </TabsContent>
 
@@ -141,6 +145,7 @@ export default function AppPage() {
             items={favoriteItems} 
             isLoading={isLoading} 
             skeletonCount={4} 
+          
           />
         </TabsContent>
       </Tabs>

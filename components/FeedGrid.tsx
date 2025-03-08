@@ -11,6 +11,7 @@ interface FeedGridProps {
   items: FeedItem[]
   isLoading: boolean
   skeletonCount?: number
+  
 }
 
 const LoadingSkeleton = ({ columnCount = 3, skeletonCount = 9 }: { columnCount?: number, skeletonCount?: number }) => {

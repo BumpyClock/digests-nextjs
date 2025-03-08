@@ -250,6 +250,14 @@ export default function SettingsPage() {
     }
   }
 
+  const handleCopyFeed = (feedUrl: string) => {
+    navigator.clipboard.writeText(feedUrl)
+    toast({
+      title: "Feed URL copied",
+      description: "The feed URL has been copied to your clipboard.",
+    })
+  }
+
   return (
     <div className="h-[calc(100vh-3.5rem)] ">
       <div className="container py-6 max-w-7xl h-full">
@@ -346,6 +354,7 @@ export default function SettingsPage() {
                   <SettingsFeedGrid
                     feeds={feeds.map(feed => feed)}
                     onDelete={handleRemoveFeed}
+                    onCopy={handleCopyFeed}
                   />
                 )}
               </TabsContent>
