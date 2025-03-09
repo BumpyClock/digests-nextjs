@@ -6,7 +6,6 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Header } from "@/components/header"
 import { Toaster } from "@/components/ui/toaster"
 import { AudioPlayerProvider } from "@/components/audio-player-provider"
-import { ScrollShadow } from "@heroui/scroll-shadow"
 
 const notoSans = Noto_Sans({ subsets: ["latin"] })
 
