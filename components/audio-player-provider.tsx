@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useRef, useEffect, useCallb
 import { Card, CardContent } from "@/components/ui/card"
 import { AudioControls } from "@/components/AudioControls"
 import { AudioMiniPlayer } from "@/components/AudioMiniPlayer"
-
+import Image from "next/image"
 interface AudioInfo {
   id: string
   title: string
@@ -195,6 +195,8 @@ const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 }
 
 const AudioControlsWrapper = React.memo(() => <AudioControls />)
+AudioControlsWrapper.displayName = 'AudioControlsWrapper'
+
 
 const AudioPlayer = React.memo(() => {
   const { currentAudio, isMinimized, showMiniPlayer } = useAudioPlayer()
@@ -211,7 +213,7 @@ const AudioPlayer = React.memo(() => {
         <div className="flex items-center flex-1">
           {currentAudio.image && (
             <div className="w-12 h-12 rounded overflow-hidden mr-3 flex-shrink-0">
-              <img
+              <Image
                 src={currentAudio.image || "/placeholder.svg"}
                 alt={currentAudio.title}
                 className="w-full h-full object-cover"

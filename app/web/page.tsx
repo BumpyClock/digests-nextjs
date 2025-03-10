@@ -44,6 +44,7 @@ export default function AppPage() {
 
   // Handle manual refresh
   const handleRefresh = useCallback(() => {
+    console.log('Refreshing feeds...')
     refreshFeeds()
   }, [refreshFeeds])
 

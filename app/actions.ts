@@ -68,7 +68,7 @@ export async function refreshFeedsAction(feedUrls: string[]): Promise<FeedAction
   } catch (error) {
     return {
       success: false,
-      message: "Failed to refresh feeds",
+      message: error instanceof Error ? error.message : "Failed to refresh feeds",
     }
   }
 }
@@ -78,12 +78,12 @@ export async function toggleFavoriteAction(itemId: string) {
     revalidatePath("/web")
     return {
       success: true,
-      message: "Favorite toggled",
+      message: `Favorite toggled for item ${itemId}. This is placeholder and not implemented yet.`,
     }
   } catch (error) {
     return {
       success: false,
-      message: "Failed to toggle favorite",
+      message: error instanceof Error ? error.message : "Failed to toggle favorite",
     }
   }
 }

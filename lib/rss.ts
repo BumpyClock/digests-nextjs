@@ -21,14 +21,14 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
       throw new Error(`HTTP error! status: ${response.status}`)
     }
 
-    const data = await response.json()
+    const data = await response.json() as FetchFeedsResponse;
     console.log("API Response data:", JSON.stringify(data, null, 2))
 
     if (!data || !Array.isArray(data.feeds)) {
       throw new Error("Invalid response from API")
     }
 
-    const feeds: Feed[] = data.feeds.map((feed: any) => ({
+    const feeds: Feed[] = data.feeds.map((feed: Feed) => ({
       type: feed.type,
       guid: feed.guid,
       status: feed.status,
@@ -44,7 +44,7 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
       language: feed.language,
       favicon: feed.favicon,
       categories: feed.categories,
-      items: Array.isArray(feed.items) ? feed.items.map((item: any) => ({
+      items: Array.isArray(feed.items) ? feed.items.map((item: FeedItem) => ({
         type: item.type,
         id: item.id,
         title: item.title,

@@ -6,12 +6,15 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Bookmark, Share2, ExternalLink } from "lucide-react"
 import { getFeedItemsAction, toggleFavoriteAction } from "@/app/actions"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
-import { fetchReaderView, type ReaderViewResponse } from "@/lib/rss"
+import { fetchReaderView} from "@/lib/rss"
+import { type ReaderViewResponse } from "@/types/api"
+import Image from "next/image"
+import { FeedItem } from "@/types"
 
 export default function ArticlePage({ params }: { params: { id: string } }) {
-  const [article, setArticle] = useState<any>(null)
+  const [article, setArticle] = useState<FeedItem | null>(null)
   const [readerView, setReaderView] = useState<ReaderViewResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [isBookmarked, setIsBookmarked] = useState(false)
@@ -25,7 +28,7 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
       const { success, items } = await getFeedItemsAction()
 
       if (success && items) {
-        const foundArticle = items.find((item) => item.id === params.id && item.type === "article")
+        const foundArticle = items.find((item: FeedItem) => item.id === params.id && item.type === "article")
 
         if (foundArticle) {
           setArticle(foundArticle)
@@ -123,7 +126,7 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
         <div className="flex flex-col items-center justify-center py-12">
           <h2 className="text-2xl font-bold mb-2">Article not found</h2>
           <p className="text-muted-foreground mb-6">
-            The article you're looking for doesn't exist or has been removed.
+            The article you&apos;re looking for doesn&apos;t exist or has been removed.
           </p>
           <Button onClick={() => router.push("/app")}>Return to feeds</Button>
         </div>
@@ -142,12 +145,18 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2">
             {readerView?.favicon && (
-              <img src={readerView.favicon || "/placeholder.svg"} alt="Site favicon" className="w-6 h-6 rounded" />
+              <Image 
+                src={readerView.favicon || "/placeholder.svg"} 
+                alt="Site favicon" 
+                width={24}
+                height={24}
+                className="rounded"
+              />
             )}
             <div>
-              <p className="font-medium">{readerView?.siteName || article.source}</p>
+              <p className="font-medium">{readerView?.siteName || article.link}</p>
               <p className="text-sm text-muted-foreground">
-                {new Date(article.pubDate).toLocaleDateString(undefined, {
+                {new Date(article.published).toLocaleDateString(undefined, {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -175,10 +184,11 @@ export default function ArticlePage({ params }: { params: { id: string } }) {
 
         {readerView?.image && (
           <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-6">
-            <img
+            <Image
               src={readerView.image || "/placeholder.svg"}
               alt={readerView.title}
-              className="object-cover w-full h-full"
+              fill
+              className="object-cover"
             />
           </div>
         )}

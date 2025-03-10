@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Bookmark, Share2 } from "lucide-react"
-import { getFeedItemsAction, toggleFavoriteAction } from "@/app/actions"
-import { useToast } from "@/components/ui/use-toast"
+import { fetchFeedsAction, toggleFavoriteAction } from "@/app/actions"
+import { useToast } from "@/hooks/use-toast"
 import { useAudioPlayer } from "@/components/audio-player-provider"
+import Image from "next/image"
+import type { FeedItem } from "@/types/feed"
 
 export default function PodcastPage({ params }: { params: { id: string } }) {
-  const [podcast, setPodcast] = useState<any>(null)
+  const [podcast, setPodcast] = useState<FeedItem | null>(null)
   const [loading, setLoading] = useState(true)
   const [isBookmarked, setIsBookmarked] = useState(false)
   const router = useRouter()
@@ -21,10 +23,10 @@ export default function PodcastPage({ params }: { params: { id: string } }) {
     async function loadPodcast() {
       setLoading(true)
 
-      const { success, items } = await getFeedItemsAction()
+      const { success, items } = await fetchFeedsAction()
 
       if (success && items) {
-        const foundPodcast = items.find((item) => item.id === params.id && item.type === "podcast")
+        const foundPodcast = items.find((item: FeedItem) => item.id === params.id && item.type === "podcast")
 
         if (foundPodcast) {
           setPodcast(foundPodcast)
@@ -78,9 +80,9 @@ export default function PodcastPage({ params }: { params: { id: string } }) {
       playAudio({
         id: podcast.id,
         title: podcast.title,
-        source: podcast.source,
-        audioUrl: podcast.audioUrl || "https://example.com/podcast.mp3",
-        image: podcast.image,
+        source: podcast.link,
+        audioUrl: podcast.link || "https://example.com/podcast.mp3",
+        image: podcast.thumbnail,
       })
     }
   }
@@ -122,7 +124,7 @@ export default function PodcastPage({ params }: { params: { id: string } }) {
         <div className="flex flex-col items-center justify-center py-12">
           <h2 className="text-2xl font-bold mb-2">Podcast not found</h2>
           <p className="text-muted-foreground mb-6">
-            The podcast you're looking for doesn't exist or has been removed.
+            The podcast you&apos;re looking for doesn&apos;t exist or has been removed.
           </p>
           <Button onClick={() => router.push("/app")}>Return to feeds</Button>
         </div>
@@ -139,22 +141,24 @@ export default function PodcastPage({ params }: { params: { id: string } }) {
         </Button>
         <div className="flex flex-col md:flex-row gap-6 mb-6">
           <div className="relative w-full md:w-1/3 aspect-square overflow-hidden rounded-lg">
-            <img
-              src={podcast.image || "/placeholder.svg?height=300&width=300"}
+            <Image
+              src={podcast.thumbnail || "/placeholder.svg?height=300&width=300"}
               alt={podcast.title}
-              className="object-cover w-full h-full"
+              className="object-cover"
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
             />
           </div>
           <div className="flex-1">
             <h1 className="text-3xl font-bold mb-2">{podcast.title}</h1>
             <div className="flex items-center mb-4">
               <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center mr-2">
-                {podcast.source.charAt(0).toUpperCase()}
+                {podcast.link.charAt(0).toUpperCase()}
               </div>
-              <p className="font-medium">{podcast.source}</p>
+              <p className="font-medium">{podcast.link}</p>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              {new Date(podcast.pubDate).toLocaleDateString(undefined, {
+              {new Date(podcast.published).toLocaleDateString(undefined, {
                 year: "numeric",
                 month: "long",
                 day: "numeric",

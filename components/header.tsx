@@ -30,7 +30,7 @@ export function Header() {
                 <Link href="/#download">
                   <Button variant="ghost">Download</Button>
                 </Link>
-                <Link href="/app">
+                <Link href="/web">
                   <Button>Launch App</Button>
                 </Link>
               </>

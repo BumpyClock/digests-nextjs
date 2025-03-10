@@ -126,6 +126,7 @@ export const useFeedStore = create<FeedState>()(
         
         // Only skip refresh if we have feeds AND items AND don't need refresh
         if (feeds.length > 0 && feedItems.length > 0 && !needsRefresh()) {
+          console.log(`Skipping refresh because we have feeds and items and don\'t need refresh because needsRefresh is ${needsRefresh()}`);
           set({ initialized: true })
           return
         }

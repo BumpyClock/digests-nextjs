@@ -158,11 +158,7 @@ export function ReaderViewModal({
 
   // Memoize initialPosition object to maintain reference equality
   const memoizedPosition = useMemo(() => initialPosition, [
-    initialPosition.x,
-    initialPosition.y,
-    initialPosition.width,
-    initialPosition.height
-  ]);
+    initialPosition]);
 
   useEffect(() => {
     async function loadReaderView() {
