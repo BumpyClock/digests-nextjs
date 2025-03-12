@@ -6,17 +6,19 @@ import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, Settings, Home, Rss, Headphones, BookMarked } from "lucide-react"
+import logo192 from "@/public/logo192.png"
+import Image from "next/image"
 
 export function Header() {
   const pathname = usePathname()
   const isApp = pathname?.startsWith("/web")
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
+    <header className=" sticky top-0 z-50 w-full max-w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center mx-auto">
         <div className="mr-4 flex">
           <Link href="/" className="flex items-center space-x-2">
-            <Rss className="h-6 w-6" />
+            <Image src={logo192} alt="Digests" className="h-6 w-6" />
             <span className="font-bold">Digests</span>
           </Link>
         </div>

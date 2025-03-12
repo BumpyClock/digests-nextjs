@@ -1,0 +1,21 @@
+{
+    "name": "Digests - Modern RSS Reader",
+    "short_name": "Digests",
+    "description": "Subscribe, manage and read your favorite RSS feeds and podcasts",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#43A1AB",
+    "icons": [
+      {
+        "src": "/logo192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/logo512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }

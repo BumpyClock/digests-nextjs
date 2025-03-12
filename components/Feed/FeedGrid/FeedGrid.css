@@ -1,0 +1,31 @@
+.loading-skeleton-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+  
+  .loading-skeleton-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .skeleton-image {
+    width: 100%;
+    aspect-ratio: 16/9;
+  }
+  
+  .skeleton-text-full {
+    height: 1rem;
+    width: 100%;
+  }
+  
+  .skeleton-text-partial {
+    height: 1rem;
+    width: 75%;
+  }
+  
+  .feed-grid-container {
+    padding: 0.5rem;
+    padding-top: 1.5rem;
+    height: 100vh;
+  }

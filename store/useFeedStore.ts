@@ -1,16 +1,14 @@
 // store/useFeedStore.ts
-
 import { create } from "zustand"
 import { persist, createJSONStorage } from "zustand/middleware"
 import localforage from "localforage"
 import { useState, useEffect } from "react"
 
 import type { Feed, FeedItem } from "@/types"
-import { fetchFeedsAction, refreshFeedsAction } from "@/app/actions"
+import { workerService } from "@/services/worker-service"
 
 /** 
- * The Zustand store shape (as you requested):
- * Feeds, feed items, flags, plus actions 
+ * The Zustand store shape with web worker integration
  */
 interface FeedState {
   feeds: Feed[]
@@ -42,7 +40,7 @@ interface FeedState {
 // Add hydration flag at top of file
 let hydrated = false
 
-// Add this helper function at the top of the file after imports
+// Helper function to normalize URLs for comparison
 const normalizeUrl = (url: string): string => {
   try {
     // Remove protocol and any trailing slashes
@@ -54,6 +52,7 @@ const normalizeUrl = (url: string): string => {
 
 /**
  * Create a Zustand store with persist middleware, storing data in IndexedDB.
+ * Now uses the web worker service for API calls.
  */
 export const useFeedStore = create<FeedState>()(
   persist(
@@ -75,7 +74,7 @@ export const useFeedStore = create<FeedState>()(
       // === ACTIONS ===
 
       /**
-       * addFeed: Fetches/validates a new feed from the server,
+       * addFeed: Fetches/validates a new feed via the worker,
        * merges the new feed and items into the store, and sorts items by date.
        */
       addFeed: async (url) => {
@@ -95,14 +94,19 @@ export const useFeedStore = create<FeedState>()(
         }
 
         try {
-          const result = await fetchFeedsAction(url)
-          if (result.success && result.feeds && result.items) {
+          // Use worker service to fetch feed
+          const result = await workerService.fetchFeeds(url)
+          
+          if (result.success && result.feeds.length > 0) {
             const sortedItems = sortFeedItemsByDate([...feedItems, ...result.items])
             set({
               feeds: [...feeds, ...result.feeds],
               feedItems: sortedItems,
             })
-            return { success: true, message: result.message }
+            return { 
+              success: true, 
+              message: `Added: ${result.feeds[0].feedTitle}`
+            }
           } else {
             return {
               success: false,
@@ -118,15 +122,15 @@ export const useFeedStore = create<FeedState>()(
       },
 
       /**
-       * refreshFeeds: Re-fetches *all* feeds from the server, merges items,
-       * and optionally replaces the feeds array with the returned ones.
+       * refreshFeeds: Re-fetches *all* feeds via the worker, merges items,
+       * and updates the store.
        */
       refreshFeeds: async () => {
         const { feeds, feedItems, shouldRefresh: needsRefresh } = get()
         
         // Only skip refresh if we have feeds AND items AND don't need refresh
         if (feeds.length > 0 && feedItems.length > 0 && !needsRefresh()) {
-          console.log(`Skipping refresh because we have feeds and items and don\'t need refresh because needsRefresh is ${needsRefresh()}`);
+          console.log(`Skipping refresh because we have feeds and items and don\'t need refresh yet`);
           set({ initialized: true })
           return
         }
@@ -140,9 +144,10 @@ export const useFeedStore = create<FeedState>()(
             return
           }
           
-          const result = await refreshFeedsAction(feedUrls)
+          // Use worker service to refresh feeds
+          const result = await workerService.refreshFeeds(feedUrls)
           
-          if (result.success && result.feeds && result.items) {
+          if (result.success) {
             const existingIds = new Set(feedItems.map(item => item.id))
             const newItems = result.items.filter(item => !existingIds.has(item.id))
             const mergedItems = [...feedItems, ...newItems]
@@ -164,7 +169,7 @@ export const useFeedStore = create<FeedState>()(
 
       /**
        * sortFeedItemsByDate: Takes a list of items and returns them 
-       * in descending order by published date. (Used internally)
+       * in descending order by published date.
        */
       sortFeedItemsByDate: (items) => {
         return [...items].sort(
@@ -189,6 +194,9 @@ export const useFeedStore = create<FeedState>()(
        */
       setInitialized: (value) => set({ initialized: value }),
 
+      /**
+       * shouldRefresh: Checks if it's time to refresh feeds
+       */
       shouldRefresh: () => {
         const { lastRefreshed } = get()
         if (!lastRefreshed) return true
@@ -200,6 +208,7 @@ export const useFeedStore = create<FeedState>()(
 
       /**
        * addFeeds: Batch version to add multiple feeds at once
+       * Now uses the worker service for each feed
        */
       addFeeds: async (urls) => {
         set({ loading: true })
@@ -224,16 +233,20 @@ export const useFeedStore = create<FeedState>()(
               continue
             }
             
-            const result = await fetchFeedsAction(url)
+            // Use worker service to fetch each feed
+            const result = await workerService.fetchFeeds(url)
             
-            if (result.success && result.feeds && result.items) {
+            if (result.success && result.feeds.length > 0) {
               // Update the store with this feed and its items
               const sortedItems = sortFeedItemsByDate([...feedItems, ...result.items])
               set({
                 feeds: [...feeds, ...result.feeds],
                 feedItems: sortedItems,
               })
-              successful.push({ url, message: result.message })
+              successful.push({ 
+                url, 
+                message: `Added: ${result.feeds[0].feedTitle}` 
+              })
             } else {
               failed.push({ 
                 url, 
@@ -264,13 +277,18 @@ export const useFeedStore = create<FeedState>()(
         if (state) {
           hydrated = true
           useFeedStore.getState().setHydrated(true)
+          
+          // Initialize worker service after hydration
+          if (typeof window !== 'undefined') {
+            workerService.initialize();
+          }
         }
       },
     }
   )
 )
 
-// Add helper function after store definition
+// Helper function for using the store with hydration
 export const useHydratedStore = <T>(selector: (state: FeedState) => T): T => {
   const [hydrationDone, setHydrationDone] = useState(false);
   

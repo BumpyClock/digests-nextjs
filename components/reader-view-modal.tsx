@@ -3,10 +3,10 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type ReaderViewResponse } from "@/types";
-import { fetchReaderView } from "@/lib/rss";
 import { useToast } from "@/hooks/use-toast";
 import { BaseModal } from "./base-modal";
 import Image from "next/image";
+import { workerService } from "@/services/worker-service";
 
 interface ReaderViewModalProps {
   isOpen: boolean;
@@ -157,16 +157,19 @@ export function ReaderViewModal({
   }, [onClose]);
 
   // Memoize initialPosition object to maintain reference equality
-  const memoizedPosition = useMemo(() => initialPosition, [
-    initialPosition]);
+  const memoizedPosition = useMemo(() => initialPosition, [initialPosition]);
 
   useEffect(() => {
     async function loadReaderView() {
       setLoading(true);
       try {
-        const readerViewData = await fetchReaderView([articleUrl]);
-        if (readerViewData.length > 0 && readerViewData[0].status === "ok") {
-          setReaderView(readerViewData[0]);
+        // Use worker service instead of direct API call
+        const result = await workerService.fetchReaderView(articleUrl);
+        
+        if (result.success && result.data.length > 0 && result.data[0].status === "ok") {
+          setReaderView(result.data[0]);
+        } else {
+          throw new Error(result.message || "Failed to load reader view");
         }
       } catch (error) {
         console.error("Error fetching reader view:", error);
@@ -183,6 +186,7 @@ export function ReaderViewModal({
       loadReaderView();
     }
   }, [isOpen, articleUrl, toast]);
+
   return (
     <BaseModal
       isOpen={isOpen}

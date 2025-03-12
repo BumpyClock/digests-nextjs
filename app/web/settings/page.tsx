@@ -7,8 +7,8 @@ import { AccountTab } from "./components/tabs/account-tab"
 
 export default function SettingsPage() {
   return (
-    <div className="h-[calc(100vh-3.5rem)]">
-      <div className="container py-6 max-w-7xl h-full">
+    <div className="h-[calc(100vh-3.5rem)] max-w-7xl mx-auto">
+      <div className="container py-6  h-full">
         <div className="flex flex-col space-y-6 h-full">
           <div>
             <h1 className="text-3xl font-bold mb-2">Settings</h1>
