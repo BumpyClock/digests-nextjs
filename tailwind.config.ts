@@ -27,6 +27,8 @@ const config: Config = {
         "purple-secondary": "hsl(var(--purple-secondary))",
         "magenta-primary": "hsl(var(--magenta-primary))",
         "magenta-secondary": "hsl(var(--magenta-secondary))",
+        "blockquote-background-color": "hsl(var(--blockquote-background-color))",
+		"brand-primary": "hsl(var(--brand-primary))",
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

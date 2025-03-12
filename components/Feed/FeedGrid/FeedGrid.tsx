@@ -23,7 +23,6 @@ const LoadingSkeleton = ({ columnCount = 3, skeletonCount = 9 }: { columnCount?:
 
   if (!mounted) {
     return (
-      // eslint-disable-next-line @typescript-eslint/no-inline-css-style
       <div id="loading-skeleton" className="grid gap-6 grid-tem" style={{ gridTemplateColumns: `repeat(${columnCount}, 1fr)` }}>
         {Array(skeletonCount).fill(0).map((_, i) => (
           <div key={i} className="flex flex-col space-y-3">
