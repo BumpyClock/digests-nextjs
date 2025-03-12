@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SearchBar } from "@/components/SearchBar"
 import { RefreshButton } from "@/components/RefreshButton"
 import { EmptyState } from "@/components/EmptyState"
-import { FeedGrid } from "@/components/FeedGrid"
+import { FeedGrid } from "@/components/Feed/FeedGrid/FeedGrid"
 import { useFeedStore } from "@/store/useFeedStore"
 
 const useHydration = () => {
@@ -85,7 +85,7 @@ export default function AppPage() {
   return (
     <div className="container py-6 max-w-[1600px] mx-auto max-h-screen ">
       <Tabs defaultValue="all" className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mx-auto">
           <TabsList>
             <TabsTrigger value="all">
               All
@@ -104,7 +104,7 @@ export default function AppPage() {
               {favoriteItems.length > 0 && ` (${favoriteItems.length})`}
             </TabsTrigger>
           </TabsList>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 p-6 pt-0">
             <SearchBar value={searchQuery} onChange={handleSearch} />
             <RefreshButton 
               onClick={handleRefresh} 

@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useEffect, useMemo } from "react"
 import { Masonry } from "masonic"
-import { FeedCard } from "@/components/feed-card"
+import { FeedCard } from "@/components/Feed/FeedCard/FeedCard"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useWindowSize } from "@/hooks/use-window-size"
 import { FeedItem } from "@/types"
@@ -23,6 +23,7 @@ const LoadingSkeleton = ({ columnCount = 3, skeletonCount = 9 }: { columnCount?:
 
   if (!mounted) {
     return (
+      // eslint-disable-next-line @typescript-eslint/no-inline-css-style
       <div id="loading-skeleton" className="grid gap-6 grid-tem" style={{ gridTemplateColumns: `repeat(${columnCount}, 1fr)` }}>
         {Array(skeletonCount).fill(0).map((_, i) => (
           <div key={i} className="flex flex-col space-y-3">
@@ -38,7 +39,7 @@ const LoadingSkeleton = ({ columnCount = 3, skeletonCount = 9 }: { columnCount?:
   }
 
   return (
-    <div className="grid gap-6" style={{ gridTemplateColumns: `repeat(${columnCount}, 1fr)` }}>
+    <div className="grid gap-6" >
       {Array(skeletonCount).fill(0).map((_, i) => (
         <div key={i} className="flex flex-col space-y-3">
           <Skeleton className="w-full" style={{ aspectRatio: "16/9" }} />
@@ -93,14 +94,14 @@ export function FeedGrid({ items, isLoading, skeletonCount = 6 }: FeedGridProps)
   }
 
   return (
-    <div id="feed-grid" className="p-2 pt-6 h-screen">
+    <div id="feed-grid" className="pt-6 h-screen">
       <Masonry
         items={memoizedItems}
         maxColumnCount={columnCount}
         columnGutter={columnGutter}
         columnWidth={columnWidth}
         render={renderItem}
-        overscanBy={1}
+        overscanBy={3}
         itemKey={itemKey}
       />
     </div>

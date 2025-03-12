@@ -176,12 +176,12 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
                   <Image 
                     src={feedItem.favicon} 
                     alt={`${feedItem.siteTitle} favicon`}
-                    className="w-5 h-5 rounded-[4px] border border-black-500"
+                    className="w-6 h-6 bg-white rounded-[4px] "
                     height={48}
                     width={48}
                   />
                 )}
-                <div className="text-xs  line-clamp-1 font-regular">{feedItem.feedTitle}</div>
+                <div className="text-xs  line-clamp-1 font-regular">{feedItem.siteTitle}</div>
               </div>
               <div className="text-xs text-muted-foreground w-fit font-medium">{formatDate(feedItem.published)}</div>
             </div>

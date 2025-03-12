@@ -7,7 +7,8 @@ import type {
 
 export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
   try {
-    console.log("Fetching feeds for URLs:", urls)
+    console.log(`Fetching feeds for URLs: ${urls.length}`);
+    console.table(urls);
     const response = await fetch("https://api.digests.app/parse", {
       method: "POST",
       headers: {
@@ -71,7 +72,7 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
     const items: FeedItem[] = feeds
       .flatMap(feed => feed.items || [])
 
-    console.log(`Processed ${feeds.length} feeds and ${items.length} items`)
+    // console.log(`Processed ${feeds.length} feeds and ${items.length} items`)
 
     return { feeds, items }
   } catch (error) {
