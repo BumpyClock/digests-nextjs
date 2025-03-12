@@ -8,6 +8,7 @@ import { Bookmark, Share2, ExternalLink, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 
+
 interface BaseModalProps {
   isOpen: boolean
   onClose: () => void
@@ -46,13 +47,15 @@ export function BaseModal({ isOpen, onClose, title, link, initialPosition, child
   } as React.CSSProperties
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen}  onOpenChange={onClose}>
       
       <DialogTitle className="sr-only">{title || "Content"}</DialogTitle>
       <DialogContent
-        className={`xs:max-w-full xs:rounded-none xs:border-none xs:h-screen xs:max-h-screen sm:rounded-[32px] sm:border-none sm:h-screen sm:max-h-screen sm:w-screen sm:max-w-screen md:max-w-7xl md:h-[99vh] lg:max-h-[95vh] lg:w-[65vw] lg:max-w-[1050px] p-0 gap-0  ${className || ""}`}
+        className={`xs:max-w-full xs:rounded-none xs:border-none xs:h-screen xs:max-h-screen sm:rounded-[32px] sm:border-none sm:h-screen sm:max-h-screen sm:w-screen sm:max-w-screen md:max-w-7xl md:h-[99vh] lg:max-h-[95vh] lg:w-[65vw] lg:max-w-[1050px] p-0 gap-0 overflow-hidden ${className || ""}`}
         style={modalStyle}
+        hideCloseButton
       >
+        
         <div className="fixed top-0 right-0 p-4 z-50 flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={handleBookmark}>
             <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
@@ -73,11 +76,8 @@ export function BaseModal({ isOpen, onClose, title, link, initialPosition, child
             <span className="sr-only">Close</span>
           </Button>
         </div>
-        <div
-          className="h-full overflow-y-auto scrollbar-thin"
-          
-        >
-          <div className=" mx-auto  p-12 ">
+        <div className="h-full">
+          <div className=" mx-auto scrollbar-none h-full w-full ">
             {children}
           </div>
         </div>

@@ -171,6 +171,16 @@
   animation: expand-modal 0.3s ease-out;
 }
 
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 /* Reader View Modal Styles */
 .modal-content .prose {
   max-width: 65ch;
@@ -322,7 +332,6 @@
 .reader-view-article {
   font-size: 1rem;
   line-height: 1.6;
-  padding:0 24px;
 }
 
 .progress-circle {
