@@ -47,7 +47,7 @@ export default function RootLayout({
             <WorkerInitializer />
             <div className="flex min-h-screen flex-col">
               <Header />
-              <main className="flex-1">{children}</main>
+              <main className="flex-1 w-full p-4 xs:p-4 md:p-4 xs:max-w-full md:max-w-5xl lg:max-w-full">{children}</main>
             </div>
             <Toaster />
           </AudioPlayerProvider>

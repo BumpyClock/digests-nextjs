@@ -85,7 +85,7 @@ export default function AppPage() {
   return (
     <div className="container py-6 max-w-[1600px] mx-auto max-h-screen ">
       <Tabs defaultValue="all" className="space-y-6">
-        <div className="flex justify-between items-center mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-center mx-auto gap-4">
           <TabsList>
             <TabsTrigger value="all">
               All
@@ -104,7 +104,8 @@ export default function AppPage() {
               {favoriteItems.length > 0 && ` (${favoriteItems.length})`}
             </TabsTrigger>
           </TabsList>
-          <div className="flex items-center gap-2 p-6 pt-0">
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <SearchBar value={searchQuery} onChange={handleSearch} />
             <RefreshButton 
               onClick={handleRefresh} 
