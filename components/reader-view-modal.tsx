@@ -2,19 +2,22 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type ReaderViewResponse } from "@/types";
+import { type ReaderViewResponse, type FeedItem } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { BaseModal } from "./base-modal";
 import Image from "next/image";
 import { workerService } from "@/services/worker-service";
 import { Scrollbars } from "react-custom-scrollbars-2";
-
+import { motion } from "framer-motion";
 
 interface ReaderViewModalProps {
+  feedItem: FeedItem;
+  id: string;
   isOpen: boolean;
   onClose: () => void;
   articleUrl: string;
   initialPosition: { x: number; y: number; width: number; height: number };
+  isFullPage?: boolean;
 }
 
 /**
@@ -141,11 +144,11 @@ const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string): string
   return doc.body.innerHTML;
 };
 
-
 export function ReaderViewModal({
+  feedItem,
+  id,
   isOpen,
   onClose,
-  articleUrl,
   initialPosition,
 }: ReaderViewModalProps) {
   const [readerView, setReaderView] = useState<ReaderViewResponse | null>(null);
@@ -153,7 +156,6 @@ export function ReaderViewModal({
   const [scrollTop, setScrollTop] = useState(0);
   const [isBottomVisible, setIsBottomVisible] = useState(false);
   const { toast } = useToast();
- 
 
   // Use useMemo to create a stable onClose callback to prevent prop changes
   const memoizedOnClose = useCallback(() => {
@@ -178,7 +180,7 @@ export function ReaderViewModal({
       setLoading(true);
       try {
         // Use worker service instead of direct API call
-        const result = await workerService.fetchReaderView(articleUrl);
+        const result = await workerService.fetchReaderView(feedItem.link);
         
         if (result.success && result.data.length > 0 && result.data[0].status === "ok") {
           setReaderView(result.data[0]);
@@ -199,127 +201,156 @@ export function ReaderViewModal({
     if (isOpen) {
       loadReaderView();
     }
-  }, [isOpen, articleUrl, toast]);
+  }, [isOpen, feedItem, toast]);
 
   return (
     <BaseModal
+      id={feedItem.id}
       isOpen={isOpen}
       onClose={memoizedOnClose}
-      link={articleUrl}
-      title={readerView?.title || "Loading..."}
+      link={feedItem.link}
+      title={feedItem.title || "Loading..."}
       initialPosition={memoizedPosition}
-      className="xs:max-w-full xs:rounded-none xs:border-none xs:h-full xs:max-h-full xs:max-w-full"
+      className="xs:max-w-full xs:rounded-none xs:border-none xs:h-full xs:max-h-full xs:max-w-full md:rounded-[40px]"
+      overlayClassName="xs:max-w-full xs:rounded-none xs:border-none xs:h-full xs:max-h-full xs:max-w-full backdrop-blur-xl"
     >
-      <div className="relative">
-        {/* Top shadow */}
-        <div 
-          id="reader-view-modal-top-shadow"
-          className={`absolute top-[-10px] left-0 inset-shadow-black-500 right-0 backdrop-blur-[40px] bg-background/35 z-10 pointer-events-none transition-all ease-in-out dark:bg-background/85 duration-300 ${
-            scrollTop > 0 ? 'opacity-100 h-24' : 'opacity-0 h-0'
-          }`}
-          style={{
-            filter: 'brightness(0.75)',
-            maskImage: 'linear-gradient(to bottom, black 0%, black 20%, rgba(0,0,0,0.8) 35%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.2) 80%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 20%, rgba(0,0,0,0.8) 35%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.2) 80%, transparent 100%)'
-          }}
-        />
-        
-        <Scrollbars 
-          id="reader-view-modal-scroll"
-          style={{ width: '100%', height: 'calc(100vh - 10px)' }}
-          autoHide
-          onScrollFrame={handleScroll}
-        > 
-        
-          <div className="px-4 py-4  mx-auto">
-            <div >
-              {loading ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-[200px] w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
-                </div>
-              ) : readerView ? (
-                
-                <article className="">
-                  {readerView.image && (
-                    <Image
-                      src={readerView.image || "/placeholder.svg"}
-                      alt={readerView.title}
-                      className="w-full h-auto max-h-[450px] mb-6 rounded-[24px] object-cover "
-                      width={500}
-                      height={350}
-                      
-                    />
-                  )}
-                  <div className="flex flex-col items-left text-sm  mb-6 gap-1 px-8">
-                  <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-1 flex-grow ">
-                  {readerView.favicon && (
-                      <Image
-                        src={readerView.favicon || "/placeholder.svg"}
-                        alt={readerView.siteName}
-                        className=" rounded max-h-6 max-w-6"
-                        height={100}
-                        width={100}
-                      />
+      <motion.div
+        layoutId={`feed-card-content-${feedItem.id}`}
+        className="relative w-full h-full"
+        transition={{ 
+          type: "spring",
+          stiffness: 300, 
+          damping: 30,
+          duration: 0.4 
+        }}
+      >
+        <div className="relative">
+          {/* Top shadow */}
+          <div 
+            id="reader-view-modal-top-shadow"
+            className={`absolute top-[-10px] left-0 inset-shadow-black-500 right-0 backdrop-blur-[40px] bg-background/35 z-10 pointer-events-none transition-all ease-in-out dark:bg-background/85 duration-300 ${
+              scrollTop > 0 ? 'opacity-100 h-24' : 'opacity-0 h-0'
+            }`}
+            style={{
+              filter: 'brightness(0.75)',
+              maskImage: 'linear-gradient(to bottom, black 0%, black 20%, rgba(0,0,0,0.8) 35%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.2) 80%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 20%, rgba(0,0,0,0.8) 35%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.2) 80%, transparent 100%)'
+            }}
+          />
+          
+          <Scrollbars 
+            id="reader-view-modal-scroll"
+            style={{ width: '100%', height: 'calc(100vh - 10px)' }}
+            autoHide
+            onScrollFrame={handleScroll}
+          > 
+            <div className="px-4 py-4 mx-auto">
+              <div>
+                {loading ? (
+                  <div className="space-y-4">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-[200px] w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                ) : readerView ? (
+                  <article className="">
+                    {feedItem.thumbnail && (
+                      <motion.div layoutId={`feed-thumbnail-${feedItem.id}`}>
+                        <Image
+                          src={feedItem.thumbnail || "/placeholder.svg"}
+                          alt={feedItem.title || "Thumbnail"}
+                          className="w-full h-auto max-h-[450px] mb-6 rounded-[24px] object-cover"
+                          width={500}
+                          height={350}
+                        />
+                      </motion.div>
                     )}
-                    <span>{readerView.siteName}</span>
-                  </div>
-                  {readerView.title && (
-                    <h1 id="reader-view-title" className="text-4xl font-bold mb-2 ">{readerView.title}</h1>
-                  )}
-                
+                    
+                    <div className="flex flex-col items-left text-sm mb-6 gap-1 px-8">
+                      <motion.div layoutId={`feed-favicon-${feedItem.id}`} className="flex items-center space-x-4 text-sm text-muted-foreground mb-1 flex-grow">
+                        {feedItem.favicon && (
+                          <Image
+                            src={feedItem.favicon || "/placeholder.svg"}
+                            alt={feedItem.title || "Favicon"}
+                            className="rounded max-h-6 max-w-6"
+                            height={24}
+                            width={24}
+                          />
+                        )}
+                        <motion.div layoutId={`feed-site-title-${feedItem.id}`} className="line-clamp-1">
+                          {feedItem.siteTitle}
+                        </motion.div>
+                      </motion.div>
+                      
+                      {feedItem.title && (
+                        <motion.h1 
+                          layoutId={`feed-title-${feedItem.id}`} 
+                          id="reader-view-title" 
+                          className="text-4xl font-bold mb-2"
+                        >
+                          {feedItem.title}
+                        </motion.h1>
+                      )}
+                      
+                      {/* Reading time info - this appears only in the modal */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                        className="flex items-center space-x-4 text-sm text-muted-foreground mb-1 flex-grow"
+                      >
+                        <span>
+                          {readerView.content ? (() => {
+                            const text = readerView.content.replace(/<[^>]*>/g, '');
+                            const wordCount = text.split(/\s+/).filter(Boolean).length;
+                            const readingTimeMinutes = Math.round(wordCount / 225);
 
-                  <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-1 flex-grow ">
-                   
-                    <span>
-                      {readerView.content ? (() => {
-                        const text = readerView.content.replace(/<[^>]*>/g, ''); // Remove HTML tags
-                        const wordCount = text.split(/\s+/).filter(Boolean).length; // Split by spaces and count words
-                        const readingTimeMinutes = Math.round(wordCount / 225); // Avg reading speed: 225 words per minute
-
-                        if (readingTimeMinutes < 1) {
-                          return 'Less than a minute read';
-                        } else {
-                          return `${readingTimeMinutes} minute read`;
-                        }
-                      })() : 'Reading time N/A'}
-                    </span>
+                            if (readingTimeMinutes < 1) {
+                              return 'Less than a minute read';
+                            } else {
+                              return `${readingTimeMinutes} minute read`;
+                            }
+                          })() : 'Reading time N/A'}
+                        </span>
+                      </motion.div>
+                    </div>
+                    
+                    {/* Article content - fades in after the main transition */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                      className="px-8 prose prose-amber w-full text-lg prose-lg md:max-w-5xl dark:prose-invert reader-view-article"
+                      dangerouslySetInnerHTML={{ __html: cleanupModalContent(readerView.content) }}
+                    />
+                  </article>
+                ) : (
+                  <div className="text-center">
+                    <p>Failed to load reader view. Please try again.</p>
                   </div>
-                  </div>
-                  
-                  <div
-                      className=" px-8 prose prose-amber w-full text-lg prose-lg md:max-w-5xl dark:prose-invert reader-view-article"
-                    dangerouslySetInnerHTML={{ __html: cleanupModalContent(readerView.content) }}
-                  />
-                </article>
-              ) : (
-                <div className="text-center">
-                  <p>Failed to load reader view. Please try again.</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        </Scrollbars>
+          </Scrollbars>
 
-        {/* Bottom shadow */}
-        <div 
-          id="reader-view-modal-bottom-shadow"
-          className={`absolute inset-shadow-black-500 bottom-0 left-0 right-0 backdrop-blur-[40px] light:bg-foreground/05 dark:bg-background/45 z-10 pointer-events-none transition-all ease-in-out duration-300 ${
-            isBottomVisible ? 'opacity-100 h-24' : 'opacity-0 h-0'
-          }`}
-          style={{
-            filter: 'brightness(0.75)',
-
-            maskImage: 'linear-gradient(to top, black 0%, black 20%, rgba(0,0,0,0.8) 35%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.2) 80%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to top, black 0%, black 20%, rgba(0,0,0,0.8) 35%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.2) 80%, transparent 100%)'
-          }}
-        />
-      </div>
+          {/* Bottom shadow */}
+          <div 
+            id="reader-view-modal-bottom-shadow"
+            className={`absolute inset-shadow-black-500 bottom-0 left-0 right-0 backdrop-blur-[40px] light:bg-foreground/05 dark:bg-background/45 z-10 pointer-events-none transition-all ease-in-out duration-300 ${
+              isBottomVisible ? 'opacity-100 h-24' : 'opacity-0 h-0'
+            }`}
+            style={{
+              filter: 'brightness(0.75)',
+              maskImage: 'linear-gradient(to top, black 0%, black 20%, rgba(0,0,0,0.8) 35%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.2) 80%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to top, black 0%, black 20%, rgba(0,0,0,0.8) 35%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.2) 80%, transparent 100%)'
+            }}
+          />
+        </div>
+      </motion.div>
     </BaseModal>
   );
 }

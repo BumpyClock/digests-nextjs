@@ -21,6 +21,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useTheme } from "next-themes";
 import { workerService } from "@/services/worker-service";
+import { motion } from "framer-motion";
 
 dayjs.extend(relativeTime);
 
@@ -124,13 +125,15 @@ export const FeedCard = memo(function FeedCard({
   const [isAnimating, setIsAnimating] = useState(false);
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const transitionDuration = 150; // matches our transition duration in ms
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
 
   const handleCardClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       e.preventDefault();
-      // Don't process click if we're still animating
       if (isAnimating) return;
-
+      setIsAnimating(true);
+      
       if (cardRef.current) {
         const rect = cardRef.current.getBoundingClientRect();
         setInitialPosition({
@@ -140,13 +143,9 @@ export const FeedCard = memo(function FeedCard({
           height: rect.height,
         });
       }
-
-      // Start the release animation
-      setIsPressed(false);
-      setIsAnimating(true);
-
-      // Wait for animation to complete before firing click action
-      animationTimeoutRef.current = setTimeout(() => {
+      
+      // Short delay to allow state to update before opening modal
+      setTimeout(() => {
         if (feedItem.type === "podcast") {
           setIsPodcastDetailsOpen(true);
         } else {
@@ -155,7 +154,7 @@ export const FeedCard = memo(function FeedCard({
         setIsAnimating(false);
       }, transitionDuration);
     },
-    [feedItem.type, isAnimating]
+    [feedItem.type, isAnimating, transitionDuration]
   );
 
   // Cleanup timeout on unmount
@@ -234,18 +233,20 @@ export const FeedCard = memo(function FeedCard({
     if (isHovered) return hoverShadow;
     return restShadow;
   };
+  
+  
 
   return (
     <>
-      <Card
+      <motion.div
         ref={cardRef}
-        style={
-          {
-            boxShadow: getShadowStyle(),
-            transition: "all 150ms ease-out",
-            transform: isPressed ? "translateY(2px)" : "none",
-          } as React.CSSProperties
-        }
+        layoutId={`feed-card-bg-${feedItem.id}`}
+        style={{
+          boxShadow: getShadowStyle(),
+          transition: "all 150ms ease-out",
+          transform: isPressed ? "translateY(2px)" : "none",
+          
+        }}
         className="card w-full bg-card overflow-hidden cursor-pointer rounded-[40px] relative group"
         onClick={handleCardClick}
         onMouseEnter={() => setIsHovered(true)}
@@ -262,34 +263,20 @@ export const FeedCard = memo(function FeedCard({
             setIsPressed(true);
           }
         }}
-        onMouseUp={() => {
-          // Click handler will handle the release animation
-          // to ensure proper timing with the action
-        }}
+        onMouseUp={() => setIsPressed(false)}
       >
-        {/* <div
-          id={`feed-card-bg-image-${feedItem.id}`}
-          className="absolute inset-0 overflow-hidden z-0"
-        >
-          {!imageError && feedItem.thumbnail && (
-            <Image
-              src={feedItem.thumbnail}
-              alt=""
-              fill
-              sizes="(max-width: 500px) 100vw, (max-width: 300px) 50vw, 33vw"
-              className="object-cover rotate-180 blur-3xl opacity-10 dark:opacity-15 dark:brightness-85 group-hover:opacity-20 group-hover:dark:opacity-25 group-hover:dark:brightness-90  transition-all"
-              onError={handleImageError}
-            />
-          )}
-        </div> */}
-
-        <div
-          id={`feed-card-image-${feedItem.id}`}
+        {/* Card content container */}
+        <motion.div
+          layoutId={`feed-card-content-${feedItem.id}`}
           className="relative z-10 overflow-hidden"
         >
+          {/* Thumbnail */}
           {!imageError && feedItem.thumbnail && (
-            <div className="relative w-full p-2 overflow-hidden">
-              <div className="relative w-full aspect-[16/9] rounded-[32px] overflow-hidden ">
+            <motion.div 
+              layoutId={`feed-thumbnail-${feedItem.id}`}
+              className="relative w-full p-2 overflow-hidden"
+            >
+              <div className="relative w-full aspect-[16/9] rounded-[32px] overflow-hidden">
                 <Image
                   src={feedItem.thumbnail}
                   alt={feedItem.title}
@@ -316,35 +303,38 @@ export const FeedCard = memo(function FeedCard({
                   </span>
                 </Button>
               )}
-            </div>
+            </motion.div>
           )}
 
+          {/* Card content */}
           <CardContent className="p-4">
             <div className="space-y-2">
-              <div
-                id={`feed-card-header-${feedItem.id}`}
-                className="flex flex-wrap items-center justify-between gap-2 font-regular"
-              >
-                <div className="flex space-between gap-2 align-center items-center ">
+              <div className="flex flex-wrap items-center justify-between gap-2 font-regular">
+                <motion.div layoutId={`feed-favicon-${feedItem.id}`} className="flex space-between gap-2 align-center items-center">
                   {!faviconError && feedItem.favicon && (
                     <Image
                       src={feedItem.favicon}
                       alt={`${feedItem.siteTitle} favicon`}
-                      className="w-6 h-6 bg-white rounded-[4px] "
+                      className="w-6 h-6 bg-white rounded-[4px]"
                       height={48}
                       width={48}
                       onError={handleFaviconError}
                     />
                   )}
-                  <div className="text-xs  line-clamp-1 font-regular">
+                  <motion.div layoutId={`feed-site-title-${feedItem.id}`} className="text-xs line-clamp-1 font-regular">
                     {feedItem.siteTitle}
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
                 <div className="text-xs text-muted-foreground w-fit font-medium">
                   {formatDate(feedItem.published)}
                 </div>
               </div>
-              <h3 className="font-medium">{feedItem.title}</h3>
+              <motion.h3 
+                layoutId={`feed-title-${feedItem.id}`} 
+                className="font-medium"
+              >
+                {feedItem.title}
+              </motion.h3>
               {feedItem.author && (
                 <div className="text-sm text-muted-foreground">
                   By {feedItem.author}
@@ -363,8 +353,8 @@ export const FeedCard = memo(function FeedCard({
             feedType={feedItem.type}
             duration={feedItem.duration ? feedItem.duration : undefined}
           />
-        </div>
-      </Card>
+        </motion.div>
+      </motion.div>
       {feedItem.type === "podcast" ? (
         <PodcastDetailsModal
           isOpen={isPodcastDetailsOpen}
@@ -374,6 +364,8 @@ export const FeedCard = memo(function FeedCard({
         />
       ) : (
         <ReaderViewModal
+          feedItem={feedItem}
+          id={`reader-view-modal-${feedItem.id}`}
           isOpen={isReaderViewOpen}
           onClose={() => setIsReaderViewOpen(false)}
           articleUrl={feedItem.link}
