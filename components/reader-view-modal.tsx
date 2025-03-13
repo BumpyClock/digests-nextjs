@@ -232,7 +232,7 @@ export function ReaderViewModal({
           onScrollFrame={handleScroll}
         > 
         
-          <div className="px-8 py-8  mx-auto">
+          <div className="px-4 py-4  mx-auto">
             <div >
               {loading ? (
                 <div className="space-y-4">
@@ -251,9 +251,9 @@ export function ReaderViewModal({
                     <Image
                       src={readerView.image || "/placeholder.svg"}
                       alt={readerView.title}
-                      className="w-full h-auto mb-6 rounded-[24px]"
+                      className="w-full h-auto max-h-[450px] mb-6 rounded-[24px] object-cover "
                       width={500}
-                      height={500}
+                      height={350}
                       
                     />
                   )}

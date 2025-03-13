@@ -60,7 +60,7 @@ export function FeedGrid({ items, isLoading, skeletonCount = 6 }: FeedGridProps)
     setMounted(true)
   }, [])
   
-  const columnWidth = 350
+  const columnWidth = 320
   const columnGutter = 24
   const columnCount = useMemo(() => 
     Math.max(1, Math.floor((width - 48) / (columnWidth + columnGutter))),
@@ -100,7 +100,7 @@ export function FeedGrid({ items, isLoading, skeletonCount = 6 }: FeedGridProps)
         columnGutter={columnGutter}
         columnWidth={columnWidth}
         render={renderItem}
-        overscanBy={3}
+        overscanBy={2}
         itemKey={itemKey}
       />
     </div>

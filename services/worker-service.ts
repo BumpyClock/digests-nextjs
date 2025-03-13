@@ -1,22 +1,33 @@
 // services/worker-service.ts
 import type { Feed, FeedItem, ReaderViewResponse } from '../types';
+import { generateCardShadows } from '../utils/shadow';
 
 // Define the types for messages to and from the worker
 type WorkerMessage = 
   | { type: 'FETCH_FEEDS'; payload: { urls: string[] } }
   | { type: 'FETCH_READER_VIEW'; payload: { urls: string[] } }
-  | { type: 'REFRESH_FEEDS'; payload: { urls: string[] } };
+  | { type: 'REFRESH_FEEDS'; payload: { urls: string[] } }
+  | { type: 'GENERATE_SHADOWS'; payload: { 
+      id: string;
+      color: { r: number, g: number, b: number }; 
+      isDarkMode: boolean 
+    } };
 
 type WorkerResponse = 
   | { type: 'FEEDS_RESULT'; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
   | { type: 'READER_VIEW_RESULT'; success: boolean; data: ReaderViewResponse[]; message?: string }
+  | { type: 'SHADOWS_RESULT'; payload: { 
+      id: string;
+      shadows: { restShadow: string, hoverShadow: string, pressedShadow: string } 
+    } }
   | { type: 'ERROR'; message: string };
 
 /**
  * A service that manages the RSS web worker
  */
 class WorkerService {
-  private worker: Worker | null = null;
+  private rssWorker: Worker | null = null;
+  private shadowWorker: Worker | null = null;
   private messageHandlers: Map<string, Set<(data: any) => void>> = new Map();
   private isInitialized = false;
 
@@ -33,16 +44,18 @@ class WorkerService {
     }
     
     try {
-      // Create the worker
-      this.worker = new Worker(new URL('../workers/rss-worker.ts', import.meta.url));
+      // Create both workers
+      this.rssWorker = new Worker(new URL('../workers/rss-worker.ts', import.meta.url));
+      this.shadowWorker = new Worker(new URL('../workers/shadow-worker.ts', import.meta.url));
       
-      // Set up message handler
-      this.worker.addEventListener('message', this.handleWorkerMessage);
+      // Set up message handlers for both workers
+      this.rssWorker.addEventListener('message', this.handleWorkerMessage);
+      this.shadowWorker.addEventListener('message', this.handleWorkerMessage);
       
       this.isInitialized = true;
-      console.log('WorkerService: Worker initialized');
+      console.log('WorkerService: Workers initialized');
     } catch (error) {
-      console.error('WorkerService: Failed to initialize worker', error);
+      console.error('WorkerService: Failed to initialize workers', error);
     }
   }
 
@@ -93,12 +106,17 @@ class WorkerService {
    * Posts a message to the worker
    */
   postMessage(message: WorkerMessage): void {
-    if (!this.worker) {
-      console.error('WorkerService: Worker not initialized');
+    if (!this.isInitialized) {
+      console.error('WorkerService: Workers not initialized');
       return;
     }
-    
-    this.worker.postMessage(message);
+
+    // Route messages to appropriate worker
+    if (message.type === 'GENERATE_SHADOWS') {
+      this.shadowWorker?.postMessage(message);
+    } else {
+      this.rssWorker?.postMessage(message);
+    }
   }
 
   /**
@@ -115,7 +133,7 @@ class WorkerService {
       if (!this.isInitialized) this.initialize();
       
       // If no worker, fall back to direct API call
-      if (!this.worker) {
+      if (!this.rssWorker) {
         console.warn('WorkerService: Worker not available, using fallback');
         import('../lib/rss').then(({ fetchFeeds }) => {
           fetchFeeds([url])
@@ -163,7 +181,7 @@ class WorkerService {
       if (!this.isInitialized) this.initialize();
       
       // If no worker, fall back to direct API call
-      if (!this.worker) {
+      if (!this.rssWorker) {
         console.warn('WorkerService: Worker not available, using fallback');
         import('../lib/rss').then(({ fetchFeeds }) => {
           fetchFeeds(urls)
@@ -210,7 +228,7 @@ class WorkerService {
       if (!this.isInitialized) this.initialize();
       
       // If no worker, fall back to direct API call
-      if (!this.worker) {
+      if (!this.rssWorker) {
         console.warn('WorkerService: Worker not available, using fallback');
         import('../lib/rss').then(({ fetchReaderView }) => {
           fetchReaderView([url])
@@ -243,16 +261,53 @@ class WorkerService {
   }
 
   /**
+   * Generates card shadows in the worker
+   */
+  async generateShadows(id: string, color: { r: number, g: number, b: number }, isDarkMode: boolean): Promise<{
+    restShadow: string,
+    hoverShadow: string,
+    pressedShadow: string
+  }> {
+    return new Promise(resolve => {
+      if (!this.isInitialized) this.initialize();
+
+      if (!this.shadowWorker) {
+        console.warn('WorkerService: Worker not available, using fallback');
+        import('../utils/shadow').then(({ generateCardShadows }) => {
+          resolve(generateCardShadows(color, isDarkMode));
+        });
+        return;
+      }
+
+      const unsubscribe = this.onMessage('SHADOWS_RESULT', (response) => {
+        if (response.payload.id === id) {
+          unsubscribe();
+          resolve(response.payload.shadows);
+        }
+      });
+
+      this.postMessage({
+        type: 'GENERATE_SHADOWS',
+        payload: { id, color, isDarkMode }
+      });
+    });
+  }
+
+  /**
    * Terminates the worker
    */
   terminate(): void {
-    if (this.worker) {
-      this.worker.terminate();
-      this.worker = null;
-      this.messageHandlers.clear();
-      this.isInitialized = false;
-      console.log('WorkerService: Worker terminated');
+    if (this.rssWorker) {
+      this.rssWorker.terminate();
+      this.rssWorker = null;
     }
+    if (this.shadowWorker) {
+      this.shadowWorker.terminate();
+      this.shadowWorker = null;
+    }
+    this.messageHandlers.clear();
+    this.isInitialized = false;
+    console.log('WorkerService: Workers terminated');
   }
 }
 
