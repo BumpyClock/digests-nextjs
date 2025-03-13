@@ -122,7 +122,7 @@ export const FeedCard = memo(function FeedCard({
     feedItem.thumbnailColor || { r: 0, g: 0, b: 0 }
   );
   const [isAnimating, setIsAnimating] = useState(false);
-  const animationTimeoutRef = useRef<NodeJS.Timeout>();
+  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const transitionDuration = 150; // matches our transition duration in ms
 
   const handleCardClick = useCallback(
@@ -257,12 +257,12 @@ export const FeedCard = memo(function FeedCard({
             clearTimeout(animationTimeoutRef.current);
           }
         }}
-        onMouseDown={(e) => {
+        onMouseDown={() => {
           if (!isAnimating) {
             setIsPressed(true);
           }
         }}
-        onMouseUp={(e) => {
+        onMouseUp={() => {
           // Click handler will handle the release animation
           // to ensure proper timing with the action
         }}

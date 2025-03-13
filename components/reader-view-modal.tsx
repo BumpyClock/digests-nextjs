@@ -8,7 +8,6 @@ import { BaseModal } from "./base-modal";
 import Image from "next/image";
 import { workerService } from "@/services/worker-service";
 import { Scrollbars } from "react-custom-scrollbars-2";
-import { ScrollShadow } from "@heroui/scroll-shadow";
 
 
 interface ReaderViewModalProps {
