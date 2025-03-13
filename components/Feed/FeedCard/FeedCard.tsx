@@ -21,7 +21,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useTheme } from "next-themes";
 import { workerService } from "@/services/worker-service";
-import tinycolor from "tinycolor2";
 import { Skeleton } from "@/components/ui/skeleton";
 dayjs.extend(relativeTime);
 
@@ -135,7 +134,7 @@ export const FeedCard = memo(function FeedCard({
     []
   );
 
-  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseDown = useCallback(() => {
     if (!isAnimating) {
       setIsPressed(true);
       
@@ -151,13 +150,13 @@ export const FeedCard = memo(function FeedCard({
     }
   }, [isAnimating]);
 
-  const handleMouseUp = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseUp = useCallback(() => {
     if (isPressed) {
       setIsPressed(false);
       setIsAnimating(true);
 
       // Wait for release animation to complete before opening modal
-      setTimeout(() => {
+      const timeout = setTimeout(() => {
         if (feedItem.type === "podcast") {
           setIsPodcastDetailsOpen(true);
         } else {
@@ -165,14 +164,18 @@ export const FeedCard = memo(function FeedCard({
         }
         setIsAnimating(false);
       }, transitionDuration);
+      
+      // Store timeout in ref
+      animationTimeoutRef.current = timeout;
     }
   }, [feedItem.type, isPressed]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
-      if (animationTimeoutRef.current) {
-        clearTimeout(animationTimeoutRef.current);
+      const timeout = animationTimeoutRef.current;
+      if (timeout) {
+        clearTimeout(timeout);
       }
     };
   }, []);

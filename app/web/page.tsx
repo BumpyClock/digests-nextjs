@@ -46,7 +46,6 @@ export default function AppPage() {
   const isHydrated = useHydration()
   const [searchQuery, setSearchQuery] = useState("")
   const { 
-    feeds,
     feedItems, 
     loading, 
     refreshing, 

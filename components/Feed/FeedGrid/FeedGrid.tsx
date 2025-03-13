@@ -4,7 +4,6 @@ import { useCallback, useState, useEffect, useMemo } from "react"
 import { Masonry } from "masonic"
 import { useToast } from "@/hooks/use-toast"
 import { FeedCard } from "@/components/Feed/FeedCard/FeedCard"
-import { Skeleton } from "@/components/ui/skeleton"
 import { useWindowSize } from "@/hooks/use-window-size"
 import { useFeedStore } from "@/store/useFeedStore"
 import { FeedItem } from "@/types"
@@ -50,7 +49,6 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
   const { toast } = useToast()
   const { checkForUpdates, refreshFeeds } = useFeedStore()
   const [mounted, setMounted] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const { width } = useWindowSize()
   const [isMinLoadingComplete, setIsMinLoadingComplete] = useState(false)
 
@@ -110,14 +108,6 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
 
   if (!mounted || !isMinLoadingComplete || isLoading) {
     return <LoadingAnimation />
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-destructive">Error loading feeds: {error}</p>
-      </div>
-    )
   }
 
   return (
