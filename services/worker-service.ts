@@ -1,4 +1,3 @@
-"use client"
 // services/worker-service.ts
 import type { Feed, FeedItem, ReaderViewResponse } from '../types';
 import { generateCardShadows } from '../utils/shadow';
