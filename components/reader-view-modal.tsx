@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type ReaderViewResponse } from "@/types";
+import { type FeedItem, type ReaderViewResponse } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { BaseModal } from "./base-modal";
 import Image from "next/image";
@@ -13,7 +13,7 @@ import { Scrollbars } from "react-custom-scrollbars-2";
 interface ReaderViewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  articleUrl: string;
+  feedItem: FeedItem;
   initialPosition: { x: number; y: number; width: number; height: number };
 }
 
@@ -143,9 +143,9 @@ const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string): string
 
 
 export function ReaderViewModal({
+  feedItem,
   isOpen,
   onClose,
-  articleUrl,
   initialPosition,
 }: ReaderViewModalProps) {
   const [readerView, setReaderView] = useState<ReaderViewResponse | null>(null);
@@ -178,7 +178,7 @@ export function ReaderViewModal({
       setLoading(true);
       try {
         // Use worker service instead of direct API call
-        const result = await workerService.fetchReaderView(articleUrl);
+        const result = await workerService.fetchReaderView(feedItem.link);
         
         if (result.success && result.data.length > 0 && result.data[0].status === "ok") {
           setReaderView(result.data[0]);
@@ -199,13 +199,13 @@ export function ReaderViewModal({
     if (isOpen) {
       loadReaderView();
     }
-  }, [isOpen, articleUrl, toast]);
+  }, [isOpen, feedItem, toast]);
 
   return (
     <BaseModal
       isOpen={isOpen}
       onClose={memoizedOnClose}
-      link={articleUrl}
+      link={feedItem.link}
       title={readerView?.title || "Loading..."}
       initialPosition={memoizedPosition}
       className="xs:max-w-full xs:rounded-none xs:border-none xs:h-full xs:max-h-full xs:max-w-full"
@@ -246,10 +246,10 @@ export function ReaderViewModal({
               ) : readerView ? (
                 
                 <article className="">
-                  {readerView.image && (
+                  {feedItem.thumbnail && (
                     <Image
-                      src={readerView.image || "/placeholder.svg"}
-                      alt={readerView.title}
+                      src={feedItem.thumbnail || "/placeholder.svg"}
+                      alt={feedItem.title}
                       className="w-full h-auto max-h-[450px] mb-6 rounded-[24px] object-cover "
                       width={500}
                       height={350}
@@ -260,17 +260,17 @@ export function ReaderViewModal({
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-1 flex-grow ">
                   {readerView.favicon && (
                       <Image
-                        src={readerView.favicon || "/placeholder.svg"}
-                        alt={readerView.siteName}
+                        src={feedItem.favicon || "/placeholder.svg"}
+                        alt={feedItem.siteTitle}
                         className=" rounded max-h-6 max-w-6"
                         height={100}
                         width={100}
                       />
                     )}
-                    <span>{readerView.siteName}</span>
+                    <span>{feedItem.siteTitle}</span>
                   </div>
-                  {readerView.title && (
-                    <h1 id="reader-view-title" className="text-4xl font-bold mb-2 ">{readerView.title}</h1>
+                  {feedItem.title && (
+                    <h1 id="reader-view-title" className="text-4xl font-bold mb-2 ">{feedItem.title}</h1>
                   )}
                 
 

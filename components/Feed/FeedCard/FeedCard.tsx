@@ -376,7 +376,7 @@ export const FeedCard = memo(function FeedCard({
         <ReaderViewModal
           isOpen={isReaderViewOpen}
           onClose={() => setIsReaderViewOpen(false)}
-          articleUrl={feedItem.link}
+          feedItem={feedItem}
           initialPosition={initialPosition}
         />
       )}
