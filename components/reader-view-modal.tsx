@@ -163,6 +163,12 @@ export function ReaderViewModal({
   // Memoize initialPosition object to maintain reference equality
   const memoizedPosition = useMemo(() => initialPosition, [initialPosition]);
 
+  // Add parallax calculation
+  const parallaxOffset = useMemo(() => {
+    // Limit the parallax effect to a reasonable range (e.g., 0-50px)
+    return Math.min(scrollTop * 0.2, 50);
+  }, [scrollTop]);
+
   // Update scroll handler to check both top and bottom shadows
   const handleScroll = useCallback(({ scrollTop, scrollHeight, clientHeight }: { scrollTop: number, scrollHeight: number, clientHeight: number }) => {
     setScrollTop(scrollTop);
@@ -235,10 +241,10 @@ export function ReaderViewModal({
             <div >
               {loading ? (
                 <div className="space-y-4">
+                   <Skeleton className="h-[400px] max-h-[50vh] w-full" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-3/4" />
-                  <Skeleton className="h-[200px] w-full" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-3/4" />
@@ -247,14 +253,20 @@ export function ReaderViewModal({
                 
                 <article className="">
                   {feedItem.thumbnail && (
-                    <Image
-                      src={feedItem.thumbnail || "/placeholder.svg"}
-                      alt={feedItem.title}
-                      className="w-full h-auto max-h-[450px] mb-6 rounded-[24px] object-cover "
-                      width={500}
-                      height={350}
-                      
-                    />
+                    <div className="overflow-hidden rounded-[24px] mb-6">
+                      <Image
+                        src={feedItem.thumbnail || "/placeholder.svg"}
+                        alt={feedItem.title}
+                        className="w-full h-auto max-h-[500px] object-cover drop-shadow-lg transition-transform duration-0"
+                        width={550}
+                        height={385}
+                        style={{
+                          transform: `translateY(${parallaxOffset}px)`,
+                          
+                          marginTop: '-80px',
+                        }}
+                      />
+                    </div>
                   )}
                   <div className="flex flex-col items-left text-sm  mb-6 gap-1 px-8">
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-1 flex-grow ">

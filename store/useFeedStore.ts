@@ -35,6 +35,7 @@ interface FeedState {
     successful: Array<{ url: string, message: string }>, 
     failed: Array<{ url: string, message: string }> 
   }>
+  checkForUpdates: () => Promise<{ hasNewItems: boolean, count: number }>
 }
 
 // Add hydration flag at top of file
@@ -50,10 +51,6 @@ const normalizeUrl = (url: string): string => {
   }
 };
 
-/**
- * Create a Zustand store with persist middleware, storing data in IndexedDB.
- * Now uses the web worker service for API calls.
- */
 export const useFeedStore = create<FeedState>()(
   persist(
     (set, get) => ({
@@ -128,26 +125,18 @@ export const useFeedStore = create<FeedState>()(
       refreshFeeds: async () => {
         const { feeds, feedItems, shouldRefresh: needsRefresh } = get()
         
-        // Only skip refresh if we have feeds AND items AND don't need refresh
-        if (feeds.length > 0 && feedItems.length > 0 && !needsRefresh()) {
-          console.log(`Skipping refresh because we have feeds and items and don\'t need refresh yet`);
-          set({ initialized: true })
+        if (!feeds.length) {
+          set({ initialized: true, refreshing: false })
           return
         }
 
         set({ refreshing: true })
         try {
           const feedUrls = feeds.map((f) => f.feedUrl)
-          if (feedUrls.length === 0) {
-            console.log('No feeds to refresh')
-            set({ refreshing: false, initialized: true })
-            return
-          }
-          
-          // Use worker service to refresh feeds
           const result = await workerService.refreshFeeds(feedUrls)
           
           if (result.success) {
+            // Deduplicate items by ID
             const existingIds = new Set(feedItems.map(item => item.id))
             const newItems = result.items.filter(item => !existingIds.has(item.id))
             const mergedItems = [...feedItems, ...newItems]
@@ -162,6 +151,8 @@ export const useFeedStore = create<FeedState>()(
           }
         } catch (error) {
           console.error("Error refreshing feeds:", error)
+          // Set initialized even on error to prevent infinite refresh attempts
+          set({ initialized: true })
         } finally {
           set({ refreshing: false })
         }
@@ -262,6 +253,38 @@ export const useFeedStore = create<FeedState>()(
         set({ loading: false })
         return { successful, failed }
       },
+
+      /**
+       * Checks for new items without updating the store
+       */
+      checkForUpdates: async () => {
+        const { feeds, feedItems } = get()
+        
+        if (!feeds.length) {
+          return { hasNewItems: false, count: 0 }
+        }
+
+        try {
+          const feedUrls = feeds.map((f) => f.feedUrl)
+          const result = await workerService.checkForUpdates(feedUrls)
+          
+          if (result.success) {
+            // Check for new items by comparing IDs
+            const existingIds = new Set(feedItems.map(item => item.id))
+            const newItems = result.items.filter(item => !existingIds.has(item.id))
+            
+            return { 
+              hasNewItems: newItems.length > 0,
+              count: newItems.length
+            }
+          }
+          
+          return { hasNewItems: false, count: 0 }
+        } catch (error) {
+          console.error("Error checking for updates:", error)
+          return { hasNewItems: false, count: 0 }
+        }
+      },
     }),
     {
       name: "digests-feed-store",
@@ -274,14 +297,13 @@ export const useFeedStore = create<FeedState>()(
         lastRefreshed: state.lastRefreshed,
       }),
       onRehydrateStorage: () => (state) => {
-        if (state) {
+        if (state && typeof window !== 'undefined') {
           hydrated = true
           useFeedStore.getState().setHydrated(true)
-          
           // Initialize worker service after hydration
-          if (typeof window !== 'undefined') {
-            workerService.initialize();
-          }
+          requestIdleCallback(() => {
+            workerService.initialize()
+          })
         }
       },
     }

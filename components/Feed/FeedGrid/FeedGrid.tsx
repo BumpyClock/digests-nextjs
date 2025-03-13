@@ -2,64 +2,94 @@
 
 import { useCallback, useState, useEffect, useMemo } from "react"
 import { Masonry } from "masonic"
+import { useToast } from "@/hooks/use-toast"
 import { FeedCard } from "@/components/Feed/FeedCard/FeedCard"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useWindowSize } from "@/hooks/use-window-size"
+import { useFeedStore } from "@/store/useFeedStore"
 import { FeedItem } from "@/types"
+import { ToastAction } from "@/components/ui/toast"
+import dynamic from 'next/dynamic'
+import loadingAnimation from "@/public/assets/animations/feed-loading.json"
+
+// Dynamically import Lottie with SSR disabled and loading fallback
+const Lottie = dynamic(() => import('lottie-react'), { 
+  ssr: false,
+  loading: () => (
+    <div className="w-64 h-64 flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+    </div>
+  )
+})
 
 interface FeedGridProps {
   items: FeedItem[]
   isLoading: boolean
   skeletonCount?: number
-  
 }
 
-const LoadingSkeleton = ({ columnCount = 3, skeletonCount = 9 }: { columnCount?: number, skeletonCount?: number }) => {
-  const [mounted, setMounted] = useState(false)
+const LoadingAnimation = () => {
+  const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
+    setIsMounted(true)
   }, [])
 
-  if (!mounted) {
-    return (
-      <div id="loading-skeleton" className="grid gap-6 grid-tem" style={{ gridTemplateColumns: `repeat(${columnCount}, 1fr)` }}>
-        {Array(skeletonCount).fill(0).map((_, i) => (
-          <div key={i} className="flex flex-col space-y-3">
-            <Skeleton className="w-full" style={{ aspectRatio: "16/9" }} />
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-            </div>
-          </div>
-        ))}
-      </div>
-    )
-  }
-
   return (
-    <div className="grid gap-6" >
-      {Array(skeletonCount).fill(0).map((_, i) => (
-        <div key={i} className="flex flex-col space-y-3">
-          <Skeleton className="w-full" style={{ aspectRatio: "16/9" }} />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-        </div>
-      ))}
+    <div className="flex items-center justify-center h-[50vh]">
+      <div className="w-64 h-64">
+        {isMounted && (
+          <Lottie animationData={loadingAnimation} loop={true} />
+        )}
+      </div>
     </div>
   )
 }
 
-export function FeedGrid({ items, isLoading, skeletonCount = 6 }: FeedGridProps) {
-  const { width } = useWindowSize()
+export function FeedGrid({ items, isLoading }: FeedGridProps) {
+  const { toast } = useToast()
+  const { checkForUpdates, refreshFeeds } = useFeedStore()
   const [mounted, setMounted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const { width } = useWindowSize()
+  const [isMinLoadingComplete, setIsMinLoadingComplete] = useState(false)
 
   useEffect(() => {
     setMounted(true)
+    // Add minimum loading time of 2 seconds
+    const timer = setTimeout(() => {
+      setIsMinLoadingComplete(true)
+    }, 1500)
+
+    return () => clearTimeout(timer)
   }, [])
   
+  useEffect(() => {
+    if (!mounted) return
+
+    const checkUpdates = async () => {
+      const { hasNewItems, count } = await checkForUpdates()
+      
+      if (hasNewItems) {
+        toast({
+          title: "New items available",
+          description: `${count} new item${count === 1 ? '' : 's'} available`,
+          action: (
+            <ToastAction altText="Refresh feeds" onClick={() => refreshFeeds()}>
+              Refresh
+            </ToastAction>
+          ),
+          duration: 10000, // 10 seconds
+        })
+      }
+    }
+    checkUpdates()
+
+    const interval = setInterval(checkUpdates, 30 * 60 * 1000)
+
+    return () => clearInterval(interval)
+  }, [mounted, checkForUpdates, refreshFeeds, toast])
+
   const columnWidth = 320
   const columnGutter = 24
   const columnCount = useMemo(() => 
@@ -78,16 +108,14 @@ export function FeedGrid({ items, isLoading, skeletonCount = 6 }: FeedGridProps)
 
   const itemKey = useCallback((item: FeedItem) => item.id, [])
 
-  if (!mounted) {
-    return <LoadingSkeleton columnCount={3} skeletonCount={skeletonCount} />
+  if (!mounted || !isMinLoadingComplete || isLoading) {
+    return <LoadingAnimation />
   }
 
-  if (isLoading) {
+  if (error) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {Array(skeletonCount).fill(0).map((_, i) => (
-          <LoadingSkeleton key={i} />
-        ))}
+      <div className="flex items-center justify-center h-full">
+        <p className="text-destructive">Error loading feeds: {error}</p>
       </div>
     )
   }

@@ -13,10 +13,32 @@ const useHydration = () => {
   const storeHydrated = useFeedStore(state => state.hydrated)
   
   useEffect(() => {
-    setHydrated(true)
+    if (typeof window !== 'undefined') {
+      setHydrated(true)
+    }
   }, [])
   
   return hydrated && storeHydrated
+}
+
+const TabContent = ({ items, isLoading }: { items: FeedItem[], isLoading: boolean }) => {
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  if (!isMounted) {
+    return null // Return null on server and during initial client render
+  }
+
+  return isLoading ? (
+    <FeedGrid items={[]} isLoading={true} />
+  ) : items.length === 0 ? (
+    <EmptyState />
+  ) : (
+    <FeedGrid items={items} isLoading={false} />
+  )
 }
 
 export default function AppPage() {
@@ -34,13 +56,18 @@ export default function AppPage() {
 
   useEffect(() => {
     if (isHydrated && !initialized) {
-      console.log('Initializing store...', { feeds: feeds.length, items: feedItems.length })
-      refreshFeeds().then(() => {
-        setInitialized(true)
-        console.log('Store initialized', { feeds: feeds.length, items: feedItems.length })
-      })
+      console.log('Initializing store...')
+      refreshFeeds()
+        .then(() => {
+          setInitialized(true)
+          console.log('Store initialized')
+        })
+        .catch(error => {
+          console.error('Failed to initialize store:', error)
+          setInitialized(true)
+        })
     }
-  }, [isHydrated, initialized, refreshFeeds, setInitialized, feeds.length, feedItems.length])
+  }, [isHydrated, initialized, refreshFeeds, setInitialized])
 
   // Handle manual refresh
   const handleRefresh = useCallback(() => {
@@ -78,8 +105,6 @@ export default function AppPage() {
     setSearchQuery(value)
   }, [])
 
- 
-
   const isLoading = loading || (!initialized && feedItems.length === 0)
 
   return (
@@ -114,41 +139,20 @@ export default function AppPage() {
           </div>
         </div>
 
-        <TabsContent value="all" className="h-[calc(100vh-11rem)] ">
-          {isLoading ? (
-            <FeedGrid items={[]} isLoading={true} />
-          ) : feedItems.length === 0 ? (
-            <EmptyState />
-          ) : (
-            <FeedGrid items={filteredItems} isLoading={false}  />
-          )}
+        <TabsContent value="all" className="h-[calc(100vh-11rem)]">
+          <TabContent items={filteredItems} isLoading={isLoading} />
         </TabsContent>
 
-        <TabsContent value="articles" className="h-[calc(100vh-11rem)] ">
-          <FeedGrid 
-            items={articleItems} 
-            isLoading={isLoading} 
-            skeletonCount={6} 
-          
-          />
+        <TabsContent value="articles" className="h-[calc(100vh-11rem)]">
+          <TabContent items={articleItems} isLoading={isLoading} />
         </TabsContent>
 
-        <TabsContent value="podcasts" className="h-[calc(100vh-11rem)] ">
-          <FeedGrid 
-            items={podcastItems} 
-            isLoading={isLoading} 
-            skeletonCount={3} 
-           
-          />
+        <TabsContent value="podcasts" className="h-[calc(100vh-11rem)]">
+          <TabContent items={podcastItems} isLoading={isLoading} />
         </TabsContent>
 
-        <TabsContent value="favorites" className="h-[calc(100vh-11rem)] ">
-          <FeedGrid 
-            items={favoriteItems} 
-            isLoading={isLoading} 
-            skeletonCount={4} 
-          
-          />
+        <TabsContent value="favorites" className="h-[calc(100vh-11rem)]">
+          <TabContent items={favoriteItems} isLoading={isLoading} />
         </TabsContent>
       </Tabs>
     </div>

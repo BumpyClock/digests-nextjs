@@ -7,16 +7,17 @@ export function adjustColorLuminosity(color: { r: number, g: number, b: number }
   const hsl = parsedColor.toHsl();
   
   const MAX_LUMINOSITY_LIGHT_MODE = 0.5;
-  const MAX_LUMINOSITY_DARK_MODE = 0.7;
-  const MIN_LUMINOSITY = 0.15;
+  const MAX_LUMINOSITY_DARK_MODE = 0.9;
+  const MIN_LUMINOSITY_LIGHT_MODE = 0.15;
+  const MIN_LUMINOSITY_DARK_MODE = 0.4;  
   
-  const threshold = isDarkMode ? MAX_LUMINOSITY_DARK_MODE : MAX_LUMINOSITY_LIGHT_MODE;
+  const maxThreshold = isDarkMode ? MAX_LUMINOSITY_DARK_MODE : MAX_LUMINOSITY_LIGHT_MODE;
+  const minThreshold = isDarkMode ? MIN_LUMINOSITY_DARK_MODE : MIN_LUMINOSITY_LIGHT_MODE;
   
-  if (hsl.l > threshold) {
-    hsl.l = threshold;
-  }
-  else if (hsl.l < MIN_LUMINOSITY) {
-    hsl.l = MIN_LUMINOSITY;
+  if (hsl.l > maxThreshold) {
+    hsl.l = maxThreshold;
+  } else if (hsl.l < minThreshold) {
+    hsl.l = minThreshold;
   }
   
   return tinycolor(hsl);
@@ -31,8 +32,9 @@ export function generateLayeredShadows(color: { r: number, g: number, b: number 
     layerAmount: 5,
     opacity,
     blur: elevation,
-    verticalDistance: elevation,
+    verticalDistance: elevation * 0.6,
     horizontalDistance: 0,
+    spread: elevation * 0.3,
   };
 
   const boxShadows = [];
@@ -42,10 +44,11 @@ export function generateLayeredShadows(color: { r: number, g: number, b: number 
     const x = (0 + progress * state.horizontalDistance).toFixed(0);
     const y = (0 + progress * state.verticalDistance).toFixed(0);
     const blur = (1 + progress * state.blur).toFixed(0);
+    const spread = (progress * state.spread).toFixed(0);
     const alpha = ((i + 1) * (state.opacity / state.layerAmount)).toFixed(2);
 
     boxShadows.push(
-      `${x}px ${y}px ${blur}px hsla(${hsl.h}, ${hsl.s * 100}%, ${hsl.l * 100}%, ${alpha})`
+      `${x}px ${y}px ${blur}px ${spread}px hsla(${hsl.h}, ${hsl.s * 100}%, ${hsl.l * 100}%, ${alpha})`
     );
   }
 

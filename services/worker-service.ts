@@ -2,6 +2,8 @@
 import type { Feed, FeedItem, ReaderViewResponse } from '../types';
 import { generateCardShadows } from '../utils/shadow';
 
+const isClient = typeof window !== 'undefined'
+
 // Define the types for messages to and from the worker
 type WorkerMessage = 
   | { type: 'FETCH_FEEDS'; payload: { urls: string[] } }
@@ -11,7 +13,8 @@ type WorkerMessage =
       id: string;
       color: { r: number, g: number, b: number }; 
       isDarkMode: boolean 
-    } };
+    } }
+  | { type: 'CHECK_UPDATES'; payload: { urls: string[] } };
 
 type WorkerResponse = 
   | { type: 'FEEDS_RESULT'; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
@@ -30,23 +33,24 @@ class WorkerService {
   private shadowWorker: Worker | null = null;
   private messageHandlers: Map<string, Set<(data: any) => void>> = new Map();
   private isInitialized = false;
+  private fallbackMode = false;
 
   /**
    * Initializes the worker service
    */
   initialize(): void {
-    if (this.isInitialized) return;
-    
-    // Only initialize in browser environment
-    if (typeof window === 'undefined') {
-      console.warn('WorkerService: Cannot initialize in non-browser environment');
-      return;
-    }
+    if (this.isInitialized || !isClient) return;
     
     try {
-      // Create both workers
-      this.rssWorker = new Worker(new URL('../workers/rss-worker.ts', import.meta.url));
-      this.shadowWorker = new Worker(new URL('../workers/shadow-worker.ts', import.meta.url));
+      // Dynamically import workers only on client side
+      this.rssWorker = new Worker(
+        new URL('../workers/rss-worker.ts', import.meta.url), 
+        { type: 'module' }
+      );
+      this.shadowWorker = new Worker(
+        new URL('../workers/shadow-worker.ts', import.meta.url),
+        { type: 'module' }
+      );
       
       // Set up message handlers for both workers
       this.rssWorker.addEventListener('message', this.handleWorkerMessage);
@@ -56,6 +60,8 @@ class WorkerService {
       console.log('WorkerService: Workers initialized');
     } catch (error) {
       console.error('WorkerService: Failed to initialize workers', error);
+      // Ensure service can still work without workers
+      this.fallbackMode = true;
     }
   }
 
@@ -289,6 +295,50 @@ class WorkerService {
       this.postMessage({
         type: 'GENERATE_SHADOWS',
         payload: { id, color, isDarkMode }
+      });
+    });
+  }
+
+  /**
+   * Checks for updates without refreshing the store
+   */
+  async checkForUpdates(urls: string[]): Promise<{ 
+    success: boolean; 
+    feeds: Feed[]; 
+    items: FeedItem[];
+    message?: string;
+  }> {
+    return new Promise(resolve => {
+      if (!this.isInitialized) this.initialize();
+      
+      if (!this.rssWorker) {
+        console.warn('WorkerService: Worker not available, using fallback');
+        import('../lib/rss').then(({ fetchFeeds }) => {
+          fetchFeeds(urls)
+            .then(result => resolve({ success: true, ...result }))
+            .catch(error => resolve({ 
+              success: false, 
+              feeds: [], 
+              items: [], 
+              message: error.message 
+            }));
+        });
+        return;
+      }
+
+      const unsubscribe = this.onMessage('FEEDS_RESULT', (response) => {
+        unsubscribe();
+        resolve({
+          success: response.success,
+          feeds: response.feeds,
+          items: response.items,
+          message: response.message
+        });
+      });
+      
+      this.postMessage({
+        type: 'CHECK_UPDATES',
+        payload: { urls }
       });
     });
   }

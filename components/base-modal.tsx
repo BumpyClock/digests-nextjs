@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Bookmark, Share2, ExternalLink, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { DialogOverlay } from "@radix-ui/react-dialog"
 
 
 interface BaseModalProps {
@@ -48,6 +49,7 @@ export function BaseModal({ isOpen, onClose, title, link, initialPosition, child
 
   return (
     <Dialog open={isOpen}  onOpenChange={onClose}>
+      <DialogOverlay className="fixed inset-0 bg-black/80 backdrop-blur-xl" />
       
       <DialogTitle className="sr-only">{title || "Content"}</DialogTitle>
       <DialogContent

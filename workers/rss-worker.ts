@@ -5,7 +5,8 @@ import type { Feed, FeedItem, ReaderViewResponse } from '../types';
 type WorkerMessage = 
   | { type: 'FETCH_FEEDS'; payload: { urls: string[] } }
   | { type: 'FETCH_READER_VIEW'; payload: { urls: string[] } }
-  | { type: 'REFRESH_FEEDS'; payload: { urls: string[] } };
+  | { type: 'REFRESH_FEEDS'; payload: { urls: string[] } }
+  | { type: 'CHECK_UPDATES'; payload: { urls: string[] } };
 
 type WorkerResponse = 
   | { type: 'FEEDS_RESULT'; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
@@ -27,8 +28,12 @@ class WorkerCache {
     
     // Check if cache is still valid
     if (Date.now() - item.timestamp > this.TTL) {
+      console.log(`[Worker] Cache expired for key: ${key}`);
       this.cache.delete(key);
       return null;
+    }
+    else {
+      console.log(`[Worker] Cache hit for key: ${key}`);
     }
     
     return item.data as T;
@@ -245,6 +250,32 @@ self.addEventListener('message', async (event) => {
         break;
       }
       
+      case 'CHECK_UPDATES': {
+        const { urls } = message.payload;
+        try {
+          console.log("[Worker] Checking for updates");
+          // Clear cache to ensure fresh data
+          workerCache.clear();
+          const { feeds, items } = await fetchFeeds(urls);
+          self.postMessage({
+            type: 'FEEDS_RESULT',
+            success: true,
+            feeds,
+            items,
+          } as WorkerResponse);
+        } catch (error) {
+          console.error("[Worker] Error checking for updates:", error);
+          self.postMessage({
+            type: 'FEEDS_RESULT',
+            success: false,
+            feeds: [],
+            items: [],
+            message: error instanceof Error ? error.message : 'Failed to check for updates'
+          } as WorkerResponse);
+        }
+        break;
+      }
+      
       default:
         self.postMessage({
           type: 'ERROR',
@@ -259,7 +290,6 @@ self.addEventListener('message', async (event) => {
   }
 });
 
-// Handle unhandled promise rejections
 self.addEventListener('unhandledrejection', (event) => {
   console.error('[Worker] Unhandled promise rejection:', event.reason);
   self.postMessage({
@@ -269,4 +299,4 @@ self.addEventListener('unhandledrejection', (event) => {
 });
 
 // Log worker startup
-console.log('[Worker] RSS worker initialized');
+console.log('[Feed Worker] RSS worker initialized');

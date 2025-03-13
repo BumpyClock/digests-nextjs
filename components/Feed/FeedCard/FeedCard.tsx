@@ -21,7 +21,8 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useTheme } from "next-themes";
 import { workerService } from "@/services/worker-service";
-
+import tinycolor from "tinycolor2";
+import { Skeleton } from "@/components/ui/skeleton";
 dayjs.extend(relativeTime);
 
 interface FeedCardProps {
@@ -122,15 +123,22 @@ export const FeedCard = memo(function FeedCard({
     feedItem.thumbnailColor || { r: 0, g: 0, b: 0 }
   );
   const [isAnimating, setIsAnimating] = useState(false);
-  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const animationTimeoutRef = useRef<NodeJS.Timeout >(null);
   const transitionDuration = 150; // matches our transition duration in ms
+  const [imageLoading, setImageLoading] = useState(true);
 
   const handleCardClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
+      // Prevent default click behavior
       e.preventDefault();
-      // Don't process click if we're still animating
-      if (isAnimating) return;
+    },
+    []
+  );
 
+  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isAnimating) {
+      setIsPressed(true);
+      
       if (cardRef.current) {
         const rect = cardRef.current.getBoundingClientRect();
         setInitialPosition({
@@ -140,13 +148,16 @@ export const FeedCard = memo(function FeedCard({
           height: rect.height,
         });
       }
+    }
+  }, [isAnimating]);
 
-      // Start the release animation
+  const handleMouseUp = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (isPressed) {
       setIsPressed(false);
       setIsAnimating(true);
 
-      // Wait for animation to complete before firing click action
-      animationTimeoutRef.current = setTimeout(() => {
+      // Wait for release animation to complete before opening modal
+      setTimeout(() => {
         if (feedItem.type === "podcast") {
           setIsPodcastDetailsOpen(true);
         } else {
@@ -154,9 +165,8 @@ export const FeedCard = memo(function FeedCard({
         }
         setIsAnimating(false);
       }, transitionDuration);
-    },
-    [feedItem.type, isAnimating]
-  );
+    }
+  }, [feedItem.type, isPressed]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -239,16 +249,15 @@ export const FeedCard = memo(function FeedCard({
     <>
       <Card
         ref={cardRef}
-        style={
-          {
-            boxShadow: getShadowStyle(),
-            transition: "all 150ms ease-out",
-            transform: isPressed ? "translateY(2px)" : "none",
-          } as React.CSSProperties
-        }
+        style={{
+          boxShadow: getShadowStyle(),
+          transition: "all 150ms ease-out",
+          transform: isPressed ? "translateY(2px)" : "none",
+        } as React.CSSProperties}
         className="card w-full bg-card overflow-hidden cursor-pointer rounded-[40px] relative group"
         onClick={handleCardClick}
-        onMouseEnter={() => setIsHovered(true)}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
         onMouseLeave={() => {
           setIsHovered(false);
           setIsPressed(false);
@@ -257,30 +266,19 @@ export const FeedCard = memo(function FeedCard({
             clearTimeout(animationTimeoutRef.current);
           }
         }}
-        onMouseDown={() => {
-          if (!isAnimating) {
-            setIsPressed(true);
-          }
-        }}
-        onMouseUp={() => {
-          // Click handler will handle the release animation
-          // to ensure proper timing with the action
-        }}
+        onMouseEnter={() => setIsHovered(true)}
       >
         {/* <div
-          id={`feed-card-bg-image-${feedItem.id}`}
+          id={`feed-card-bg-${feedItem.id}`}
           className="absolute inset-0 overflow-hidden z-0"
         >
-          {!imageError && feedItem.thumbnail && (
-            <Image
-              src={feedItem.thumbnail}
-              alt=""
-              fill
-              sizes="(max-width: 500px) 100vw, (max-width: 300px) 50vw, 33vw"
-              className="object-cover rotate-180 blur-3xl opacity-10 dark:opacity-15 dark:brightness-85 group-hover:opacity-20 group-hover:dark:opacity-25 group-hover:dark:brightness-90  transition-all"
-              onError={handleImageError}
-            />
-          )}
+          <div 
+            className="w-full h-full opacity-10 dark:opacity-15 group-hover:opacity-20 group-hover:dark:opacity-25 transition-all"
+            style={{
+              backgroundColor: feedItem.thumbnailColor ? tinycolor({ r: feedItem.thumbnailColor.r, g: feedItem.thumbnailColor.g, b: feedItem.thumbnailColor.b }).toRgbString() : 'transparent',
+             
+            }}
+          />
         </div> */}
 
         <div
@@ -289,15 +287,23 @@ export const FeedCard = memo(function FeedCard({
         >
           {!imageError && feedItem.thumbnail && (
             <div className="relative w-full p-2 overflow-hidden">
-              <div className="relative w-full aspect-[16/9] rounded-[32px] overflow-hidden ">
+              <div className="relative w-full aspect-[16/9] rounded-[32px] overflow-hidden group-hover:drop-shadow-md transition-all duration-150">
+                {imageLoading && (
+                  <Skeleton className="absolute inset-0 z-10 rounded-[32px]" />
+                )}
                 <Image
                   src={feedItem.thumbnail}
                   alt={feedItem.title}
                   height={300}
                   width={300}
-                  className="w-full h-full object-cover rounded-[32px] group-hover:scale-105 aspect-auto transition-transform duration-250"
+                  className={`w-full h-full object-cover rounded-[32px] group-hover:scale-105 transition-all duration-150 ${
+                    imageLoading ? 'opacity-0' : 'opacity-100'
+                  }`}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   onError={handleImageError}
+                  onLoad={() => setImageLoading(false)}
+                  loading="lazy"
+                  priority={false}
                 />
               </div>
               {feedItem.type === "podcast" && (
