@@ -7,6 +7,7 @@ import { RefreshButton } from "@/components/RefreshButton"
 import { EmptyState } from "@/components/EmptyState"
 import { FeedGrid } from "@/components/Feed/FeedGrid/FeedGrid"
 import { useFeedStore } from "@/store/useFeedStore"
+import { FeedItem } from "@/types"
 
 const useHydration = () => {
   const [hydrated, setHydrated] = useState(false)
