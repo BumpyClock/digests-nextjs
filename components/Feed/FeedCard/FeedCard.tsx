@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageSquare, Share2, Play, Pause } from "lucide-react";
-// import { useRouter } from "next/navigation"
 import { useAudio } from "@/components/audio-player-provider";
 import { useToast } from "@/hooks/use-toast";
 import { ReaderViewModal } from "@/components/reader-view-modal";
@@ -125,8 +124,6 @@ export const FeedCard = memo(function FeedCard({
   const [isAnimating, setIsAnimating] = useState(false);
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const transitionDuration = 150; // matches our transition duration in ms
-  const { theme } = useTheme();
-  const isDarkMode = theme === "dark";
 
   const handleCardClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -233,8 +230,6 @@ export const FeedCard = memo(function FeedCard({
     if (isHovered) return hoverShadow;
     return restShadow;
   };
-  
-  
 
   return (
     <>
@@ -245,7 +240,6 @@ export const FeedCard = memo(function FeedCard({
           boxShadow: getShadowStyle(),
           transition: "all 150ms ease-out",
           transform: isPressed ? "translateY(2px)" : "none",
-          
         }}
         className="card w-full bg-card overflow-hidden cursor-pointer rounded-[40px] relative group"
         onClick={handleCardClick}

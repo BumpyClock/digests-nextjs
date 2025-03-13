@@ -23,14 +23,6 @@ interface ReaderViewModalProps {
 /**
  * Cleans up modal content by removing duplicate images, excluding the thumbnail,
  * and selecting the highest quality variant when the same image is available with different crop queries.
- * 
- * The quality metric is determined by:
- *   1. The "w" query parameter (parsed as an integer).
- *   2. If "w" values are equal, the third value of the "crop" parameter (parsed as a float).
- * 
- * @param htmlContent The HTML content to clean.
- * @param thumbnailUrl The URL of the thumbnail image to exclude from content.
- * @returns Cleaned HTML content without duplicates or the thumbnail.
  */
 const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string): string => {
   if (!htmlContent) return htmlContent;
@@ -208,11 +200,9 @@ export function ReaderViewModal({
       id={feedItem.id}
       isOpen={isOpen}
       onClose={memoizedOnClose}
-      link={feedItem.link}
       title={feedItem.title || "Loading..."}
       initialPosition={memoizedPosition}
       className="xs:max-w-full xs:rounded-none xs:border-none xs:h-full xs:max-h-full xs:max-w-full md:rounded-[40px]"
-      overlayClassName="xs:max-w-full xs:rounded-none xs:border-none xs:h-full xs:max-h-full xs:max-w-full backdrop-blur-xl"
     >
       <motion.div
         layoutId={`feed-card-content-${feedItem.id}`}

@@ -36,6 +36,7 @@
     "react": "19.0.0",
     "react-custom-scrollbars-2": "^4.5.0",
     "react-dom": "19.0.0",
+    "react-focus-lock": "^2.13.6",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
     "tinycolor2": "^1.6.0",
