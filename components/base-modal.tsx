@@ -2,12 +2,11 @@
 
 import type React from "react"
 import { useState } from "react"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle, DialogOverlay } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Bookmark, Share2, ExternalLink, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
-import { DialogOverlay } from "@radix-ui/react-dialog"
 
 
 interface BaseModalProps {
@@ -49,11 +48,11 @@ export function BaseModal({ isOpen, onClose, title, link, initialPosition, child
 
   return (
     <Dialog open={isOpen}  onOpenChange={onClose}>
-      <DialogOverlay className="fixed inset-0 bg-black/80 backdrop-blur-xl" />
+      <DialogOverlay className="fixed inset-0 bg-black/20 dark:bg-white/10 backdrop-blur-3xl" />
       
       <DialogTitle className="sr-only">{title || "Content"}</DialogTitle>
       <DialogContent
-        className={`xs:max-w-full xs:rounded-none xs:border-none xs:h-screen xs:max-h-screen sm:rounded-[32px] sm:border-none sm:h-screen sm:max-h-screen sm:w-screen sm:max-w-screen md:max-w-7xl md:h-[99vh] lg:max-h-[95vh] lg:w-[65vw] lg:max-w-[1050px] p-0 gap-0 overflow-hidden ${className || ""}`}
+        className={`xs:max-w-full xs:rounded-none xs:border-none xs:h-screen xs:max-h-screen sm:rounded-[32px] sm:border-none sm:h-screen sm:max-h-screen sm:w-screen sm:max-w-screen md:max-w-screen md:w-screen md:rounded-none md:border-none md:h-screen md:max-h-screen lg:max-h-[95vh] lg:w-[65vw] lg:rounded-[40px] lg:max-w-[1050px] p-0 gap-0 overflow-hidden ${className || ""}`}
         style={modalStyle}
         hideCloseButton
       >

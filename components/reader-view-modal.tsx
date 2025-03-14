@@ -214,7 +214,7 @@ export function ReaderViewModal({
       link={feedItem.link}
       title={readerView?.title || "Loading..."}
       initialPosition={memoizedPosition}
-      className="xs:max-w-full xs:rounded-none xs:border-none xs:h-full xs:max-h-full xs:max-w-full"
+      className=""
     >
       <div className="relative">
         {/* Top shadow */}

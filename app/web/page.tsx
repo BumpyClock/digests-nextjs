@@ -2,12 +2,13 @@
 
 import { useState, useCallback, useMemo, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { SearchBar } from "@/components/SearchBar"
 import { RefreshButton } from "@/components/RefreshButton"
 import { EmptyState } from "@/components/EmptyState"
 import { FeedGrid } from "@/components/Feed/FeedGrid/FeedGrid"
 import { useFeedStore } from "@/store/useFeedStore"
 import { FeedItem } from "@/types"
+
+import { CommandBox } from "@/components/CommandBox/CommandBox"
 
 const useHydration = () => {
   const [hydrated, setHydrated] = useState(false)
@@ -30,16 +31,34 @@ const TabContent = ({ items, isLoading }: { items: FeedItem[], isLoading: boolea
   }, [])
 
   if (!isMounted) {
-    return null // Return null on server and during initial client render
+    return null
   }
 
-  return isLoading ? (
-    <FeedGrid items={[]} isLoading={true} />
-  ) : items.length === 0 ? (
-    <EmptyState />
-  ) : (
-    <FeedGrid items={items} isLoading={false} />
-  )
+  try{
+
+  
+  // Ensure all items have required properties and non-empty IDs
+  const validItems = items.filter(item => {
+    return item && 
+           typeof item === 'object' && 
+           'id' in item && 
+           item.id !== undefined && 
+           item.id !== ''
+  })
+  
+  if (isLoading) {
+    return <FeedGrid items={[]} isLoading={true} />
+  }
+
+  if (validItems.length === 0) {
+    return <EmptyState />
+  }
+
+  return <FeedGrid items={validItems} isLoading={false} />
+  } catch (error) {
+    console.error('Error rendering TabContent:', error)
+    return <EmptyState />
+  }
 }
 
 export default function AppPage() {
@@ -75,35 +94,56 @@ export default function AppPage() {
     refreshFeeds()
   }, [refreshFeeds])
 
+  // Update filteredItems to allow all items while typing
   const filteredItems = useMemo(() => {
-    const searchLower = searchQuery.toLowerCase()
-    return feedItems.filter((item) => {
-      return (
-        (item.title && item.title.toLowerCase().includes(searchLower)) ||
-        (item.description && item.description.toLowerCase().includes(searchLower)) ||
-        (item.feedTitle && item.feedTitle.toLowerCase().includes(searchLower))
-      )
-    })
-  }, [feedItems, searchQuery])
+    try {
+      if (!feedItems || !Array.isArray(feedItems)) return []
+      
+      // Return all items regardless of search query
+      return feedItems.filter((item) => {
+        if (!item || !item.id || item.id === '') return false // Skip items with empty IDs
+        return true; // Return all items
+      });
+    } catch (error) {
+      console.error('Error filtering items:', error)
+      return []
+    }
+  }, [feedItems])
 
   const articleItems = useMemo(() => 
-    filteredItems.filter((item) => item.type === "article"), 
+    filteredItems.filter((item) => {
+      if (!item || !item.id) return false
+      return item.type === "article"
+    }), 
     [filteredItems]
   )
 
   const podcastItems = useMemo(() => 
-    filteredItems.filter((item) => item.type === "podcast"), 
+    filteredItems.filter((item) => {
+      if (!item || !item.id) return false
+      return item.type === "podcast"
+    }), 
     [filteredItems]
   )
 
   const favoriteItems = useMemo(() => 
-    filteredItems.filter((item) => item.favorite), 
+    filteredItems.filter((item) => {
+      if (!item || !item.id) return false
+      return item.favorite
+    }), 
     [filteredItems]
   )
 
+  // Handle search query update from CommandBox
   const handleSearch = useCallback((value: string) => {
-    setSearchQuery(value)
-  }, [])
+    setSearchQuery(value);
+  }, []);
+
+  // Handle "See All Matches" action
+  const handleSeeAllMatches = useCallback(() => {
+    // This will apply the current search query to the main feed display
+    setSearchQuery(searchQuery);
+  }, [searchQuery]);
 
   const isLoading = loading || (!initialized && feedItems.length === 0)
 
@@ -131,7 +171,12 @@ export default function AppPage() {
           </TabsList>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <SearchBar value={searchQuery} onChange={handleSearch} />
+            <CommandBox 
+              value={searchQuery} 
+              onChange={handleSearch} 
+              onSeeAllMatches={handleSeeAllMatches}
+              handleRefresh={handleRefresh}
+            />
             <RefreshButton 
               onClick={handleRefresh} 
               isLoading={loading || refreshing} 

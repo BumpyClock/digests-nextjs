@@ -31,7 +31,7 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
 
     const feeds: Feed[] = data.feeds.map((feed: Feed) => ({
       type: feed.type,
-      guid: feed.guid,
+      guid: feed.guid || feed.link?.replace(/[^a-zA-Z0-9]/g, '') || crypto.randomUUID(),
       status: feed.status,
       siteTitle: feed.siteTitle,
       feedTitle: feed.feedTitle,
@@ -47,7 +47,7 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
       categories: feed.categories,
       items: Array.isArray(feed.items) ? feed.items.map((item: FeedItem) => ({
         type: item.type,
-        id: item.id,
+        id: item.id || item.link?.replace(/[^a-zA-Z0-9]/g, '') || crypto.randomUUID(),
         title: item.title,
         description: item.description,
         link: item.link,

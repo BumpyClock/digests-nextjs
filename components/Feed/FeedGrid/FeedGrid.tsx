@@ -2,12 +2,11 @@
 
 import { useCallback, useState, useEffect, useMemo } from "react"
 import { Masonry } from "masonic"
-import { useToast } from "@/hooks/use-toast"
 import { FeedCard } from "@/components/Feed/FeedCard/FeedCard"
 import { useWindowSize } from "@/hooks/use-window-size"
 import { useFeedStore } from "@/store/useFeedStore"
 import { FeedItem } from "@/types"
-import { ToastAction } from "@/components/ui/toast"
+import { toast } from "sonner"
 import dynamic from 'next/dynamic'
 import loadingAnimation from "@/public/assets/animations/feed-loading.json"
 
@@ -46,10 +45,9 @@ const LoadingAnimation = () => {
 }
 
 export function FeedGrid({ items, isLoading }: FeedGridProps) {
-  const { toast } = useToast()
   const { checkForUpdates, refreshFeeds } = useFeedStore()
   const [mounted, setMounted] = useState(false)
-  const { width } = useWindowSize()
+  const { width: windowWidth } = useWindowSize()
   const [isMinLoadingComplete, setIsMinLoadingComplete] = useState(false)
 
   useEffect(() => {
@@ -66,33 +64,36 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
     if (!mounted) return
 
     const checkUpdates = async () => {
+      console.log("Checking for updates at time ", new Date().toLocaleString())
       const { hasNewItems, count } = await checkForUpdates()
       
       if (hasNewItems) {
-        toast({
-          title: "New items available",
+        toast("New items available", {
           description: `${count} new item${count === 1 ? '' : 's'} available`,
-          action: (
-            <ToastAction altText="Refresh feeds" onClick={() => refreshFeeds()}>
-              Refresh
-            </ToastAction>
-          ),
+          action: {
+            label: "Refresh",
+            onClick: () => refreshFeeds()
+          },
           duration: 10000, // 10 seconds
         })
+      }
+      else{
+       
+        console.log("No updates available")
       }
     }
     checkUpdates()
 
-    const interval = setInterval(checkUpdates, 30 * 60 * 1000)
+    const interval = setInterval(checkUpdates, 30 * 60 *1000)
 
     return () => clearInterval(interval)
-  }, [mounted, checkForUpdates, refreshFeeds, toast])
+  }, [mounted, checkForUpdates, refreshFeeds])
 
   const columnWidth = 320
   const columnGutter = 24
   const columnCount = useMemo(() => 
-    Math.max(1, Math.floor((width - 48) / (columnWidth + columnGutter))),
-    [width]
+    Math.max(1, Math.floor((windowWidth - 48) / (columnWidth + columnGutter))),
+    [windowWidth]
   )
   
   const renderItem = useCallback(
@@ -102,25 +103,56 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
     []
   )
 
-  const memoizedItems = useMemo(() => items, [items])
+  const memoizedItems = useMemo(() => {
+    // console.log('Memoizing items:', items) // Debug: log items array
+    if (!Array.isArray(items)) {
+      console.warn('Items is not an array:', items)
+      return []
+    }
+    // Filter out any undefined/null items to prevent crashes
+    return items.filter(item => item && item.id)
+  }, [items])
 
-  const itemKey = useCallback((item: FeedItem) => item.id, [])
+  // Create a key that changes when array length changes
+  const cacheKey = useMemo(() => 
+    `masonry-${memoizedItems.length}`,
+    [memoizedItems.length]
+  )
+
+  const itemKey = useCallback((item: FeedItem, index: number) => {
+    try {
+      if (!item) {
+        console.warn(`Undefined item at index ${index}`)
+        return `fallback-${index}`
+      }
+      return item.id
+    } catch (error) {
+      console.error('Error in itemKey:', error)
+      return `fallback-${index}`
+    }
+  }, [])
 
   if (!mounted || !isMinLoadingComplete || isLoading) {
     return <LoadingAnimation />
   }
 
-  return (
-    <div id="feed-grid" className="pt-6 h-screen">
-      <Masonry
-        items={memoizedItems}
-        maxColumnCount={columnCount}
-        columnGutter={columnGutter}
-        columnWidth={columnWidth}
-        render={renderItem}
-        overscanBy={2}
-        itemKey={itemKey}
-      />
-    </div>
-  )
+  try {
+    return (
+      <div id="feed-grid" className="pt-6 h-screen">
+        <Masonry
+          key={cacheKey} // Force remount when array length changes
+          items={memoizedItems}
+          maxColumnCount={columnCount}
+          columnGutter={columnGutter}
+          columnWidth={columnWidth}
+          render={renderItem}
+          overscanBy={2}
+          itemKey={itemKey}
+        />
+      </div>
+    )
+  } catch (error) {
+    console.error('Error rendering FeedGrid:', error)
+    return <div>Error loading feed. Please try refreshing the page.</div>
+  }
 } 

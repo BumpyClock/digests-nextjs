@@ -3,7 +3,7 @@ import { Noto_Sans } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Header } from "@/components/header"
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/sonner"
 import { AudioPlayerProvider } from "@/components/audio-player-provider"
 import { WorkerInitializer } from "@/components/worker-init"
 
@@ -37,8 +37,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Add manifest.json for PWA */}
-        <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" sizes="192x192" href="/logo192.png" />
+
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={notoSans.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
