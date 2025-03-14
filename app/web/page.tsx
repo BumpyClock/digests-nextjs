@@ -7,7 +7,7 @@ import { FeedGrid } from "@/components/Feed/FeedGrid/FeedGrid"
 import { useFeedStore } from "@/store/useFeedStore"
 import { FeedItem } from "@/types"
 
-import { CommandBox } from "@/components/CommandBox/CommandBox"
+import { CommandBar } from "@/components/CommandBar/CommandBar"
 import { RefreshButton } from "@/components/RefreshButton"
 
 /**
@@ -63,6 +63,15 @@ const TabContent = ({ items, isLoading }: { items: FeedItem[], isLoading: boolea
   }
 }
 
+const normalizeUrl = (url: string | null): string => {
+  if (!url) return '';
+  try {
+    return decodeURIComponent(url).replace(/\/$/, '');
+  } catch {
+    return url.replace(/\/$/, '');
+  }
+};
+
 export default function AppPage() {
   const isHydrated = useHydration()
   const [searchQuery, setSearchQuery] = useState("")
@@ -79,7 +88,8 @@ export default function AppPage() {
     refreshFeeds,
     initialized,
     setInitialized,
-    getUnreadItems
+    getUnreadItems,
+    setActiveFeed
   } = useFeedStore()
 
   useEffect(() => {
@@ -108,11 +118,15 @@ export default function AppPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
-      const feedParam = params.get('feed')
-      setSelectedFeedLink(feedParam)
+      const params = new URLSearchParams(window.location.search);
+      const feedParam = params.get('feed');
+      if (feedParam) {
+        const normalizedUrl = normalizeUrl(feedParam);
+        setSelectedFeedLink(normalizedUrl);
+        setActiveFeed(normalizedUrl);
+      }
     }
-  }, [])
+  }, []);
 
   /**
    * Handles manual refresh of feeds and updates stable unread items.
@@ -131,8 +145,11 @@ export default function AppPage() {
    * @param {string} feedUrl - The URL of the selected feed.
    */
   const handleFeedSelect = useCallback((feedUrl: string) => {
-    setSelectedFeedLink(feedUrl);
-    const newUrl = `/?feed=${encodeURIComponent(feedUrl)}`;
+    const normalizedUrl = normalizeUrl(feedUrl);
+    setSelectedFeedLink(normalizedUrl);
+    setSearchQuery("");
+    setAppliedSearchQuery("");
+    const newUrl = `/web?feed=${encodeURIComponent(normalizedUrl)}`;
     window.history.pushState({}, '', newUrl);
   }, []);
 
@@ -167,7 +184,8 @@ export default function AppPage() {
       
       return feedItems.filter((item) => {
         if (!item || !item.id || item.id === '') return false
-        if (selectedFeedLink && item.feedUrl !== selectedFeedLink) {
+        
+        if (selectedFeedLink && normalizeUrl(item.feedUrl) !== normalizeUrl(selectedFeedLink)) {
           return false
         }
         if (appliedSearchQuery) {
@@ -325,7 +343,7 @@ export default function AppPage() {
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <CommandBox 
+            <CommandBar 
               value={searchQuery} 
               onChange={handleSearch}
               onApplySearch={handleApplySearch} 

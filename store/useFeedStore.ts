@@ -18,6 +18,7 @@ import { workerService } from "@/services/worker-service"
  * @property {number | null} lastRefreshed - Timestamp of last refresh
  * @property {boolean} hydrated - Hydration state
  * @property {Set<string>} readItems - Track read item IDs
+ * @property {string | null} activeFeed - Track active feed URL
  * @method setFeeds - Sets the feeds in the store
  * @method setFeedItems - Sets the feed items in the store
  * @method setHydrated - Sets the hydration state
@@ -32,6 +33,7 @@ import { workerService } from "@/services/worker-service"
  * @method markAsRead - Marks a specific feed item as read
  * @method getUnreadItems - Gets all unread feed items
  * @method markAllAsRead - Marks all feed items as read
+ * @method setActiveFeed - Sets the active feed URL
  */
 interface FeedState {
   feeds: Feed[]
@@ -42,11 +44,13 @@ interface FeedState {
   lastRefreshed: number | null
   hydrated: boolean
   readItems: Set<string> // Track read item IDs
+  activeFeed: string | null // Add this property
 
   // Setters
   setFeeds: (feeds: Feed[]) => void
   setFeedItems: (items: FeedItem[]) => void
   setHydrated: (state: boolean) => void
+  setActiveFeed: (feedUrl: string | null) => void // Add this setter
 
   // Actions
   addFeed: (url: string) => Promise<{ success: boolean; message: string }>
@@ -90,11 +94,13 @@ export const useFeedStore = create<FeedState>()(
       lastRefreshed: null,
       hydrated: false,
       readItems: new Set<string>(),
+      activeFeed: null,
 
       // === SETTERS ===
       setFeeds: (feeds) => set({ feeds }),
       setFeedItems: (items) => set({ feedItems: items }),
       setHydrated: (state) => set({ hydrated: state }),
+      setActiveFeed: (feedUrl) => set({ activeFeed: feedUrl }),
 
       // === ACTIONS ===
 
@@ -389,6 +395,7 @@ export const useFeedStore = create<FeedState>()(
         initialized: state.initialized,
         lastRefreshed: state.lastRefreshed,
         readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []), // Convert Set to Array for storage
+        activeFeed: state.activeFeed, // Add this to persist the active feed
       }),
       onRehydrateStorage: () => (state) => {
         if (state && typeof window !== 'undefined') {

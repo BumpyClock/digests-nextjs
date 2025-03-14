@@ -17,8 +17,20 @@ import { useFeedStore } from "@/store/useFeedStore";
 import { Button } from "@/components/ui/button";
 import {  Moon, Podcast, RefreshCcw, Rss, Search, Settings, Sun, CheckCircle } from "lucide-react";
 import { useTheme } from "next-themes";
+import React from "react";
+import { useCommandBarSearch } from "@/hooks/use-command-bar-search";
+import { useCommandBarShortcuts } from "@/hooks/use-command-bar-shortcuts";
 
-interface CommandBoxProps {
+/**
+ * CommandBarProps interface defines the properties for the CommandBar component.
+ * @property {string} value - The current search value.
+ * @property {(value: string) => void} onChange - Function to handle changes to the search value.
+ * @property {(value: string) => void} onApplySearch - Function to apply the search.
+ * @property {() => void} onSeeAllMatches - Function to see all matches.
+ * @property {() => void} handleRefresh - Function to refresh the feed.
+ * @property {(feedUrl: string) => void} onFeedSelect - Function to handle feed selection.
+ */
+interface CommandBarProps {
   value: string;
   onChange: (value: string) => void;
   onApplySearch: (value: string) => void;
@@ -27,101 +39,108 @@ interface CommandBoxProps {
   onFeedSelect: (feedUrl: string) => void;
 }
 
-export function CommandBox({
+/**
+ * CommandBar component for searching and selecting feeds and articles.
+ * @param {CommandBarProps} props - The properties for the component.
+ * @returns {JSX.Element} The rendered CommandBar component.
+ */
+export function CommandBar({
   value,
   onChange,
   onApplySearch,
   onSeeAllMatches,
   handleRefresh,
   onFeedSelect,
-}: CommandBoxProps) {
-  const [open, setOpen] = useState(false);
+}: CommandBarProps) {
   const { feedItems, feeds } = useFeedStore();
   const router = useRouter();
   const { setTheme } = useTheme();
+  const { open, setOpen, handleKeyDown, handleClose } = useCommandBarShortcuts(onApplySearch);
+  
+  const {
+    filteredSources,
+    filteredItems,
+    totalMatchCount,
+    shouldShowSeeAll,
+    handleSeeAllMatches,
+    handleFeedSelect: handleFeedSelectSearch,
+    handleArticleSelect
+  } = useCommandBarSearch(value, feedItems, feeds, onSeeAllMatches, handleClose, onChange);
 
-  // Get unique feed sources from items if not directly available
-  const uniqueFeedSources = useMemo(() => {
-    if (feeds && Array.isArray(feeds)) return feeds;
+  const MemoizedCommandItem = React.memo(CommandItem);
 
-    const sources = new Map();
-    feedItems.forEach((item) => {
-      if (item.feedTitle && item.feedUrl) {
-        sources.set(item.feedUrl, {
-          title: item.feedTitle,
-          url: item.feedUrl,
-        });
-      }
-    });
-    return Array.from(sources.values());
-  }, [feedItems, feeds]);
+  // Debug logs for store data
+  console.log('CommandBar Data:', {
+    currentValue: value,
+    feedItemsCount: feedItems.length,
+    feedsCount: feeds?.length,
+  });
 
-  // Filter feed sources based on search term
-  const filteredSources: Feed[] = useMemo(() => {
-    if (!value) return uniqueFeedSources;
-    const searchLower = value.toLowerCase();
-    return uniqueFeedSources.filter(
-      (source) =>
-        source.title?.toLowerCase().includes(searchLower) ||
-        source.siteTitle?.toLowerCase().includes(searchLower)
-    );
-  }, [uniqueFeedSources, value]);
-
-  // Filter feed items based on search term
-  const filteredItems: FeedItem[] = useMemo(() => {
-    if (!value) return [];
-    const searchLower = value.toLowerCase();
-    return feedItems
-      .filter(
-        (item) =>
-          (item.title && item.title.toLowerCase().includes(searchLower)) ||
-          (item.description &&
-            item.description.toLowerCase().includes(searchLower))
-      )
-      .slice(0, 5); // Show only 5 items
-  }, [feedItems, value]);
-
-  // Track total matches before slicing for UI decisions
-  const totalMatchCount = useMemo(() => {
-    if (!value) return 0;
-    const searchLower = value.toLowerCase();
-    return feedItems.filter(
-      (item) =>
-        (item.title && item.title.toLowerCase().includes(searchLower)) ||
-        (item.description &&
-          item.description.toLowerCase().includes(searchLower))
-    ).length;
-  }, [feedItems, value]);
-
-  const handleSeeAllMatches = useCallback(() => {
-    console.log("See all matches clicked", totalMatchCount);
-    onSeeAllMatches(); // Apply the current search value to the main page
-    setOpen(false); // Close the command dialog
-  }, [onSeeAllMatches, totalMatchCount]);
-
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen((prevOpen) => !prevOpen); // Toggle open state
-      }
-    };
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
-
-  // Check if we should show the "See All" item
-  // Only show if there are more total matches than what we're displaying
-  const shouldShowSeeAll = useMemo(() => {
-    return value && totalMatchCount > filteredItems.length;
-  }, [value, totalMatchCount, filteredItems.length]);
-
-  // Add handler for Enter key in search input
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      onApplySearch(value);
+  // Add the normalizeUrl helper
+  const normalizeUrl = (url: string): string => {
+    try {
+      return decodeURIComponent(url).replace(/\/$/, '');
+    } catch {
+      return url.replace(/\/$/, '');
     }
   };
+
+  // Update the handleFeedSelect function
+  const handleFeedSelect = (feedUrl: string) => {
+    console.log('Parent onFeedSelect called with:', feedUrl);
+    
+    // Normalize the URL
+    const normalizedUrl = normalizeUrl(feedUrl);
+    console.log('Normalized URL:', normalizedUrl);
+    
+    // Clear search value BEFORE navigation
+    onChange(""); 
+    
+    // Make sure URL is properly encoded for query params
+    const encodedUrl = encodeURIComponent(normalizedUrl);
+    console.log('URL for routing:', encodedUrl);
+    
+    // Update store with normalized URL
+    const { setActiveFeed } = useFeedStore.getState();
+    setActiveFeed(normalizedUrl);
+    
+    // Navigate with encoded URL
+    router.push(`/web?feed=${encodedUrl}`);
+    
+    // Close the dialog
+    handleClose();
+    
+    // Log state after setting
+    setTimeout(() => {
+      const state = useFeedStore.getState();
+      const matchingItems = state.feedItems.filter(item => 
+        normalizeUrl(item.feedUrl) === normalizedUrl
+      );
+      
+      console.log('Feed items matching this feed:', {
+        normalizedUrl,
+        matchingItems: matchingItems.map(i => i.title).slice(0, 3),
+        count: matchingItems.length
+      });
+      
+      console.log('Store state after feed selection:', {
+        activeFeed: state.activeFeed,
+        filteredItemsCount: matchingItems.length,
+        totalItems: state.feedItems.length,
+        searchValue: value
+      });
+    }, 100);
+  };
+
+  // Add debug info for rendering conditions
+  console.log('Render Conditions:', {
+    showFeeds: filteredSources && filteredSources.length > 0,
+    feedsCount: filteredSources?.length,
+    showArticles: value && !filteredSources.length && totalMatchCount > 0,
+    articlesCount: filteredItems?.length,
+    totalMatchCount,
+    shouldShowSeeAll
+  });
 
   return (
     <>
@@ -144,7 +163,7 @@ export function CommandBox({
             placeholder="Type a command or search..."
             value={value}
             onValueChange={onChange}
-            onKeyDown={handleKeyDown}
+            onKeyDown={(e) => handleKeyDown(e, value)}
           />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
@@ -215,18 +234,14 @@ export function CommandBox({
 
             {filteredSources && filteredSources.length > 0 && (
               <CommandGroup
-                heading="Feeds"
+                heading={`Feeds (${filteredSources.length})`}
                 className="text-xs font-bold text-muted-foreground"
               >
                 {filteredSources.map((source) => (
-                  <CommandItem
+                  <MemoizedCommandItem
                     className="text-sm font-normal"
                     key={source.guid || Math.random().toString()}
-                    onSelect={() => {
-                      onChange("");
-                      onFeedSelect(source.feedUrl || "");
-                      setOpen(false);
-                    }}
+                    onSelect={() => handleFeedSelect(source.feedUrl || "")}
                   >
                     <img 
                       src={source.favicon || ''} 
@@ -238,38 +253,33 @@ export function CommandBox({
                     <span className="text-xs font-regular">
                       {source.feedTitle || source.siteTitle || "Unnamed Feed"}
                     </span>
-                  </CommandItem>
+                  </MemoizedCommandItem>
                 ))}
               </CommandGroup>
             )}
-            {/* Show Articles section if there are any matches */}
-            {value && totalMatchCount > 0 && (
+
+            {value && !filteredSources.length && totalMatchCount > 0 && (
               <CommandGroup
-                heading="ARTICLES"
+                heading={`ARTICLES (${filteredItems.length}/${totalMatchCount})`}
                 className="text-xs font-bold text-muted-foreground"
               >
                 {filteredItems.map((item) => (
-                  <CommandItem
+                  <MemoizedCommandItem
                     className="text-sm font-normal"
                     key={item.id || Math.random().toString()}
-                    onSelect={() => {
-                      onChange(item.title || "");
-                      setOpen(false);
-                    }}
+                    onSelect={() => handleArticleSelect(item.title || "")}
                   >
-                    
                     <span className="text-xs font-regular">{item.title || "Untitled Article"}</span>
-                  </CommandItem>
+                  </MemoizedCommandItem>
                 ))}
-                {/* Separate the See All matches as its own component with clear conditions */}
                 {shouldShowSeeAll && (
-                  <CommandItem
+                  <MemoizedCommandItem
                     key="see-all-matches"
                     className="text-sm font-normal"
                     onSelect={handleSeeAllMatches}
                   >
                     {<span className="text-xs font-regular">See All {totalMatchCount} Matches</span>}
-                  </CommandItem>
+                  </MemoizedCommandItem>
                 )}
               </CommandGroup>
             )}
