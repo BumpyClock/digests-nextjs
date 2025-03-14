@@ -40,7 +40,7 @@ export function useFeedForm() {
         })
       }
     },
-    [addFeed, toast]
+    [addFeed]
   )
 
   return { handleSubmit, formRef, loading }

@@ -1,6 +1,5 @@
 import { useCallback, useRef } from "react"
 import { useFeedStore } from "@/store/useFeedStore"
-import { useToast } from "@/hooks/use-toast"
 import { toast } from "sonner"
 import { exportOPML } from "../utils/opml"
 
@@ -72,7 +71,7 @@ export function useOPML() {
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-  }, [feeds, addFeeds, toast])
+  }, [feeds, addFeeds])
 
   return {
     fileInputRef,

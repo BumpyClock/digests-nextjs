@@ -11,14 +11,14 @@ export function useFeedManagement() {
     toast.success("Feed removed", {
       description: "The feed has been removed from your subscriptions.",
     })
-  }, [removeFeed, toast])
+  }, [removeFeed])
 
   const handleCopyFeed = useCallback((feedUrl: string) => {
     navigator.clipboard.writeText(feedUrl)
     toast.success("Feed URL copied", {
       description: "The feed URL has been copied to your clipboard.",
     })
-  }, [toast])
+  }, [])
 
   return {
     handleRemoveFeed,

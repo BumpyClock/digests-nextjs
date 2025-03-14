@@ -79,7 +79,6 @@ export default function AppPage() {
     refreshFeeds,
     initialized,
     setInitialized,
-    readItems,
     getUnreadItems
   } = useFeedStore()
 
@@ -140,11 +139,11 @@ export default function AppPage() {
   /**
    * Marks all items as read and updates stable unread items.
    */
-  const handleMarkAllAsRead = useCallback(() => {
-    const { markAllAsRead } = useFeedStore.getState();
-    markAllAsRead();
-    setStableUnreadItems([]);
-  }, []);
+  // const handleMarkAllAsRead = useCallback(() => {
+  //   const { markAllAsRead } = useFeedStore.getState();
+  //   markAllAsRead();
+  //   setStableUnreadItems([]);
+  // }, []);
   
   const handleSearch = useCallback((value: string) => {
     setSearchQuery(value);
@@ -160,7 +159,7 @@ export default function AppPage() {
 
   const unreadItems = useMemo(() => {
     return getUnreadItems();
-  }, [getUnreadItems, readItems]);
+  }, [getUnreadItems]);
 
   const filteredItems = useMemo(() => {
     try {
@@ -300,15 +299,27 @@ export default function AppPage() {
               </TabsTrigger>
               <TabsTrigger value="articles">
                 Articles
-                {articleItems.length > 0 && ` (${articleItems.length})`}
+                {articleItems.length > 0 && (selectedTab === "articles" ? ` (${articleItems.length})` : ` (${filteredStableUnreadItems.length})`)}
+                {unreadArticleItems.length > 0 && selectedTab !== "articles" && (
+                  <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                  </span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="podcasts">
                 Podcasts
-                {podcastItems.length > 0 && ` (${podcastItems.length})`}
+                {podcastItems.length > 0 && (selectedTab === "podcasts" ? ` (${podcastItems.length})` : ` (${filteredStableUnreadItems.length})`)}
+                {unreadPodcastItems.length > 0 && selectedTab !== "podcasts" && (
+                  <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                  </span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="favorites">
                 Favorites
-                {favoriteItems.length > 0 && ` (${favoriteItems.length})`}
+                {favoriteItems.length > 0 && (selectedTab === "favorites" ? ` (${favoriteItems.length})` : ` (${filteredStableUnreadItems.length})`)}
               </TabsTrigger>
             </TabsList>
           </div>
