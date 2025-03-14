@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { FeedItem, Feed } from "@/types";
 import { useFeedStore } from "@/store/useFeedStore";
 import { Button } from "@/components/ui/button";
-import { Mic, Moon, Podcast, RefreshCcw, Rss, Search, Settings, Sun } from "lucide-react";
+import {  Moon, Podcast, RefreshCcw, Rss, Search, Settings, Sun, CheckCircle } from "lucide-react";
 import { useTheme } from "next-themes";
 
 interface CommandBoxProps {
@@ -199,6 +199,16 @@ export function CommandBox({
               >
                 <Moon className="mr-2 h-4 w-4 text-xs font-regular" />
                 <span className="text-xs font-regular">Dark Mode</span>
+              </CommandItem>
+              <CommandItem
+                onSelect={() => {
+                  const { markAllAsRead } = useFeedStore.getState();
+                  markAllAsRead();
+                  setOpen(false);
+                }}
+              >
+                <CheckCircle className="mr-2 h-4 w-4 text-xs font-regular" />
+                <span className="text-xs font-regular">Mark All as Read</span>
               </CommandItem>
             </CommandGroup>
             <CommandSeparator />

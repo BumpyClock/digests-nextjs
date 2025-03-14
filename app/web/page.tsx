@@ -1,15 +1,19 @@
 "use client"
 
-import { useState, useCallback, useMemo, useEffect } from "react"
+import { useState, useCallback, useMemo, useEffect, useRef } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { RefreshButton } from "@/components/RefreshButton"
 import { EmptyState } from "@/components/EmptyState"
 import { FeedGrid } from "@/components/Feed/FeedGrid/FeedGrid"
 import { useFeedStore } from "@/store/useFeedStore"
 import { FeedItem } from "@/types"
 
 import { CommandBox } from "@/components/CommandBox/CommandBox"
+import { RefreshButton } from "@/components/RefreshButton"
 
+/**
+ * Custom hook to manage hydration state.
+ * @returns {boolean} - Indicates if the store is hydrated.
+ */
 const useHydration = () => {
   const [hydrated, setHydrated] = useState(false)
   const storeHydrated = useFeedStore(state => state.hydrated)
@@ -23,6 +27,13 @@ const useHydration = () => {
   return hydrated && storeHydrated
 }
 
+/**
+ * Component to render tab content.
+ * @param {Object} props - Component props.
+ * @param {FeedItem[]} props.items - List of feed items.
+ * @param {boolean} props.isLoading - Loading state.
+ * @returns {JSX.Element} - Rendered tab content.
+ */
 const TabContent = ({ items, isLoading }: { items: FeedItem[], isLoading: boolean }) => {
   const [isMounted, setIsMounted] = useState(false)
 
@@ -34,27 +45,18 @@ const TabContent = ({ items, isLoading }: { items: FeedItem[], isLoading: boolea
     return null
   }
 
-  try{
+  try {
+    const validItems = items.filter(item => item && typeof item === 'object' && 'id' in item && item.id !== undefined && item.id !== '')
+    
+    if (isLoading) {
+      return <FeedGrid items={[]} isLoading={true} />
+    }
 
-  
-  // Ensure all items have required properties and non-empty IDs
-  const validItems = items.filter(item => {
-    return item && 
-           typeof item === 'object' && 
-           'id' in item && 
-           item.id !== undefined && 
-           item.id !== ''
-  })
-  
-  if (isLoading) {
-    return <FeedGrid items={[]} isLoading={true} />
-  }
+    if (validItems.length === 0) {
+      return <EmptyState />
+    }
 
-  if (validItems.length === 0) {
-    return <EmptyState />
-  }
-
-  return <FeedGrid items={validItems} isLoading={false} />
+    return <FeedGrid items={validItems} isLoading={false} />
   } catch (error) {
     console.error('Error rendering TabContent:', error)
     return <EmptyState />
@@ -66,6 +68,10 @@ export default function AppPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [appliedSearchQuery, setAppliedSearchQuery] = useState("")
   const [selectedFeedLink, setSelectedFeedLink] = useState<string | null>(null)
+  const [selectedTab, setSelectedTab] = useState("unread")
+  const [stableUnreadItems, setStableUnreadItems] = useState<FeedItem[]>([])
+  const refreshedRef = useRef(false)
+  
   const { 
     feedItems, 
     loading, 
@@ -76,6 +82,15 @@ export default function AppPage() {
     readItems,
     getUnreadItems
   } = useFeedStore()
+
+  useEffect(() => {
+    if (isHydrated && initialized && !refreshedRef.current) {
+      console.log('Synchronizing unread items...')
+      const currentUnreadItems = getUnreadItems()
+      setStableUnreadItems(currentUnreadItems)
+      refreshedRef.current = true
+    }
+  }, [isHydrated, initialized, getUnreadItems])
 
   useEffect(() => {
     if (isHydrated && !initialized) {
@@ -92,7 +107,6 @@ export default function AppPage() {
     }
   }, [isHydrated, initialized, refreshFeeds, setInitialized])
 
-  // Add this useEffect to handle URL params
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
@@ -101,56 +115,62 @@ export default function AppPage() {
     }
   }, [])
 
-  // Handle manual refresh
+  /**
+   * Handles manual refresh of feeds and updates stable unread items.
+   */
   const handleRefresh = useCallback(() => {
     console.log('Refreshing feeds...')
-    refreshFeeds()
-  }, [refreshFeeds])
+    refreshFeeds().then(() => {
+      const currentUnreadItems = getUnreadItems()
+      setStableUnreadItems(currentUnreadItems)
+      refreshedRef.current = true
+    })
+  }, [refreshFeeds, getUnreadItems])
 
-  // Add handler for feed selection
+  /**
+   * Handles feed selection and updates the URL.
+   * @param {string} feedUrl - The URL of the selected feed.
+   */
   const handleFeedSelect = useCallback((feedUrl: string) => {
     setSelectedFeedLink(feedUrl);
-    // Update URL without navigation
     const newUrl = `/?feed=${encodeURIComponent(feedUrl)}`;
     window.history.pushState({}, '', newUrl);
   }, []);
 
-  // Handle search query update from CommandBox (only updates the input value, not filtering)
+  /**
+   * Marks all items as read and updates stable unread items.
+   */
+  const handleMarkAllAsRead = useCallback(() => {
+    const { markAllAsRead } = useFeedStore.getState();
+    markAllAsRead();
+    setStableUnreadItems([]);
+  }, []);
+  
   const handleSearch = useCallback((value: string) => {
     setSearchQuery(value);
   }, []);
 
-  // Apply the search query (for filtering) when user confirms
   const handleApplySearch = useCallback((value: string) => {
     setAppliedSearchQuery(value);
   }, []);
 
-  // Handle "See All Matches" action
   const handleSeeAllMatches = useCallback(() => {
-    // Apply the current search query to the main feed display
     setAppliedSearchQuery(searchQuery);
   }, [searchQuery]);
 
-  // Get all unread items
   const unreadItems = useMemo(() => {
     return getUnreadItems();
   }, [getUnreadItems, readItems]);
 
-  // Update filteredItems to use appliedSearchQuery instead of searchQuery
   const filteredItems = useMemo(() => {
     try {
       if (!feedItems || !Array.isArray(feedItems)) return []
       
       return feedItems.filter((item) => {
-        // Basic validation
         if (!item || !item.id || item.id === '') return false
-
-        // Filter by selected feed if one is selected
         if (selectedFeedLink && item.feedUrl !== selectedFeedLink) {
           return false
         }
-
-        // Filter by search query if one exists
         if (appliedSearchQuery) {
           const searchLower = appliedSearchQuery.toLowerCase()
           return (
@@ -158,7 +178,6 @@ export default function AppPage() {
             (item.description?.toLowerCase().includes(searchLower))
           )
         }
-
         return true
       })
     } catch (error) {
@@ -167,21 +186,15 @@ export default function AppPage() {
     }
   }, [feedItems, selectedFeedLink, appliedSearchQuery]);
 
-  // Filter the unread items
-  const filteredUnreadItems = useMemo(() => {
+  const filteredStableUnreadItems = useMemo(() => {
     try {
-      if (!unreadItems || !Array.isArray(unreadItems)) return []
+      if (!stableUnreadItems || !Array.isArray(stableUnreadItems)) return []
       
-      return unreadItems.filter((item) => {
-        // Basic validation
+      return stableUnreadItems.filter((item) => {
         if (!item || !item.id || item.id === '') return false
-
-        // Filter by selected feed if one is selected
         if (selectedFeedLink && item.feedUrl !== selectedFeedLink) {
           return false
         }
-
-        // Filter by search query if one exists
         if (appliedSearchQuery) {
           const searchLower = appliedSearchQuery.toLowerCase()
           return (
@@ -189,16 +202,14 @@ export default function AppPage() {
             (item.description?.toLowerCase().includes(searchLower))
           )
         }
-
         return true
       })
     } catch (error) {
-      console.error('Error filtering unread items:', error)
+      console.error('Error filtering stable unread items:', error)
       return []
     }
-  }, [unreadItems, selectedFeedLink, appliedSearchQuery]);
+  }, [stableUnreadItems, selectedFeedLink, appliedSearchQuery]);
 
-  // Add clear filter function
   const clearFeedFilter = useCallback(() => {
     setSelectedFeedLink(null)
     window.history.pushState({}, '', '/')
@@ -213,11 +224,11 @@ export default function AppPage() {
   )
 
   const unreadArticleItems = useMemo(() => 
-    filteredUnreadItems.filter((item) => {
+    filteredStableUnreadItems.filter((item) => {
       if (!item || !item.id) return false
       return item.type === "article"
     }), 
-    [filteredUnreadItems]
+    [filteredStableUnreadItems]
   )
 
   const podcastItems = useMemo(() => 
@@ -229,11 +240,11 @@ export default function AppPage() {
   )
 
   const unreadPodcastItems = useMemo(() => 
-    filteredUnreadItems.filter((item) => {
+    filteredStableUnreadItems.filter((item) => {
       if (!item || !item.id) return false
       return item.type === "podcast"
     }), 
-    [filteredUnreadItems]
+    [filteredStableUnreadItems]
   )
 
   const favoriteItems = useMemo(() => 
@@ -246,11 +257,19 @@ export default function AppPage() {
 
   const isLoading = loading || (!initialized && feedItems.length === 0)
 
+  const handleTabChange = useCallback((value: string) => {
+    setSelectedTab(value);
+  }, []);
+
   return (
     <div className="container py-6 max-w-[1600px] mx-auto max-h-screen ">
-      <Tabs defaultValue="unread" className="space-y-6">
+      <Tabs 
+        defaultValue="unread" 
+        className="space-y-6"
+        value={selectedTab}
+        onValueChange={handleTabChange}
+      >
         <div className="flex flex-col sm:flex-row justify-between items-center mx-auto gap-4">
-          {/* Add clear filter button when a feed is selected */}
           <div className="flex items-center gap-4">
             {selectedFeedLink && (
               <button
@@ -265,9 +284,19 @@ export default function AppPage() {
                 All
                 {feedItems.length > 0 && ` (${feedItems.length})`}
               </TabsTrigger>
-              <TabsTrigger value="unread">
+              <TabsTrigger value="unread" className="relative">
                 Unread
-                {unreadItems.length > 0 && ` (${unreadItems.length})`}
+                {unreadItems.length > 0 && (
+                  selectedTab === "unread" 
+                    ? ` (${filteredStableUnreadItems.length})` 
+                    : ` (${unreadItems.length})`
+                )}
+                {unreadItems.length > 0 && selectedTab !== "unread" && (
+                  <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                  </span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="articles">
                 Articles
@@ -305,7 +334,7 @@ export default function AppPage() {
         </TabsContent>
 
         <TabsContent value="unread" className="h-[calc(100vh-11rem)]">
-          <TabContent items={filteredUnreadItems} isLoading={isLoading} />
+          <TabContent items={filteredStableUnreadItems} isLoading={isLoading} />
         </TabsContent>
 
         <TabsContent value="articles" className="h-[calc(100vh-11rem)]">

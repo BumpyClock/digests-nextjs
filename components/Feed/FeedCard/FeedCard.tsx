@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useRef, useCallback, memo, useEffect } from "react";
+import { useState, useRef, useCallback, memo, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -126,7 +126,13 @@ export const FeedCard = memo(function FeedCard({
   const animationTimeoutRef = useRef<NodeJS.Timeout >(null);
   const transitionDuration = 150; // matches our transition duration in ms
   const [imageLoading, setImageLoading] = useState(true);
-  const { markAsRead } = useFeedStore();
+  const { markAsRead, readItems } = useFeedStore();
+
+  // Check if the item is already marked as read
+  const isRead = useMemo(() => {
+    if (!readItems || !(readItems instanceof Set)) return false;
+    return readItems.has(feedItem.id);
+  }, [readItems, feedItem.id]);
 
   const handleCardClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -157,8 +163,11 @@ export const FeedCard = memo(function FeedCard({
       setIsPressed(false);
       setIsAnimating(true);
 
-      // Mark item as read when opening
-      markAsRead(feedItem.id);
+      // Mark item as read when opening, but don't cause re-renders
+      // Call it asynchronously to not block the UI
+      setTimeout(() => {
+        markAsRead(feedItem.id);
+      }, 0);
 
       // Wait for release animation to complete before opening modal
       const timeout = setTimeout(() => {
@@ -189,8 +198,10 @@ export const FeedCard = memo(function FeedCard({
     (e: React.MouseEvent) => {
       e.stopPropagation();
       if (feedItem.type === "podcast") {
-        // Mark podcast as read when played
-        markAsRead(feedItem.id);
+        // Mark podcast as read asynchronously to not trigger re-renders
+        setTimeout(() => {
+          markAsRead(feedItem.id);
+        }, 0);
         
         playAudio({
           id: feedItem.id,
@@ -264,8 +275,11 @@ export const FeedCard = memo(function FeedCard({
           boxShadow: getShadowStyle(),
           transition: "all 150ms ease-out",
           transform: isPressed ? "translateY(2px)" : "none",
+          opacity: isRead ? 0.8 : 1, // Slightly dim items that have been read
         } as React.CSSProperties}
-        className="card w-full bg-card overflow-hidden cursor-pointer rounded-[40px] relative group"
+        className={`card w-full bg-card overflow-hidden cursor-pointer rounded-[40px] relative group ${
+          isRead ? 'read-item' : ''
+        }`}
         onClick={handleCardClick}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}

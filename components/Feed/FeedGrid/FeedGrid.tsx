@@ -113,7 +113,7 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
     return items.filter(item => item && item.id)
   }, [items])
 
-  // Create a key that changes when array length changes
+  // Create a key that changes only when array length changes, not when read status changes
   const cacheKey = useMemo(() => 
     `masonry-${memoizedItems.length}`,
     [memoizedItems.length]
@@ -132,7 +132,7 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
     }
   }, [])
 
-  if (!mounted || !isMinLoadingComplete || isLoading) {
+  if (!mounted || !isMinLoadingComplete || isLoading || items.length === 0) {
     return <LoadingAnimation />
   }
 
@@ -140,7 +140,7 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
     return (
       <div id="feed-grid" className="pt-6 h-screen">
         <Masonry
-          key={cacheKey} // Force remount when array length changes
+          key={cacheKey} 
           items={memoizedItems}
           maxColumnCount={columnCount}
           columnGutter={columnGutter}

@@ -7,8 +7,31 @@ import { useState, useEffect } from "react"
 import type { Feed, FeedItem } from "@/types"
 import { workerService } from "@/services/worker-service"
 
-/** 
+/**
  * The Zustand store shape with web worker integration
+ * @typedef {Object} FeedState
+ * @property {Feed[]} feeds - List of feeds
+ * @property {FeedItem[]} feedItems - List of feed items
+ * @property {boolean} loading - Loading state
+ * @property {boolean} refreshing - Refreshing state
+ * @property {boolean} initialized - Initialization state
+ * @property {number | null} lastRefreshed - Timestamp of last refresh
+ * @property {boolean} hydrated - Hydration state
+ * @property {Set<string>} readItems - Track read item IDs
+ * @method setFeeds - Sets the feeds in the store
+ * @method setFeedItems - Sets the feed items in the store
+ * @method setHydrated - Sets the hydration state
+ * @method addFeed - Adds a new feed
+ * @method refreshFeeds - Refreshes all feeds
+ * @method sortFeedItemsByDate - Sorts feed items by published date
+ * @method removeFeed - Removes a feed by URL
+ * @method setInitialized - Sets the initialized state
+ * @method shouldRefresh - Checks if it's time to refresh feeds
+ * @method addFeeds - Adds multiple feeds at once
+ * @method checkForUpdates - Checks for new items without updating the store
+ * @method markAsRead - Marks a specific feed item as read
+ * @method getUnreadItems - Gets all unread feed items
+ * @method markAllAsRead - Marks all feed items as read
  */
 interface FeedState {
   feeds: Feed[]
@@ -76,8 +99,10 @@ export const useFeedStore = create<FeedState>()(
       // === ACTIONS ===
 
       /**
-       * addFeed: Fetches/validates a new feed via the worker,
-       * merges the new feed and items into the store, and sorts items by date.
+       * Adds a new feed by fetching and validating it via the worker.
+       * Merges the new feed and items into the store, and sorts items by date.
+       * @param {string} url - The URL of the feed to add
+       * @returns {Promise<{ success: boolean; message: string }>} - Result of the operation
        */
       addFeed: async (url) => {
         set({ loading: true })
@@ -124,8 +149,9 @@ export const useFeedStore = create<FeedState>()(
       },
 
       /**
-       * refreshFeeds: Re-fetches *all* feeds via the worker, merges items,
-       * and updates the store.
+       * Refreshes all feeds by re-fetching them via the worker.
+       * Merges items and updates the store.
+       * @returns {Promise<void>}
        */
       refreshFeeds: async () => {
         const { feeds, feedItems, shouldRefresh: needsRefresh } = get()
@@ -164,8 +190,9 @@ export const useFeedStore = create<FeedState>()(
       },
 
       /**
-       * sortFeedItemsByDate: Takes a list of items and returns them 
-       * in descending order by published date.
+       * Sorts a list of feed items by published date in descending order.
+       * @param {FeedItem[]} items - The list of feed items to sort
+       * @returns {FeedItem[]} - Sorted list of feed items
        */
       sortFeedItemsByDate: (items) => {
         return [...items].sort(
@@ -175,23 +202,37 @@ export const useFeedStore = create<FeedState>()(
       },
 
       /**
-       * removeFeed: Removes a feed by URL and filters out all items that match.
+       * Removes a feed by its URL and filters out all items that match.
+       * @param {string} feedUrl - The URL of the feed to remove
        */
       removeFeed: (feedUrl) => {
-        const { feeds, feedItems } = get()
+        const { feeds, feedItems, readItems } = get()
+        
+        // Get all item IDs associated with this feed
+        const feedItemIds = feedItems
+          .filter(item => item.feedUrl === feedUrl)
+          .map(item => item.id)
+        
+        // Create new Set without the removed feed's items
+        const newReadItems = new Set(readItems)
+        feedItemIds.forEach(id => newReadItems.delete(id))
+        
         set({
           feeds: feeds.filter((f) => f.feedUrl !== feedUrl),
           feedItems: feedItems.filter((item) => item.feedUrl !== feedUrl),
+          readItems: newReadItems
         })
       },
 
       /**
-       * setInitialized: Simple setter for the "initialized" flag
+       * Sets the initialized state of the store.
+       * @param {boolean} value - The initialized state
        */
       setInitialized: (value) => set({ initialized: value }),
 
       /**
-       * shouldRefresh: Checks if it's time to refresh feeds
+       * Checks if it's time to refresh feeds based on the last refreshed timestamp.
+       * @returns {boolean} - True if refresh is needed, false otherwise
        */
       shouldRefresh: () => {
         const { lastRefreshed } = get()
@@ -203,8 +244,9 @@ export const useFeedStore = create<FeedState>()(
       },
 
       /**
-       * addFeeds: Batch version to add multiple feeds at once
-       * Now uses the worker service for each feed
+       * Adds multiple feeds at once, processing each sequentially.
+       * @param {string[]} urls - The URLs of the feeds to add
+       * @returns {Promise<{ successful: Array<{ url: string, message: string }>, failed: Array<{ url: string, message: string }> }>} - Result of the operation
        */
       addFeeds: async (urls) => {
         set({ loading: true })
@@ -260,7 +302,8 @@ export const useFeedStore = create<FeedState>()(
       },
 
       /**
-       * Checks for new items without updating the store
+       * Checks for new items without updating the store.
+       * @returns {Promise<{ hasNewItems: boolean, count: number }>} - Result of the check
        */
       checkForUpdates: async () => {
         const { feeds, feedItems } = get()
@@ -292,25 +335,43 @@ export const useFeedStore = create<FeedState>()(
       },
 
       /**
-       * Mark a specific feed item as read
+       * Marks a specific feed item as read.
+       * @param {string} itemId - The ID of the item to mark as read
        */
       markAsRead: (itemId) => {
         const { readItems } = get()
-        const newReadItems = new Set(readItems)
-        newReadItems.add(itemId)
-        set({ readItems: newReadItems })
+        // Ensure we're working with a Set
+        const newReadItems = new Set(readItems instanceof Set ? readItems : [])
+        
+        // Check if the item is already marked as read to prevent unnecessary updates
+        if (!newReadItems.has(itemId)) {
+          newReadItems.add(itemId)
+          
+          // Use a "structural equality" check to avoid unnecessary rerenders
+          // Only update the store if the readItems set actually changed
+          set((state) => {
+            // This ensures components that don't depend on readItems won't re-render
+            return { readItems: newReadItems }
+          }, false) // false means don't replace the entire state, just merge
+        }
       },
 
       /**
-       * Get all unread feed items
+       * Gets all unread feed items.
+       * @returns {FeedItem[]} - List of unread feed items
        */
       getUnreadItems: () => {
         const { feedItems, readItems } = get()
-        return feedItems.filter(item => !readItems.has(item.id))
+        // Safety check to ensure readItems is a Set
+        const readItemsSet = readItems instanceof Set ? readItems : new Set()
+        const unreadItems = feedItems.filter(item => !readItemsSet.has(item.id))
+        console.log("unreadItems", unreadItems);
+        // Ensure it returns an empty array if no unread items
+        return unreadItems.length > 0 ? unreadItems : []
       },
 
       /**
-       * Mark all feed items as read
+       * Marks all feed items as read.
        */
       markAllAsRead: () => {
         const { feedItems } = get()
@@ -327,23 +388,45 @@ export const useFeedStore = create<FeedState>()(
         feedItems: state.feedItems,
         initialized: state.initialized,
         lastRefreshed: state.lastRefreshed,
-        readItems: Array.from(state.readItems), // Convert Set to Array for storage
+        readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []), // Convert Set to Array for storage
       }),
       onRehydrateStorage: () => (state) => {
         if (state && typeof window !== 'undefined') {
-          // Convert readItems back to Set if it exists
-          if (state.readItems && Array.isArray(state.readItems)) {
-            state.readItems = new Set(state.readItems);
-          } else {
+          try {
+            // Initialize readItems as Set even if not present in state
+            if (!state.readItems) {
+              state.readItems = new Set();
+            }
+            // Convert stored array back to Set
+            else if (Array.isArray(state.readItems)) {
+              state.readItems = new Set(state.readItems);
+            }
+            // Default to empty Set if invalid data
+            else {
+              console.warn('Invalid readItems format, resetting to empty Set');
+              state.readItems = new Set();
+            }
+            
+            hydrated = true;
+            useFeedStore.getState().setHydrated(true);
+            
+            // Ensure the Set conversion actually worked
+            const store = useFeedStore.getState();
+            if (!(store.readItems instanceof Set)) {
+              console.warn('readItems is not a Set after rehydration, setting manually');
+              store.readItems = new Set(Array.isArray(state.readItems) ? state.readItems : []);
+            }
+            
+            // Initialize worker service after hydration
+            requestIdleCallback(() => {
+              workerService.initialize();
+            });
+          } catch (error) {
+            console.error('Error during store rehydration:', error);
+            // Fallback to empty Set if anything goes wrong
             state.readItems = new Set();
+            useFeedStore.getState().readItems = new Set();
           }
-          
-          hydrated = true
-          useFeedStore.getState().setHydrated(true)
-          // Initialize worker service after hydration
-          requestIdleCallback(() => {
-            workerService.initialize()
-          })
         }
       },
     }
