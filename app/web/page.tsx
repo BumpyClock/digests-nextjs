@@ -64,13 +64,17 @@ const TabContent = ({ items, isLoading }: { items: FeedItem[], isLoading: boolea
 export default function AppPage() {
   const isHydrated = useHydration()
   const [searchQuery, setSearchQuery] = useState("")
+  const [appliedSearchQuery, setAppliedSearchQuery] = useState("")
+  const [selectedFeedLink, setSelectedFeedLink] = useState<string | null>(null)
   const { 
     feedItems, 
     loading, 
     refreshing, 
     refreshFeeds,
     initialized,
-    setInitialized 
+    setInitialized,
+    readItems,
+    getUnreadItems
   } = useFeedStore()
 
   useEffect(() => {
@@ -88,27 +92,117 @@ export default function AppPage() {
     }
   }, [isHydrated, initialized, refreshFeeds, setInitialized])
 
+  // Add this useEffect to handle URL params
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const feedParam = params.get('feed')
+      setSelectedFeedLink(feedParam)
+    }
+  }, [])
+
   // Handle manual refresh
   const handleRefresh = useCallback(() => {
     console.log('Refreshing feeds...')
     refreshFeeds()
   }, [refreshFeeds])
 
-  // Update filteredItems to allow all items while typing
+  // Add handler for feed selection
+  const handleFeedSelect = useCallback((feedUrl: string) => {
+    setSelectedFeedLink(feedUrl);
+    // Update URL without navigation
+    const newUrl = `/?feed=${encodeURIComponent(feedUrl)}`;
+    window.history.pushState({}, '', newUrl);
+  }, []);
+
+  // Handle search query update from CommandBox (only updates the input value, not filtering)
+  const handleSearch = useCallback((value: string) => {
+    setSearchQuery(value);
+  }, []);
+
+  // Apply the search query (for filtering) when user confirms
+  const handleApplySearch = useCallback((value: string) => {
+    setAppliedSearchQuery(value);
+  }, []);
+
+  // Handle "See All Matches" action
+  const handleSeeAllMatches = useCallback(() => {
+    // Apply the current search query to the main feed display
+    setAppliedSearchQuery(searchQuery);
+  }, [searchQuery]);
+
+  // Get all unread items
+  const unreadItems = useMemo(() => {
+    return getUnreadItems();
+  }, [getUnreadItems, readItems]);
+
+  // Update filteredItems to use appliedSearchQuery instead of searchQuery
   const filteredItems = useMemo(() => {
     try {
       if (!feedItems || !Array.isArray(feedItems)) return []
       
-      // Return all items regardless of search query
       return feedItems.filter((item) => {
-        if (!item || !item.id || item.id === '') return false // Skip items with empty IDs
-        return true; // Return all items
-      });
+        // Basic validation
+        if (!item || !item.id || item.id === '') return false
+
+        // Filter by selected feed if one is selected
+        if (selectedFeedLink && item.feedUrl !== selectedFeedLink) {
+          return false
+        }
+
+        // Filter by search query if one exists
+        if (appliedSearchQuery) {
+          const searchLower = appliedSearchQuery.toLowerCase()
+          return (
+            (item.title?.toLowerCase().includes(searchLower)) ||
+            (item.description?.toLowerCase().includes(searchLower))
+          )
+        }
+
+        return true
+      })
     } catch (error) {
       console.error('Error filtering items:', error)
       return []
     }
-  }, [feedItems])
+  }, [feedItems, selectedFeedLink, appliedSearchQuery]);
+
+  // Filter the unread items
+  const filteredUnreadItems = useMemo(() => {
+    try {
+      if (!unreadItems || !Array.isArray(unreadItems)) return []
+      
+      return unreadItems.filter((item) => {
+        // Basic validation
+        if (!item || !item.id || item.id === '') return false
+
+        // Filter by selected feed if one is selected
+        if (selectedFeedLink && item.feedUrl !== selectedFeedLink) {
+          return false
+        }
+
+        // Filter by search query if one exists
+        if (appliedSearchQuery) {
+          const searchLower = appliedSearchQuery.toLowerCase()
+          return (
+            (item.title?.toLowerCase().includes(searchLower)) ||
+            (item.description?.toLowerCase().includes(searchLower))
+          )
+        }
+
+        return true
+      })
+    } catch (error) {
+      console.error('Error filtering unread items:', error)
+      return []
+    }
+  }, [unreadItems, selectedFeedLink, appliedSearchQuery]);
+
+  // Add clear filter function
+  const clearFeedFilter = useCallback(() => {
+    setSelectedFeedLink(null)
+    window.history.pushState({}, '', '/')
+  }, [])
 
   const articleItems = useMemo(() => 
     filteredItems.filter((item) => {
@@ -116,6 +210,14 @@ export default function AppPage() {
       return item.type === "article"
     }), 
     [filteredItems]
+  )
+
+  const unreadArticleItems = useMemo(() => 
+    filteredUnreadItems.filter((item) => {
+      if (!item || !item.id) return false
+      return item.type === "article"
+    }), 
+    [filteredUnreadItems]
   )
 
   const podcastItems = useMemo(() => 
@@ -126,6 +228,14 @@ export default function AppPage() {
     [filteredItems]
   )
 
+  const unreadPodcastItems = useMemo(() => 
+    filteredUnreadItems.filter((item) => {
+      if (!item || !item.id) return false
+      return item.type === "podcast"
+    }), 
+    [filteredUnreadItems]
+  )
+
   const favoriteItems = useMemo(() => 
     filteredItems.filter((item) => {
       if (!item || !item.id) return false
@@ -134,48 +244,54 @@ export default function AppPage() {
     [filteredItems]
   )
 
-  // Handle search query update from CommandBox
-  const handleSearch = useCallback((value: string) => {
-    setSearchQuery(value);
-  }, []);
-
-  // Handle "See All Matches" action
-  const handleSeeAllMatches = useCallback(() => {
-    // This will apply the current search query to the main feed display
-    setSearchQuery(searchQuery);
-  }, [searchQuery]);
-
   const isLoading = loading || (!initialized && feedItems.length === 0)
 
   return (
     <div className="container py-6 max-w-[1600px] mx-auto max-h-screen ">
-      <Tabs defaultValue="all" className="space-y-6">
+      <Tabs defaultValue="unread" className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-center mx-auto gap-4">
-          <TabsList>
-            <TabsTrigger value="all">
-              All
-              {feedItems.length > 0 && ` (${feedItems.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="articles">
-              Articles
-              {articleItems.length > 0 && ` (${articleItems.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="podcasts">
-              Podcasts
-              {podcastItems.length > 0 && ` (${podcastItems.length})`}
-            </TabsTrigger>
-            <TabsTrigger value="favorites">
-              Favorites
-              {favoriteItems.length > 0 && ` (${favoriteItems.length})`}
-            </TabsTrigger>
-          </TabsList>
+          {/* Add clear filter button when a feed is selected */}
+          <div className="flex items-center gap-4">
+            {selectedFeedLink && (
+              <button
+                onClick={clearFeedFilter}
+                className="text-sm text-muted-foreground hover:text-primary flex items-center gap-2"
+              >
+                <span>×</span> Clear Feed Filter
+              </button>
+            )}
+            <TabsList>
+              <TabsTrigger value="all">
+                All
+                {feedItems.length > 0 && ` (${feedItems.length})`}
+              </TabsTrigger>
+              <TabsTrigger value="unread">
+                Unread
+                {unreadItems.length > 0 && ` (${unreadItems.length})`}
+              </TabsTrigger>
+              <TabsTrigger value="articles">
+                Articles
+                {articleItems.length > 0 && ` (${articleItems.length})`}
+              </TabsTrigger>
+              <TabsTrigger value="podcasts">
+                Podcasts
+                {podcastItems.length > 0 && ` (${podcastItems.length})`}
+              </TabsTrigger>
+              <TabsTrigger value="favorites">
+                Favorites
+                {favoriteItems.length > 0 && ` (${favoriteItems.length})`}
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <CommandBox 
               value={searchQuery} 
-              onChange={handleSearch} 
+              onChange={handleSearch}
+              onApplySearch={handleApplySearch} 
               onSeeAllMatches={handleSeeAllMatches}
               handleRefresh={handleRefresh}
+              onFeedSelect={handleFeedSelect}
             />
             <RefreshButton 
               onClick={handleRefresh} 
@@ -186,6 +302,10 @@ export default function AppPage() {
 
         <TabsContent value="all" className="h-[calc(100vh-11rem)]">
           <TabContent items={filteredItems} isLoading={isLoading} />
+        </TabsContent>
+
+        <TabsContent value="unread" className="h-[calc(100vh-11rem)]">
+          <TabContent items={filteredUnreadItems} isLoading={isLoading} />
         </TabsContent>
 
         <TabsContent value="articles" className="h-[calc(100vh-11rem)]">

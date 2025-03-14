@@ -18,6 +18,7 @@ interface FeedState {
   initialized: boolean
   lastRefreshed: number | null
   hydrated: boolean
+  readItems: Set<string> // Track read item IDs
 
   // Setters
   setFeeds: (feeds: Feed[]) => void
@@ -36,6 +37,9 @@ interface FeedState {
     failed: Array<{ url: string, message: string }> 
   }>
   checkForUpdates: () => Promise<{ hasNewItems: boolean, count: number }>
+  markAsRead: (itemId: string) => void
+  getUnreadItems: () => FeedItem[]
+  markAllAsRead: () => void
 }
 
 // Add hydration flag at top of file
@@ -62,6 +66,7 @@ export const useFeedStore = create<FeedState>()(
       initialized: false,
       lastRefreshed: null,
       hydrated: false,
+      readItems: new Set<string>(),
 
       // === SETTERS ===
       setFeeds: (feeds) => set({ feeds }),
@@ -285,19 +290,54 @@ export const useFeedStore = create<FeedState>()(
           return { hasNewItems: false, count: 0 }
         }
       },
+
+      /**
+       * Mark a specific feed item as read
+       */
+      markAsRead: (itemId) => {
+        const { readItems } = get()
+        const newReadItems = new Set(readItems)
+        newReadItems.add(itemId)
+        set({ readItems: newReadItems })
+      },
+
+      /**
+       * Get all unread feed items
+       */
+      getUnreadItems: () => {
+        const { feedItems, readItems } = get()
+        return feedItems.filter(item => !readItems.has(item.id))
+      },
+
+      /**
+       * Mark all feed items as read
+       */
+      markAllAsRead: () => {
+        const { feedItems } = get()
+        const allIds = new Set(feedItems.map(item => item.id))
+        set({ readItems: allIds })
+      },
     }),
     {
       name: "digests-feed-store",
-      version: 1,
+      version: 2, // Incremented version for schema change
       storage: createJSONStorage(() => localforage),
       partialize: (state) => ({
         feeds: state.feeds,
         feedItems: state.feedItems,
         initialized: state.initialized,
         lastRefreshed: state.lastRefreshed,
+        readItems: Array.from(state.readItems), // Convert Set to Array for storage
       }),
       onRehydrateStorage: () => (state) => {
         if (state && typeof window !== 'undefined') {
+          // Convert readItems back to Set if it exists
+          if (state.readItems && Array.isArray(state.readItems)) {
+            state.readItems = new Set(state.readItems);
+          } else {
+            state.readItems = new Set();
+          }
+          
           hydrated = true
           useFeedStore.getState().setHydrated(true)
           // Initialize worker service after hydration

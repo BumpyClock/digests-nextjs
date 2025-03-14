@@ -22,6 +22,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { useTheme } from "next-themes";
 import { workerService } from "@/services/worker-service";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useFeedStore } from "@/store/useFeedStore";
 dayjs.extend(relativeTime);
 
 interface FeedCardProps {
@@ -125,6 +126,7 @@ export const FeedCard = memo(function FeedCard({
   const animationTimeoutRef = useRef<NodeJS.Timeout >(null);
   const transitionDuration = 150; // matches our transition duration in ms
   const [imageLoading, setImageLoading] = useState(true);
+  const { markAsRead } = useFeedStore();
 
   const handleCardClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -155,6 +157,9 @@ export const FeedCard = memo(function FeedCard({
       setIsPressed(false);
       setIsAnimating(true);
 
+      // Mark item as read when opening
+      markAsRead(feedItem.id);
+
       // Wait for release animation to complete before opening modal
       const timeout = setTimeout(() => {
         if (feedItem.type === "podcast") {
@@ -168,7 +173,7 @@ export const FeedCard = memo(function FeedCard({
       // Store timeout in ref
       animationTimeoutRef.current = timeout;
     }
-  }, [feedItem.type, isPressed]);
+  }, [feedItem.type, feedItem.id, isPressed, markAsRead]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -184,6 +189,9 @@ export const FeedCard = memo(function FeedCard({
     (e: React.MouseEvent) => {
       e.stopPropagation();
       if (feedItem.type === "podcast") {
+        // Mark podcast as read when played
+        markAsRead(feedItem.id);
+        
         playAudio({
           id: feedItem.id,
           title: feedItem.title,
@@ -193,7 +201,7 @@ export const FeedCard = memo(function FeedCard({
         });
       }
     },
-    [feedItem, playAudio]
+    [feedItem, playAudio, markAsRead]
   );
 
   const handleLikeClick = useCallback(

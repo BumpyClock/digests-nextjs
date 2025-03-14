@@ -15,21 +15,25 @@ import { useRouter } from "next/navigation";
 import { FeedItem, Feed } from "@/types";
 import { useFeedStore } from "@/store/useFeedStore";
 import { Button } from "@/components/ui/button";
-import { Moon, RefreshCcw, Search, Settings, Sun } from "lucide-react";
+import { Mic, Moon, Podcast, RefreshCcw, Rss, Search, Settings, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 
 interface CommandBoxProps {
   value: string;
   onChange: (value: string) => void;
+  onApplySearch: (value: string) => void;
   onSeeAllMatches: () => void;
   handleRefresh: () => void;
+  onFeedSelect: (feedUrl: string) => void;
 }
 
 export function CommandBox({
   value,
   onChange,
+  onApplySearch,
   onSeeAllMatches,
   handleRefresh,
+  onFeedSelect,
 }: CommandBoxProps) {
   const [open, setOpen] = useState(false);
   const { feedItems, feeds } = useFeedStore();
@@ -112,6 +116,13 @@ export function CommandBox({
     return value && totalMatchCount > filteredItems.length;
   }, [value, totalMatchCount, filteredItems.length]);
 
+  // Add handler for Enter key in search input
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      onApplySearch(value);
+    }
+  };
+
   return (
     <>
       <Button
@@ -133,16 +144,17 @@ export function CommandBox({
             placeholder="Type a command or search..."
             value={value}
             onValueChange={onChange}
+            onKeyDown={handleKeyDown}
           />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
             <CommandGroup
               heading="Suggestions"
-              className="text-xs font-bold text-muted-foreground"
+              className="text-xs"
             >
               <CommandItem>
-                <Search className="mr-2 h-4 w-4" />
-                Search for feeds and articles
+                <Search  />
+                <span className="text-xs font-regular">Search for feeds and articles</span>
               </CommandItem>
               <CommandItem
                 onSelect={() => {
@@ -150,8 +162,16 @@ export function CommandBox({
                   setOpen(false);
                 }}
               >
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
+                <Settings className="mr-2 h-4 w-4 text-xs font-regular" />
+               <span className="text-xs font-regular">Settings</span>
+              </CommandItem>
+              <CommandItem>
+                <Podcast className="mr-2 h-4 w-4 text-xs font-regular" />
+                <span className="text-xs font-regular">Podcasts</span>
+              </CommandItem>
+              <CommandItem>
+                <Rss className="mr-2 h-4 w-4 text-xs font-regular" />
+                <span className="text-xs font-regular">RSS Feeds</span> 
               </CommandItem>
               <CommandItem
                 onSelect={() => {
@@ -159,8 +179,8 @@ export function CommandBox({
                   setOpen(false);
                 }}
               >
-                <RefreshCcw className="mr-2 h-4 w-4" />
-                Refresh
+                <RefreshCcw className="mr-2 h-4 w-4 text-xs font-regular" />
+                <span className="text-xs font-regular">Refresh</span>
               </CommandItem>
               <CommandItem
                 onSelect={() => {
@@ -168,8 +188,8 @@ export function CommandBox({
                   setOpen(false);
                 }}
               >
-                <Sun className="mr-2 h-4 w-4" />
-                Light Mode
+                <Sun className="mr-2 h-4 w-4 text-xs font-regular" />
+                <span className="text-xs font-regular">Light Mode</span>
               </CommandItem>
               <CommandItem
                 onSelect={() => {
@@ -177,8 +197,8 @@ export function CommandBox({
                   setOpen(false);
                 }}
               >
-                <Moon className="mr-2 h-4 w-4" />
-                Dark Mode
+                <Moon className="mr-2 h-4 w-4 text-xs font-regular" />
+                <span className="text-xs font-regular">Dark Mode</span>
               </CommandItem>
             </CommandGroup>
             <CommandSeparator />
@@ -193,11 +213,21 @@ export function CommandBox({
                     className="text-sm font-normal"
                     key={source.guid || Math.random().toString()}
                     onSelect={() => {
-                      onChange(source.feedTitle || "");
+                      onChange("");
+                      onFeedSelect(source.feedUrl || "");
                       setOpen(false);
                     }}
                   >
-                    {source.feedTitle || source.siteTitle || "Unnamed Feed"}
+                    <img 
+                      src={source.favicon || ''} 
+                      alt={source.feedTitle || "Untitled Feed"} 
+                      width={24} 
+                      height={24}
+                      className="object-cover"
+                    />
+                    <span className="text-xs font-regular">
+                      {source.feedTitle || source.siteTitle || "Unnamed Feed"}
+                    </span>
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -217,7 +247,8 @@ export function CommandBox({
                       setOpen(false);
                     }}
                   >
-                    {item.title || "Untitled Article"}
+                    
+                    <span className="text-xs font-regular">{item.title || "Untitled Article"}</span>
                   </CommandItem>
                 ))}
                 {/* Separate the See All matches as its own component with clear conditions */}
@@ -227,7 +258,7 @@ export function CommandBox({
                     className="text-sm font-normal"
                     onSelect={handleSeeAllMatches}
                   >
-                    {`See All ${totalMatchCount} Matches`}
+                    {<span className="text-xs font-regular">See All {totalMatchCount} Matches</span>}
                   </CommandItem>
                 )}
               </CommandGroup>

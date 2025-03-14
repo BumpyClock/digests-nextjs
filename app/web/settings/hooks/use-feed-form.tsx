@@ -1,11 +1,9 @@
 import { useCallback, useRef, type FormEvent } from "react"
 import { useFeedStore } from "@/store/useFeedStore"
-import { useToast } from "@/hooks/use-toast"
-import { createToast } from "@/app/web/settings/utils/toast-utils"
+import { toast } from "sonner"
 
 export function useFeedForm() {
   const formRef = useRef<HTMLFormElement>(null)
-  const { toast } = useToast()
   const { addFeed, loading } = useFeedStore()
 
   const handleSubmit = useCallback(
@@ -21,23 +19,24 @@ export function useFeedForm() {
           if (formRef.current) {
             formRef.current.reset()
           }
-          createToast(toast, {
-            title: "Feed added",
-            value: result.message,
+          toast.success("Feed added", {
+            description: result.message,
+            action: {
+              label: "Refresh",
+              onClick: () => close()
+            },
+            duration: 10000, // 10 seconds
           })
+          
         } else {
-          createToast(toast, {
-            title: "Error",
-            value: result.message,
-            variant: "destructive",
+          toast.warning("Failed to add feed", {
+            description: result.message,
           })
         }
       } catch (error) {
         console.error("Error adding feed:", error)
-        createToast(toast, {
-          title: "Error",
-          value: "Failed to add the feed. Please try again.",
-          variant: "destructive",
+        toast.error("Failed to add feed", {
+          description: "Failed to add the feed. Please try again.",
         })
       }
     },
