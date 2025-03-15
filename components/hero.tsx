@@ -77,7 +77,6 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
                   alt={mockupImage.alt}
                   width={mockupImage.width}
                   height={mockupImage.height}
-                  className="w-full shadow-none "
                   priority
                 />
               </Mockup>
