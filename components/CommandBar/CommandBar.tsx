@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useCallback } from "react";
 import {
   Command,
   CommandDialog,
@@ -64,9 +64,8 @@ export function CommandBar({
   const {
     filteredSources,
     filteredItems,
-    totalMatchCount,
     handleSeeAllMatches,
-    handleFeedSelect,
+    
   } = useCommandBarSearch(
     value,
     feedItems,

@@ -39,7 +39,7 @@ importers:
         specifier: ^1.1.2
         version: 1.2.3(@types/react-dom@19.0.4(@types/react@19.0.10))(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@radix-ui/react-slot':
-        specifier: ^1.0.2
+        specifier: ^1.1.2
         version: 1.1.2(@types/react@19.0.10)(react@19.0.0)
       '@radix-ui/react-switch':
         specifier: ^1.0.3
@@ -51,7 +51,7 @@ importers:
         specifier: ^1.1.5
         version: 1.2.6(@types/react-dom@19.0.4(@types/react@19.0.10))(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@tailwindcss/typography':
-        specifier: ^0.5.10
+        specifier: ^0.5.16
         version: 0.5.16(tailwindcss@3.4.17)
       '@types/mdx':
         specifier: ^2.0.13
@@ -60,7 +60,7 @@ importers:
         specifier: 19.0.0-beta-40c6c23-20250301
         version: 19.0.0-beta-40c6c23-20250301
       class-variance-authority:
-        specifier: ^0.7.0
+        specifier: ^0.7.1
         version: 0.7.1
       clsx:
         specifier: ^2.1.0

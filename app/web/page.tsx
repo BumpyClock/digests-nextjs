@@ -204,9 +204,6 @@ export default function AppPage() {
     return filteredItems.filter((i) => i?.favorite);
   }, [filteredItems]);
 
-  // Example "unread" logic
-  const unreadItems = useMemo(() => getUnreadItems(), [getUnreadItems]);
-
   const clearFeedFilter = useCallback(() => {
     window.history.pushState({}, "", "/web"); // or just /web
   }, []);
@@ -217,9 +214,9 @@ export default function AppPage() {
 
   const isLoading = loading || (!initialized && feedItems.length === 0);
 
-  console.log("feedUrlDecoded", feedUrlDecoded);
-  console.log("feedItems", feedItems);
-  console.log("filteredItems", filteredItems);
+    // console.log("feedUrlDecoded", feedUrlDecoded);
+    // console.log("feedItems", feedItems);
+    // console.log("filteredItems", filteredItems);
 
   return (
     <div className="container py-6 max-w-[1600px] mx-auto max-h-screen">
@@ -246,8 +243,8 @@ export default function AppPage() {
               </TabsTrigger>
               <TabsTrigger value="unread" className="relative">
                 Unread
-                {unreadItems.length > 0 &&
-                  ` (${filteredStableUnreadItems.length})`}
+                {unreadArticleItems.length > 0 &&
+                  ` (${unreadArticleItems.length})`}
               </TabsTrigger>
               <TabsTrigger value="articles">
                 Articles
@@ -255,7 +252,7 @@ export default function AppPage() {
               </TabsTrigger>
               <TabsTrigger value="podcasts">
                 Podcasts
-                {podcastItems.length > 0 && ` (${podcastItems.length})`}
+                {unreadPodcastItems.length > 0 && ` (${unreadPodcastItems.length})`}
               </TabsTrigger>
               <TabsTrigger value="favorites">
                 Favorites

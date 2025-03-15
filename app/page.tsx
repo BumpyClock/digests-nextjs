@@ -1,96 +1,103 @@
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Rss, Headphones, Laptop, Smartphone } from "lucide-react"
-import Link from "next/link"
+import {  Rss, Headphones,  BookOpenText, Cookie, FileTextIcon } from "lucide-react"
 import Image from "next/image"
+import { BentoCard, BentoGrid } from "@/components/ui/bento-grid"
+import { Hero } from "@/components/hero"
+
+const features = [
+{
+  Icon: Rss,
+  name: "RSS Feeds",
+  description: "Subscribe to your favorite websites and blogs with a simple URL.",
+  href: "/web",
+  cta: "Launch Web App",
+  background: <Image src= "" alt="" className="absolute -right-20 -top-20 opacity-60" />,
+  className: "lg:col-start-1 lg:col-end-2 lg:row-start-1 lg:row-end-3",
+},
+{
+  Icon: Headphones,
+  name: "Podcast Support",
+  description: "Listen to podcasts with our built-in player that follows you as you browse.",
+  href: "/web",
+  cta: "Launch Web App",
+  background: <Image src= "" alt="" className="absolute -right-20 -top-20 opacity-60" />,
+  className: "lg:col-start-1 lg:col-end-2 lg:row-start-3 lg:row-end-4",
+},
+{
+  Icon: BookOpenText,
+  name: "Reader View",
+  description: "Enjoy distraction-free reading with our clean reader view for articles.",
+  href: "/web",
+  cta: "Launch Web App",
+  background: <Image src= "" alt="" className="absolute -right-20 -top-20 opacity-60" />,
+  className: "lg:col-start-3 lg:col-end-3 lg:row-start-1 lg:row-end-2",
+  
+},
+{
+  Icon: Cookie,
+  name: "Private by Design",
+  description: "No recomendations, no tracking, no ads. Forever. Just you and content you love.",
+  href: "/pages/why-digests",
+  cta: "Why Digests?",
+  background: <Image src= "" alt="" className="absolute -right-20 -top-20 opacity-60" />,
+  className: "lg:row-start-1 lg:row-end-4 lg:col-start-2 lg:col-end-3 ",
+},
+{
+  Icon: FileTextIcon,
+  name: "Your data is yours",
+  description: "Import/Export your subscriptions and take them wherever you go",
+  href: "/pages/privacy-policy",
+  cta: "Privacy Policy",
+  background: <Image src= "" alt="" className="absolute -right-20 -top-20 opacity-60" />,
+  className: "lg:col-start-3 lg:col-end-3 lg:row-start-2 lg:row-end-4",
+},
+]
+
+
 
 
 export default function Home() {
   return (
-    <div id="home-container" className="flex flex-col min-h-screen ">
+    <div id="home-container" className="flex flex-col min-h-screen max-w-7xl mx-auto " >
       {/* Hero Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48">
-        <div className="container px-4 md:px-6">
-          <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
-            <div className="flex flex-col justify-center space-y-4">
-              <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                  Digests: Your Modern RSS Reader
-                </h1>
-                <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                  Subscribe, manage, and read your favorite RSS feeds and podcasts in one beautiful interface.
-                </p>
-              </div>
-              <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Link href="/web">
-                  <Button size="lg" className="gap-1.5">
-                    Launch Web App <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-                <Link href="#download">
-                  <Button size="lg" variant="outline">
-                    Download Apps
-                  </Button>
-                </Link>
-              </div>
+     
+
+      <section id="hero" className="w-full py-1 md:py-0 lg:py-0 bg-transparent">
+          <Hero eyebrow="Digests"  className="animate-appear delay-100 bg-transparent"
+          title={
+          <>
+            <div className="w-full lg:whitespace-nowrap md:whitespace-nowrap sm:whitespace-nowrap xs:whitespace-nowrap">
+              <span className=" font-normal">Your content, </span>
+              <span className=" font-normal italic">your way </span>
+              <span className=" font-normal">always</span>
             </div>
-            <div className="flex items-center justify-center">
-              <div className="relative aspect-video overflow-hidden rounded-xl border bg-background">
-                <Image
-                  src="/placeholder.svg?height=720&width=1280"
-                  width={1280}
-                  height={720}
-                  alt="App screenshot"
-                  className="object-cover"
-                />
-              </div>
+            <div className=" font-normal">
+everywhere.
             </div>
-          </div>
-        </div>
+          </>
+        }
+        subtitle="Subscribe, manage, and read your favorite RSS feeds and podcasts in one beautiful interface."
+        ctaText="Launch Web App"
+        ctaLink="/web"
+        mockupImage={{
+          src: "/assets/Digests-WebApp.png",
+          alt: "Digests web app screenshot",
+          width: 1274,
+          height: 1043
+        }}
+      />
+        
       </section>
 
+      
+
       {/* Features Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/40">
+      <section className="w-full py-12 md:py-24 lg:py-32" id="features">
         <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="space-y-2">
-              <div className="inline-block rounded-lg bg-muted px-3 py-1 text-sm">Key Features</div>
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
-                Everything you need in an RSS reader
-              </h2>
-              <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Digests combines the best features of modern content consumption with the timeless utility of RSS.
-              </p>
-            </div>
-          </div>
-          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 md:grid-cols-2 lg:grid-cols-3">
-            <div className="flex flex-col items-center space-y-2 rounded-lg border p-6">
-              <div className="rounded-full border p-2">
-                <Rss className="h-6 w-6" />
-              </div>
-              <h3 className="text-xl font-bold">RSS Feeds</h3>
-              <p className="text-center text-muted-foreground">
-                Subscribe to your favorite websites and blogs with a simple URL.
-              </p>
-            </div>
-            <div className="flex flex-col items-center space-y-2 rounded-lg border p-6">
-              <div className="rounded-full border p-2">
-                <Headphones className="h-6 w-6" />
-              </div>
-              <h3 className="text-xl font-bold">Podcast Support</h3>
-              <p className="text-center text-muted-foreground">
-                Listen to podcasts with our built-in player that follows you as you browse.
-              </p>
-            </div>
-            <div className="flex flex-col items-center space-y-2 rounded-lg border p-6">
-              <div className="rounded-full border p-2">
-                <Laptop className="h-6 w-6" />
-              </div>
-              <h3 className="text-xl font-bold">Reader View</h3>
-              <p className="text-center text-muted-foreground">
-                Enjoy distraction-free reading with our clean reader view for articles.
-              </p>
-            </div>
-          </div>
+          <BentoGrid className=" lg:grid-rows-3">
+            {features.map((feature) => (
+              <BentoCard key={feature.name} {...feature} />
+            ))}
+          </BentoGrid>
         </div>
       </section>
 
@@ -101,45 +108,30 @@ export default function Home() {
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">Available on all your devices</h2>
               <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Download Digests for your preferred platform and stay in sync across all your devices.
+                Download Digests for your preferred platform. Windows Alpha is available now. More platforms coming soon.
               </p>
             </div>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link href="#mac">
-                <Button variant="outline" size="lg" className="gap-1.5">
-                  <Laptop className="h-5 w-5" />
-                  macOS
-                </Button>
-              </Link>
-              <Link href="#windows">
-                <Button variant="outline" size="lg" className="gap-1.5">
-                  <Laptop className="h-5 w-5" />
-                  Windows
-                </Button>
-              </Link>
-              <Link href="#ios">
-                <Button variant="outline" size="lg" className="gap-1.5">
-                  <Smartphone className="h-5 w-5" />
-                  iOS
-                </Button>
-              </Link>
-              <Link href="#android">
-                <Button variant="outline" size="lg" className="gap-1.5">
-                  <Smartphone className="h-5 w-5" />
-                  Android
-                </Button>
-              </Link>
-              <Link href="#linux">
-                <Button variant="outline" size="lg" className="gap-1.5">
-                  <Laptop className="h-5 w-5" />
-                  Linux
-                </Button>
-              </Link>
+            <div className="flex flex-wrap justify-center gap-4 w-full">
+              
+              
+              <div className="w-full">
+                <script type="module" src="https://get.microsoft.com/badge/ms-store-badge.bundled.js" async ></script>
+                <ms-store-badge
+                  productid="9p8m0cvk7fqq"
+                  productname="Digests - RSS & Podcasts"
+                  window-mode="full"
+                  theme="auto"
+                  size="large"
+                  language="en-us"
+                  animation="on"
+                />
+              </div>
+              
             </div>
           </div>
           <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 py-12 md:grid-cols-2 lg:grid-cols-3">
             <div className="flex flex-col items-center space-y-2">
-              <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
+              {/* <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
                 <Image
                   src="/placeholder.svg?height=400&width=600"
                   width={600}
@@ -171,10 +163,13 @@ export default function Home() {
                   alt="Tablet app screenshot"
                   className="object-cover"
                 />
-              </div>
+              </div> 
               <h3 className="text-xl font-bold">Tablet</h3>
-            </div>
-          </div>
+            </div> 
+          </div> */}
+         
+        </div>
+        </div>
         </div>
       </section>
     </div>
