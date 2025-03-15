@@ -10,6 +10,15 @@ const config: Config = {
   ],
   theme: {
   	extend: {
+		keyframes: {
+			'bounce-x': {
+			  '0%, 100%': { transform: 'translateX(0)' },
+			  '50%': { transform: 'translateX(25%)' },
+			}
+		  },
+		  animation: {
+			'bounce-x': 'bounce-x 1s ease-in-out infinite',
+		  },
   		colors: {
 			"red-primary": "hsl(var(--red-primary))",
         "red-secondary": "hsl(var(--red-secondary))",
@@ -77,6 +86,6 @@ const config: Config = {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require('@tailwindcss/typography')],
 };
 export default config;

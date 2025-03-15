@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageSquare, Share2, Play, Pause } from "lucide-react";
-// import { useRouter } from "next/navigation"
 import { useAudio } from "@/components/audio-player-provider";
 import { useToast } from "@/hooks/use-toast";
 import { ReaderViewModal } from "@/components/reader-view-modal";
@@ -23,12 +22,23 @@ import { useTheme } from "next-themes";
 import { workerService } from "@/services/worker-service";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFeedStore } from "@/store/useFeedStore";
+import { cleanupTextContent } from "@/utils/htmlUtils";
 dayjs.extend(relativeTime);
 
 interface FeedCardProps {
   feed: FeedItem;
 }
 
+/**
+ * CardFooter component for displaying like, comment, and share buttons.
+ *
+ * @param {Object} props - Component props.
+ * @param {boolean} props.liked - Indicates if the item is liked.
+ * @param {boolean} props.isTogglingFavorite - Indicates if the favorite toggle is in progress.
+ * @param {function} props.handleLikeClick - Function to handle like button click.
+ * @param {string} props.feedType - Type of the feed item (e.g., podcast).
+ * @param {number} [props.duration] - Duration of the podcast, if applicable.
+ */
 const CardFooter = memo(function CardFooter({
   liked,
   isTogglingFavorite,
@@ -98,6 +108,12 @@ function useCardShadow(id: string, color: { r: number; g: number; b: number }) {
   return shadows;
 }
 
+/**
+ * FeedCard component for displaying individual feed items.
+ *
+ * @param {Object} props - Component props.
+ * @param {FeedItem} props.feed - The feed item to display.
+ */
 export const FeedCard = memo(function FeedCard({
   feed: feedItem,
 }: FeedCardProps) {
@@ -123,29 +139,28 @@ export const FeedCard = memo(function FeedCard({
     feedItem.thumbnailColor || { r: 0, g: 0, b: 0 }
   );
   const [isAnimating, setIsAnimating] = useState(false);
-  const animationTimeoutRef = useRef<NodeJS.Timeout >(null);
+  const animationTimeoutRef = useRef<NodeJS.Timeout>(null);
   const transitionDuration = 150; // matches our transition duration in ms
   const [imageLoading, setImageLoading] = useState(true);
   const { markAsRead, readItems } = useFeedStore();
-
-  // Check if the item is already marked as read
   const isRead = useMemo(() => {
     if (!readItems || !(readItems instanceof Set)) return false;
     return readItems.has(feedItem.id);
   }, [readItems, feedItem.id]);
 
-  const handleCardClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      // Prevent default click behavior
-      e.preventDefault();
-    },
-    []
-  );
+  /**
+   * Handles the click event on the card.
+   *
+   * @param {React.MouseEvent<HTMLDivElement>} e - The click event.
+   */
+  const handleCardClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  }, []);
 
   const handleMouseDown = useCallback(() => {
     if (!isAnimating) {
       setIsPressed(true);
-      
+
       if (cardRef.current) {
         const rect = cardRef.current.getBoundingClientRect();
         setInitialPosition({
@@ -162,14 +177,10 @@ export const FeedCard = memo(function FeedCard({
     if (isPressed) {
       setIsPressed(false);
       setIsAnimating(true);
-
-      // Mark item as read when opening, but don't cause re-renders
-      // Call it asynchronously to not block the UI
       setTimeout(() => {
         markAsRead(feedItem.id);
       }, 0);
 
-      // Wait for release animation to complete before opening modal
       const timeout = setTimeout(() => {
         if (feedItem.type === "podcast") {
           setIsPodcastDetailsOpen(true);
@@ -178,13 +189,11 @@ export const FeedCard = memo(function FeedCard({
         }
         setIsAnimating(false);
       }, transitionDuration);
-      
-      // Store timeout in ref
+
       animationTimeoutRef.current = timeout;
     }
   }, [feedItem.type, feedItem.id, isPressed, markAsRead]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       const timeout = animationTimeoutRef.current;
@@ -198,11 +207,10 @@ export const FeedCard = memo(function FeedCard({
     (e: React.MouseEvent) => {
       e.stopPropagation();
       if (feedItem.type === "podcast") {
-        // Mark podcast as read asynchronously to not trigger re-renders
         setTimeout(() => {
           markAsRead(feedItem.id);
         }, 0);
-        
+
         playAudio({
           id: feedItem.id,
           title: feedItem.title,
@@ -215,6 +223,11 @@ export const FeedCard = memo(function FeedCard({
     [feedItem, playAudio, markAsRead]
   );
 
+  /**
+   * Handles the click event on the like button.
+   *
+   * @param {React.MouseEvent} e - The click event.
+   */
   const handleLikeClick = useCallback(
     async (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -271,14 +284,16 @@ export const FeedCard = memo(function FeedCard({
     <>
       <Card
         ref={cardRef}
-        style={{
-          boxShadow: getShadowStyle(),
-          transition: "all 150ms ease-out",
-          transform: isPressed ? "translateY(2px)" : "none",
-          opacity: isRead ? 0.8 : 1, // Slightly dim items that have been read
-        } as React.CSSProperties}
+        style={
+          {
+            boxShadow: getShadowStyle(),
+            transition: "all 150ms ease-out",
+            transform: isPressed ? "translateY(2px)" : "none",
+            opacity: isRead ? 0.8 : 1,
+          } as React.CSSProperties
+        }
         className={`card w-full bg-card overflow-hidden cursor-pointer rounded-[40px] relative group ${
-          isRead ? 'read-item' : ''
+          isRead ? "read-item" : ""
         }`}
         onClick={handleCardClick}
         onMouseDown={handleMouseDown}
@@ -322,7 +337,7 @@ export const FeedCard = memo(function FeedCard({
                   height={300}
                   width={300}
                   className={`w-full h-full object-cover rounded-[32px] group-hover:scale-105 transition-all duration-150 ${
-                    imageLoading ? 'opacity-0' : 'opacity-100'
+                    imageLoading ? "opacity-0" : "opacity-100"
                   }`}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   onError={handleImageError}
@@ -360,7 +375,7 @@ export const FeedCard = memo(function FeedCard({
                   {!faviconError && feedItem.favicon && (
                     <Image
                       src={feedItem.favicon}
-                      alt={`${feedItem.siteTitle} favicon`}
+                      alt={`${cleanupTextContent(feedItem.siteTitle)} favicon`}
                       className="w-6 h-6 bg-white rounded-[4px] "
                       height={48}
                       width={48}
@@ -368,21 +383,23 @@ export const FeedCard = memo(function FeedCard({
                     />
                   )}
                   <div className="text-xs  line-clamp-1 font-regular">
-                    {feedItem.siteTitle}
+                    {cleanupTextContent(feedItem.siteTitle)}
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground w-fit font-medium">
                   {formatDate(feedItem.published)}
                 </div>
               </div>
-              <h3 className="font-medium">{feedItem.title}</h3>
+              <h3 className="font-medium">
+                {cleanupTextContent(feedItem.title)}
+              </h3>
               {feedItem.author && (
                 <div className="text-sm text-muted-foreground">
-                  By {feedItem.author}
+                  By {cleanupTextContent(feedItem.author)}
                 </div>
               )}
               <p className="text-sm text-muted-foreground line-clamp-3">
-                {feedItem.description}
+                {cleanupTextContent(feedItem.description)}
               </p>
             </div>
           </CardContent>

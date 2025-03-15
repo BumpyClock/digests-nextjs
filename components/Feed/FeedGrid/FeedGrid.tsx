@@ -10,7 +10,6 @@ import { toast } from "sonner"
 import dynamic from 'next/dynamic'
 import loadingAnimation from "@/public/assets/animations/feed-loading.json"
 
-// Dynamically import Lottie with SSR disabled and loading fallback
 const Lottie = dynamic(() => import('lottie-react'), { 
   ssr: false,
   loading: () => (
@@ -26,6 +25,9 @@ interface FeedGridProps {
   skeletonCount?: number
 }
 
+/**
+ * Loading animation component displayed while data is being fetched.
+ */
 const LoadingAnimation = () => {
   const [isMounted, setIsMounted] = useState(false)
 
@@ -36,14 +38,18 @@ const LoadingAnimation = () => {
   return (
     <div className="flex items-center justify-center h-[50vh]">
       <div className="w-64 h-64">
-        {isMounted && (
-          <Lottie animationData={loadingAnimation} loop={true} />
-        )}
+        {isMounted && <Lottie animationData={loadingAnimation} loop={true} />}
       </div>
     </div>
   )
 }
 
+/**
+ * FeedGrid component that displays a grid of feed items.
+ * 
+ * @param {FeedGridProps} props - The properties for the FeedGrid component.
+ * @returns {JSX.Element} The rendered FeedGrid component.
+ */
 export function FeedGrid({ items, isLoading }: FeedGridProps) {
   const { checkForUpdates, refreshFeeds } = useFeedStore()
   const [mounted, setMounted] = useState(false)
@@ -52,39 +58,40 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
 
   useEffect(() => {
     setMounted(true)
-    // Add minimum loading time of 2 seconds
     const timer = setTimeout(() => {
       setIsMinLoadingComplete(true)
     }, 1500)
 
     return () => clearTimeout(timer)
   }, [])
-  
+
   useEffect(() => {
     if (!mounted) return
 
     const checkUpdates = async () => {
-      console.log("Checking for updates at time ", new Date().toLocaleString())
-      const { hasNewItems, count } = await checkForUpdates()
-      
-      if (hasNewItems) {
-        toast("New items available", {
-          description: `${count} new item${count === 1 ? '' : 's'} available`,
-          action: {
-            label: "Refresh",
-            onClick: () => refreshFeeds()
-          },
-          duration: 10000, // 10 seconds
-        })
-      }
-      else{
-       
-        console.log("No updates available")
+      try {
+        console.log("Checking for updates at time ", new Date().toLocaleString())
+        const { hasNewItems, count } = await checkForUpdates()
+        
+        if (hasNewItems) {
+          toast("New items available", {
+            description: `${count} new item${count === 1 ? '' : 's'} available`,
+            action: {
+              label: "Refresh",
+              onClick: () => refreshFeeds()
+            },
+            duration: 10000, // 10 seconds
+          })
+        } else {
+          console.log("No updates available")
+        }
+      } catch (error) {
+        console.error('Error checking for updates:', error)
       }
     }
     checkUpdates()
 
-    const interval = setInterval(checkUpdates, 30 * 60 *1000)
+    const interval = setInterval(checkUpdates, 30 * 60 * 1000)
 
     return () => clearInterval(interval)
   }, [mounted, checkForUpdates, refreshFeeds])
@@ -95,41 +102,28 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
     Math.max(1, Math.floor((windowWidth - 48) / (columnWidth + columnGutter))),
     [windowWidth]
   )
-  
+
   const renderItem = useCallback(
-    ({ data: feed }: { data: FeedItem }) => (
-      <FeedCard feed={feed} />
-    ),
+    ({ data: feed }: { data: FeedItem }) => <FeedCard feed={feed} />,
     []
   )
 
   const memoizedItems = useMemo(() => {
-    // console.log('Memoizing items:', items) // Debug: log items array
     if (!Array.isArray(items)) {
       console.warn('Items is not an array:', items)
       return []
     }
-    // Filter out any undefined/null items to prevent crashes
     return items.filter(item => item && item.id)
   }, [items])
 
-  // Create a key that changes only when array length changes, not when read status changes
-  const cacheKey = useMemo(() => 
-    `masonry-${memoizedItems.length}`,
-    [memoizedItems.length]
-  )
+  const cacheKey = useMemo(() => `masonry-${memoizedItems.length}`, [memoizedItems.length])
 
   const itemKey = useCallback((item: FeedItem, index: number) => {
-    try {
-      if (!item) {
-        console.warn(`Undefined item at index ${index}`)
-        return `fallback-${index}`
-      }
-      return item.id
-    } catch (error) {
-      console.error('Error in itemKey:', error)
+    if (!item) {
+      console.warn(`Undefined item at index ${index}`)
       return `fallback-${index}`
     }
+    return item.id
   }, [])
 
   if (!mounted || !isMinLoadingComplete || isLoading || items.length === 0) {
