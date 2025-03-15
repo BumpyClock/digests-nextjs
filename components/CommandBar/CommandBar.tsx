@@ -12,24 +12,26 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { FeedItem, Feed } from "@/types";
 import { useFeedStore } from "@/store/useFeedStore";
 import { Button } from "@/components/ui/button";
-import {  Moon, Podcast, RefreshCcw, Rss, Search, Settings, Sun, CheckCircle } from "lucide-react";
-import { useTheme } from "next-themes";
+import {
+  Moon,
+  Podcast,
+  RefreshCcw,
+  Rss,
+  Search,
+  Settings,
+  Sun,
+  CheckCircle,
+  Newspaper,
+} from "lucide-react";
 import React from "react";
 import { useCommandBarSearch } from "@/hooks/use-command-bar-search";
 import { useCommandBarShortcuts } from "@/hooks/use-command-bar-shortcuts";
+import { ReaderViewModal } from "@/components/reader-view-modal";
 
-/**
- * CommandBarProps interface defines the properties for the CommandBar component.
- * @property {string} value - The current search value.
- * @property {(value: string) => void} onChange - Function to handle changes to the search value.
- * @property {(value: string) => void} onApplySearch - Function to apply the search.
- * @property {() => void} onSeeAllMatches - Function to see all matches.
- * @property {() => void} handleRefresh - Function to refresh the feed.
- * @property {(feedUrl: string) => void} onFeedSelect - Function to handle feed selection.
- */
 interface CommandBarProps {
   value: string;
   onChange: (value: string) => void;
@@ -39,11 +41,12 @@ interface CommandBarProps {
   onFeedSelect: (feedUrl: string) => void;
 }
 
-/**
- * CommandBar component for searching and selecting feeds and articles.
- * @param {CommandBarProps} props - The properties for the component.
- * @returns {JSX.Element} The rendered CommandBar component.
- */
+const MemoizedCommandItem = React.memo(CommandItem, (prevProps, nextProps) => {
+  // Custom comparison function to determine if re-render is necessary
+  return prevProps.onSelect === nextProps.onSelect && 
+         prevProps.children === nextProps.children;
+});
+
 export function CommandBar({
   value,
   onChange,
@@ -52,101 +55,83 @@ export function CommandBar({
   handleRefresh,
   onFeedSelect,
 }: CommandBarProps) {
-  const { feedItems, feeds } = useFeedStore();
   const router = useRouter();
   const { setTheme } = useTheme();
-  const { open, setOpen, handleKeyDown, handleClose } = useCommandBarShortcuts(onApplySearch);
-  
+  const { feedItems, feeds, markAllAsRead } = useFeedStore();
+  const { open, setOpen, handleKeyDown, handleClose } =
+    useCommandBarShortcuts(onApplySearch);
+
   const {
     filteredSources,
     filteredItems,
     totalMatchCount,
-    shouldShowSeeAll,
     handleSeeAllMatches,
-    handleFeedSelect: handleFeedSelectSearch,
-    handleArticleSelect
-  } = useCommandBarSearch(value, feedItems, feeds, onSeeAllMatches, handleClose, onChange);
+    handleFeedSelect,
+  } = useCommandBarSearch(
+    value,
+    feedItems,
+    feeds,
+    onSeeAllMatches,
+    handleClose,
+    onChange
+  );
 
-  const MemoizedCommandItem = React.memo(CommandItem);
+  const filteredArticles = useMemo(() => 
+    filteredItems.filter(item => item.type === 'article'), 
+    [filteredItems]
+  );
 
-  // Debug logs for store data
-  console.log('CommandBar Data:', {
-    currentValue: value,
-    feedItemsCount: feedItems.length,
-    feedsCount: feeds?.length,
-  });
+  const filteredPodcasts = useMemo(() => 
+    filteredItems.filter(item => item.type === 'podcast'), 
+    [filteredItems]
+  );
+  console.log('filteredArticles', filteredArticles);
+  console.log('filteredPodcasts', filteredPodcasts);
 
-  // Add the normalizeUrl helper
-  const normalizeUrl = (url: string): string => {
-    try {
-      return decodeURIComponent(url).replace(/\/$/, '');
-    } catch {
-      return url.replace(/\/$/, '');
+  const handleSelectFeed = useCallback(
+    (feedUrl: string) => {
+      // Clear the local search
+      onChange("");
+
+      // Also call the parent's callback if you have more logic
+      onFeedSelect(feedUrl);
+
+      // Then close the CommandBar
+      setOpen(false);
+    },
+    [onChange, onFeedSelect, setOpen]
+  );
+
+  const [selectedArticle, setSelectedArticle] = useState<FeedItem | null>(null);
+  const [isModalOpen, setModalOpen] = useState(false);
+
+  const handleArticleSelect = useCallback((title: string) => {
+    const article = filteredItems.find(item => item.title === title); // Find the selected article
+    if (article) {
+      setSelectedArticle(article); // Set the selected article
+      setModalOpen(true); // Open the modal
     }
-  };
+  }, [filteredItems]);
 
-  // Update the handleFeedSelect function
-  const handleFeedSelect = (feedUrl: string) => {
-    console.log('Parent onFeedSelect called with:', feedUrl);
-    
-    // Normalize the URL
-    const normalizedUrl = normalizeUrl(feedUrl);
-    console.log('Normalized URL:', normalizedUrl);
-    
-    // Clear search value BEFORE navigation
-    onChange(""); 
-    
-    // Make sure URL is properly encoded for query params
-    const encodedUrl = encodeURIComponent(normalizedUrl);
-    console.log('URL for routing:', encodedUrl);
-    
-    // Update store with normalized URL
-    const { setActiveFeed } = useFeedStore.getState();
-    setActiveFeed(normalizedUrl);
-    
-    // Navigate with encoded URL
-    router.push(`/web?feed=${encodedUrl}`);
-    
-    // Close the dialog
-    handleClose();
-    
-    // Log state after setting
-    setTimeout(() => {
-      const state = useFeedStore.getState();
-      const matchingItems = state.feedItems.filter(item => 
-        normalizeUrl(item.feedUrl) === normalizedUrl
-      );
-      
-      console.log('Feed items matching this feed:', {
-        normalizedUrl,
-        matchingItems: matchingItems.map(i => i.title).slice(0, 3),
-        count: matchingItems.length
-      });
-      
-      console.log('Store state after feed selection:', {
-        activeFeed: state.activeFeed,
-        filteredItemsCount: matchingItems.length,
-        totalItems: state.feedItems.length,
-        searchValue: value
-      });
-    }, 100);
-  };
+  const MAX_DISPLAY_ITEMS = 5; // Define a constant for maximum display items
 
-  // Add debug info for rendering conditions
-  console.log('Render Conditions:', {
-    showFeeds: filteredSources && filteredSources.length > 0,
-    feedsCount: filteredSources?.length,
-    showArticles: value && !filteredSources.length && totalMatchCount > 0,
-    articlesCount: filteredItems?.length,
-    totalMatchCount,
-    shouldShowSeeAll
-  });
+  const shouldShowSuggestions = (searchValue: string) => {
+    const hasMatches = (filteredArticles?.length > 0 || filteredPodcasts?.length > 0);
+    
+    if (!hasMatches) return true;
+
+    // Only show suggestions if search matches any suggestion keywords
+    const suggestionKeywords = ['search', 'settings', 'podcasts', 'rss', 'refresh', 'light', 'dark', 'mark all'];
+    return suggestionKeywords.some(keyword => 
+      keyword.toLowerCase().includes(searchValue.toLowerCase())
+    );
+  };
 
   return (
     <>
       <Button
         variant="outline"
-        className="w-full max-w-lg justify-start text-muted-foreground sm:w-72 px-3 relative "
+        className="w-full max-w-lg justify-start text-muted-foreground sm:w-72 px-3 relative"
         onClick={() => setOpen(true)}
       >
         <Search className="mr-2 h-4 w-4" />
@@ -158,7 +143,7 @@ export function CommandBar({
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <Command className="rounded-lg">
+        <Command className="rounded-lg max-h-[80vh] overflow-y-auto" >
           <CommandInput
             placeholder="Type a command or search..."
             value={value}
@@ -166,87 +151,114 @@ export function CommandBar({
             onKeyDown={(e) => handleKeyDown(e, value)}
           />
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
-            <CommandGroup
-              heading="Suggestions"
-              className="text-xs"
-            >
-              <CommandItem>
-                <Search  />
-                <span className="text-xs font-regular">Search for feeds and articles</span>
-              </CommandItem>
-              <CommandItem
-                onSelect={() => {
-                  router.push("/web/settings");
-                  setOpen(false);
-                }}
-              >
-                <Settings className="mr-2 h-4 w-4 text-xs font-regular" />
-               <span className="text-xs font-regular">Settings</span>
-              </CommandItem>
-              <CommandItem>
-                <Podcast className="mr-2 h-4 w-4 text-xs font-regular" />
-                <span className="text-xs font-regular">Podcasts</span>
-              </CommandItem>
-              <CommandItem>
-                <Rss className="mr-2 h-4 w-4 text-xs font-regular" />
-                <span className="text-xs font-regular">RSS Feeds</span> 
-              </CommandItem>
-              <CommandItem
-                onSelect={() => {
-                  handleRefresh();
-                  setOpen(false);
-                }}
-              >
-                <RefreshCcw className="mr-2 h-4 w-4 text-xs font-regular" />
-                <span className="text-xs font-regular">Refresh</span>
-              </CommandItem>
-              <CommandItem
-                onSelect={() => {
-                  setTheme("light");
-                  setOpen(false);
-                }}
-              >
-                <Sun className="mr-2 h-4 w-4 text-xs font-regular" />
-                <span className="text-xs font-regular">Light Mode</span>
-              </CommandItem>
-              <CommandItem
-                onSelect={() => {
-                  setTheme("dark");
-                  setOpen(false);
-                }}
-              >
-                <Moon className="mr-2 h-4 w-4 text-xs font-regular" />
-                <span className="text-xs font-regular">Dark Mode</span>
-              </CommandItem>
-              <CommandItem
-                onSelect={() => {
-                  const { markAllAsRead } = useFeedStore.getState();
-                  markAllAsRead();
-                  setOpen(false);
-                }}
-              >
-                <CheckCircle className="mr-2 h-4 w-4 text-xs font-regular" />
-                <span className="text-xs font-regular">Mark All as Read</span>
-              </CommandItem>
-            </CommandGroup>
-            <CommandSeparator />
+            {!filteredArticles?.length && !filteredPodcasts?.length && !filteredSources?.length && (
+              <CommandEmpty>No results found.</CommandEmpty>
+            )}
 
+            {/* Show suggestions only when there are no matches or search matches suggestions */}
+            {shouldShowSuggestions(value) && (
+              <>
+                <CommandGroup heading="Suggestions" className="text-xs">
+                  <CommandItem>
+                    <Search />
+                    <span className="text-xs font-regular">
+                      Search for feeds/articles
+                    </span>
+                  </CommandItem>
+
+                  <CommandItem
+                    value="settings"
+                    onSelect={() => {
+                      router.push("/web/settings");
+                      setOpen(false);
+                    }}
+                  >
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span className="text-xs font-regular">Settings</span>
+                  </CommandItem>
+
+                  <CommandItem
+                    value="podcasts"
+                    onSelect={() => {
+                      router.push("/web/podcasts");
+                      setOpen(false);
+                    }}
+                  >
+                    <Podcast className="mr-2 h-4 w-4" />
+                    <span className="text-xs font-regular">Podcasts</span>
+                  </CommandItem>
+                  <CommandItem
+                    value="rss"
+                    onSelect={() => {
+                      router.push("/web/rss");
+                      setOpen(false);
+                    }}
+                  >
+                    <Rss className="mr-2 h-4 w-4" />
+                    <span className="text-xs font-regular">RSS Feeds</span>
+                  </CommandItem>
+                  <CommandItem
+                    value="refresh"
+                    onSelect={() => {
+                      handleRefresh();
+                      setOpen(false);
+                    }}
+                  >
+                    <RefreshCcw className="mr-2 h-4 w-4" />
+                    <span className="text-xs font-regular">Refresh</span>
+                  </CommandItem>
+                  <CommandItem
+                    value="light"
+                    onSelect={() => {
+                      setTheme("light");
+                      setOpen(false);
+                    }}
+                  >
+                    <Sun className="mr-2 h-4 w-4" />
+                    <span className="text-xs font-regular">Light Mode</span>
+                  </CommandItem>
+                  <CommandItem
+                    value="dark"
+                    onSelect={() => {
+                      setTheme("dark");
+                      setOpen(false);
+                    }}
+                  >
+                    <Moon className="mr-2 h-4 w-4" />
+                    <span className="text-xs font-regular">Dark Mode</span>
+                  </CommandItem>
+                  <CommandItem
+                    value="mark all"
+                    onSelect={() => {
+                      markAllAsRead();
+                      setOpen(false);
+                    }}
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    <span className="text-xs font-regular">Mark All as Read</span>
+                  </CommandItem>
+                </CommandGroup>
+                <CommandSeparator />
+              </>
+            )}
+
+            {/* FEEDS LIST */}
             {filteredSources && filteredSources.length > 0 && (
               <CommandGroup
                 heading={`Feeds (${filteredSources.length})`}
                 className="text-xs font-bold text-muted-foreground"
               >
-                {filteredSources.map((source) => (
+                {filteredSources.map((source:Feed) => (
                   <MemoizedCommandItem
-                    className="text-sm font-normal"
-                    key={source.guid || Math.random().toString()}
-                    onSelect={() => handleFeedSelect(source.feedUrl || "")}
+                    className="text-xs font-normal"
+                    value={[source.author, source.categories, source.description, source.feedUrl, source.siteTitle, source.feedTitle].join(" ")}
+                    key={source.feedUrl}
+                    onSelect={() => handleSelectFeed(source.feedUrl)}
                   >
-                    <img 
-                      src={source.favicon || ''} 
-                      alt={source.feedTitle || "Untitled Feed"} 
-                      width={24} 
+                    <img
+                      src={source.favicon || ""}
+                      alt={source.feedTitle || "Untitled Feed"}
+                      width={24}
                       height={24}
                       className="object-cover"
                     />
@@ -258,34 +270,89 @@ export function CommandBar({
               </CommandGroup>
             )}
 
-            {value && !filteredSources.length && totalMatchCount > 0 && (
+            {/* ARTICLES MATCHING */}
+            {filteredArticles && filteredArticles.length > 0 && (
               <CommandGroup
-                heading={`ARTICLES (${filteredItems.length}/${totalMatchCount})`}
+                heading={`ARTICLES (${filteredArticles.length})`}
                 className="text-xs font-bold text-muted-foreground"
               >
-                {filteredItems.map((item) => (
+                {filteredArticles.slice(0, MAX_DISPLAY_ITEMS).map((item:FeedItem) => (
                   <MemoizedCommandItem
-                    className="text-sm font-normal"
-                    key={item.id || Math.random().toString()}
-                    onSelect={() => handleArticleSelect(item.title || "")}
+                    className="text-md font-normal"
+                    value=""
+                    key={item.id}
+                    onSelect={() => {
+                      handleArticleSelect(item.title || "");
+                    }}
                   >
-                    <span className="text-xs font-regular">{item.title || "Untitled Article"}</span>
+                    <Newspaper className="mr-2 h-4 w-4" />
+                    <span className="text-md font-regular">
+                      {item.title || "Untitled Article"}
+                    </span>
                   </MemoizedCommandItem>
                 ))}
-                {shouldShowSeeAll && (
+                <CommandItem
+                  key="see-all-articles"
+                  value=" "
+                  className="text-md font-normal"
+                  onSelect={handleSeeAllMatches}
+                >
+                  <span className="text-md font-regular">See All Articles</span>
+                </CommandItem>
+              </CommandGroup>
+            )}
+
+            {/* New section for Podcasts */}
+            {filteredPodcasts && filteredPodcasts.length > 0 && (
+              <CommandGroup
+                heading={`PODCASTS (${filteredPodcasts.length})`}
+                className="text-md font-bold text-muted-foreground"
+              >
+                {filteredPodcasts.slice(0, MAX_DISPLAY_ITEMS).map((podcast:FeedItem) => (
                   <MemoizedCommandItem
-                    key="see-all-matches"
-                    className="text-sm font-normal"
-                    onSelect={handleSeeAllMatches}
+                    className="text-md font-normal"
+                    value=" "
+                    key={podcast.id}
+                    onSelect={() => {
+                      // Handle podcast selection
+                    }}
                   >
-                    {<span className="text-xs font-regular">See All {totalMatchCount} Matches</span>}
+                    <img
+                      src={podcast.favicon || ""}
+                      alt={podcast.title || "Untitled Feed"}
+                      width={24}
+                      height={24}
+                      className="object-cover"
+                    />
+                    <span className="text-md font-regular">
+                      {podcast.title || "Untitled Podcast"}
+                    </span>
                   </MemoizedCommandItem>
-                )}
+                ))}
+                <CommandItem
+                  key="see-all-podcasts"
+                  className="text-md font-normal"
+                  value=""
+                  onSelect={() => {
+                    // Handle see all podcasts action
+                  }}
+                >
+                  <span className="text-md font-regular">See All Podcasts</span>
+                </CommandItem>
               </CommandGroup>
             )}
           </CommandList>
         </Command>
       </CommandDialog>
+
+      {selectedArticle && (
+        <ReaderViewModal
+          isOpen={isModalOpen}
+          onClose={() => setModalOpen(false)}
+          feedItem={selectedArticle}
+          initialPosition={{ x: 0, y: 0, width: 600, height: 400 }}
+        />
+      )}
     </>
   );
 }

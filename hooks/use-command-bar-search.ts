@@ -13,6 +13,59 @@ const debugFeedUrl = (url: string) => {
   return url;
 };
 
+/**
+ * Helper: combine relevant FeedItem fields & see if they match `query`.
+ */
+function itemMatchesSearch(item: FeedItem, query: string): { match: boolean; score: number } {
+  const search = query.toLowerCase();
+
+  // Combine relevant fields into one string
+  const combined = [
+    item.title,
+    item.author,
+    item.description,
+    item.content,
+    item.categories,
+  ]
+    .filter(Boolean) // remove null/undefined
+    .join(" "); // combine with a space
+
+  const fullMatch = combined.toLowerCase().includes(` ${search} `) || combined.toLowerCase().startsWith(search) || combined.toLowerCase().endsWith(search);
+  const partialMatch = combined.toLowerCase().includes(search);
+
+  return {
+    match: fullMatch || partialMatch,
+    score: fullMatch ? 2 : (partialMatch ? 1 : 0) // Full match gets higher score
+  };
+}
+
+/**
+ * Helper: combine relevant Feed fields & see if they match `query`.
+ */
+function feedMatchesSearch(feed: Feed, query: string): { match: boolean; score: number } {
+  const search = query.toLowerCase();
+
+  // Combine relevant feed fields
+  const combined = [
+    feed.feedTitle,
+    feed.siteTitle,
+    feed.description,
+    feed.categories,
+    feed.author, // if your Feed object has feed.author
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const fullMatch = combined.toLowerCase().includes(` ${search} `) || combined.toLowerCase().startsWith(search) || combined.toLowerCase().endsWith(search);
+  const partialMatch = combined.toLowerCase().includes(search);
+
+  return {
+    match: fullMatch || partialMatch,
+    score: fullMatch ? 2 : (partialMatch ? 1 : 0) // Full match gets higher score
+  };
+}
+
+
 export function useCommandBarSearch(
   searchValue: string,
   feedItems: FeedItem[],
@@ -57,18 +110,18 @@ export function useCommandBarSearch(
       return uniqueFeedSources;
     }
     const searchLower = searchValue.toLowerCase();
-    const filtered = uniqueFeedSources.filter(
-      (source) =>
-        source.title?.toLowerCase().includes(searchLower) ||
-        source.siteTitle?.toLowerCase().includes(searchLower)
-    );
+    const filtered = feeds
+      .map(feed => ({ feed, ...feedMatchesSearch(feed, searchLower) }))
+      .filter(({ match }) => match)
+      .sort((a, b) => b.score - a.score); 
+
     console.log('Filtered sources:', {
       searchValue,
       totalSources: uniqueFeedSources.length,
       filteredCount: filtered.length,
-      firstMatch: filtered[0]
+      firstMatch: filtered[0]?.feed
     });
-    return filtered;
+    return filtered.map(({ feed }) => feed); // Return only feeds
   }, [uniqueFeedSources, searchValue]);
 
   const filteredItems = useMemo(() => {
@@ -78,27 +131,20 @@ export function useCommandBarSearch(
     }
     const searchLower = searchValue.toLowerCase();
     const filtered = feedItems
-      .filter(
-        (item) =>
-          (item.title && item.title.toLowerCase().includes(searchLower)) ||
-          (item.description &&
-            item.description.toLowerCase().includes(searchLower))
-      )
-      .slice(0, 5);
+      .map(item => ({ item, ...itemMatchesSearch(item, searchLower) }))
+      .filter(({ match }) => match)
+      .sort((a, b) => b.score - a.score);
     
-    console.log('Filtered items:', {
+    console.log('[useCommandBarSearch] [filteredItems] [filtered]', {
       searchValue,
       totalItems: feedItems.length,
-      matchedBeforeSlice: feedItems.filter(
-        (item) =>
-          (item.title && item.title.toLowerCase().includes(searchLower)) ||
-          (item.description &&
-            item.description.toLowerCase().includes(searchLower))
-      ).length,
       filteredCount: filtered.length,
-      firstMatch: filtered[0]
+      firstMatch: filtered[0]?.item,
+      filtered: filtered
     });
-    return filtered;
+    const filteredItems = filtered.map(({ item }) => item); 
+    console.log('[useCommandBarSearch] [filteredItems] [filteredItems]', filteredItems);
+    return filteredItems; 
   }, [feedItems, searchValue]);
 
   const totalMatchCount = useMemo(() => {
@@ -112,9 +158,7 @@ export function useCommandBarSearch(
     ).length;
   }, [feedItems, searchValue]);
 
-  const shouldShowSeeAll = useMemo(() => {
-    return searchValue && totalMatchCount > filteredItems.length;
-  }, [searchValue, totalMatchCount, filteredItems.length]);
+
 
   const handleSeeAllMatches = useCallback(() => {
     onSeeAllMatches();
@@ -122,10 +166,8 @@ export function useCommandBarSearch(
   }, [onSeeAllMatches, handleClose]);
 
   const handleFeedSelect = useCallback((feedUrl: string) => {
-    // Debug the feed URL to see if there are any encoding issues
-    debugFeedUrl(feedUrl);
+    // debugFeedUrl(feedUrl);
     
-    // Clear search when selecting a feed
     onSearchValueChange(""); 
     
     console.log('Feed selection in hook - clearing search value');
@@ -144,7 +186,6 @@ export function useCommandBarSearch(
     filteredSources,
     filteredItems,
     totalMatchCount,
-    shouldShowSeeAll,
     handleSeeAllMatches,
     handleFeedSelect,
     handleArticleSelect

@@ -154,7 +154,7 @@ export function ReaderViewModal({
                   )}
                 
 
-                  <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-1 flex-grow ">
+                  <div className="flex items-center space-x-4 text-sm text-muted-foreground flex-grow mb-1">
                    
                     <span>
                       {readerView.content ? (() => {
@@ -173,7 +173,7 @@ export function ReaderViewModal({
                   </div>
                   
                   <div
-                      className="px-8 prose prose-amber w-full text-lg prose-lg md:max-w-5xl dark:prose-invert reader-view-article"
+                      className="px-8 prose prose-amber w-full text-lg prose-lg md:max-w-5xl dark:prose-invert reader-view-article mb-24"
                     dangerouslySetInnerHTML={{ __html: cleanupModalContent(readerView.content) }}
                   />
                 </article>
