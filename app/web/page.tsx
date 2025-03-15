@@ -10,9 +10,10 @@ import { FeedItem } from "@/types";
 import { CommandBar } from "@/components/CommandBar/CommandBar";
 import { RefreshButton } from "@/components/RefreshButton";
 import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 /**
- * If your store has a "hydrated" field, we can track if it’s
+ * If your store has a "hydrated" field, we can track if it's
  * fully loaded, or just remove if you don't need it.
  */
 const useHydration = () => {
@@ -39,7 +40,8 @@ const normalizeUrl = (url: string | null): string => {
   }
 };
 
-export default function AppPage() {
+// Create a new component that uses useSearchParams
+function WebPageContent() {
   const isHydrated = useHydration();
   const [searchQuery, setSearchQuery] = useState("");
   const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
@@ -119,7 +121,7 @@ export default function AppPage() {
       setSearchQuery("");
       setAppliedSearchQuery("");
 
-      // Navigate: manually or with next/navigation’s router.push
+      // Navigate: manually or with next/navigation's router.push
       const newUrl = `/web?feed=${encodeURIComponent(normalizedUrl)}`;
       window.history.pushState({}, "", newUrl);
     },
@@ -213,10 +215,6 @@ export default function AppPage() {
   }, []);
 
   const isLoading = loading || (!initialized && feedItems.length === 0);
-
-    // console.log("feedUrlDecoded", feedUrlDecoded);
-    // console.log("feedItems", feedItems);
-    // console.log("filteredItems", filteredItems);
 
   return (
     <div className="container py-6 max-w-[1600px] mx-auto max-h-screen">
@@ -319,4 +317,13 @@ function FeedTabContent({
     return <EmptyState />;
   }
   return <FeedGrid items={items} isLoading={false} />;
+}
+
+// Make the main page component simpler
+export default function AppPage() {
+  return (
+    <Suspense fallback={<FeedGrid items={[]} isLoading />}>
+      <WebPageContent />
+    </Suspense>
+  );
 }
