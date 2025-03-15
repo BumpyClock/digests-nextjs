@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -11,7 +11,8 @@ import { useAudioPlayer } from "@/components/audio-player-provider"
 import Image from "next/image"
 import type { FeedItem } from "@/types/feed"
 
-export default function PodcastPage({ params }: { params: { id: string } }) {
+export default function PodcastPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const [podcast, setPodcast] = useState<FeedItem | null>(null)
   const [loading, setLoading] = useState(true)
   const [isBookmarked, setIsBookmarked] = useState(false)

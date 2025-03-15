@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -13,7 +13,8 @@ import { type ReaderViewResponse } from "@/types/api"
 import Image from "next/image"
 import { FeedItem } from "@/types"
 
-export default function ArticlePage({ params }: { params: { id: string } }) {
+export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const [article, setArticle] = useState<FeedItem | null>(null)
   const [readerView, setReaderView] = useState<ReaderViewResponse | null>(null)
   const [loading, setLoading] = useState(true)
