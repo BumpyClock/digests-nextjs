@@ -6,6 +6,8 @@ import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
 import { AudioPlayerProvider } from "@/components/audio-player-provider";
 import { WorkerInitializer } from "@/components/worker-init";
+import { SpeedInsights } from '@vercel/speed-insights/next';
+
 
 const notoSans = Noto_Sans({ subsets: ["latin"] });
 
@@ -55,6 +57,8 @@ export default function RootLayout({
               <Header />
               <main className="flex-1 w-full p-4 xs:p-4 md:p-4 xs:max-w-full md:max-w-5xl lg:max-w-full">
                 {children}
+                <SpeedInsights />
+
               </main>
             </div>
             <Toaster />
