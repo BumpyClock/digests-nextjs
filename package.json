@@ -26,6 +26,7 @@
     "@radix-ui/react-toast": "^1.1.5",
     "@tailwindcss/typography": "^0.5.16",
     "@types/mdx": "^2.0.13",
+    "@vercel/speed-insights": "^1.2.0",
     "babel-plugin-react-compiler": "19.0.0-beta-40c6c23-20250301",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.0",
@@ -68,6 +69,7 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@heroui/shared-utils",
+      "@vercel/speed-insights",
       "sharp"
     ]
   },
