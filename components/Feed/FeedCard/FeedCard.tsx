@@ -380,6 +380,8 @@ export const FeedCard = memo(function FeedCard({
                       height={48}
                       width={48}
                       onError={handleFaviconError}
+                      loading="lazy"
+                      priority={false}
                     />
                   )}
                   <div className="text-xs  line-clamp-1 font-regular">
