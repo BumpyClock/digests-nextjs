@@ -2,7 +2,7 @@ import { getMdxMetadata, APP_MDX_DIR, CONTENT_MDX_DIR } from '@/utils/mdx-utils'
 import fs from 'fs';
 import { notFound } from 'next/navigation';
 import { compileMDX } from 'next-mdx-remote/rsc';
-import { useMDXComponents } from '@/mdx-components';
+import { getMDXComponents } from '@/mdx-components';
 
 export default async function Page(
   props: {
@@ -11,6 +11,7 @@ export default async function Page(
 ) {
   const params = await props.params;
   const slug = params.slug;
+  const components = getMDXComponents({});
 
   try {
     const { title, content } = getMdxMetadata(slug);
@@ -18,7 +19,7 @@ export default async function Page(
     // Compile the MDX content without frontmatter
     const { content: Content } = await compileMDX({
       source: content,
-      components: useMDXComponents({}),
+      components,
       options: { parseFrontmatter: false }
     });
 
