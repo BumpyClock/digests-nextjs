@@ -1,7 +1,11 @@
 import createMDX from '@next/mdx';
-
+import remarkGfm from 'remark-gfm';
 const withMDX = createMDX({
   extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [remarkGfm],
+    rehypePlugins: [],
+  },
 });
 
 /** @type {import('next').NextConfig} */
@@ -10,6 +14,7 @@ const nextConfig = {
     typescript: {
         ignoreBuildErrors: true,
     },
+    transpilePackages: ["next-mdx-remote"],
     images: {
         remotePatterns: [
             {

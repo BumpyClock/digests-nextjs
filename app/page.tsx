@@ -1,7 +1,8 @@
 import {  Rss, Headphones,  BookOpenText, Cookie, FileTextIcon } from "lucide-react"
-import Image from "next/image"
+// import Image from "next/image"
 import { BentoCard, BentoGrid } from "@/components/ui/bento-grid"
 import { Hero } from "@/components/hero"
+import { SmoothScroll } from "@/components/smooth-scroll"
 
 const features = [
 {
@@ -10,7 +11,7 @@ const features = [
   description: "Subscribe to your favorite websites and blogs with a simple URL.",
   href: "/web",
   cta: "Launch Web App",
-  background: <Image src= "" alt="" className="absolute -right-20 -top-20 opacity-60" />,
+  background: <></>,
   className: "lg:col-start-1 lg:col-end-2 lg:row-start-1 lg:row-end-3",
 },
 {
@@ -19,7 +20,7 @@ const features = [
   description: "Listen to podcasts with our built-in player that follows you as you browse.",
   href: "/web",
   cta: "Launch Web App",
-  background: <Image src= "" alt="" className="absolute -right-20 -top-20 opacity-60" />,
+  background: <></>,
   className: "lg:col-start-1 lg:col-end-2 lg:row-start-3 lg:row-end-4",
 },
 {
@@ -28,7 +29,7 @@ const features = [
   description: "Enjoy distraction-free reading with our clean reader view for articles.",
   href: "/web",
   cta: "Launch Web App",
-  background: <Image src= "" alt="" className="absolute -right-20 -top-20 opacity-60" />,
+  background: <></>,
   className: "lg:col-start-3 lg:col-end-3 lg:row-start-1 lg:row-end-2",
   
 },
@@ -38,7 +39,7 @@ const features = [
   description: "No recomendations, no tracking, no ads. Forever. Just you and content you love.",
   href: "/pages/why-digests",
   cta: "Why Digests?",
-  background: <Image src= "" alt="" className="absolute -right-20 -top-20 opacity-60" />,
+  background: <></>,
   className: "lg:row-start-1 lg:row-end-4 lg:col-start-2 lg:col-end-3 ",
 },
 {
@@ -47,17 +48,15 @@ const features = [
   description: "Import/Export your subscriptions and take them wherever you go",
   href: "/pages/privacy-policy",
   cta: "Privacy Policy",
-  background: <Image src= "" alt="" className="absolute -right-20 -top-20 opacity-60" />,
+  background: <></>,
   className: "lg:col-start-3 lg:col-end-3 lg:row-start-2 lg:row-end-4",
 },
 ]
 
-
-
-
 export default function Home() {
   return (
-    <div id="home-container" className="flex flex-col min-h-screen max-w-7xl mx-auto " >
+    <div id="home-container" className="flex flex-col min-h-screen max-w-7xl mx-auto">
+      <SmoothScroll />
       {/* Hero Section */}
      
 
@@ -108,7 +107,7 @@ everywhere.
             <div className="space-y-2">
               <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">Available on all your devices</h2>
               <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Download Digests for your preferred platform. Windows Alpha is available now. More platforms coming soon.
+                Native Digests apps are on the way for your preferred platform. Windows Alpha is available now. More platforms coming soon.
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-4 w-full">

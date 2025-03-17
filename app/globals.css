@@ -151,6 +151,8 @@
 @layer base {
   * {
     @apply border-border;
+    transition: background-color 125ms ease-in-out, border-color 125ms ease-in-out, color 125ms ease-in-out box-shadow 125ms ease-in-out ;
+
   }
   body {
     @apply bg-background text-foreground;
@@ -577,4 +579,8 @@ a {
 
 .delay-700 {
   animation-delay: 700ms;
+}
+
+html {
+  scroll-behavior: smooth;
 }

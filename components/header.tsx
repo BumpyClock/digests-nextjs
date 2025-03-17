@@ -26,6 +26,9 @@ export function Header() {
           <nav className="hidden md:flex items-center space-x-4">
             {!isApp ? (
               <>
+              <Link href="/pages/privacy-policy">
+              <Button variant="ghost">Privacy Policy</Button>
+              </Link>
                 <Link href="/#features">
                   <Button variant="ghost">Features</Button>
                 </Link>

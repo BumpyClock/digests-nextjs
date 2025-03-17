@@ -31,6 +31,7 @@ import React from "react";
 import { useCommandBarSearch } from "@/hooks/use-command-bar-search";
 import { useCommandBarShortcuts } from "@/hooks/use-command-bar-shortcuts";
 import { ReaderViewModal } from "@/components/reader-view-modal";
+import Image from 'next/image';
 
 interface CommandBarProps {
   value: string;
@@ -254,13 +255,16 @@ export function CommandBar({
                     key={source.feedUrl}
                     onSelect={() => handleSelectFeed(source.feedUrl)}
                   >
-                    <img
-                      src={source.favicon || ""}
-                      alt={source.feedTitle || "Untitled Feed"}
-                      width={24}
-                      height={24}
-                      className="object-cover"
-                    />
+                    {source.favicon && (
+                      <Image
+                        src={source.favicon}
+                        alt={source.feedTitle || "Untitled Feed"}
+                        width={24}
+                        height={24}
+                        className="object-cover"
+                        
+                      />
+                    )}
                     <span className="text-xs font-regular">
                       {source.feedTitle || source.siteTitle || "Unnamed Feed"}
                     </span>
@@ -316,13 +320,16 @@ export function CommandBar({
                       // Handle podcast selection
                     }}
                   >
-                    <img
-                      src={podcast.favicon || ""}
-                      alt={podcast.title || "Untitled Feed"}
-                      width={24}
-                      height={24}
-                      className="object-cover"
-                    />
+                    {podcast.favicon && (
+                      <Image
+                        src={podcast.favicon}
+                        alt={podcast.title || "Untitled Feed"}
+                        width={24}
+                        height={24}
+                        className="object-cover"
+                        unoptimized
+                      />
+                    )}
                     <span className="text-md font-regular">
                       {podcast.title || "Untitled Podcast"}
                     </span>

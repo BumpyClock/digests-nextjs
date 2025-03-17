@@ -78,7 +78,12 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
             description: `${count} new item${count === 1 ? '' : 's'} available`,
             action: {
               label: "Refresh",
-              onClick: () => refreshFeeds()
+              onClick: () => {
+                refreshFeeds().then(() => {
+                  const currentUnreadItems = useFeedStore.getState().getUnreadItems()
+                  useFeedStore.setState({ stableUnreadItems: currentUnreadItems })
+                })
+              }
             },
             duration: 10000, // 10 seconds
           })
