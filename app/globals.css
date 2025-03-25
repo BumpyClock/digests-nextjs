@@ -255,7 +255,6 @@ word-break: break-word;
   object-fit: contain;
   width: -moz-fit-content;
   width: fit-content;
-
 }
 .reader-view-article p {
   margin: 1.33em 0

@@ -54,7 +54,7 @@ const ArticleHeader = memo(({ feedItem, readerView, parallaxOffset }: {
         <ArticleImage
           src={feedItem.thumbnail}
           alt={feedItem.title}
-          className="w-full h-auto max-h-[500px] object-cover drop-shadow-lg transition-transform duration-0"
+          className="w-full thumbnail-image !h-[500px] object-cover drop-shadow-lg transition-transform duration-0"
           style={{
             transform: `translateY(${parallaxOffset}px)`,
             marginTop: '-80px',
