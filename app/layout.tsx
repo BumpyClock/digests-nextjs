@@ -8,6 +8,7 @@ import { AudioPlayerProvider } from "@/components/audio-player-provider";
 import { WorkerInitializer } from "@/components/worker-init";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
+import { AmbilightFilterDefs } from "@/components/ui/AmbilightFilterDefs";
 
 
 const notoSans = Noto_Sans({ subsets: ["latin"] });
@@ -52,8 +53,12 @@ export default function RootLayout({
           
         >
           <AudioPlayerProvider>
-            {/* Initialize worker on client side */}
             <WorkerInitializer />
+            <AmbilightFilterDefs
+              saturation={1}
+              spread={2}
+              blur={8}
+            />
             <div className="flex min-h-screen flex-col">
               <Header />
               <main className="flex-1 w-full p-4 xs:p-4 md:p-4 xs:max-w-full md:max-w-5xl lg:max-w-full">

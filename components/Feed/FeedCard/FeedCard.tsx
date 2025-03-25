@@ -281,22 +281,6 @@ export const FeedCard = memo(function FeedCard({
     return restShadow;
   };
 
-  useEffect(() => {
-    // Check if filter already exists
-    if (!document.getElementById("ambilight-filter")) {
-      // Create the filter container
-      const filterContainer = document.createElement("div");
-      filterContainer.className = "filter-container";
-      filterContainer.innerHTML = `
-        <svg width="0" height="0"><filter id="ambilight" width="300%" height="300%" x="-0.75" y="-0.75" color-interpolation-filters="sRGB"><feOffset in="SourceGraphic" result="source-copy"></feOffset><feColorMatrix in="source-copy" type="saturate" values="1" result="saturated-copy"></feColorMatrix><feColorMatrix in="saturated-copy" type="matrix" values="1 0 0 0 0
-                     0 1 0 0 0
-                     0 0 1 0 0
-                     33 33 33 101 -100" result="bright-colors"></feColorMatrix><feMorphology in="bright-colors" operator="dilate" radius="2" result="spread"></feMorphology><feGaussianBlur in="spread" stdDeviation="11" result="ambilight-light"></feGaussianBlur><feOffset in="SourceGraphic" result="source"></feOffset><feComposite in="source" in2="ambilight-light" operator="over"></feComposite></filter></svg>
-      `;
-      document.body.appendChild(filterContainer);
-    }
-  }, []);
-
   return (
     <>
       <Card
@@ -344,15 +328,11 @@ export const FeedCard = memo(function FeedCard({
           {/* Card Thumbnail image*/}
           {!imageError && feedItem.thumbnail && (
             <div className="relative w-full p-2">
-              <Ambilight 
-                className="relative w-full aspect-[16/9] rounded-[32px] overflow-hidden"
-                parentHovered={isHovered}
-                opacity={{ rest: 0, hover: 0.7 }}
-                saturation={1}
-                colorCutoff={0}
-                spread={2}
-                blur={8}
-              >
+              <Ambilight
+  className="relative w-full aspect-[16/9] rounded-[32px] overflow-hidden"
+  parentHovered={isHovered}
+  opacity={{ rest: 0, hover: 0.7 }}
+>
                 {imageLoading && (
                   <Skeleton className="absolute inset-0 z-10 rounded-[32px]" />
                 )}
@@ -361,7 +341,7 @@ export const FeedCard = memo(function FeedCard({
                   alt={feedItem.title}
                   height={300}
                   width={300}
-                  className={`w-full h-full object-cover rounded-[32px] group-hover:scale-[1.02] transition-all duration-150 ${
+                  className={`w-full h-full object-cover rounded-[32px] group-hover:scale-[1.05] transition-all duration-150 ${
                     imageLoading ? "opacity-0" : "opacity-100"
                   }`}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

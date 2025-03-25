@@ -1,74 +1,33 @@
 "use client";
 
-import { useEffect } from "react";
+import React from "react";
 import { cn } from "@/lib/utils";
 
 interface AmbiLightProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
-  sourceElement?: React.ReactNode;
+  /**
+   * If you want to hide or show the glow on rest vs. hover,
+   * you can keep these props as a styling convenience.
+   */
   opacity?: {
     rest: number;
     hover: number;
   };
-  saturation?: number;
-  colorCutoff?: number;
-  spread?: number;
-  blur?: number;
   isActive?: boolean;
   parentHovered?: boolean;
-  showSource?: boolean;
 }
 
+/**
+ * A simple wrapper that applies `filter: url(#feedCardAmbilight-filter)`
+ * so the feedCard's image gets the 'ambilight' effect.
+ */
 export function Ambilight({
   children,
-  sourceElement,
   className,
-  opacity = { rest: 0, hover: 0.7 },
-  saturation = 1,
-  colorCutoff = 0,
-  spread = 2,
-  blur = 8,
   isActive,
   parentHovered,
-  showSource = true,
   ...props
 }: AmbiLightProps) {
-  useEffect(() => {
-    // Check if both filters don't exist
-    if (!document.getElementById("ambilight-filter")) {
-      const filterContainer = document.createElement("div");
-      filterContainer.className = "filter-container";
-      filterContainer.innerHTML = `
-        <svg width="0" height="0">
-          <defs>
-            <filter id="ambilight" width="300%" height="300%" x="-0.75" y="-0.75" color-interpolation-filters="sRGB">
-              <feOffset in="SourceGraphic" result="source-copy"/>
-              <feColorMatrix in="source-copy" type="saturate" values="${saturation}" result="saturated-copy"/>
-              <feColorMatrix 
-                in="saturated-copy" 
-                type="matrix" 
-                values="1 0 0 0 0
-                        0 1 0 0 0
-                        0 0 1 0 0
-                        33 33 33 33 -33"
-                result="bright-colors"
-              />
-              <feMorphology in="bright-colors" operator="dilate" radius="${spread}" result="spread"/>
-              <feGaussianBlur in="spread" stdDeviation="${blur}" result="ambilight-light"/>
-              ${showSource ? `
-              <feOffset in="SourceGraphic" result="source"/>
-              <feComposite in="source" in2="ambilight-light" operator="over"/>
-              ` : `
-              <feComposite in="ambilight-light" in2="ambilight-light" operator="over"/>
-              `}
-            </filter>
-          </defs>
-        </svg>
-      `;
-      document.body.appendChild(filterContainer);
-    }
-  }, [saturation, colorCutoff, spread, blur, showSource]);
-
   return (
     <div
       className={cn(
@@ -80,18 +39,9 @@ export function Ambilight({
           : "group-hover:ambilight-active ambilight-inactive",
         className
       )}
-      style={{
-        "--ambilight-opacity-rest": opacity.rest,
-        "--ambilight-opacity-hover": opacity.hover,
-      } as React.CSSProperties}
       {...props}
     >
-      {sourceElement && (
-        <div className="absolute inset-0 opacity-0 invisible">
-          {sourceElement}
-        </div>
-      )}
       {children}
     </div>
   );
-} 
+}
