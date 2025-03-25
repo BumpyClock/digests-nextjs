@@ -23,6 +23,7 @@ import { workerService } from "@/services/worker-service";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFeedStore } from "@/store/useFeedStore";
 import { cleanupTextContent } from "@/utils/htmlUtils";
+import { Ambilight } from "@/components/ui/ambilight";
 dayjs.extend(relativeTime);
 
 interface FeedCardProps {
@@ -280,6 +281,22 @@ export const FeedCard = memo(function FeedCard({
     return restShadow;
   };
 
+  useEffect(() => {
+    // Check if filter already exists
+    if (!document.getElementById("ambilight-filter")) {
+      // Create the filter container
+      const filterContainer = document.createElement("div");
+      filterContainer.className = "filter-container";
+      filterContainer.innerHTML = `
+        <svg width="0" height="0"><filter id="ambilight" width="300%" height="300%" x="-0.75" y="-0.75" color-interpolation-filters="sRGB"><feOffset in="SourceGraphic" result="source-copy"></feOffset><feColorMatrix in="source-copy" type="saturate" values="1" result="saturated-copy"></feColorMatrix><feColorMatrix in="saturated-copy" type="matrix" values="1 0 0 0 0
+                     0 1 0 0 0
+                     0 0 1 0 0
+                     33 33 33 101 -100" result="bright-colors"></feColorMatrix><feMorphology in="bright-colors" operator="dilate" radius="2" result="spread"></feMorphology><feGaussianBlur in="spread" stdDeviation="11" result="ambilight-light"></feGaussianBlur><feOffset in="SourceGraphic" result="source"></feOffset><feComposite in="source" in2="ambilight-light" operator="over"></feComposite></filter></svg>
+      `;
+      document.body.appendChild(filterContainer);
+    }
+  }, []);
+
   return (
     <>
       <Card
@@ -292,9 +309,8 @@ export const FeedCard = memo(function FeedCard({
             opacity: isRead ? 0.8 : 1,
           } as React.CSSProperties
         }
-        className={`card w-full bg-card overflow-hidden cursor-pointer rounded-[40px] relative group ${
-          isRead ? "read-item" : ""
-        }`}
+        className={`card w-full bg-card overflow-hidden cursor-pointer rounded-[40px] relative group ${isRead ? "read-item" : ""
+          }`}
         onClick={handleCardClick}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
@@ -323,11 +339,20 @@ export const FeedCard = memo(function FeedCard({
 
         <div
           id={`feed-card-image-${feedItem.id}`}
-          className="relative z-10 overflow-hidden"
+          className="relative z-10 "
         >
+          {/* Card Thumbnail image*/}
           {!imageError && feedItem.thumbnail && (
-            <div className="relative w-full p-2 overflow-hidden">
-              <div className="relative w-full aspect-[16/9] rounded-[32px] overflow-hidden group-hover:drop-shadow-md transition-all duration-150">
+            <div className="relative w-full p-2">
+              <Ambilight 
+                className="relative w-full aspect-[16/9] rounded-[32px] overflow-hidden"
+                parentHovered={isHovered}
+                opacity={{ rest: 0, hover: 0.7 }}
+                saturation={1}
+                colorCutoff={0}
+                spread={2}
+                blur={8}
+              >
                 {imageLoading && (
                   <Skeleton className="absolute inset-0 z-10 rounded-[32px]" />
                 )}
@@ -336,7 +361,7 @@ export const FeedCard = memo(function FeedCard({
                   alt={feedItem.title}
                   height={300}
                   width={300}
-                  className={`w-full h-full object-cover rounded-[32px] group-hover:scale-105 transition-all duration-150 ${
+                  className={`w-full h-full object-cover rounded-[32px] group-hover:scale-[1.02] transition-all duration-150 ${
                     imageLoading ? "opacity-0" : "opacity-100"
                   }`}
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -345,7 +370,7 @@ export const FeedCard = memo(function FeedCard({
                   loading="lazy"
                   priority={false}
                 />
-              </div>
+              </Ambilight>
               {feedItem.type === "podcast" && (
                 <Button
                   size="icon"
