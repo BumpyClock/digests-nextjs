@@ -39,6 +39,7 @@ export function BaseModal({ isOpen, onClose, title, link, initialPosition, child
       description: "The link to this item has been copied to your clipboard.",
     })
   }
+  console.log("[BaseModal] title: ", title);
 
   const modalStyle = {
     "--initial-x": `${initialPosition.x}px`,
