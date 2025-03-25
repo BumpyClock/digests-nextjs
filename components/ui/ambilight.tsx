@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 
 interface AmbiLightProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
+  sourceElement?: React.ReactNode;
   opacity?: {
     rest: number;
     hover: number;
@@ -15,10 +16,12 @@ interface AmbiLightProps extends React.HTMLAttributes<HTMLDivElement> {
   blur?: number;
   isActive?: boolean;
   parentHovered?: boolean;
+  showSource?: boolean;
 }
 
 export function Ambilight({
   children,
+  sourceElement,
   className,
   opacity = { rest: 0, hover: 0.7 },
   saturation = 1,
@@ -27,6 +30,7 @@ export function Ambilight({
   blur = 8,
   isActive,
   parentHovered,
+  showSource = true,
   ...props
 }: AmbiLightProps) {
   useEffect(() => {
@@ -51,15 +55,19 @@ export function Ambilight({
               />
               <feMorphology in="bright-colors" operator="dilate" radius="${spread}" result="spread"/>
               <feGaussianBlur in="spread" stdDeviation="${blur}" result="ambilight-light"/>
+              ${showSource ? `
               <feOffset in="SourceGraphic" result="source"/>
               <feComposite in="source" in2="ambilight-light" operator="over"/>
+              ` : `
+              <feComposite in="ambilight-light" in2="ambilight-light" operator="over"/>
+              `}
             </filter>
           </defs>
         </svg>
       `;
       document.body.appendChild(filterContainer);
     }
-  }, [saturation, colorCutoff, spread, blur]);
+  }, [saturation, colorCutoff, spread, blur, showSource]);
 
   return (
     <div
@@ -78,6 +86,11 @@ export function Ambilight({
       } as React.CSSProperties}
       {...props}
     >
+      {sourceElement && (
+        <div className="absolute inset-0 opacity-0 invisible">
+          {sourceElement}
+        </div>
+      )}
       {children}
     </div>
   );

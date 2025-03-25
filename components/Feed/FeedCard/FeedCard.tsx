@@ -304,7 +304,7 @@ export const FeedCard = memo(function FeedCard({
         style={
           {
             boxShadow: getShadowStyle(),
-            transition: "all 150ms ease-out",
+            transition: "all 100ms ease-out",
             transform: isPressed ? "translateY(2px)" : "none",
             opacity: isRead ? 0.8 : 1,
           } as React.CSSProperties
