@@ -1,11 +1,6 @@
-interface QualityMetric {
-  w: number;
-  cropWidth: number;
-}
-
 /**
  * Cleans up modal content by removing duplicate images, excluding the thumbnail,
- * and selecting the highest quality variant when the same image is available with different crop queries.
+ * and converting images to custom next-image elements for React rendering.
  */
 export const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string): string => {
   if (!htmlContent) return htmlContent;
@@ -14,7 +9,7 @@ export const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string):
   const doc = parser.parseFromString(htmlContent, 'text/html');
   const images = Array.from(doc.querySelectorAll('img'));
   const seenImageUrls = createThumbnailUrlSet(thumbnailUrl);
-  const imageMap = new Map<string, { element: HTMLImageElement, quality: QualityMetric }>();
+  const imageMap = new Map<string, HTMLElement>();
 
   images.forEach((img) => {
     const src = img.getAttribute('src');
@@ -28,19 +23,59 @@ export const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string):
       return;
     }
 
-    const baseUrl = src.split('?')[0];
-    const currentQuality = getQualityMetric(src);
+    try {
+      // Validate URL
+      new URL(src, window.location.origin);
+      
+      // Get original dimensions
+      const width = img.getAttribute('width');
+      const height = img.getAttribute('height');
+      const className = img.getAttribute('class') || '';
+      
+      // Determine if this is likely a small image (avatar, icon, etc.)
+      const isSmallImage = className.includes('avatar') || 
+                          className.includes('icon') || 
+                          className.includes('profile') ||
+                          (width && parseInt(width) <= 100) ||
+                          (height && parseInt(height) <= 100);
 
-    if (imageMap.has(baseUrl)) {
-      const existing = imageMap.get(baseUrl)!;
-      if (isHigherQuality(currentQuality, existing.quality)) {
-        existing.element.parentElement?.removeChild(existing.element);
-        imageMap.set(baseUrl, { element: img, quality: currentQuality });
+      // Create a custom element that we'll use to render the Next/Image component
+      const wrapper = doc.createElement('next-image');
+      wrapper.setAttribute('src', src);
+      wrapper.setAttribute('alt', img.getAttribute('alt') || '');
+      
+      // Set dimensions based on context
+      if (isSmallImage) {
+        wrapper.setAttribute('width', width || '48');
+        wrapper.setAttribute('height', height || '48');
+        wrapper.setAttribute('small', 'true');
+      } else if (width && height) {
+        wrapper.setAttribute('width', width);
+        wrapper.setAttribute('height', height);
       } else {
-        img.parentElement?.removeChild(img);
+        wrapper.setAttribute('width', '1200');
+        wrapper.setAttribute('height', '800');
       }
-    } else {
-      imageMap.set(baseUrl, { element: img, quality: currentQuality });
+
+      // Preserve original classes
+      if (className) {
+        wrapper.setAttribute('class', className);
+      }
+
+      // Handle duplicate images
+      const baseUrl = src.split('?')[0];
+      if (imageMap.has(baseUrl)) {
+        // Remove the duplicate image
+        img.parentElement?.removeChild(img);
+      } else {
+        // Replace the img with our custom element and store it
+        img.parentNode?.replaceChild(wrapper, img);
+        imageMap.set(baseUrl, wrapper);
+      }
+      
+    } catch (error) {
+      console.warn(`Invalid image URL: ${src}`, error);
+      img.parentElement?.removeChild(img);
     }
   });
 
@@ -68,38 +103,6 @@ const isThumbnailImage = (src: string, thumbnailUrl?: string): boolean => {
   const normalizedSrc = src.replace(/^https?:\/\//, '').replace(/\/$/, '');
   const normalizedThumbnail = thumbnailUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
   return normalizedSrc.includes(normalizedThumbnail) || normalizedThumbnail.includes(normalizedSrc);
-};
-
-/**
- * Computes the quality metric from the URL query parameters.
- */
-const getQualityMetric = (url: string): QualityMetric => {
-  let w = 0;
-  let cropWidth = 0;
-  try {
-    const urlObj = new URL(url, document.baseURI);
-    const wParam = urlObj.searchParams.get('w');
-    if (wParam) {
-      w = parseInt(wParam, 10) || 0;
-    }
-    const cropParam = urlObj.searchParams.get('crop');
-    if (cropParam) {
-      const parts = cropParam.split(/[\s,]+/);
-      if (parts.length >= 3) {
-        cropWidth = parseFloat(parts[2]) || 0;
-      }
-    }
-  } catch (err) {
-    console.error("Error parsing URL:", err);
-  }
-  return { w, cropWidth };
-};
-
-/**
- * Compares two quality metrics to determine which is higher.
- */
-const isHigherQuality = (q1: QualityMetric, q2: QualityMetric): boolean => {
-  return q1.w !== q2.w ? q1.w > q2.w : q1.cropWidth > q2.cropWidth;
 };
 
 /**
