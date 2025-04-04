@@ -36,7 +36,7 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({ feed, onDelete,
               className="rounded-sm group-hover:scale-110 transition-all duration-200" 
             />
           </div>
-          <h3 className="font-bold text-sm mb-1 line-clamp-2">{feed.siteTitle}</h3>
+          <h3 className="font-bold text-sm mb-1 line-clamp-2">{feed.siteTitle || feed.feedTitle}</h3>
           {feed.feedTitle && <p className="text-caption text-sm mb-2">{feed.feedTitle}</p>}
           <p className="text-muted-foreground text-sm break-all opacity-0 group-hover:opacity-100 transition-opacity duration-200">{feed.feedUrl}</p>
         </div>

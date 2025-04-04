@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogTitle, DialogOverlay } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Bookmark, Share2, ExternalLink, X } from "lucide-react"
@@ -39,7 +39,12 @@ export function BaseModal({ isOpen, onClose, title, link, initialPosition, child
       description: "The link to this item has been copied to your clipboard.",
     })
   }
-  console.log("[BaseModal] title: ", title);
+
+  useEffect(() => {
+    if (isOpen) {
+      console.log("[BaseModal] title: ", title);
+    }
+  }, [isOpen, title]);
 
   const modalStyle = {
     "--initial-x": `${initialPosition.x}px`,

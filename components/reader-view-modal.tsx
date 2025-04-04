@@ -163,7 +163,12 @@ export function ReaderViewModal({
   const [isBottomVisible, setIsBottomVisible] = useState(false);
   const { toast } = useToast();
 
-  console.log(readerView);
+  useEffect(() => {
+    if (isOpen && readerView) {
+      console.log("[ReaderViewModal] readerView:", readerView);
+    }
+  }, [isOpen, readerView]);
+
   const cleanedContent = useMemo(() => {
     if (!readerView?.content) return '';
     return cleanupModalContent(readerView.content);
