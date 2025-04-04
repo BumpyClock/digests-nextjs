@@ -194,7 +194,7 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
           </div>
         )}
 
-        <div className="prose prose-sm sm:prose dark:prose-invert max-w-none">
+        <div className="prose prose-sm sm:prose dark:prose-invert w-full md:max-w-4xl">
           {readerView ? (
             <div dangerouslySetInnerHTML={{ __html: readerView.content }} />
           ) : (

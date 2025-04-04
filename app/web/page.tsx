@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/EmptyState";
 import { FeedGrid } from "@/components/Feed/FeedGrid/FeedGrid";
+import { FeedMasterDetail } from "@/components/Feed/FeedMasterDetail/FeedMasterDetail";
 import { useFeedStore } from "@/store/useFeedStore";
 import { FeedItem } from "@/types";
 
@@ -11,6 +12,8 @@ import { CommandBar } from "@/components/CommandBar/CommandBar";
 import { RefreshButton } from "@/components/RefreshButton";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { Button } from "@/components/ui/button";
+import { LayoutGrid, Columns } from "lucide-react";
 
 /**
  * If your store has a "hydrated" field, we can track if it's
@@ -47,6 +50,7 @@ function WebPageContent() {
   const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("unread");
   const [stableUnreadItems, setStableUnreadItems] = useState<FeedItem[]>([]);
+  const [viewMode, setViewMode] = useState<"grid" | "masterDetail">("grid");
   const refreshedRef = useRef(false);
 
   const searchParams = useSearchParams();
@@ -142,6 +146,10 @@ function WebPageContent() {
   const handleSeeAllMatches = useCallback(() => {
     setAppliedSearchQuery(searchQuery);
   }, [searchQuery]);
+
+  const toggleViewMode = useCallback(() => {
+    setViewMode(prev => prev === "grid" ? "masterDetail" : "grid");
+  }, []);
 
   /**
    * Filtering items by feedUrl (decoded from query param).
@@ -268,6 +276,14 @@ function WebPageContent() {
               handleRefresh={handleRefresh}
               onFeedSelect={handleFeedSelect}
             />
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={toggleViewMode}
+              title={viewMode === "grid" ? "Switch to Master-Detail view" : "Switch to Grid view"}
+            >
+              {viewMode === "grid" ? <Columns className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}
+            </Button>
             <RefreshButton
               onClick={handleRefresh}
               isLoading={loading || refreshing}
@@ -276,26 +292,43 @@ function WebPageContent() {
         </div>
 
         <TabsContent value="all" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent items={filteredItems} isLoading={isLoading} />
+          <FeedTabContent 
+            items={filteredItems}
+            isLoading={isLoading}
+            viewMode={viewMode}
+          />
         </TabsContent>
 
         <TabsContent value="unread" className="h-[calc(100vh-11rem)]">
           <FeedTabContent
             items={filteredStableUnreadItems}
             isLoading={isLoading}
+            viewMode={viewMode}
           />
         </TabsContent>
 
         <TabsContent value="articles" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent items={articleItems} isLoading={isLoading} />
+          <FeedTabContent 
+            items={articleItems} 
+            isLoading={isLoading}
+            viewMode={viewMode}
+          />
         </TabsContent>
 
         <TabsContent value="podcasts" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent items={podcastItems} isLoading={isLoading} />
+          <FeedTabContent 
+            items={podcastItems} 
+            isLoading={isLoading}
+            viewMode={viewMode}
+          />
         </TabsContent>
 
         <TabsContent value="favorites" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent items={favoriteItems} isLoading={isLoading} />
+          <FeedTabContent 
+            items={favoriteItems} 
+            isLoading={isLoading}
+            viewMode={viewMode}
+          />
         </TabsContent>
       </Tabs>
     </div>
@@ -306,9 +339,11 @@ function WebPageContent() {
 function FeedTabContent({
   items,
   isLoading,
+  viewMode,
 }: {
   items: FeedItem[];
   isLoading: boolean;
+  viewMode: "grid" | "masterDetail";
 }) {
   if (isLoading) {
     return <FeedGrid items={[]} isLoading />;
@@ -316,7 +351,12 @@ function FeedTabContent({
   if (!items || items.length === 0) {
     return <EmptyState />;
   }
-  return <FeedGrid items={items} isLoading={false} />;
+  
+  return viewMode === "grid" ? (
+    <FeedGrid items={items} isLoading={false} />
+  ) : (
+    <FeedMasterDetail items={items} isLoading={false} />
+  );
 }
 
 // Make the main page component simpler
