@@ -21,15 +21,12 @@ interface ReaderViewPaneProps {
 export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
   const [readerView, setReaderView] = useState<ReaderViewResponse | null>(null);
   const [loading, setLoading] = useState(false);
-  const [scrollTop, setScrollTop] = useState(0);
   const { toast } = useToast();
   const { markAsRead } = useFeedStore();
 
   const cleanedContent = processArticleContent(readerView);
 
   const handleScroll = useCallback(({ scrollTop }: { scrollTop: number }) => {
-    setScrollTop(scrollTop);
-    
     // Mark as read when scrolled down a bit
     if (scrollTop > 100 && feedItem) {
       markAsRead(feedItem.id);

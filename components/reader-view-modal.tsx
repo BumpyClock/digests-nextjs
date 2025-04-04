@@ -86,7 +86,6 @@ export function ReaderViewModal({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      link={feedItem.link}
       title={readerView?.title || "Loading..."}
       initialPosition={initialPosition}
       className=""
@@ -111,7 +110,7 @@ export function ReaderViewModal({
           autoHide
           onScrollFrame={handleScroll}
         > 
-          <div className="px-8 py-4 mx-auto">
+          <div className="px-4 py-4 mx-auto">
             <div>
               {loading ? (
                 <LoadingSkeleton />

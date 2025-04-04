@@ -19,6 +19,7 @@ import { workerService } from "@/services/worker-service"
  * @property {boolean} hydrated - Hydration state
  * @property {Set<string>} readItems - Track read item IDs
  * @property {string | null} activeFeed - Track active feed URL
+ * @property {Set<string>} readLaterItems - Track read later item IDs
  * @method setFeeds - Sets the feeds in the store
  * @method setFeedItems - Sets the feed items in the store
  * @method setHydrated - Sets the hydration state
@@ -34,6 +35,10 @@ import { workerService } from "@/services/worker-service"
  * @method getUnreadItems - Gets all unread feed items
  * @method markAllAsRead - Marks all feed items as read
  * @method setActiveFeed - Sets the active feed URL
+ * @method addToReadLater - Adds an item to read later
+ * @method removeFromReadLater - Removes an item from read later
+ * @method isInReadLater - Checks if an item is in read later
+ * @method getReadLaterItems - Gets all items in the read later list
  */
 interface FeedState {
   feeds: Feed[]
@@ -43,14 +48,15 @@ interface FeedState {
   initialized: boolean
   lastRefreshed: number | null
   hydrated: boolean
-  readItems: Set<string> // Track read item IDs
-  activeFeed: string | null // Add this property
+  readItems: Set<string>
+  activeFeed: string | null
+  readLaterItems: Set<string>
 
   // Setters
   setFeeds: (feeds: Feed[]) => void
   setFeedItems: (items: FeedItem[]) => void
   setHydrated: (state: boolean) => void
-  setActiveFeed: (feedUrl: string | null) => void // Add this setter
+  setActiveFeed: (feedUrl: string | null) => void
 
   // Actions
   addFeed: (url: string) => Promise<{ success: boolean; message: string }>
@@ -67,6 +73,10 @@ interface FeedState {
   markAsRead: (itemId: string) => void
   getUnreadItems: () => FeedItem[]
   markAllAsRead: () => void
+  addToReadLater: (itemId: string) => void
+  removeFromReadLater: (itemId: string) => void
+  isInReadLater: (itemId: string) => boolean
+  getReadLaterItems: () => FeedItem[]
 }
 
 // Add hydration flag at top of file
@@ -95,6 +105,7 @@ export const useFeedStore = create<FeedState>()(
       hydrated: false,
       readItems: new Set<string>(),
       activeFeed: null,
+      readLaterItems: new Set<string>(),
 
       // === SETTERS ===
       setFeeds: (feeds) => set({ feeds }),
@@ -384,34 +395,67 @@ export const useFeedStore = create<FeedState>()(
         const allIds = new Set(feedItems.map(item => item.id))
         set({ readItems: allIds })
       },
+
+      addToReadLater: (itemId) => {
+        const { readLaterItems } = get()
+        const newReadLaterItems = new Set(readLaterItems)
+        newReadLaterItems.add(itemId)
+        set({ readLaterItems: newReadLaterItems })
+      },
+
+      removeFromReadLater: (itemId) => {
+        const { readLaterItems } = get()
+        const newReadLaterItems = new Set(readLaterItems)
+        newReadLaterItems.delete(itemId)
+        set({ readLaterItems: newReadLaterItems })
+      },
+
+      isInReadLater: (itemId) => {
+        const { readLaterItems } = get()
+        return readLaterItems.has(itemId)
+      },
+
+      getReadLaterItems: () => {
+        const { feedItems, readLaterItems } = get()
+        // Ensure readLaterItems is a Set
+        const readLaterSet = readLaterItems instanceof Set ? readLaterItems : new Set()
+        return feedItems.filter(item => readLaterSet.has(item.id))
+      },
     }),
     {
       name: "digests-feed-store",
-      version: 2, // Incremented version for schema change
+      version: 2,
       storage: createJSONStorage(() => localforage),
       partialize: (state) => ({
         feeds: state.feeds,
         feedItems: state.feedItems,
         initialized: state.initialized,
         lastRefreshed: state.lastRefreshed,
-        readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []), // Convert Set to Array for storage
-        activeFeed: state.activeFeed, // Add this to persist the active feed
+        readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
+        activeFeed: state.activeFeed,
+        readLaterItems: Array.isArray(state.readLaterItems) ? state.readLaterItems : Array.from(state.readLaterItems || []),
       }),
       onRehydrateStorage: () => (state) => {
         if (state && typeof window !== 'undefined') {
           try {
-            // Initialize readItems as Set even if not present in state
+            // Initialize readItems as Set
             if (!state.readItems) {
               state.readItems = new Set();
-            }
-            // Convert stored array back to Set
-            else if (Array.isArray(state.readItems)) {
+            } else if (Array.isArray(state.readItems)) {
               state.readItems = new Set(state.readItems);
-            }
-            // Default to empty Set if invalid data
-            else {
+            } else {
               console.warn('Invalid readItems format, resetting to empty Set');
               state.readItems = new Set();
+            }
+            
+            // Initialize readLaterItems as Set
+            if (!state.readLaterItems) {
+              state.readLaterItems = new Set();
+            } else if (Array.isArray(state.readLaterItems)) {
+              state.readLaterItems = new Set(state.readLaterItems);
+            } else {
+              console.warn('Invalid readLaterItems format, resetting to empty Set');
+              state.readLaterItems = new Set();
             }
             
             hydrated = true;
@@ -424,15 +468,21 @@ export const useFeedStore = create<FeedState>()(
               store.readItems = new Set(Array.isArray(state.readItems) ? state.readItems : []);
             }
             
+            if (!(store.readLaterItems instanceof Set)) {
+              console.warn('readLaterItems is not a Set after rehydration, setting manually');
+              store.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems : []);
+            }
+            
             // Initialize worker service after hydration
             requestIdleCallback(() => {
               workerService.initialize();
             });
           } catch (error) {
             console.error('Error during store rehydration:', error);
-            // Fallback to empty Set if anything goes wrong
             state.readItems = new Set();
+            state.readLaterItems = new Set();
             useFeedStore.getState().readItems = new Set();
+            useFeedStore.getState().readLaterItems = new Set();
           }
         }
       },

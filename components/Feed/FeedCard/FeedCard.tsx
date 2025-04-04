@@ -8,9 +8,9 @@ import {
   CardFooter as CardFooterUI,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageSquare, Share2, Play, Pause } from "lucide-react";
+import { Share2, Play, Pause, Bookmark } from "lucide-react";
 import { useAudio } from "@/components/audio-player-provider";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { ReaderViewModal } from "@/components/reader-view-modal";
 import { PodcastDetailsModal } from "@/components/podcast-details-modal";
 import { formatDuration } from "@/utils/formatDuration";
@@ -41,18 +41,59 @@ interface FeedCardProps {
  * @param {number} [props.duration] - Duration of the podcast, if applicable.
  */
 const CardFooter = memo(function CardFooter({
-  liked,
-  isTogglingFavorite,
-  handleLikeClick,
   feedType,
   duration,
+  feedItem,
 }: {
-  liked: boolean;
-  isTogglingFavorite: boolean;
-  handleLikeClick: (e: React.MouseEvent) => void;
   feedType: string;
   duration?: number;
+  feedItem: FeedItem;
 }) {
+  const { addToReadLater, removeFromReadLater, isInReadLater } = useFeedStore();
+  const [isInReadLaterList, setIsInReadLaterList] = useState(false);
+
+  useEffect(() => {
+    setIsInReadLaterList(isInReadLater(feedItem.id));
+  }, [feedItem.id, isInReadLater]);
+
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: feedItem.title,
+          text: feedItem.description,
+          url: feedItem.link,
+        });
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        toast("Share link copied", {
+          description: "The link to this article has been copied to your clipboard.",
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== 'AbortError') {
+        toast.error("Error sharing", {
+          description: "Failed to share the article. Please try again.",
+        });
+      }
+    }
+  };
+
+  const handleReadLater = () => {
+    if (isInReadLaterList) {
+      removeFromReadLater(feedItem.id);
+      toast("Removed from Read Later", {
+        description: "The article has been removed from your reading list.",
+      });
+    } else {
+      addToReadLater(feedItem.id);
+      toast("Added to Read Later", {
+        description: "The article has been added to your reading list.",
+      });
+    }
+    setIsInReadLaterList(!isInReadLaterList);
+  };
+
   return (
     <CardFooterUI className="p-4 pt-0 flex justify-between">
       <div className="flex space-x-2">
@@ -60,19 +101,17 @@ const CardFooter = memo(function CardFooter({
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={handleLikeClick}
-          disabled={isTogglingFavorite}
+          onClick={handleReadLater}
         >
-          <Heart
-            className={`h-4 w-4 ${liked ? "fill-red-500 text-red-500" : ""}`}
+          <Bookmark
+            className={`h-4 w-4 ${isInReadLaterList ? "fill-red-500 text-red-500" : ""}`}
           />
-          <span className="sr-only">Like</span>
+          <span className="sr-only">Read Later</span>
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <MessageSquare className="h-4 w-4" />
-          <span className="sr-only">Comment</span>
-        </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
+      
+        <Button variant="ghost" size="icon" className="h-8 w-8"
+          onClick={handleShare}
+        >
           <Share2 className="h-4 w-4" />
           <span className="sr-only">Share</span>
         </Button>
@@ -118,8 +157,6 @@ function useCardShadow(id: string, color: { r: number; g: number; b: number }) {
 export const FeedCard = memo(function FeedCard({
   feed: feedItem,
 }: FeedCardProps) {
-  const [liked, setLiked] = useState(feedItem.favorite || false);
-  const [isTogglingFavorite, setIsTogglingFavorite] = useState(false);
   const [isReaderViewOpen, setIsReaderViewOpen] = useState(false);
   const [isPodcastDetailsOpen, setIsPodcastDetailsOpen] = useState(false);
   const [initialPosition, setInitialPosition] = useState({
@@ -130,7 +167,6 @@ export const FeedCard = memo(function FeedCard({
   });
   const cardRef = useRef<HTMLDivElement>(null);
   const { playAudio, isPlaying, currentAudio } = useAudio();
-  const { toast } = useToast();
   const [imageError, setImageError] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -174,24 +210,33 @@ export const FeedCard = memo(function FeedCard({
     }
   }, [isAnimating]);
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseUp = useCallback((e: React.MouseEvent) => {
     if (isPressed) {
       setIsPressed(false);
       setIsAnimating(true);
-      setTimeout(() => {
-        markAsRead(feedItem.id);
-      }, 0);
 
-      const timeout = setTimeout(() => {
-        if (feedItem.type === "podcast") {
-          setIsPodcastDetailsOpen(true);
-        } else {
-          setIsReaderViewOpen(true);
-        }
+      // Check if the click was on a share or bookmark button
+      const target = e.target as HTMLElement;
+      const isShareOrBookmarkButton = target.closest('button')?.querySelector('.h-4.w-4');
+      
+      if (!isShareOrBookmarkButton) {
+        setTimeout(() => {
+          markAsRead(feedItem.id);
+        }, 0);
+
+        const timeout = setTimeout(() => {
+          if (feedItem.type === "podcast") {
+            setIsPodcastDetailsOpen(true);
+          } else {
+            setIsReaderViewOpen(true);
+          }
+          setIsAnimating(false);
+        }, transitionDuration);
+
+        animationTimeoutRef.current = timeout;
+      } else {
         setIsAnimating(false);
-      }, transitionDuration);
-
-      animationTimeoutRef.current = timeout;
+      }
     }
   }, [feedItem.type, feedItem.id, isPressed, markAsRead]);
 
@@ -224,41 +269,6 @@ export const FeedCard = memo(function FeedCard({
     [feedItem, playAudio, markAsRead]
   );
 
-  /**
-   * Handles the click event on the like button.
-   *
-   * @param {React.MouseEvent} e - The click event.
-   */
-  const handleLikeClick = useCallback(
-    async (e: React.MouseEvent) => {
-      e.stopPropagation();
-
-      if (isTogglingFavorite) return;
-
-      setIsTogglingFavorite(true);
-
-      // Optimistic update
-      setLiked((prev) => !prev);
-
-      // TODO: Implement toggleFavorite functionality
-      // For now, we'll just simulate a successful toggle
-      const result = { success: true, message: "Favorite toggled" };
-
-      if (!result.success) {
-        // Revert optimistic update if failed
-        setLiked((prev) => !prev);
-
-        toast({
-          title: "Error",
-          description: result.message || "Failed to update favorite status",
-          variant: "destructive",
-        });
-      }
-
-      setIsTogglingFavorite(false);
-    },
-    [isTogglingFavorite, toast]
-  );
 
   const formatDate = useCallback((dateString: string) => {
     return dayjs(dateString).fromNow();
@@ -412,11 +422,9 @@ export const FeedCard = memo(function FeedCard({
           </CardContent>
 
           <CardFooter
-            liked={liked}
-            isTogglingFavorite={isTogglingFavorite}
-            handleLikeClick={handleLikeClick}
             feedType={feedItem.type}
             duration={feedItem.duration ? feedItem.duration : undefined}
+            feedItem={feedItem}
           />
         </div>
       </Card>

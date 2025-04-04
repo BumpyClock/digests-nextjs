@@ -14,6 +14,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Columns } from "lucide-react";
+import { FEED_REFRESHED_EVENT } from "@/components/Feed/FeedGrid/FeedGrid";
 
 /**
  * If your store has a "hydrated" field, we can track if it's
@@ -68,6 +69,8 @@ function WebPageContent() {
     setInitialized,
     getUnreadItems,
     setActiveFeed,
+    getReadLaterItems,
+    readLaterItems: storeReadLaterItems,
   } = useFeedStore();
 
   /**
@@ -99,6 +102,21 @@ function WebPageContent() {
       refreshedRef.current = true;
     }
   }, [isHydrated, initialized, getUnreadItems]);
+
+  /**
+   * Listen for feed refresh events from FeedGrid
+   */
+  useEffect(() => {
+    const handleFeedRefresh = () => {
+      const currentUnreadItems = getUnreadItems();
+      setStableUnreadItems(currentUnreadItems);
+    };
+
+    window.addEventListener(FEED_REFRESHED_EVENT, handleFeedRefresh);
+    return () => {
+      window.removeEventListener(FEED_REFRESHED_EVENT, handleFeedRefresh);
+    };
+  }, [getUnreadItems]);
 
   /**
    *  Handler to refresh feeds
@@ -210,9 +228,10 @@ function WebPageContent() {
     return filteredStableUnreadItems.filter((i) => i?.type === "podcast");
   }, [filteredStableUnreadItems]);
 
-  const favoriteItems = useMemo(() => {
-    return filteredItems.filter((i) => i?.favorite);
-  }, [filteredItems]);
+  const readLaterItems = useMemo(() => {
+    return getReadLaterItems();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getReadLaterItems, storeReadLaterItems]); // storeReadLaterItems needed for updates when items are saved
 
   const clearFeedFilter = useCallback(() => {
     window.history.pushState({}, "", "/web"); // or just /web
@@ -225,7 +244,7 @@ function WebPageContent() {
   const isLoading = loading || (!initialized && feedItems.length === 0);
 
   return (
-    <div className="container py-6 max-w-[1600px] mx-auto max-h-screen">
+    <div className="container pt-6 max-w-[1600px] mx-auto max-h-screen">
       <Tabs
         defaultValue="unread"
         className="space-y-6"
@@ -260,9 +279,9 @@ function WebPageContent() {
                 Podcasts
                 {unreadPodcastItems.length > 0 && ` (${unreadPodcastItems.length})`}
               </TabsTrigger>
-              <TabsTrigger value="favorites">
-                Favorites
-                {favoriteItems.length > 0 && ` (${favoriteItems.length})`}
+              <TabsTrigger value="readLater">
+                Read Later
+                {readLaterItems.length > 0 && ` (${readLaterItems.length})`}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -323,9 +342,9 @@ function WebPageContent() {
           />
         </TabsContent>
 
-        <TabsContent value="favorites" className="h-[calc(100vh-11rem)]">
+        <TabsContent value="readLater" className="h-[calc(100vh-11rem)]">
           <FeedTabContent 
-            items={favoriteItems} 
+            items={readLaterItems} 
             isLoading={isLoading}
             viewMode={viewMode}
           />

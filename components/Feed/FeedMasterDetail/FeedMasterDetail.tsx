@@ -19,7 +19,7 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
   }, []);
 
   return (
-    <div className="h-[calc(100vh-11rem)]">
+    <div className="h-[calc(100vh-11rem)]" id="feed-master-detail">
       <ResizablePanelGroup
         direction="horizontal"
         className="min-h-full rounded-lg border"

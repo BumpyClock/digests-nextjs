@@ -1,12 +1,14 @@
 "use client";
 
-import { memo, useEffect, useMemo } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { FeedItem, ReaderViewResponse } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, Share2, ExternalLink } from "lucide-react";
+import { Share2, ExternalLink, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cleanupModalContent } from "@/utils/htmlUtils";
+import { useFeedStore } from "@/store/useFeedStore";
+import { toast } from "sonner";
 
 // Memoized Image component for better performance
 export const ArticleImage = memo(({ 
@@ -89,6 +91,51 @@ export const ArticleHeader = memo(({
 }) => {
   const isModal = layout === "modal";
   const isCompact = layout === "compact";
+  const { addToReadLater, removeFromReadLater, isInReadLater } = useFeedStore();
+  const [isInReadLaterList, setIsInReadLaterList] = useState(false);
+
+  useEffect(() => {
+    setIsInReadLaterList(isInReadLater(feedItem.id));
+  }, [feedItem.id, isInReadLater]);
+
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: feedItem.title,
+          text: feedItem.description,
+          url: feedItem.link,
+        });
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        toast("Share link copied", {
+          description: "The link to this article has been copied to your clipboard.",
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== 'AbortError') {
+        toast.error("Error sharing", {
+          description: "Failed to share the article. Please try again.",
+        });
+      }
+    }
+  };
+
+  const handleReadLater = () => {
+    if (isInReadLaterList) {
+      removeFromReadLater(feedItem.id);
+      setIsInReadLaterList(false);
+      toast("Removed from Read Later", {
+        description: "The article has been removed from your reading list.",
+      });
+    } else {
+      addToReadLater(feedItem.id);
+      setIsInReadLaterList(true);
+      toast("Added to Read Later", {
+        description: "The article has been added to your reading list.",
+      });
+    }
+  };
 
   return (
     <>
@@ -97,7 +144,7 @@ export const ArticleHeader = memo(({
           <ArticleImage
             src={feedItem.thumbnail}
             alt={feedItem.title}
-            className={`w-full ${isModal ? 'thumbnail-image !h-[500px]' : 'max-h-[300px]'} object-cover ${isModal ? 'drop-shadow-lg transition-transform duration-0' : ''}`}
+            className={`w-full ${isModal ? 'thumbnail-image !h-[500px]' : 'max-h-[450px]'} object-cover ${isModal ? 'drop-shadow-lg transition-transform duration-0' : ''}`}
             style={parallaxOffset !== undefined ? {
               transform: `translateY(${parallaxOffset}px)`,
               marginTop: isModal ? '-80px' : undefined,
@@ -120,17 +167,22 @@ export const ArticleHeader = memo(({
             <span>{feedItem.siteTitle}</span>
           </div>
           
+          {/* Actions */}
           {actions || (
             <div className="flex gap-2">
-              <Button size="sm" variant="ghost">
-                <Heart className="h-4 w-4 mr-1" />
-                Favorite
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={handleReadLater}
+              >
+                <Bookmark className={`h-4 w-4 mr-1 ${isInReadLaterList ? "fill-red-500 text-red-500" : ""}`} />
+                {isInReadLaterList ? "Read Later" : "Read Later"}
               </Button>
-              <Button size="sm" variant="ghost">
+              <Button size="sm" variant="ghost" onClick={handleShare}>
                 <Share2 className="h-4 w-4 mr-1" />
                 Share
               </Button>
-              <Button size="sm" variant="outline" asChild>
+              <Button size="sm" variant="ghost" asChild>
                 <a href={feedItem.link} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="h-4 w-4 mr-1" />
                   Open
@@ -190,7 +242,7 @@ export const ArticleContent = memo(({ content, className, isModal }: { content: 
 
   return (
     <div
-      className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto ${className || 'w-full md:max-w-4xl'}`}
+      className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto ${isModal ? 'modal-content' : ''} ${className || 'w-full md:max-w-4xl'}`}
       dangerouslySetInnerHTML={{ __html: content }}
     />
   );
