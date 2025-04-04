@@ -14,6 +14,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { workerService } from "@/services/worker-service"
 import type { Feed } from "@/types"
+import Image from "next/image"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface FeedItem {
   url: string
@@ -42,7 +44,7 @@ function FeedIcon({ feed, error }: { feed?: Feed; error?: string }) {
 
   if (feed?.favicon) {
     return (
-      <img
+      <Image
         src={feed.favicon}
         alt=""
         width={40}
@@ -84,6 +86,7 @@ export function OPMLImportDialog({
               return { ...feed, error: result.message || "Failed to fetch feed" }
             }
           } catch (error) {
+            console.log(error)
             return { ...feed, error: "Failed to fetch feed" }
           }
         })
@@ -131,58 +134,71 @@ export function OPMLImportDialog({
         <div className="flex-1 overflow-hidden flex flex-col">
           <div className="flex justify-between items-center mb-4">
             <Label>Found {feeds.length} feeds</Label>
-            <Button variant="outline" size="sm" onClick={handleSelectAll}>
+            <Button variant="outline" size="sm" onClick={handleSelectAll} disabled={loading}>
               Select All
             </Button>
           </div>
           <div className="flex-1 overflow-y-auto pr-2 space-y-2">
-            {feeds.map((feed) => (
-              <div
-                key={feed.url}
-                className="flex items-start space-x-2 p-2 rounded-lg hover:bg-accent"
-              >
-                <Checkbox
-                  id={feed.url}
-                  checked={selectedFeeds.has(feed.url)}
-                  onCheckedChange={() => handleToggleFeed(feed.url)}
-                  disabled={feed.isSubscribed || !!feed.error}
-                  className="mt-1"
-                />
-                <FeedIcon feed={feed.feed} error={feed.error} />
-                <div className="flex-1 min-w-0">
-                  <Label
-                    htmlFor={feed.url}
-                    className="flex flex-col space-y-1"
-                  >
-                    <span className="font-medium truncate">
-                      {feed.title}
-                    </span>
-                    <span className="text-sm text-muted-foreground truncate">
-                      {feed.url}
-                    </span>
-                  </Label>
-                  {feed.error && (
-                    <Alert variant="destructive" className="mt-1 py-1">
-                      <AlertDescription className="text-xs">
-                        {feed.error}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  {feed.isSubscribed && (
-                    <Badge variant="secondary" className="mt-1">
-                      Already Added
-                    </Badge>
-                  )}
+            {loading ? (
+              Array.from({ length: initialFeeds.length }).map((_, index) => (
+                <div key={index} className="flex items-start space-x-2 p-2 rounded-lg">
+                  <Skeleton className="h-5 w-5 mt-1" />
+                  <Skeleton className="h-10 w-10" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              feeds.map((feed) => (
+                <div
+                  key={feed.url}
+                  className="flex items-start space-x-2 p-2 rounded-lg hover:bg-accent"
+                >
+                  <Checkbox
+                    id={feed.url}
+                    checked={selectedFeeds.has(feed.url)}
+                    onCheckedChange={() => handleToggleFeed(feed.url)}
+                    disabled={feed.isSubscribed || !!feed.error}
+                    className="mt-1"
+                  />
+                  <FeedIcon feed={feed.feed} error={feed.error} />
+                  <div className="flex-1 min-w-0">
+                    <Label
+                      htmlFor={feed.url}
+                      className="flex flex-col space-y-1"
+                    >
+                      <span className="font-medium truncate">
+                        {feed.title}
+                      </span>
+                      <span className="text-sm text-muted-foreground truncate">
+                        {feed.url}
+                      </span>
+                    </Label>
+                    {feed.error && (
+                      <Alert variant="destructive" className="mt-1 py-1">
+                        <AlertDescription className="text-xs">
+                          {feed.error}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    {feed.isSubscribed && (
+                      <Badge variant="secondary" className="mt-1">
+                        Already Added
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
         <DialogFooter className="flex gap-2 mt-4">
           <Button variant="outline" onClick={onCancel} className="flex-1">
             Cancel
           </Button>
-          <Button onClick={handleImport} className="flex-1">
+          <Button onClick={handleImport} className="flex-1" disabled={loading}>
             Import Selected
           </Button>
         </DialogFooter>
