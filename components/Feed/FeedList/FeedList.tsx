@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo, useRef, useEffect, useState } from "react";
 import { FeedItem } from "@/types";
 import Image from "next/image";
 import { Heart } from "lucide-react";
@@ -15,7 +15,8 @@ interface FeedListProps {
   items: FeedItem[];
   isLoading: boolean;
   selectedItem?: FeedItem | null;
-  onItemSelect: (item: FeedItem) => void;
+  onItemSelect: (item: FeedItem, scrollTop: number) => void;
+  savedScrollPosition?: number;
 }
 
 const FeedListItem = memo(function FeedListItem({
@@ -83,8 +84,22 @@ export function FeedList({
   isLoading,
   selectedItem,
   onItemSelect,
+  savedScrollPosition = 0,
 }: FeedListProps) {
   const { readItems } = useFeedStore();
+  const scrollbarsRef = useRef<Scrollbars>(null);
+  const [currentScrollTop, setCurrentScrollTop] = useState(0);
+
+  // Restore scroll position when component remounts
+  useEffect(() => {
+    if (scrollbarsRef.current && savedScrollPosition > 0) {
+      scrollbarsRef.current.scrollTop(savedScrollPosition);
+    }
+  }, [savedScrollPosition]);
+
+  const handleScroll = useCallback(({ scrollTop }: { scrollTop: number }) => {
+    setCurrentScrollTop(scrollTop);
+  }, []);
 
   const isItemRead = useCallback(
     (id: string) => {
@@ -92,6 +107,13 @@ export function FeedList({
       return readItems.has(id);
     },
     [readItems]
+  );
+
+  const handleItemSelect = useCallback(
+    (item: FeedItem) => {
+      onItemSelect(item, currentScrollTop);
+    },
+    [onItemSelect, currentScrollTop]
   );
 
   const renderSkeletons = useCallback(() => {
@@ -132,13 +154,18 @@ export function FeedList({
 
   return (
     <div className="border rounded-md overflow-hidden h-full">
-      <Scrollbars autoHide style={{ height: "100%" }}>
+      <Scrollbars 
+        ref={scrollbarsRef}
+        autoHide 
+        style={{ height: "100%" }}
+        onScrollFrame={handleScroll}
+      >
         {items.map((item) => (
           <FeedListItem
             key={item.id}
             item={item}
             isSelected={selectedItem?.id === item.id}
-            onSelect={() => onItemSelect(item)}
+            onSelect={() => handleItemSelect(item)}
             isRead={isItemRead(item.id)}
           />
         ))}

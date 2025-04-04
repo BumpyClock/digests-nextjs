@@ -125,7 +125,7 @@ export function ReaderViewModal({
                   <ArticleContent 
                     content={cleanedContent} 
                     isModal={true}
-                    className="w-full md:max-w-4xl"
+                    className="w-full md:max-w-4xl no-animation"
                   />
                 </article>
               ) : (

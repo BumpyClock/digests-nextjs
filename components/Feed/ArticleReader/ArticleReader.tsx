@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cleanupModalContent } from "@/utils/htmlUtils";
 import { useFeedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
+import { useIsMobile } from "@/hooks/use-media-query";
 
 // Memoized Image component for better performance
 export const ArticleImage = memo(({ 
@@ -154,54 +155,108 @@ export const ArticleHeader = memo(({
       )}
       
       {/* Reader View Header */}
-      <div className={`flex ${isCompact ? 'flex-col' : 'flex-col'} items-left text-sm mb-6 gap-1 m-auto ${className || 'w-full md:max-w-4xl'}`}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            {feedItem.favicon && (
-              <SiteFavicon 
-                favicon={feedItem.favicon} 
-                siteTitle={feedItem.siteTitle} 
-                size={isModal ? "medium" : "small"} 
-              />
+      <div className={`${className || 'w-full md:max-w-4xl m-auto'}`}>
+        {/* Mobile compact view header */}
+        {isCompact ? (
+          <div className="mb-4">
+            {readerView?.title && (
+              <h1 className="text-xl font-bold mb-2 text-left">
+                {readerView.title}
+              </h1>
             )}
-            <span>{feedItem.siteTitle}</span>
-          </div>
-          
-          {/* Actions */}
-          {actions || (
-            <div className="flex gap-2">
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                onClick={handleReadLater}
-              >
-                <Bookmark className={`h-4 w-4 mr-1 ${isInReadLaterList ? "fill-red-500 text-red-500" : ""}`} />
-                {isInReadLaterList ? "Read Later" : "Read Later"}
-              </Button>
-              <Button size="sm" variant="ghost" onClick={handleShare}>
-                <Share2 className="h-4 w-4 mr-1" />
-                Share
-              </Button>
-              <Button size="sm" variant="ghost" asChild>
-                <a href={feedItem.link} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="h-4 w-4 mr-1" />
-                  Open
-                </a>
-              </Button>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                {feedItem.favicon && (
+                  <SiteFavicon 
+                    favicon={feedItem.favicon} 
+                    siteTitle={feedItem.siteTitle} 
+                    size="small" 
+                  />
+                )}
+                <span>{feedItem.siteTitle}</span>
+              </div>
+              <div className="flex">
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  onClick={handleReadLater}
+                  className="h-8 w-8"
+                >
+                  <Bookmark className={`h-4 w-4 ${isInReadLaterList ? "fill-red-500 text-red-500" : ""}`} />
+                </Button>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  onClick={handleShare}
+                  className="h-8 w-8"
+                >
+                  <Share2 className="h-4 w-4" />
+                </Button>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  asChild
+                  className="h-8 w-8"
+                >
+                  <a href={feedItem.link} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
             </div>
-          )}
-        </div>
-        
-        {readerView?.title && (
-          <h1 
-            className={isModal ? "text-4xl font-bold mb-2 text-left" : "text-2xl sm:text-3xl font-bold mb-3 text-left"}
-            id={isModal ? "reader-view-title" : undefined}
-          >
-            {readerView.title}
-          </h1>
+            <ReadingTime content={readerView?.content} />
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                {feedItem.favicon && (
+                  <SiteFavicon 
+                    favicon={feedItem.favicon} 
+                    siteTitle={feedItem.siteTitle} 
+                    size={isModal ? "medium" : "small"} 
+                  />
+                )}
+                <span>{feedItem.siteTitle}</span>
+              </div>
+              
+              {/* Actions */}
+              {actions || (
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={handleReadLater}
+                  >
+                    <Bookmark className={`h-4 w-4 mr-1 ${isInReadLaterList ? "fill-red-500 text-red-500" : ""}`} />
+                    {isInReadLaterList ? "Read Later" : "Read Later"}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={handleShare}>
+                    <Share2 className="h-4 w-4 mr-1" />
+                    Share
+                  </Button>
+                  <Button size="sm" variant="ghost" asChild>
+                    <a href={feedItem.link} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4 mr-1" />
+                      Open
+                    </a>
+                  </Button>
+                </div>
+              )}
+            </div>
+            
+            {readerView?.title && (
+              <h1 
+                className={isModal ? "text-4xl font-bold mb-2 text-left" : "text-2xl sm:text-3xl font-bold mb-3 text-left"}
+                id={isModal ? "reader-view-title" : undefined}
+              >
+                {readerView.title}
+              </h1>
+            )}
+            
+            <ReadingTime content={readerView?.content} />
+          </>
         )}
-        
-        <ReadingTime content={readerView?.content} />
       </div>
     </>
   );
@@ -242,7 +297,7 @@ export const ArticleContent = memo(({ content, className, isModal }: { content: 
 
   return (
     <div
-      className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto ${isModal ? 'modal-content' : ''} ${className || 'w-full md:max-w-4xl'}`}
+      className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto ${className || 'w-full md:max-w-4xl'}`}
       dangerouslySetInnerHTML={{ __html: content }}
     />
   );
@@ -274,21 +329,24 @@ export const LoadingSkeleton = memo(({ compact }: { compact?: boolean }) => (
 LoadingSkeleton.displayName = 'LoadingSkeleton';
 
 // Empty state component
-export const EmptyState = memo(() => (
-  <div className="flex flex-col items-center justify-center h-full text-center p-8">
-    <div className="mb-4 text-muted-foreground">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M19 20H5V4H14V8H19V20Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M15 4L19 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
+export const EmptyState = memo(() => {
+  const isMobile = useIsMobile ? useIsMobile() : false;
+  
+  return (
+    <div className={`flex flex-col items-center justify-center h-full p-8 ${isMobile ? 'p-4' : 'p-8'}`}>
+      <div className={`text-center ${isMobile ? 'w-full' : 'max-w-md'}`}>
+        <h3 className={`font-semibold ${isMobile ? 'text-lg' : 'text-xl'} mb-2`}>Select an article</h3>
+        <p className="text-muted-foreground text-sm">
+          Choose an article from the list to view its content here.
+        </p>
+      </div>
     </div>
-    <h3 className="text-xl font-semibold mb-2">Select an article</h3>
-    <p className="text-muted-foreground">Choose an article from the list to read it here</p>
-  </div>
-));
+  );
+});
 EmptyState.displayName = 'EmptyState';
 
 export function processArticleContent(readerView: ReaderViewResponse | null): string {
-  if (!readerView?.content) return '';
+  if (!readerView || !readerView.content) return '';
+  
   return cleanupModalContent(readerView.content);
 } 
