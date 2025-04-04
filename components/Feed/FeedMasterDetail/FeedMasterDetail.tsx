@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { FeedList } from "@/components/Feed/FeedList/FeedList";
 import { ReaderViewPane } from "@/components/Feed/ReaderViewPane/ReaderViewPane";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";

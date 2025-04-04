@@ -99,7 +99,6 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
               />
               <ArticleContent 
                 content={cleanedContent} 
-                isModal={false}
                 className={`w-full ${isMobile ? 'max-w-full' : 'md:max-w-4xl'}`}
               />
             </article>

@@ -264,7 +264,7 @@ export const ArticleHeader = memo(({
 ArticleHeader.displayName = 'ArticleHeader';
 
 // Article content component
-export const ArticleContent = memo(({ content, className, isModal }: { content: string, className?: string, isModal?: boolean }) => {
+export const ArticleContent = memo(({ content, className }: { content: string, className?: string }) => {
   useEffect(() => {
     const replaceNextImages = () => {
       const nextImages = document.querySelectorAll('next-image');
@@ -330,7 +330,7 @@ LoadingSkeleton.displayName = 'LoadingSkeleton';
 
 // Empty state component
 export const EmptyState = memo(() => {
-  const isMobile = useIsMobile ? useIsMobile() : false;
+  const isMobile = useIsMobile();
   
   return (
     <div className={`flex flex-col items-center justify-center h-full p-8 ${isMobile ? 'p-4' : 'p-8'}`}>
