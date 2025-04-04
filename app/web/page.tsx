@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/EmptyState";
 import { FeedGrid } from "@/components/Feed/FeedGrid/FeedGrid";
+import { FeedMasterDetail } from "@/components/Feed/FeedMasterDetail/FeedMasterDetail";
 import { useFeedStore } from "@/store/useFeedStore";
 import { FeedItem } from "@/types";
 
@@ -11,6 +12,9 @@ import { CommandBar } from "@/components/CommandBar/CommandBar";
 import { RefreshButton } from "@/components/RefreshButton";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { Button } from "@/components/ui/button";
+import { LayoutGrid, Columns } from "lucide-react";
+import { FEED_REFRESHED_EVENT } from "@/components/Feed/FeedGrid/FeedGrid";
 
 /**
  * If your store has a "hydrated" field, we can track if it's
@@ -47,6 +51,7 @@ function WebPageContent() {
   const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("unread");
   const [stableUnreadItems, setStableUnreadItems] = useState<FeedItem[]>([]);
+  const [viewMode, setViewMode] = useState<"grid" | "masterDetail">("grid");
   const refreshedRef = useRef(false);
 
   const searchParams = useSearchParams();
@@ -64,6 +69,8 @@ function WebPageContent() {
     setInitialized,
     getUnreadItems,
     setActiveFeed,
+    getReadLaterItems,
+    readLaterItems: storeReadLaterItems,
   } = useFeedStore();
 
   /**
@@ -95,6 +102,21 @@ function WebPageContent() {
       refreshedRef.current = true;
     }
   }, [isHydrated, initialized, getUnreadItems]);
+
+  /**
+   * Listen for feed refresh events from FeedGrid
+   */
+  useEffect(() => {
+    const handleFeedRefresh = () => {
+      const currentUnreadItems = getUnreadItems();
+      setStableUnreadItems(currentUnreadItems);
+    };
+
+    window.addEventListener(FEED_REFRESHED_EVENT, handleFeedRefresh);
+    return () => {
+      window.removeEventListener(FEED_REFRESHED_EVENT, handleFeedRefresh);
+    };
+  }, [getUnreadItems]);
 
   /**
    *  Handler to refresh feeds
@@ -142,6 +164,10 @@ function WebPageContent() {
   const handleSeeAllMatches = useCallback(() => {
     setAppliedSearchQuery(searchQuery);
   }, [searchQuery]);
+
+  const toggleViewMode = useCallback(() => {
+    setViewMode(prev => prev === "grid" ? "masterDetail" : "grid");
+  }, []);
 
   /**
    * Filtering items by feedUrl (decoded from query param).
@@ -202,9 +228,10 @@ function WebPageContent() {
     return filteredStableUnreadItems.filter((i) => i?.type === "podcast");
   }, [filteredStableUnreadItems]);
 
-  const favoriteItems = useMemo(() => {
-    return filteredItems.filter((i) => i?.favorite);
-  }, [filteredItems]);
+  const readLaterItems = useMemo(() => {
+    return getReadLaterItems();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getReadLaterItems, storeReadLaterItems]); // storeReadLaterItems needed for updates when items are saved
 
   const clearFeedFilter = useCallback(() => {
     window.history.pushState({}, "", "/web"); // or just /web
@@ -217,7 +244,7 @@ function WebPageContent() {
   const isLoading = loading || (!initialized && feedItems.length === 0);
 
   return (
-    <div className="container py-6 max-w-[1600px] mx-auto max-h-screen">
+    <div className="container pt-6 max-w-[1600px] mx-auto max-h-screen">
       <Tabs
         defaultValue="unread"
         className="space-y-6"
@@ -252,9 +279,9 @@ function WebPageContent() {
                 Podcasts
                 {unreadPodcastItems.length > 0 && ` (${unreadPodcastItems.length})`}
               </TabsTrigger>
-              <TabsTrigger value="favorites">
-                Favorites
-                {favoriteItems.length > 0 && ` (${favoriteItems.length})`}
+              <TabsTrigger value="readLater">
+                Read Later
+                {readLaterItems.length > 0 && ` (${readLaterItems.length})`}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -268,6 +295,14 @@ function WebPageContent() {
               handleRefresh={handleRefresh}
               onFeedSelect={handleFeedSelect}
             />
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={toggleViewMode}
+              title={viewMode === "grid" ? "Switch to Master-Detail view" : "Switch to Grid view"}
+            >
+              {viewMode === "grid" ? <Columns className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}
+            </Button>
             <RefreshButton
               onClick={handleRefresh}
               isLoading={loading || refreshing}
@@ -276,26 +311,43 @@ function WebPageContent() {
         </div>
 
         <TabsContent value="all" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent items={filteredItems} isLoading={isLoading} />
+          <FeedTabContent 
+            items={filteredItems}
+            isLoading={isLoading}
+            viewMode={viewMode}
+          />
         </TabsContent>
 
         <TabsContent value="unread" className="h-[calc(100vh-11rem)]">
           <FeedTabContent
             items={filteredStableUnreadItems}
             isLoading={isLoading}
+            viewMode={viewMode}
           />
         </TabsContent>
 
         <TabsContent value="articles" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent items={articleItems} isLoading={isLoading} />
+          <FeedTabContent 
+            items={articleItems} 
+            isLoading={isLoading}
+            viewMode={viewMode}
+          />
         </TabsContent>
 
         <TabsContent value="podcasts" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent items={podcastItems} isLoading={isLoading} />
+          <FeedTabContent 
+            items={podcastItems} 
+            isLoading={isLoading}
+            viewMode={viewMode}
+          />
         </TabsContent>
 
-        <TabsContent value="favorites" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent items={favoriteItems} isLoading={isLoading} />
+        <TabsContent value="readLater" className="h-[calc(100vh-11rem)]">
+          <FeedTabContent 
+            items={readLaterItems} 
+            isLoading={isLoading}
+            viewMode={viewMode}
+          />
         </TabsContent>
       </Tabs>
     </div>
@@ -306,9 +358,11 @@ function WebPageContent() {
 function FeedTabContent({
   items,
   isLoading,
+  viewMode,
 }: {
   items: FeedItem[];
   isLoading: boolean;
+  viewMode: "grid" | "masterDetail";
 }) {
   if (isLoading) {
     return <FeedGrid items={[]} isLoading />;
@@ -316,7 +370,12 @@ function FeedTabContent({
   if (!items || items.length === 0) {
     return <EmptyState />;
   }
-  return <FeedGrid items={items} isLoading={false} />;
+  
+  return viewMode === "grid" ? (
+    <FeedGrid items={items} isLoading={false} />
+  ) : (
+    <FeedMasterDetail items={items} isLoading={false} />
+  );
 }
 
 // Make the main page component simpler

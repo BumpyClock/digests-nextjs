@@ -19,6 +19,9 @@ const Lottie = dynamic(() => import('lottie-react'), {
   )
 })
 
+// Custom event for feed refresh
+export const FEED_REFRESHED_EVENT = "feed-refreshed";
+
 interface FeedGridProps {
   items: FeedItem[]
   isLoading: boolean
@@ -80,8 +83,9 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
               label: "Refresh",
               onClick: () => {
                 refreshFeeds().then(() => {
-                  const currentUnreadItems = useFeedStore.getState().getUnreadItems()
-                  useFeedStore.setState({ stableUnreadItems: currentUnreadItems })
+                  // Dispatch a custom event to notify that feeds have been refreshed
+                  // This will be caught by the page component to update stableUnreadItems
+                  window.dispatchEvent(new CustomEvent(FEED_REFRESHED_EVENT));
                 })
               }
             },

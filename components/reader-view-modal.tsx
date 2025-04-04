@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, memo } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { type FeedItem, type ReaderViewResponse } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { BaseModal } from "./base-modal";
-import Image from "next/image";
 import { workerService } from "@/services/worker-service";
 import { Scrollbars } from "react-custom-scrollbars-2";
-import { cleanupModalContent } from "@/utils/htmlUtils";
+import { 
+  ArticleHeader, 
+  ArticleContent, 
+  LoadingSkeleton,
+  processArticleContent
+} from "@/components/Feed/ArticleReader/ArticleReader";
 
 interface ReaderViewModalProps {
   isOpen: boolean;
@@ -16,140 +19,6 @@ interface ReaderViewModalProps {
   feedItem: FeedItem;
   initialPosition: { x: number; y: number; width: number; height: number };
 }
-
-// Memoized Image component for better performance
-const ArticleImage = memo(({ src, alt, className, style }: { src: string; alt: string; className: string; style?: React.CSSProperties }) => (
-  <Image
-    src={src || "/placeholder.svg"}
-    width={550}
-    height={550}
-    alt={alt}
-    className={className}
-    style={style}
-  />
-));
-ArticleImage.displayName = 'ArticleImage';
-
-// Memoized favicon component
-const SiteFavicon = memo(({ favicon, siteTitle }: { favicon: string; siteTitle: string }) => (
-  <Image
-    src={favicon || "/placeholder.svg"}
-    alt={siteTitle}
-    className="rounded max-h-6 max-w-6"
-    width={24}
-    height={24}
-  />
-));
-SiteFavicon.displayName = 'SiteFavicon';
-
-// Memoized article header component
-const ArticleHeader = memo(({ feedItem, readerView, parallaxOffset }: { 
-  feedItem: FeedItem; 
-  readerView: ReaderViewResponse | null;
-  parallaxOffset: number;
-}) => (
-  <>
-    {feedItem.thumbnail && (
-      <div className="overflow-hidden rounded-[24px] mb-6">
-        <ArticleImage
-          src={feedItem.thumbnail}
-          alt={feedItem.title}
-          className="w-full thumbnail-image !h-[500px] object-cover drop-shadow-lg transition-transform duration-0"
-          style={{
-            transform: `translateY(${parallaxOffset}px)`,
-            marginTop: '-80px',
-          }}
-        />
-      </div>
-    )}
-    <div className="flex flex-col items-left text-sm mb-6 gap-1 px-8">
-      <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-1 flex-grow">
-        {readerView?.favicon && (
-          <SiteFavicon favicon={feedItem.favicon} siteTitle={feedItem.siteTitle} />
-        )}
-        <span>{feedItem.siteTitle}</span>
-      </div>
-      {readerView?.title && (
-        <h1 id="reader-view-title" className="text-4xl font-bold mb-2">{readerView.title}</h1>
-      )}
-      <ReadingTime content={readerView?.content} />
-    </div>
-  </>
-));
-ArticleHeader.displayName = 'ArticleHeader';
-
-// Memoized reading time component
-const ReadingTime = memo(({ content }: { content?: string }) => {
-  const readingTimeText = useMemo(() => {
-    if (!content) return 'Reading time N/A';
-    const text = content.replace(/<[^>]*>/g, '');
-    const wordCount = text.split(/\s+/).filter(Boolean).length;
-    const readingTimeMinutes = Math.round(wordCount / 225);
-    return readingTimeMinutes < 1 ? 'Less than a minute read' : `${readingTimeMinutes} minute read`;
-  }, [content]);
-
-  return (
-    <div className="flex items-center space-x-4 text-sm text-muted-foreground flex-grow mb-1">
-      <span>{readingTimeText}</span>
-    </div>
-  );
-});
-ReadingTime.displayName = 'ReadingTime';
-
-// Memoized article content component
-const ArticleContent = memo(({ content }: { content: string }) => {
-  useEffect(() => {
-    const replaceNextImages = () => {
-      const nextImages = document.querySelectorAll('next-image');
-      nextImages.forEach((element) => {
-        const src = element.getAttribute('src') || '';
-        const alt = element.getAttribute('alt') || '';
-        const isSmall = element.hasAttribute('small');
-        const className = element.getAttribute('class') || '';
-        
-        const img = document.createElement('img');
-        const imgWrapper = document.createElement('div');
-        
-        imgWrapper.className = isSmall 
-          ? 'relative inline-block'
-          : 'relative aspect-video';
-        
-        img.src = src;
-        img.alt = alt;
-        img.className = `${className} ${isSmall ? 'object-cover' : 'object-contain'}`;
-        img.style.width = '100%';
-        img.style.height = 'auto';
-        
-        imgWrapper.appendChild(img);
-        element.parentNode?.replaceChild(imgWrapper, element);
-      });
-    };
-
-    replaceNextImages();
-  }, [content]);
-
-  return (
-    <div
-      className="px-8 prose prose-amber w-full text-lg prose-lg md:max-w-5xl dark:prose-invert reader-view-article mb-24"
-      dangerouslySetInnerHTML={{ __html: content }}
-    />
-  );
-});
-ArticleContent.displayName = 'ArticleContent';
-
-// Memoized loading skeleton component
-const LoadingSkeleton = memo(() => (
-  <div className="space-y-4">
-    <Skeleton className="h-[400px] max-h-[50vh] w-full rounded-[32px]" />
-    <Skeleton className="h-4 w-full" />
-    <Skeleton className="h-4 w-full" />
-    <Skeleton className="h-4 w-3/4" />
-    <Skeleton className="h-4 w-full" />
-    <Skeleton className="h-4 w-full" />
-    <Skeleton className="h-4 w-3/4" />
-  </div>
-));
-LoadingSkeleton.displayName = 'LoadingSkeleton';
 
 export function ReaderViewModal({
   feedItem,
@@ -169,10 +38,7 @@ export function ReaderViewModal({
     }
   }, [isOpen, readerView]);
 
-  const cleanedContent = useMemo(() => {
-    if (!readerView?.content) return '';
-    return cleanupModalContent(readerView.content);
-  }, [readerView?.content]);
+  const cleanedContent = processArticleContent(readerView);
 
   const parallaxOffset = useMemo(() => {
     return Math.min(scrollTop * 0.2, 50);
@@ -220,7 +86,6 @@ export function ReaderViewModal({
     <BaseModal
       isOpen={isOpen}
       onClose={onClose}
-      link={feedItem.link}
       title={readerView?.title || "Loading..."}
       initialPosition={initialPosition}
       className=""
@@ -255,8 +120,13 @@ export function ReaderViewModal({
                     feedItem={feedItem} 
                     readerView={readerView} 
                     parallaxOffset={parallaxOffset}
+                    layout="modal"
                   />
-                  <ArticleContent content={cleanedContent} />
+                  <ArticleContent 
+                    content={cleanedContent} 
+                    isModal={true}
+                    className="w-full md:max-w-4xl"
+                  />
                 </article>
               ) : (
                 <div className="text-center">
