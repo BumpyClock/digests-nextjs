@@ -23,7 +23,6 @@ export function useMediaQuery(query: string): boolean {
     
     return () => media.removeEventListener("change", listener)
   }, [query])
-
   return matches
 }
 
