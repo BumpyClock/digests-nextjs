@@ -25,7 +25,7 @@ export function useFeedForm() {
               label: "Refresh",
               onClick: () => close()
             },
-            duration: 10000, // 10 seconds
+            duration: 5000, // 5 seconds
           })
           
         } else {

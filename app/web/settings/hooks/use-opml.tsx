@@ -1,11 +1,19 @@
-import { useCallback, useRef } from "react"
+import { useCallback, useRef, useState } from "react"
 import { useFeedStore } from "@/store/useFeedStore"
 import { toast } from "sonner"
 import { exportOPML } from "../utils/opml"
 
+interface FeedItem {
+  url: string
+  title: string
+  isSubscribed: boolean
+}
+
 export function useOPML() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { feeds, addFeeds } = useFeedStore()
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [detectedFeeds, setDetectedFeeds] = useState<FeedItem[]>([])
 
   const handleExportOPML = useCallback(() => {
     exportOPML(feeds)
@@ -25,41 +33,33 @@ export function useOPML() {
       const doc = parser.parseFromString(text, 'text/xml')
       const outlines = doc.querySelectorAll('outline')
       
-      // Get unique feed URLs from OPML, excluding ones we're already subscribed to
+      // Get unique feed URLs from OPML
       const existingUrls = new Set(feeds.map(f => f.feedUrl))
-      const newFeedUrls: string[] = []
+      const uniqueFeeds = new Map<string, FeedItem>()
       
       outlines.forEach(outline => {
         const feedUrl = outline.getAttribute('xmlUrl')
-        if (feedUrl && !existingUrls.has(feedUrl)) {
-          newFeedUrls.push(feedUrl)
+        const title = outline.getAttribute('title') || outline.getAttribute('text') || feedUrl || ''
+        if (feedUrl) {
+          uniqueFeeds.set(feedUrl, {
+            url: feedUrl,
+            title,
+            isSubscribed: existingUrls.has(feedUrl)
+          })
         }
       })
 
-      if (newFeedUrls.length === 0) {
-        toast.info("No new feeds to import", {
-          description: existingUrls.size > 0 
-            ? "All feeds in the OPML file are already in your subscriptions."
-            : "The OPML file doesn't contain any valid feed URLs.",
+      const feedsList = Array.from(uniqueFeeds.values())
+      
+      if (feedsList.length === 0) {
+        toast.error("No valid feeds found", {
+          description: "The OPML file doesn't contain any valid feed URLs.",
         })
         return
       }
 
-      toast.info(`Found ${newFeedUrls.length} new feeds to import...`, {
-        description: `Processing ${newFeedUrls.length} new feeds...`,
-      })
-
-      // Use the batch method
-      const { successful, failed } = await addFeeds(newFeedUrls)
-      const skipped = outlines.length - newFeedUrls.length
-
-      toast.success(`Import complete`, {
-        description: `Added ${successful.length} new feeds. ${
-          failed.length > 0 ? `${failed.length} feeds failed to import. ` : ''
-        }${
-          skipped > 0 ? `${skipped} feeds were already in your subscriptions.` : ''
-        }`,
-      })
+      setDetectedFeeds(feedsList)
+      setIsDialogOpen(true)
 
     } catch (error) {
       console.error('Error importing OPML:', error)
@@ -71,11 +71,32 @@ export function useOPML() {
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-  }, [feeds, addFeeds])
+  }, [feeds])
+
+  const handleImportSelected = useCallback(async (selectedUrls: string[]) => {
+    if (selectedUrls.length === 0) {
+      toast.info("No feeds selected")
+      return
+    }
+
+    const { successful, failed } = await addFeeds(selectedUrls)
+
+    toast.success(`Import complete`, {
+      description: `Added ${successful.length} new feeds. ${
+        failed.length > 0 ? `${failed.length} feeds failed to import.` : ''
+      }`,
+    })
+
+    setIsDialogOpen(false)
+  }, [addFeeds])
 
   return {
     fileInputRef,
     handleExportOPML,
-    handleImportOPML
+    handleImportOPML,
+    isDialogOpen,
+    setIsDialogOpen,
+    detectedFeeds,
+    handleImportSelected
   }
 } 
