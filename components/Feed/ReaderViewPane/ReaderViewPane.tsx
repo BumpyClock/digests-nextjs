@@ -13,6 +13,7 @@ import {
   processArticleContent
 } from "@/components/Feed/ArticleReader/ArticleReader";
 import { useFeedStore } from "@/store/useFeedStore";
+import { useIsMobile } from "@/hooks/use-media-query";
 
 interface ReaderViewPaneProps {
   feedItem: FeedItem | null;
@@ -23,8 +24,21 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { markAsRead } = useFeedStore();
+  const isMobile = useIsMobile();
 
   const cleanedContent = processArticleContent(readerView);
+
+  // Mark as read when viewing content
+  useEffect(() => {
+    if (feedItem) {
+      // Mark as read when content is loaded
+      const timer = setTimeout(() => {
+        markAsRead(feedItem.id);
+      }, 2000); // After 2 seconds of viewing
+      
+      return () => clearTimeout(timer);
+    }
+  }, [feedItem, markAsRead]);
 
   const handleScroll = useCallback(({ scrollTop }: { scrollTop: number }) => {
     // Mark as read when scrolled down a bit
@@ -74,19 +88,18 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
         onScrollFrame={handleScroll}
       >
         {loading ? (
-          <LoadingSkeleton />
+          <LoadingSkeleton compact={isMobile} />
         ) : readerView ? (
-          <div className="p-6">
+          <div className={`p-4 ${isMobile ? 'px-3' : 'p-6'}`}>
             <article>
               <ArticleHeader 
                 feedItem={feedItem} 
                 readerView={readerView}
-                layout="standard"
+                layout={isMobile ? "compact" : "standard"}
               />
               <ArticleContent 
                 content={cleanedContent} 
-                isModal={false}
-                className="w-full md:max-w-4xl"
+                className={`w-full ${isMobile ? 'max-w-full' : 'md:max-w-4xl'}`}
               />
             </article>
           </div>
