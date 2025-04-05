@@ -1,8 +1,47 @@
-// Cache for parsed documents to avoid repeated parsing
-const documentCache = new Map<string, Document>();
+// Add a size-limited LRU cache implementation
+class LRUCache<K, V> {
+  private cache = new Map<K, V>();
+  private maxSize: number;
 
-// Cache for normalized URLs to avoid repeated normalization
-const normalizedUrlCache = new Map<string, string>();
+  constructor(maxSize = 100) {
+    this.maxSize = maxSize;
+  }
+
+  get(key: K): V | undefined {
+    const value = this.cache.get(key);
+    if (value !== undefined) {
+      // Refresh key position (LRU behavior)
+      this.cache.delete(key);
+      this.cache.set(key, value);
+    }
+    return value;
+  }
+
+  set(key: K, value: V): void {
+    // Check if cache is full
+    if (this.cache.size >= this.maxSize) {
+      // Remove oldest entry (first in map)
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey !== undefined) {
+        this.cache.delete(firstKey);
+      }
+    }
+    this.cache.set(key, value);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  has(key: K): boolean {
+    return this.cache.has(key);
+  }
+}
+
+// Replace Maps with LRU caches for better memory management
+const documentCache = new LRUCache<string, Document>(50);
+const normalizedUrlCache = new LRUCache<string, string>(200);
+const textCleanupCache = new LRUCache<string, string>(200);
 
 /**
  * Normalizes a URL by removing protocol and trailing slashes
@@ -171,9 +210,6 @@ export const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string):
   documentCache.set(cacheKey, doc);
   return result;
 };
-
-// Text content cleanup cache
-const textCleanupCache = new Map<string, string>();
 
 /**
  * Decodes HTML entities and cleans up special characters in text.

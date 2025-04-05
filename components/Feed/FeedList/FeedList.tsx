@@ -34,6 +34,16 @@ const FeedListItem = memo(function FeedListItem({
     return item.published ? dayjs(item.published).fromNow() : "Date unknown";
   }, [item.published]);
 
+  const isValidUrl = (url: string | undefined): boolean => {
+    if (!url) return false;
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   return (
     <div
       className={`p-4 border-b cursor-pointer transition-colors flex gap-3 ${
@@ -43,7 +53,7 @@ const FeedListItem = memo(function FeedListItem({
       } ${isRead ? "opacity-70" : ""}`}
       onClick={onSelect}
     >
-      {item.thumbnail && (
+      {item.thumbnail && isValidUrl(item.thumbnail) && (
         <div className="flex-shrink-0">
           <Image
             src={item.thumbnail}
@@ -56,7 +66,7 @@ const FeedListItem = memo(function FeedListItem({
       )}
       <div className="flex-grow min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          {item.favicon && (
+          {item.favicon && isValidUrl(item.favicon) && (
             <Image
               src={item.favicon}
               alt={cleanupTextContent(item.siteTitle)}

@@ -42,7 +42,7 @@ export function BaseModal({ isOpen, onClose, title, initialPosition, children, c
         
         <div className="fixed top-0 right-0 p-4 z-50 flex items-center gap-2">
           
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="outline" size="icon" onClick={onClose}>
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
           </Button>

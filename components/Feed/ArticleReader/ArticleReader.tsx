@@ -11,7 +11,6 @@ import { useFeedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-media-query";
 
-// Memoized Image component for better performance
 export const ArticleImage = memo(({ 
   src, 
   alt, 
@@ -34,7 +33,6 @@ export const ArticleImage = memo(({
 ));
 ArticleImage.displayName = 'ArticleImage';
 
-// Memoized favicon component
 export const SiteFavicon = memo(({ 
   favicon, 
   siteTitle, 
