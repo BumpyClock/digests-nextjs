@@ -1,3 +1,5 @@
+"use client";
+
 import {  Rss, Headphones,  BookOpenText, Cookie, FileTextIcon } from "lucide-react"
 // import Image from "next/image"
 import { BentoCard, BentoGrid } from "@/components/ui/bento-grid"

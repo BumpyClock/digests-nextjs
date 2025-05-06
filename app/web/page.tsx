@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/EmptyState";
 import { FeedGrid } from "@/components/Feed/FeedGrid/FeedGrid";
@@ -52,7 +52,7 @@ function WebPageContent() {
   const [selectedTab, setSelectedTab] = useState("unread");
   const [stableUnreadItems, setStableUnreadItems] = useState<FeedItem[]>([]);
   const [viewMode, setViewMode] = useState<"grid" | "masterDetail">("grid");
-  const refreshedRef = useRef(false);
+  const [refreshed, setRefreshed] = useState(false);
 
   const searchParams = useSearchParams();
   // Grab ?feed=...
@@ -96,12 +96,12 @@ function WebPageContent() {
    * Just an example pattern; adapt as needed.
    */
   useEffect(() => {
-    if (isHydrated && initialized && !refreshedRef.current) {
+    if (isHydrated && initialized && !refreshed) {
       const currentUnreadItems = getUnreadItems();
       setStableUnreadItems(currentUnreadItems);
-      refreshedRef.current = true;
+      setRefreshed(true);
     }
-  }, [isHydrated, initialized, getUnreadItems]);
+  }, [isHydrated, initialized, getUnreadItems, refreshed]);
 
   /**
    * Listen for feed refresh events from FeedGrid
@@ -126,7 +126,7 @@ function WebPageContent() {
     refreshFeeds().then(() => {
       const currentUnreadItems = getUnreadItems();
       setStableUnreadItems(currentUnreadItems);
-      refreshedRef.current = true;
+      setRefreshed(true);
     });
   }, [refreshFeeds, getUnreadItems]);
 

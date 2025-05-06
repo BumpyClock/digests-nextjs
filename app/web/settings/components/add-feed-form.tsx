@@ -1,3 +1,5 @@
+"use client";
+
 import { memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,7 +9,7 @@ import { RefreshCw, Plus } from "lucide-react"
 import { useFeedForm } from "@/app/web/settings/hooks/use-feed-form"
 
 export const AddFeedForm = memo(function AddFeedForm() {
-  const { handleSubmit, formRef, loading } = useFeedForm()
+  const { handleSubmit, registerForm, loading } = useFeedForm()
 
   return (
     <Card>
@@ -18,7 +20,11 @@ export const AddFeedForm = memo(function AddFeedForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form ref={formRef} onSubmit={handleSubmit} className="flex items-end gap-2">
+        <form 
+          onSubmit={handleSubmit} 
+          className="flex items-end gap-2"
+          ref={(element) => registerForm(element)}
+        >
           <div className="grid w-full gap-1.5">
             <Label htmlFor="feed-url">Feed URL</Label>
             <Input
