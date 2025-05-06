@@ -1,6 +1,4 @@
-"use client";
-
-import { useCallback, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { useFeedStore } from "@/store/useFeedStore"
 import { toast } from "sonner"
 import { exportOPML } from "../utils/opml"
@@ -12,15 +10,10 @@ interface FeedItem {
 }
 
 export function useOPML() {
-  const [fileInput, setFileInput] = useState<HTMLInputElement | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const { feeds, addFeeds } = useFeedStore()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [detectedFeeds, setDetectedFeeds] = useState<FeedItem[]>([])
-
-  // Register the file input element
-  const registerFileInput = useCallback((element: HTMLInputElement | null) => {
-    setFileInput(element)
-  }, [])
 
   const handleExportOPML = useCallback(() => {
     exportOPML(feeds)
@@ -75,11 +68,10 @@ export function useOPML() {
       })
     }
 
-    // Reset the file input
-    if (fileInput) {
-      fileInput.value = ''
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
     }
-  }, [feeds, fileInput])
+  }, [feeds])
 
   const handleImportSelected = useCallback(async (selectedUrls: string[]) => {
     if (selectedUrls.length === 0) {
@@ -99,7 +91,7 @@ export function useOPML() {
   }, [addFeeds])
 
   return {
-    registerFileInput,
+    fileInputRef,
     handleExportOPML,
     handleImportOPML,
     isDialogOpen,

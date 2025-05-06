@@ -1,5 +1,3 @@
-"use client";
-
 import { memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Upload, Download } from "lucide-react"
@@ -8,7 +6,7 @@ import { OPMLImportDialog } from "./opml-import-dialog"
 
 export const OPMLTools = memo(function OPMLTools() {
   const {
-    registerFileInput,
+    fileInputRef,
     handleExportOPML,
     handleImportOPML,
     isDialogOpen,
@@ -27,14 +25,14 @@ export const OPMLTools = memo(function OPMLTools() {
             title="Import OPML"
             accept=".opml,.xml"
             onChange={handleImportOPML}
-            ref={registerFileInput}
+            ref={fileInputRef}
             className="hidden"
             id="opml-import"
           />
           <Button
             variant="outline"
             size="sm"
-            onClick={() => document.getElementById('opml-import')?.click()}
+            onClick={() => fileInputRef.current?.click()}
           >
             <Upload className="mr-2 h-4 w-4" />
             Import OPML

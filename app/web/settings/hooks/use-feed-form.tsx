@@ -1,18 +1,14 @@
-"use client";
-
-import { useCallback, type FormEvent } from "react"
+import { useCallback, useRef, type FormEvent } from "react"
 import { useFeedStore } from "@/store/useFeedStore"
 import { toast } from "sonner"
-import { useState } from "react"
 
 export function useFeedForm() {
-  const [formElement, setFormElement] = useState<HTMLFormElement | null>(null)
+  const formRef = useRef<HTMLFormElement>(null)
   const { addFeed, loading } = useFeedStore()
 
   const handleSubmit = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
       e.preventDefault()
-      setFormElement(e.currentTarget)
       const formData = new FormData(e.currentTarget)
       const url = formData.get("feed-url") as string
 
@@ -20,9 +16,8 @@ export function useFeedForm() {
         const result = await addFeed(url)
 
         if (result.success) {
-          // Reset the form using the stored reference
-          if (formElement) {
-            formElement.reset()
+          if (formRef.current) {
+            formRef.current.reset()
           }
           toast.success("Feed added", {
             description: result.message,
@@ -45,15 +40,8 @@ export function useFeedForm() {
         })
       }
     },
-    [addFeed, formElement]
+    [addFeed]
   )
 
-  // Expose a function to get a ref to the form element
-  const registerForm = useCallback((element: HTMLFormElement | null) => {
-    if (element) {
-      setFormElement(element)
-    }
-  }, [])
-
-  return { handleSubmit, registerForm, loading }
+  return { handleSubmit, formRef, loading }
 }
