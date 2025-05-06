@@ -1,0 +1,127 @@
+/* Custom Typography Styles with Dark Mode Support */
+
+/* Base prose styles */
+.prose {
+  --tw-prose-body: hsl(var(--foreground));
+  --tw-prose-headings: hsl(var(--foreground));
+  --tw-prose-lead: hsl(var(--foreground));
+  --tw-prose-links: hsl(var(--brand-primary));
+  --tw-prose-bold: hsl(var(--foreground));
+  --tw-prose-counters: hsl(var(--muted-foreground));
+  --tw-prose-bullets: hsl(var(--muted-foreground));
+  --tw-prose-hr: hsl(var(--border));
+  --tw-prose-quotes: hsl(var(--foreground));
+  --tw-prose-quote-borders: hsl(var(--border));
+  --tw-prose-captions: hsl(var(--muted-foreground));
+  --tw-prose-code: hsl(var(--foreground));
+  --tw-prose-pre-code: hsl(var(--secondary-foreground));
+  --tw-prose-pre-bg: hsl(var(--secondary));
+  --tw-prose-th-borders: hsl(var(--border));
+  --tw-prose-td-borders: hsl(var(--border));
+}
+
+/* Dark mode prose overrides - applied when using data-theme with dark variants */
+html[data-theme="dark"] .prose,
+html[data-theme="flexoki-dark"] .prose,
+html[data-theme="standard-dark"] .prose,
+html[data-theme="dracula-dark"] .prose {
+  --tw-prose-body: hsl(var(--foreground));
+  --tw-prose-headings: hsl(var(--foreground));
+  --tw-prose-lead: hsl(var(--foreground));
+  --tw-prose-links: hsl(var(--brand-primary));
+  --tw-prose-bold: hsl(var(--foreground));
+  --tw-prose-counters: hsl(var(--muted-foreground));
+  --tw-prose-bullets: hsl(var(--muted-foreground));
+  --tw-prose-hr: hsl(var(--border));
+  --tw-prose-quotes: hsl(var(--foreground));
+  --tw-prose-quote-borders: hsl(var(--accent));
+  --tw-prose-captions: hsl(var(--muted-foreground));
+  --tw-prose-code: hsl(var(--foreground));
+  --tw-prose-pre-code: hsl(var(--secondary-foreground));
+  --tw-prose-pre-bg: hsl(var(--secondary));
+  --tw-prose-th-borders: hsl(var(--border));
+  --tw-prose-td-borders: hsl(var(--border));
+}
+
+/* Explicit styles for headings */
+.prose h1, 
+.prose h2, 
+.prose h3, 
+.prose h4, 
+.prose h5, 
+.prose h6 {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+
+/* Strong emphasis */
+.prose strong {
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+
+/* Quotes */
+.prose blockquote {
+  color: hsl(var(--foreground));
+  border-left-color: hsl(var(--brand-primary));
+  background-color: hsl(var(--blockquote-background-color));
+  font-style: italic;
+}
+
+/* Links */
+.prose a {
+  color: hsl(var(--brand-primary));
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.prose a:hover {
+  text-decoration: none;
+}
+
+/* Code blocks */
+.prose pre {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border-radius: var(--radius);
+}
+
+.prose code {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--muted));
+  padding: 0.2em 0.4em;
+  border-radius: var(--radius);
+  font-size: 0.875em;
+}
+
+/* Tables */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.prose thead {
+  background-color: hsl(var(--muted));
+}
+
+.prose thead th {
+  color: hsl(var(--foreground));
+}
+
+.prose tbody tr {
+  border-bottom-width: 1px;
+  border-bottom-color: hsl(var(--border));
+}
+
+/* Custom prose size variants */
+.prose-sm {
+  font-size: 0.875rem;
+}
+
+.prose-lg {
+  font-size: 1.125rem;
+}
+
+.prose-xl {
+  font-size: 1.25rem;
+}

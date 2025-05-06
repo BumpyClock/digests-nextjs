@@ -14,10 +14,20 @@ const config: Config = {
 			'bounce-x': {
 			  '0%, 100%': { transform: 'translateX(0)' },
 			  '50%': { transform: 'translateX(25%)' },
-			}
+			},
+			"accordion-down": {
+				from: { height: "0" },
+				to: { height: "var(--radix-accordion-content-height)" },
+			},
+			"accordion-up": {
+				from: { height: "var(--radix-accordion-content-height)" },
+				to: { height: "0" },
+			},
 		  },
 		  animation: {
 			'bounce-x': 'bounce-x 1s ease-in-out infinite',
+			"accordion-down": "accordion-down 0.2s ease-out",
+			"accordion-up": "accordion-up 0.2s ease-out",
 		  },
   		colors: {
 			"red-primary": "hsl(var(--red-primary))",
@@ -86,6 +96,11 @@ const config: Config = {
   		}
   	}
   },
-  plugins: [require("tailwindcss-animate"), require('@tailwindcss/typography')],
+  plugins: [
+    require("tailwindcss-animate"), 
+    require('@tailwindcss/typography')({
+      className: 'prose',
+    }),
+  ],
 };
 export default config;
