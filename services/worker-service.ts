@@ -1,20 +1,22 @@
 // services/worker-service.ts
 import type { Feed, FeedItem, ReaderViewResponse } from '../types';
 import { generateCardShadows } from '../utils/shadow';
+import { getApiConfig } from '@/store/useApiConfigStore';
 
 const isClient = typeof window !== 'undefined'
 
 // Define the types for messages to and from the worker
 type WorkerMessage = 
-  | { type: 'FETCH_FEEDS'; payload: { urls: string[] } }
-  | { type: 'FETCH_READER_VIEW'; payload: { urls: string[] } }
-  | { type: 'REFRESH_FEEDS'; payload: { urls: string[] } }
+  | { type: 'FETCH_FEEDS'; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: 'FETCH_READER_VIEW'; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: 'REFRESH_FEEDS'; payload: { urls: string[]; apiBaseUrl?: string } }
   | { type: 'GENERATE_SHADOWS'; payload: { 
       id: string;
       color: { r: number, g: number, b: number }; 
       isDarkMode: boolean 
     } }
-  | { type: 'CHECK_UPDATES'; payload: { urls: string[] } };
+  | { type: 'CHECK_UPDATES'; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: 'SET_API_URL'; payload: { url: string } };
 
 type WorkerResponse = 
   | { type: 'FEEDS_RESULT'; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
@@ -56,12 +58,33 @@ class WorkerService {
       this.rssWorker.addEventListener('message', this.handleWorkerMessage);
       this.shadowWorker.addEventListener('message', this.handleWorkerMessage);
       
+      // Initialize RSS worker with current API URL
+      const apiConfig = getApiConfig();
+      this.rssWorker.postMessage({
+        type: 'SET_API_URL',
+        payload: { url: apiConfig.baseUrl }
+      });
+      
       this.isInitialized = true;
       console.log('WorkerService: Workers initialized');
     } catch (error) {
       console.error('WorkerService: Failed to initialize workers', error);
       // Ensure service can still work without workers
       this.fallbackMode = true;
+    }
+  }
+  
+  /**
+   * Updates the API URL in the worker
+   */
+  updateApiUrl(url: string): void {
+    if (!this.isInitialized) this.initialize();
+    
+    if (this.rssWorker) {
+      this.rssWorker.postMessage({
+        type: 'SET_API_URL',
+        payload: { url }
+      });
     }
   }
 
@@ -134,6 +157,7 @@ class WorkerService {
     items: FeedItem[];
     message?: string; 
   }> {
+    const apiConfig = getApiConfig();
     return new Promise(resolve => {
       // Initialize if not already
       if (!this.isInitialized) this.initialize();
@@ -168,7 +192,10 @@ class WorkerService {
       // Send message to worker
       this.postMessage({
         type: 'FETCH_FEEDS',
-        payload: { urls: [url] }
+        payload: { 
+          urls: [url],
+          apiBaseUrl: apiConfig.baseUrl
+        }
       });
     });
   }
@@ -182,6 +209,7 @@ class WorkerService {
     items: FeedItem[];
     message?: string;
   }> {
+    const apiConfig = getApiConfig();
     return new Promise(resolve => {
       // Initialize if not already
       if (!this.isInitialized) this.initialize();
@@ -216,7 +244,10 @@ class WorkerService {
       // Send message to worker
       this.postMessage({
         type: 'REFRESH_FEEDS',
-        payload: { urls }
+        payload: { 
+          urls,
+          apiBaseUrl: apiConfig.baseUrl 
+        }
       });
     });
   }
@@ -229,6 +260,7 @@ class WorkerService {
     data: ReaderViewResponse[];
     message?: string;
   }> {
+    const apiConfig = getApiConfig();
     return new Promise(resolve => {
       // Initialize if not already
       if (!this.isInitialized) this.initialize();
@@ -261,7 +293,10 @@ class WorkerService {
       // Send message to worker
       this.postMessage({
         type: 'FETCH_READER_VIEW',
-        payload: { urls: [url] }
+        payload: { 
+          urls: [url],
+          apiBaseUrl: apiConfig.baseUrl
+        }
       });
     });
   }
@@ -308,6 +343,7 @@ class WorkerService {
     items: FeedItem[];
     message?: string;
   }> {
+    const apiConfig = getApiConfig();
     return new Promise(resolve => {
       if (!this.isInitialized) this.initialize();
       
@@ -338,7 +374,10 @@ class WorkerService {
       
       this.postMessage({
         type: 'CHECK_UPDATES',
-        payload: { urls }
+        payload: { 
+          urls,
+          apiBaseUrl: apiConfig.baseUrl
+        }
       });
     });
   }

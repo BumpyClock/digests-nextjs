@@ -4,12 +4,13 @@ import type {
   FetchFeedsResponse, 
   ReaderViewResponse 
 } from '@/types'
+import { getApiUrl } from '@/lib/config'
 
 export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
   try {
     console.log(`Fetching feeds for URLs: ${urls.length}`);
     console.table(urls);
-    const response = await fetch("https://api.digests.app/parse", {
+    const response = await fetch(getApiUrl("/parse"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -84,7 +85,7 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
 export async function fetchReaderView(urls: string[]): Promise<ReaderViewResponse[]> {
   try {
     console.log("Fetching reader view for URLs:", urls)
-    const response = await fetch("https://api.digests.app/getreaderview", {
+    const response = await fetch(getApiUrl("/getreaderview"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

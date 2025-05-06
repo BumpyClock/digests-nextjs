@@ -1,12 +1,14 @@
 // workers/rss-worker.ts
 import type { Feed, FeedItem, ReaderViewResponse } from '../types';
+import { DEFAULT_API_CONFIG } from '../lib/config';
 
 // Message types to organize communication
 type WorkerMessage = 
-  | { type: 'FETCH_FEEDS'; payload: { urls: string[] } }
-  | { type: 'FETCH_READER_VIEW'; payload: { urls: string[] } }
-  | { type: 'REFRESH_FEEDS'; payload: { urls: string[] } }
-  | { type: 'CHECK_UPDATES'; payload: { urls: string[] } };
+  | { type: 'FETCH_FEEDS'; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: 'FETCH_READER_VIEW'; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: 'REFRESH_FEEDS'; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: 'CHECK_UPDATES'; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: 'SET_API_URL'; payload: { url: string } };
 
 type WorkerResponse = 
   | { type: 'FEEDS_RESULT'; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
@@ -44,13 +46,15 @@ class WorkerCache {
   }
 }
 
-// Initialize worker cache
+// Initialize worker cache and API URL
 const workerCache = new WorkerCache();
+let apiBaseUrl = DEFAULT_API_CONFIG.baseUrl;
 
 /**
  * Fetches feeds from the API
  */
-async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
+async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
+  const currentApiUrl = customApiUrl || apiBaseUrl;
   try {
     // Generate cache key
     const cacheKey = `feeds:${urls.sort().join(',')}`;
@@ -64,7 +68,7 @@ async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedI
 
     console.log(`[Worker] Fetching feeds for URLs: ${urls.length}`);
     
-    const response = await fetch("https://api.digests.app/parse", {
+    const response = await fetch(`${currentApiUrl}/parse`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -138,7 +142,8 @@ async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedI
 /**
  * Fetches reader view from the API
  */
-async function fetchReaderView(urls: string[]): Promise<ReaderViewResponse[]> {
+async function fetchReaderView(urls: string[], customApiUrl?: string): Promise<ReaderViewResponse[]> {
+  const currentApiUrl = customApiUrl || apiBaseUrl;
   try {
     // Generate cache key
     const cacheKey = `reader:${urls[0]}`;
@@ -152,7 +157,7 @@ async function fetchReaderView(urls: string[]): Promise<ReaderViewResponse[]> {
 
     console.log("[Worker] Fetching reader view for URLs:", urls);
     
-    const response = await fetch("https://api.digests.app/getreaderview", {
+    const response = await fetch(`${currentApiUrl}/getreaderview`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -186,10 +191,19 @@ self.addEventListener('message', async (event) => {
   
   try {
     switch (message.type) {
+      case 'SET_API_URL': {
+        const { url } = message.payload;
+        apiBaseUrl = url;
+        console.log(`[Worker] API URL set to ${apiBaseUrl}`);
+        // Clear cache when API URL changes
+        workerCache.clear();
+        break;
+      }
+        
       case 'FETCH_FEEDS': {
-        const { urls } = message.payload;
+        const { urls, apiBaseUrl: customApiUrl } = message.payload;
         try {
-          const { feeds, items } = await fetchFeeds(urls);
+          const { feeds, items } = await fetchFeeds(urls, customApiUrl);
           self.postMessage({
             type: 'FEEDS_RESULT',
             success: true,
@@ -209,9 +223,9 @@ self.addEventListener('message', async (event) => {
       }
       
       case 'REFRESH_FEEDS': {
-        const { urls } = message.payload;
+        const { urls, apiBaseUrl: customApiUrl } = message.payload;
         try {
-          const { feeds, items } = await fetchFeeds(urls);
+          const { feeds, items } = await fetchFeeds(urls, customApiUrl);
           self.postMessage({
             type: 'FEEDS_RESULT',
             success: true,
@@ -231,9 +245,9 @@ self.addEventListener('message', async (event) => {
       }
       
       case 'FETCH_READER_VIEW': {
-        const { urls } = message.payload;
+        const { urls, apiBaseUrl: customApiUrl } = message.payload;
         try {
-          const data = await fetchReaderView(urls);
+          const data = await fetchReaderView(urls, customApiUrl);
           self.postMessage({
             type: 'READER_VIEW_RESULT',
             success: true,
@@ -251,12 +265,12 @@ self.addEventListener('message', async (event) => {
       }
       
       case 'CHECK_UPDATES': {
-        const { urls } = message.payload;
+        const { urls, apiBaseUrl: customApiUrl } = message.payload;
         try {
           console.log("[Worker] Checking for updates");
           // Clear cache to ensure fresh data
           workerCache.clear();
-          const { feeds, items } = await fetchFeeds(urls);
+          const { feeds, items } = await fetchFeeds(urls, customApiUrl);
           self.postMessage({
             type: 'FEEDS_RESULT',
             success: true,

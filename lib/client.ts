@@ -1,6 +1,5 @@
 import { Result } from '@/types'
-
-const API_BASE_URL = 'https://api.digests.app'
+import { getApiUrl } from '@/lib/config'
 
 export class APIError extends Error {
   constructor(
@@ -33,7 +32,7 @@ export class APIClient {
     options: RequestInit = {}
   ): Promise<Result<T>> {
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await fetch(getApiUrl(endpoint), {
         ...options,
         headers: {
           'Content-Type': 'application/json',

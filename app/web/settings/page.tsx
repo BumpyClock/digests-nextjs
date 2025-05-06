@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { FeedsTab } from "./components/tabs/feeds-tab"
 import { AppearanceTab } from "./components/tabs/appearance-tab"
 import { AccountTab } from "./components/tabs/account-tab"
+import { ApiSettingsTab } from "./components/tabs/api-settings-tab"
 
 export default function SettingsPage() {
   return (
@@ -16,10 +17,11 @@ export default function SettingsPage() {
           </div>
 
           <Tabs defaultValue="feeds" className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsList className="grid w-full grid-cols-4 mb-6">
               <TabsTrigger value="feeds">Feeds</TabsTrigger>
               <TabsTrigger value="appearance">Appearance</TabsTrigger>
               <TabsTrigger value="account">Account</TabsTrigger>
+              <TabsTrigger value="api">API</TabsTrigger>
             </TabsList>
 
             <div className="flex-1">
@@ -33,6 +35,10 @@ export default function SettingsPage() {
               
               <TabsContent value="account">
                 <AccountTab />
+              </TabsContent>
+              
+              <TabsContent value="api">
+                <ApiSettingsTab />
               </TabsContent>
             </div>
           </Tabs>
