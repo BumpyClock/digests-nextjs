@@ -35,7 +35,7 @@ export function BaseModal({ isOpen, onClose, title, initialPosition, children, c
       
       <DialogTitle className="sr-only">{title || "Content"}</DialogTitle>
       <DialogContent
-        className={`xs:max-w-full xs:rounded-none xs:border-none xs:h-screen xs:max-h-screen sm:rounded-[32px] sm:border-none sm:h-screen sm:max-h-screen sm:w-screen sm:max-w-screen md:max-w-screen md:w-screen md:rounded-none md:border-none md:h-screen md:max-h-screen lg:max-h-[95vh] lg:w-[65vw] lg:rounded-[40px] lg:max-w-[1050px] p-0 gap-0 overflow-hidden ${className || ""}`}
+        className={`xs:max-w-full xs:rounded-none xs:border-none xs:h-screen xs:max-h-screen sm:rounded-[32px] sm:border-none sm:h-screen sm:max-h-screen sm:w-screen sm:max-w-screen md:max-w-screen md:w-screen md:rounded-none md:border-none md:h-screen md:max-h-screen lg:max-h-[95vh] lg:w-[65vw] lg:rounded-[40px] lg:max-w-[1050px] p-0 gap-0 overflow-hidden bg-background ${className || ""}`}
         style={modalStyle}
         hideCloseButton
       >

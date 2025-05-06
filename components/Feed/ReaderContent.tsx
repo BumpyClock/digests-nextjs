@@ -44,8 +44,13 @@ export const ReaderContent = memo(function ReaderContent({
     );
   }
 
+  // Use increased padding for modal layout
+  const containerPadding = layout === "modal" 
+    ? 'px-4 py-6 md:px-6 md:py-8 lg:px-8' 
+    : isCompact ? 'px-3 py-4' : 'p-4';
+
   return (
-    <div className={`${isCompact ? 'px-3 py-4' : 'p-4'} ${className}`}>
+    <div className={`${containerPadding} ${className}`}>
       <article>
         <ArticleHeader 
           feedItem={feedItem} 

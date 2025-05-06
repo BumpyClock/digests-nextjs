@@ -1,10 +1,17 @@
+"use client"
+
 import { memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useTheme } from "next-themes"
+import { themes } from "@/lib/theme-definitions"
 
 export const AppearanceTab = memo(function AppearanceTab() {
+  const { theme, setTheme } = useTheme();
+
   return (
     <Card>
       <CardHeader>
@@ -14,10 +21,25 @@ export const AppearanceTab = memo(function AppearanceTab() {
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="dark-mode">Dark Mode</Label>
-            <p className="text-sm text-muted-foreground">Switch between light and dark themes</p>
+            <Label htmlFor="theme-select">Theme</Label>
+            <p className="text-sm text-muted-foreground">Choose your preferred theme</p>
           </div>
-          <Switch id="dark-mode" />
+          <Select
+            value={theme}
+            onValueChange={setTheme}
+          >
+            <SelectTrigger className="w-[180px]" id="theme-select">
+              <SelectValue placeholder="Select theme" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="system">System</SelectItem>
+              {themes.map((t) => (
+                <SelectItem key={t.name} value={t.name}>
+                  {t.displayName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">

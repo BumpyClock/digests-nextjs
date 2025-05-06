@@ -295,7 +295,7 @@ export const ArticleContent = memo(({ content, className }: { content: string, c
 
   return (
     <div
-      className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto ${className || 'w-full md:max-w-4xl'}`}
+      className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-foreground px-6 md:px-8 lg:px-12 ${className || 'w-full md:max-w-4xl'}`}
       dangerouslySetInnerHTML={{ __html: content }}
     />
   );
