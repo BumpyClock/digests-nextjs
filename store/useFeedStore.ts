@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 
 import type { Feed, FeedItem } from "@/types"
 import { workerService } from "@/services/worker-service"
+import { normalizeUrl } from "@/utils/url"
 
 /**
  * The Zustand store shape with web worker integration
@@ -81,16 +82,6 @@ interface FeedState {
 
 // Add hydration flag at top of file
 let hydrated = false
-
-// Helper function to normalize URLs for comparison
-const normalizeUrl = (url: string): string => {
-  try {
-    // Remove protocol and any trailing slashes
-    return url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
-  } catch {
-    return url;
-  }
-};
 
 export const useFeedStore = create<FeedState>()(
   persist(
