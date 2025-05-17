@@ -73,7 +73,6 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
     const items: FeedItem[] = feeds
       .flatMap(feed => feed.items || [])
 
-    // console.log(`Processed ${feeds.length} feeds and ${items.length} items`)
 
     return { feeds, items }
   } catch (error) {

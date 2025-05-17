@@ -2,17 +2,6 @@ import { useMemo, useCallback } from 'react';
 import { FeedItem, Feed } from '@/types';
 import { useDebounce } from 'use-debounce';
 
-const debugFeedUrl = (url: string) => {
-  console.log('Feed URL Details:', {
-    original: url,
-    encoded: encodeURIComponent(url),
-    decoded: decodeURIComponent(url),
-    length: url.length,
-    containsSpecialChars: /[^a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]/.test(url)
-  });
-  return url;
-};
-
 /**
  * Helper: combine relevant FeedItem fields & see if they match `query`.
  */
@@ -74,22 +63,14 @@ export function useCommandBarSearch(
   handleClose: () => void,
   onSearchValueChange: (value: string) => void
 ) {
-  // Debug logs for input data
-  // console.log('Search Hook Input:', {
-  //   searchValue,
-  //   feedItemsCount: feedItems.length,
-  //   feedsCount: feeds?.length,
-  // });
 
   const debouncedValue = useDebounce(searchValue, 300);
 
   const uniqueFeedSources = useMemo(() => {
     if (feeds && Array.isArray(feeds)) {
-      // console.log('Using provided feeds:', feeds.length);
       return feeds;
     }
 
-    // console.log('Building sources from feedItems');
     const sources = new Map();
     feedItems.forEach((item) => {
       if (item.feedTitle && item.feedUrl) {
@@ -100,13 +81,11 @@ export function useCommandBarSearch(
       }
     });
     const sourcesArray = Array.from(sources.values());
-    // console.log('Built sources:', sourcesArray.length);
     return sourcesArray;
   }, [feedItems, feeds]);
 
   const filteredSources = useMemo(() => {
     if (!searchValue) {
-        // console.log('No search value, returning all sources:', uniqueFeedSources.length);
       return uniqueFeedSources;
     }
     const searchLower = searchValue.toLowerCase();
@@ -115,18 +94,11 @@ export function useCommandBarSearch(
       .filter(({ match }) => match)
       .sort((a, b) => b.score - a.score); 
 
-    // console.log('Filtered sources:', {
-    //   searchValue,
-    //   totalSources: uniqueFeedSources.length,
-    //   filteredCount: filtered.length,
-    //   firstMatch: filtered[0]?.feed
-    // });
     return filtered.map(({ feed }) => feed); // Return only feeds
   }, [uniqueFeedSources, searchValue]);
 
   const filteredItems = useMemo(() => {
     if (!searchValue) {
-      // console.log('No search value, returning empty items array');
       return [];
     }
     const searchLower = searchValue.toLowerCase();
@@ -135,15 +107,7 @@ export function useCommandBarSearch(
       .filter(({ match }) => match)
       .sort((a, b) => b.score - a.score);
     
-    // console.log('[useCommandBarSearch] [filteredItems] [filtered]', {
-    //   searchValue,
-    //   totalItems: feedItems.length,
-    //   filteredCount: filtered.length,
-    //   firstMatch: filtered[0]?.item,
-    //   filtered: filtered
-    // });
     const filteredItems = filtered.map(({ item }) => item); 
-    // console.log('[useCommandBarSearch] [filteredItems] [filteredItems]', filteredItems);
     return filteredItems; 
   }, [feedItems, searchValue]);
 
@@ -166,11 +130,9 @@ export function useCommandBarSearch(
   }, [onSeeAllMatches, handleClose]);
 
   const handleFeedSelect = useCallback((feedUrl: string) => {
-    // debugFeedUrl(feedUrl);
     
     onSearchValueChange(""); 
     
-    // console.log('Feed selection in hook - clearing search value');
     
     handleClose();
     return feedUrl;
