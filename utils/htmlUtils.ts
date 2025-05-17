@@ -149,6 +149,14 @@ export const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string):
   
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlContent, 'text/html');
+  // Remove inline event handlers like onClick or onTts
+  Array.from(doc.querySelectorAll('*')).forEach((el) => {
+    Array.from(el.attributes).forEach((attr) => {
+      if (attr.name.toLowerCase().startsWith('on')) {
+        el.removeAttribute(attr.name);
+      }
+    });
+  });
   const images = Array.from(doc.querySelectorAll('img'));
   const imageMap = new Map<string, HTMLElement>();
 
