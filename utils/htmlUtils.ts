@@ -1,3 +1,5 @@
+import { normalizeUrl as baseNormalizeUrl } from "@/utils/url";
+
 // Add a size-limited LRU cache implementation
 class LRUCache<K, V> {
   private cache = new Map<K, V>();
@@ -44,15 +46,15 @@ const normalizedUrlCache = new LRUCache<string, string>(200);
 const textCleanupCache = new LRUCache<string, string>(200);
 
 /**
- * Normalizes a URL by removing protocol and trailing slashes
+ * Normalizes a URL using the shared helper with simple caching.
  */
 const normalizeUrl = (url?: string): string => {
   if (!url) return '';
-  
+
   const cached = normalizedUrlCache.get(url);
   if (cached) return cached;
-  
-  const normalized = url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+  const normalized = baseNormalizeUrl(url);
   normalizedUrlCache.set(url, normalized);
   return normalized;
 };

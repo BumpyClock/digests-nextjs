@@ -1,7 +1,6 @@
 "use client";
 
 import {  Rss, Headphones,  BookOpenText, Cookie, FileTextIcon } from "lucide-react"
-// import Image from "next/image"
 import { BentoCard, BentoGrid } from "@/components/ui/bento-grid"
 import { Hero } from "@/components/hero"
 import { SmoothScroll } from "@/components/smooth-scroll"

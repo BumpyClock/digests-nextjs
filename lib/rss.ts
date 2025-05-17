@@ -5,7 +5,7 @@ import type {
   ReaderViewResponse 
 } from '@/types'
 import { getApiUrl } from '@/lib/config'
-import Logger from '@/utils/logger'
+import { Logger } from '@/utils/logger'
 
 export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
   try {
@@ -73,6 +73,7 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
 
     const items: FeedItem[] = feeds
       .flatMap(feed => feed.items || [])
+
 
     return { feeds, items }
   } catch (error) {
