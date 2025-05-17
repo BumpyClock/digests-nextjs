@@ -2,6 +2,7 @@
 import type { Feed, FeedItem, ReaderViewResponse } from '../types';
 import { generateCardShadows } from '../utils/shadow';
 import { getApiConfig } from '@/store/useApiConfigStore';
+import { Logger } from '@/utils/logger';
 
 const isClient = typeof window !== 'undefined'
 
@@ -77,7 +78,7 @@ class WorkerService {
       });
       
       this.isInitialized = true;
-      console.log('WorkerService: Workers initialized');
+      Logger.debug('WorkerService: Workers initialized');
     } catch (error) {
       console.error('WorkerService: Failed to initialize workers', error);
       // Ensure service can still work without workers
@@ -421,7 +422,7 @@ class WorkerService {
     }
     this.messageHandlers.clear();
     this.isInitialized = false;
-    console.log('WorkerService: Workers terminated');
+    Logger.debug('WorkerService: Workers terminated');
   }
 }
 

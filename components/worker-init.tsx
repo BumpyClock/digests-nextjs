@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { workerService } from '@/services/worker-service';
+import { Logger } from '@/utils/logger';
 
 /**
  * Component that initializes the worker service on the client side
@@ -10,7 +11,7 @@ import { workerService } from '@/services/worker-service';
 export function WorkerInitializer() {
   useEffect(() => {
     // Initialize worker service
-    console.log("Initializing worker service");
+    Logger.debug('Initializing worker service');
     workerService.initialize();
 
     // Register PWA service worker if supported

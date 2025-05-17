@@ -11,6 +11,7 @@ import { FeedItem } from "@/types";
 import { CommandBar } from "@/components/CommandBar/CommandBar";
 import { RefreshButton } from "@/components/RefreshButton";
 import { useSearchParams } from "next/navigation";
+import { Logger } from "@/utils/logger";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Columns } from "lucide-react";
@@ -68,11 +69,11 @@ function WebPageContent() {
    */
   useEffect(() => {
     if (isHydrated && !initialized) {
-      console.log("Initializing store...");
+      Logger.debug("Initializing store...");
       refreshFeeds()
         .then(() => {
           setInitialized(true);
-          console.log("Store initialized");
+          Logger.debug("Store initialized");
         })
         .catch((error) => {
           console.error("Failed to initialize store:", error);
@@ -112,7 +113,7 @@ function WebPageContent() {
    *  Handler to refresh feeds
    */
   const handleRefresh = useCallback(() => {
-    console.log("Refreshing feeds...");
+    Logger.debug("Refreshing feeds...");
     refreshFeeds().then(() => {
       const currentUnreadItems = getUnreadItems();
       setStableUnreadItems(currentUnreadItems);

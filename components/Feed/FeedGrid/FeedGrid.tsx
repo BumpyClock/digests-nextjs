@@ -8,6 +8,7 @@ import { useFeedStore } from "@/store/useFeedStore"
 import { FeedItem } from "@/types"
 import { toast } from "sonner"
 import dynamic from 'next/dynamic'
+import { Logger } from "@/utils/logger"
 import loadingAnimation from "@/public/assets/animations/feed-loading.json"
 
 const Lottie = dynamic(() => import('lottie-react'), { 
@@ -73,7 +74,7 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
 
     const checkUpdates = async () => {
       try {
-        console.log("Checking for updates at time ", new Date().toLocaleString())
+        Logger.debug(`Checking for updates at time ${new Date().toLocaleString()}`)
         const { hasNewItems, count } = await checkForUpdates()
         
         if (hasNewItems) {
@@ -92,7 +93,7 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
             duration: 10000, // 10 seconds
           })
         } else {
-          console.log("No updates available")
+          Logger.debug("No updates available")
         }
       } catch (error) {
         console.error('Error checking for updates:', error)

@@ -2,6 +2,7 @@
 
 import type React from "react"
 import {  useEffect } from "react"
+import { Logger } from "@/utils/logger"
 import { Dialog, DialogContent, DialogTitle, DialogOverlay } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
@@ -19,9 +20,9 @@ export function BaseModal({ isOpen, onClose, title, initialPosition, children, c
 
   useEffect(() => {
     if (isOpen) {
-      console.log("[BaseModal] title: ", title);
+      Logger.debug(`[BaseModal] title: ${title}`)
     }
-  }, [isOpen, title]);
+  }, [isOpen, title])
 
   const modalStyle = {
     "--initial-x": `${initialPosition.x}px`,
