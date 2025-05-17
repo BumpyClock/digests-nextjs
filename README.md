@@ -45,3 +45,8 @@ pnpm build
 pnpm start
 ```
 You can also deploy to platforms like Vercel using their standard Next.js workflow.
+
+## Toast notifications
+The custom `useToast` hook automatically removes dismissed toasts after five
+seconds. You can adjust this delay by editing `TOAST_REMOVE_DELAY` in
+`hooks/use-toast.ts`.
