@@ -483,7 +483,10 @@ function generateCssVariables(coreColors) {
 }
 
 /**
- * Generates the complete CSS file from all themes
+ * Generates a CSS file defining CSS variables for all color themes.
+ *
+ * For each theme, creates a CSS block with custom properties for use in theme switching.
+ * The default theme is applied to the `:root` selector, and a special block is added for dark mode.
  */
 function generateCssFile() {
   // Set the default theme to flexoki-light

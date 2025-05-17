@@ -35,7 +35,11 @@ const useHydration = () => {
   return hydrated && storeHydrated;
 };
 
-// Create a new component that uses useSearchParams
+/**
+ * Renders the main feed reader interface with tabbed navigation, search, filtering, and view mode toggling.
+ *
+ * Displays feed items organized into tabs for all items, unread, articles, podcasts, and read-later lists. Supports filtering by feed, searching, refreshing feeds, and switching between grid and master-detail views. Maintains UI state in sync with URL parameters and feed store hydration.
+ */
 function WebPageContent() {
   const isHydrated = useHydration();
   const [searchQuery, setSearchQuery] = useState("");
