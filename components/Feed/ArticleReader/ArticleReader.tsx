@@ -4,12 +4,13 @@ import { memo, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { FeedItem, ReaderViewResponse } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Share2, ExternalLink, Bookmark } from "lucide-react";
+import { Share2, ExternalLink, Bookmark, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cleanupModalContent } from "@/utils/htmlUtils";
 import { useFeedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { TtsPlayer } from "@/components/TtsPlayer";
 
 export const ArticleImage = memo(({ 
   src, 
@@ -136,6 +137,13 @@ export const ArticleHeader = memo(({
     }
   };
 
+  const [ttsText, setTtsText] = useState<string | null>(null);
+
+  const handleTts = () => {
+    const text = readerView?.textContent || feedItem.description || "";
+    setTtsText(text);
+  };
+
   return (
     <>
       {showThumbnail && feedItem.thumbnail && (
@@ -182,17 +190,25 @@ export const ArticleHeader = memo(({
                 >
                   <Bookmark className={`h-4 w-4 ${isInReadLaterList ? "fill-red-500 text-red-500" : ""}`} />
                 </Button>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
+                <Button
+                  size="icon"
+                  variant="ghost"
                   onClick={handleShare}
                   className="h-8 w-8"
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={handleTts}
+                  className="h-8 w-8"
+                >
+                  <Volume2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
                   asChild
                   className="h-8 w-8"
                 >
@@ -221,13 +237,17 @@ export const ArticleHeader = memo(({
               {/* Actions */}
               {actions || (
                 <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     onClick={handleReadLater}
                   >
                     <Bookmark className={`h-4 w-4 mr-1 ${isInReadLaterList ? "fill-red-500 text-red-500" : ""}`} />
                     {isInReadLaterList ? "Read Later" : "Read Later"}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={handleTts}>
+                    <Volume2 className="h-4 w-4 mr-1" />
+                    Listen
                   </Button>
                   <Button size="sm" variant="ghost" onClick={handleShare}>
                     <Share2 className="h-4 w-4 mr-1" />
@@ -256,6 +276,9 @@ export const ArticleHeader = memo(({
           </>
         )}
       </div>
+      {ttsText && (
+        <TtsPlayer text={ttsText} onClose={() => setTtsText(null)} />
+      )}
     </>
   );
 });

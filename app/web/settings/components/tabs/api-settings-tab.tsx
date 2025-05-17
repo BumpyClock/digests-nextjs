@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Slider } from "@/components/ui/slider"
+import { useTtsSettingsStore, TtsProvider } from "@/store/useTtsSettingsStore"
 import { useApiConfigStore } from "@/store/useApiConfigStore"
 import { DEFAULT_API_CONFIG } from "@/lib/config"
 import { workerService } from "@/services/worker-service"
@@ -19,10 +22,43 @@ export function ApiSettingsTab() {
     { success: boolean; message: string } | null
   >(null);
 
+  const {
+    provider,
+    apiKeys,
+    voice,
+    rate,
+    setProvider,
+    setApiKey,
+    setVoice,
+    setRate,
+  } = useTtsSettingsStore();
+  const [selectedProvider, setSelectedProvider] = useState<TtsProvider>(provider);
+  const [ttsKey, setTtsKey] = useState(apiKeys[provider] || "");
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoice, setSelectedVoice] = useState(voice);
+  const [selectedRate, setSelectedRate] = useState(rate);
+
+  useEffect(() => {
+    setTtsKey(apiKeys[selectedProvider] || "");
+  }, [selectedProvider, apiKeys]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      const loadVoices = () => setVoices(window.speechSynthesis.getVoices());
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
+
   // Initialize input field when component mounts
   useEffect(() => {
     setInputUrl(config.baseUrl);
   }, [config.baseUrl]);
+
+  useEffect(() => {
+    setSelectedVoice(voice);
+    setSelectedRate(rate);
+  }, [voice, rate]);
 
   // Test connection function
   const testConnection = async () => {
@@ -95,7 +131,15 @@ export function ApiSettingsTab() {
     });
   };
 
+  const saveTtsSettings = () => {
+    setProvider(selectedProvider);
+    setApiKey(selectedProvider, ttsKey);
+    setVoice(selectedVoice);
+    setRate(selectedRate);
+  };
+
   return (
+    <>
     <Card>
       <CardHeader>
         <CardTitle>API Settings</CardTitle>
@@ -172,5 +216,70 @@ export function ApiSettingsTab() {
         )}
       </CardContent>
     </Card>
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle>Text-to-Speech</CardTitle>
+        <CardDescription>Select your preferred TTS engine</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="tts-provider">Engine</Label>
+          <Select
+            value={selectedProvider}
+            onValueChange={(val) => setSelectedProvider(val as TtsProvider)}
+          >
+            <SelectTrigger id="tts-provider" className="w-[180px]">
+              <SelectValue placeholder="Select engine" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="edge">Edge</SelectItem>
+              <SelectItem value="gemini">Gemini</SelectItem>
+              <SelectItem value="openai">OpenAI</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {selectedProvider !== 'edge' && (
+          <div className="space-y-2">
+            <Label htmlFor="tts-key">API Key</Label>
+            <Input
+              id="tts-key"
+              value={ttsKey}
+              onChange={(e) => setTtsKey(e.target.value)}
+            />
+            <p className="text-sm text-muted-foreground">
+              Key is stored locally on this device
+            </p>
+          </div>
+        )}
+        <div className="space-y-2">
+          <Label htmlFor="tts-voice">Voice</Label>
+          <Select value={selectedVoice} onValueChange={setSelectedVoice}>
+            <SelectTrigger id="tts-voice" className="w-[240px]">
+              <SelectValue placeholder="Select voice" />
+            </SelectTrigger>
+            <SelectContent>
+              {voices.map((v) => (
+                <SelectItem key={v.name} value={v.name}>
+                  {v.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="tts-rate">Speed {selectedRate.toFixed(1)}x</Label>
+          <Slider
+            value={[selectedRate]}
+            min={0.5}
+            max={2}
+            step={0.1}
+            onValueChange={(val) => setSelectedRate(val[0])}
+            className="w-48"
+          />
+        </div>
+        <Button onClick={saveTtsSettings}>Save TTS Settings</Button>
+      </CardContent>
+    </Card>
+    </>
   );
 }
