@@ -5,11 +5,12 @@ import type {
   ReaderViewResponse 
 } from '@/types'
 import { getApiUrl } from '@/lib/config'
+import Logger from '@/utils/logger'
 
 export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
   try {
-    console.log(`Fetching feeds for URLs: ${urls.length}`);
-    console.table(urls);
+    Logger.debug(`Fetching feeds for URLs: ${urls.length}`)
+    Logger.debug('Feed URLs', urls)
     const response = await fetch(getApiUrl("/parse"), {
       method: "POST",
       headers: {
@@ -18,13 +19,13 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
       body: JSON.stringify({ urls }),
     })
 
-    console.log("API Response status:", response.status)
+    Logger.debug("API Response status:", response.status)
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
 
-    const data = await response.json() as FetchFeedsResponse;
-    console.log("API Response data:", JSON.stringify(data, null, 2))
+    const data = await response.json() as FetchFeedsResponse
+    Logger.debug("API Response data:", JSON.stringify(data, null, 2))
 
     if (!data || !Array.isArray(data.feeds)) {
       throw new Error("Invalid response from API")
@@ -73,8 +74,6 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
     const items: FeedItem[] = feeds
       .flatMap(feed => feed.items || [])
 
-    // console.log(`Processed ${feeds.length} feeds and ${items.length} items`)
-
     return { feeds, items }
   } catch (error) {
     console.error("Error fetching feeds:", error)
@@ -84,7 +83,7 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
 
 export async function fetchReaderView(urls: string[]): Promise<ReaderViewResponse[]> {
   try {
-    console.log("Fetching reader view for URLs:", urls)
+    Logger.debug("Fetching reader view for URLs:", urls)
     const response = await fetch(getApiUrl("/getreaderview"), {
       method: "POST",
       headers: {
@@ -93,13 +92,13 @@ export async function fetchReaderView(urls: string[]): Promise<ReaderViewRespons
       body: JSON.stringify({ urls }),
     })
 
-    console.log("API Response status:", response.status)
+    Logger.debug("API Response status:", response.status)
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`)
     }
 
     const data = await response.json()
-    console.log("API Response data:", JSON.stringify(data, null, 2))
+    Logger.debug("API Response data:", JSON.stringify(data, null, 2))
 
     if (!Array.isArray(data)) {
       throw new Error("Invalid response from API")
