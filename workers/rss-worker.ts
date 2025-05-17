@@ -2,13 +2,20 @@
 import type { Feed, FeedItem, ReaderViewResponse } from '../types';
 import { DEFAULT_API_CONFIG } from '../lib/config';
 
+// Default cache TTL from environment (fallback to 30 minutes)
+const DEFAULT_CACHE_TTL = (() => {
+  const ttl = Number(process.env.NEXT_PUBLIC_WORKER_CACHE_TTL);
+  return Number.isFinite(ttl) ? ttl : 30 * 60 * 1000; // 30 minutes
+})();
+
 // Message types to organize communication
-type WorkerMessage = 
+type WorkerMessage =
   | { type: 'FETCH_FEEDS'; payload: { urls: string[]; apiBaseUrl?: string } }
   | { type: 'FETCH_READER_VIEW'; payload: { urls: string[]; apiBaseUrl?: string } }
   | { type: 'REFRESH_FEEDS'; payload: { urls: string[]; apiBaseUrl?: string } }
   | { type: 'CHECK_UPDATES'; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: 'SET_API_URL'; payload: { url: string } };
+  | { type: 'SET_API_URL'; payload: { url: string } }
+  | { type: 'SET_CACHE_TTL'; payload: { ttl: number } };
 
 type WorkerResponse = 
   | { type: 'FEEDS_RESULT'; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
@@ -18,7 +25,15 @@ type WorkerResponse =
 // Cache implementation for the worker
 class WorkerCache {
   private cache = new Map<string, { data: any; timestamp: number }>();
-  private readonly TTL = 30 * 60 * 1000; // 30 minutes
+  private ttl: number;
+
+  constructor(ttl: number = 30 * 60 * 1000) {
+    this.ttl = ttl;
+  }
+
+  setTTL(ttl: number): void {
+    this.ttl = ttl;
+  }
 
   set(key: string, data: any): void {
     this.cache.set(key, { data, timestamp: Date.now() });
@@ -29,7 +44,7 @@ class WorkerCache {
     if (!item) return null;
     
     // Check if cache is still valid
-    if (Date.now() - item.timestamp > this.TTL) {
+    if (Date.now() - item.timestamp > this.ttl) {
       console.log(`[Worker] Cache expired for key: ${key}`);
       this.cache.delete(key);
       return null;
@@ -47,7 +62,7 @@ class WorkerCache {
 }
 
 // Initialize worker cache and API URL
-const workerCache = new WorkerCache();
+const workerCache = new WorkerCache(DEFAULT_CACHE_TTL);
 let apiBaseUrl = DEFAULT_API_CONFIG.baseUrl;
 
 /**
@@ -196,6 +211,15 @@ self.addEventListener('message', async (event) => {
         apiBaseUrl = url;
         console.log(`[Worker] API URL set to ${apiBaseUrl}`);
         // Clear cache when API URL changes
+        workerCache.clear();
+        break;
+      }
+
+      case 'SET_CACHE_TTL': {
+        const { ttl } = message.payload;
+        workerCache.setTTL(ttl);
+        console.log(`[Worker] Cache TTL set to ${ttl}ms`);
+        // Clear cache when TTL changes
         workerCache.clear();
         break;
       }

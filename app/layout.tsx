@@ -44,8 +44,10 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Add manifest.json for PWA */}
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
         <link rel="apple-touch-icon" sizes="192x192" href="/logo192.png" />
         <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#43A1AB" />
       </head>
       <body className={notoSans.className}>
         <ThemeProvider>
