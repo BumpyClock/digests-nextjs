@@ -7,6 +7,7 @@ import { useState, useEffect } from "react"
 import type { Feed, FeedItem } from "@/types"
 import { workerService } from "@/services/worker-service"
 import { normalizeUrl } from "@/utils/url"
+import { Logger } from "@/utils/logger"
 
 /**
  * The Zustand store shape with web worker integration
@@ -373,7 +374,7 @@ export const useFeedStore = create<FeedState>()(
         // Safety check to ensure readItems is a Set
         const readItemsSet = readItems instanceof Set ? readItems : new Set()
         const unreadItems = feedItems.filter(item => !readItemsSet.has(item.id))
-        console.log("unreadItems", unreadItems);
+        Logger.debug("unreadItems", unreadItems)
         // Ensure it returns an empty array if no unread items
         return unreadItems.length > 0 ? unreadItems : []
       },

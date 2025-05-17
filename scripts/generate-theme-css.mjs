@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import tinycolor from 'tinycolor2';
+import { Logger } from '../utils/logger.ts'; // TODO: ensure this path works when running the script
 
 // Current directory
 const __filename = fileURLToPath(import.meta.url);
@@ -482,7 +483,10 @@ function generateCssVariables(coreColors) {
 }
 
 /**
- * Generates the complete CSS file from all themes
+ * Generates a CSS file defining CSS variables for all color themes.
+ *
+ * For each theme, creates a CSS block with custom properties for use in theme switching.
+ * The default theme is applied to the `:root` selector, and a special block is added for dark mode.
  */
 function generateCssFile() {
   // Set the default theme to flexoki-light
@@ -525,7 +529,7 @@ function generateCssFile() {
   
   // Write the CSS file
   fs.writeFileSync(outputPath, css, 'utf8');
-  console.log(`Generated theme CSS at ${outputPath}`);
+  Logger.info(`Generated theme CSS at ${outputPath}`);
 }
 
 // Execute the function

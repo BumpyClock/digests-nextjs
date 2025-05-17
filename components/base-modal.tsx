@@ -2,6 +2,7 @@
 
 import type React from "react"
 import {  useEffect } from "react"
+import { Logger } from "@/utils/logger"
 import { Dialog, DialogContent, DialogTitle, DialogOverlay } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
@@ -15,13 +16,20 @@ interface BaseModalProps {
   className?: string
 }
 
+/**
+ * Renders a modal dialog with customizable content, title, and initial position.
+ *
+ * The modal supports responsive styling, an optional title, and a close button. The initial position and scale can be set via the {@link initialPosition} prop.
+ *
+ * @param initialPosition - Specifies the initial x and y coordinates, width, and height for modal placement and scaling.
+ */
 export function BaseModal({ isOpen, onClose, title, initialPosition, children, className }: BaseModalProps) {
 
   useEffect(() => {
     if (isOpen) {
-      console.log("[BaseModal] title: ", title);
+      Logger.debug(`[BaseModal] title: ${title}`)
     }
-  }, [isOpen, title]);
+  }, [isOpen, title])
 
   const modalStyle = {
     "--initial-x": `${initialPosition.x}px`,

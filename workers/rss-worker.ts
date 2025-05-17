@@ -1,6 +1,7 @@
 // workers/rss-worker.ts
 import type { Feed, FeedItem, ReaderViewResponse } from '../types';
 import { DEFAULT_API_CONFIG } from '../lib/config';
+import { Logger } from '@/utils/logger';
 
 // Default cache TTL from environment (fallback to 30 minutes)
 const DEFAULT_CACHE_TTL = (() => {
@@ -45,12 +46,12 @@ class WorkerCache {
     
     // Check if cache is still valid
     if (Date.now() - item.timestamp > this.ttl) {
-      console.log(`[Worker] Cache expired for key: ${key}`);
+      Logger.debug(`[Worker] Cache expired for key: ${key}`);
       this.cache.delete(key);
       return null;
     }
     else {
-      console.log(`[Worker] Cache hit for key: ${key}`);
+      Logger.debug(`[Worker] Cache hit for key: ${key}`);
     }
     
     return item.data as T;
@@ -66,7 +67,13 @@ const workerCache = new WorkerCache(DEFAULT_CACHE_TTL);
 let apiBaseUrl = DEFAULT_API_CONFIG.baseUrl;
 
 /**
- * Fetches feeds from the API
+ * Retrieves RSS feeds and their items from the API, using caching to minimize redundant requests.
+ *
+ * @param urls - The list of feed URLs to fetch.
+ * @param customApiUrl - Optional override for the API base URL.
+ * @returns An object containing the fetched feeds and their items.
+ *
+ * @throws {Error} If the API response is invalid or the HTTP request fails.
  */
 async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
   const currentApiUrl = customApiUrl || apiBaseUrl;
@@ -77,11 +84,11 @@ async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feed
     // Check cache first
     const cached = workerCache.get<{ feeds: Feed[]; items: FeedItem[] }>(cacheKey);
     if (cached) {
-      console.log('[Worker] Using cached feeds');
+      Logger.debug('[Worker] Using cached feeds');
       return cached;
     }
 
-    console.log(`[Worker] Fetching feeds for URLs: ${urls.length}`);
+    Logger.debug(`[Worker] Fetching feeds for URLs: ${urls.length}`);
     
     const response = await fetch(`${currentApiUrl}/parse`, {
       method: "POST",
@@ -155,7 +162,13 @@ async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feed
 }
 
 /**
- * Fetches reader view from the API
+ * Retrieves reader view data for the specified URLs from the API, using caching to avoid redundant requests.
+ *
+ * @param urls - An array of URLs to fetch reader view data for.
+ * @param customApiUrl - Optional API base URL to override the default.
+ * @returns An array of {@link ReaderViewResponse} objects corresponding to the requested URLs.
+ *
+ * @throws {Error} If the API response is not successful or returns invalid data.
  */
 async function fetchReaderView(urls: string[], customApiUrl?: string): Promise<ReaderViewResponse[]> {
   const currentApiUrl = customApiUrl || apiBaseUrl;
@@ -166,11 +179,11 @@ async function fetchReaderView(urls: string[], customApiUrl?: string): Promise<R
     // Check cache first
     const cached = workerCache.get<ReaderViewResponse[]>(cacheKey);
     if (cached) {
-      console.log('[Worker] Using cached reader view');
+      Logger.debug('[Worker] Using cached reader view');
       return cached;
     }
 
-    console.log("[Worker] Fetching reader view for URLs:", urls);
+    Logger.debug("[Worker] Fetching reader view for URLs:", urls);
     
     const response = await fetch(`${currentApiUrl}/getreaderview`, {
       method: "POST",
@@ -209,7 +222,7 @@ self.addEventListener('message', async (event) => {
       case 'SET_API_URL': {
         const { url } = message.payload;
         apiBaseUrl = url;
-        console.log(`[Worker] API URL set to ${apiBaseUrl}`);
+        Logger.debug(`[Worker] API URL set to ${apiBaseUrl}`);
         // Clear cache when API URL changes
         workerCache.clear();
         break;
@@ -218,7 +231,7 @@ self.addEventListener('message', async (event) => {
       case 'SET_CACHE_TTL': {
         const { ttl } = message.payload;
         workerCache.setTTL(ttl);
-        console.log(`[Worker] Cache TTL set to ${ttl}ms`);
+        Logger.debug(`[Worker] Cache TTL set to ${ttl}ms`);
         // Clear cache when TTL changes
         workerCache.clear();
         break;
@@ -291,7 +304,7 @@ self.addEventListener('message', async (event) => {
       case 'CHECK_UPDATES': {
         const { urls, apiBaseUrl: customApiUrl } = message.payload;
         try {
-          console.log("[Worker] Checking for updates");
+          Logger.debug("[Worker] Checking for updates");
           // Clear cache to ensure fresh data
           workerCache.clear();
           const { feeds, items } = await fetchFeeds(urls, customApiUrl);
@@ -337,4 +350,4 @@ self.addEventListener('unhandledrejection', (event) => {
 });
 
 // Log worker startup
-console.log('[Feed Worker] RSS worker initialized');
+Logger.debug('[Feed Worker] RSS worker initialized');

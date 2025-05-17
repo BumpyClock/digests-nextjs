@@ -11,6 +11,7 @@ import { FeedItem } from "@/types";
 import { CommandBar } from "@/components/CommandBar/CommandBar";
 import { RefreshButton } from "@/components/RefreshButton";
 import { useSearchParams } from "next/navigation";
+import { Logger } from "@/utils/logger";
 import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Columns } from "lucide-react";
@@ -34,7 +35,11 @@ const useHydration = () => {
   return hydrated && storeHydrated;
 };
 
-// Create a new component that uses useSearchParams
+/**
+ * Renders the main feed reader interface with tabbed navigation, search, filtering, and view mode toggling.
+ *
+ * Displays feed items organized into tabs for all items, unread, articles, podcasts, and read-later lists. Supports filtering by feed, searching, refreshing feeds, and switching between grid and master-detail views. Maintains UI state in sync with URL parameters and feed store hydration.
+ */
 function WebPageContent() {
   const isHydrated = useHydration();
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,11 +73,11 @@ function WebPageContent() {
    */
   useEffect(() => {
     if (isHydrated && !initialized) {
-      console.log("Initializing store...");
+      Logger.debug("Initializing store...");
       refreshFeeds()
         .then(() => {
           setInitialized(true);
-          console.log("Store initialized");
+          Logger.debug("Store initialized");
         })
         .catch((error) => {
           console.error("Failed to initialize store:", error);
@@ -112,7 +117,7 @@ function WebPageContent() {
    *  Handler to refresh feeds
    */
   const handleRefresh = useCallback(() => {
-    console.log("Refreshing feeds...");
+    Logger.debug("Refreshing feeds...");
     refreshFeeds().then(() => {
       const currentUnreadItems = getUnreadItems();
       setStableUnreadItems(currentUnreadItems);
