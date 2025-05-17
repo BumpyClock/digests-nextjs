@@ -15,6 +15,7 @@ import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { LayoutGrid, Columns } from "lucide-react";
 import { FEED_REFRESHED_EVENT } from "@/components/Feed/FeedGrid/FeedGrid";
+import { normalizeUrl } from "@/utils/url";
 
 /**
  * If your store has a "hydrated" field, we can track if it's
@@ -31,17 +32,6 @@ const useHydration = () => {
   }, []);
 
   return hydrated && storeHydrated;
-};
-
-const normalizeUrl = (url: string | null): string => {
-  if (!url) return "";
-  try {
-    // decode + strip trailing slash
-    return decodeURIComponent(url).replace(/\/+$/, "");
-  } catch {
-    // fallback if decode fails, just remove slash
-    return url.replace(/\/+$/, "");
-  }
 };
 
 // Create a new component that uses useSearchParams

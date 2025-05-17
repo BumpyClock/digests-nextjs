@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 
 import type { Feed, FeedItem } from "@/types"
 import { workerService } from "@/services/worker-service"
+import { normalizeUrl } from "@/utils/url"
 
 /**
  * The Zustand store shape with web worker integration
@@ -81,16 +82,6 @@ interface FeedState {
 
 // Add hydration flag at top of file
 let hydrated = false
-
-// Helper function to normalize URLs for comparison
-const normalizeUrl = (url: string): string => {
-  try {
-    // Remove protocol and any trailing slashes
-    return url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
-  } catch {
-    return url;
-  }
-};
 
 export const useFeedStore = create<FeedState>()(
   persist(
@@ -474,7 +465,11 @@ export const useFeedStore = create<FeedState>()(
             }
             
             // Initialize worker service after hydration
-            requestIdleCallback(() => {
+            const idleCallback =
+              typeof window !== "undefined" && window.requestIdleCallback
+                ? window.requestIdleCallback
+                : (cb: () => void) => setTimeout(cb, 0);
+            idleCallback(() => {
               workerService.initialize();
             });
           } catch (error) {

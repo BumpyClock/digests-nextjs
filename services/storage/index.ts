@@ -12,7 +12,7 @@ import {
 } from '@/types/storage'
 import { Feed, FeedItem } from '@/types/feed'
 import { StorageError } from '@/types/errors'
-import Logger from '@/utils/logger'
+import { Logger } from '@/utils/logger'
 import { Result } from '@/types'
 import { memoryCache } from './cache'
 
