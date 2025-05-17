@@ -74,6 +74,7 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
     const items: FeedItem[] = feeds
       .flatMap(feed => feed.items || [])
 
+
     return { feeds, items }
   } catch (error) {
     console.error("Error fetching feeds:", error)
