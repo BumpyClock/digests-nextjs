@@ -61,6 +61,7 @@ export const ReaderContent = memo(function ReaderContent({
         <ArticleContent 
           content={cleanedContent} 
           className={`w-full ${isMobile ? 'max-w-full' : 'md:max-w-4xl'} ${layout === "modal" ? 'no-animation' : ''}`}
+          layout={layout}
         />
       </article>
     </div>
