@@ -229,10 +229,10 @@ export const cleanupTextContent = (text?: string): string => {
   // Replace common problematic characters
   const replacements: [RegExp | string, string][] = [
     [/â€™/g, "'"],    // Smart single quote
-    [/â€"/g, "–"],    // En dash
-    [/â€"/g, "—"],    // Em dash
+    [/â€“/g, "\u2013"],    // En dash
+    [/â€”/g, "\u2014"],    // Em dash
     [/â€œ/g, '"'],    // Smart left double quote
-    [/â€/g, '"'],     // Smart right double quote
+    [/â€/g, '"'],     // Smart right double quote
     [/&nbsp;/g, ' '], // Non-breaking space
   ];
   
