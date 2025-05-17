@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
-    "generate:themes": "node scripts/generate-theme-css.mjs"
+    "generate:themes": "node scripts/generate-theme-css.mjs",
+    "test": "node scripts/pretest.js && node --test tests/*.js"
   },
   "dependencies": {
     "@heroui/scroll-shadow": "^2.3.13",
