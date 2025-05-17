@@ -474,7 +474,11 @@ export const useFeedStore = create<FeedState>()(
             }
             
             // Initialize worker service after hydration
-            requestIdleCallback(() => {
+            const idleCallback =
+              typeof window !== "undefined" && window.requestIdleCallback
+                ? window.requestIdleCallback
+                : (cb: () => void) => setTimeout(cb, 0);
+            idleCallback(() => {
               workerService.initialize();
             });
           } catch (error) {
