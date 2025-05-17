@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Bookmark, Share2 } from "lucide-react"
 import { fetchFeedsAction, toggleFavoriteAction } from "@/app/actions"
 import { useToast } from "@/hooks/use-toast"
-import { useAudioPlayer } from "@/components/audio-player-provider"
+import { useAudioContent } from "@/store/useAudioStore"
 import Image from "next/image"
 import type { FeedItem } from "@/types/feed"
 
@@ -18,7 +18,7 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
   const [isBookmarked, setIsBookmarked] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
-  const { playAudio } = useAudioPlayer()
+  const { playAudio } = useAudioContent()
 
   useEffect(() => {
     async function loadPodcast() {
@@ -78,13 +78,22 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
 
   const handlePlay = () => {
     if (podcast) {
-      playAudio({
+      // Get the correct audio URL from the podcast
+      const audioUrl = podcast.enclosures?.[0]?.url || podcast.link || "";
+      
+      // Use the new playAudio method from our unified audio system
+      playAudio(audioUrl, {
         id: podcast.id,
         title: podcast.title,
-        source: podcast.link,
-        audioUrl: podcast.link || "https://example.com/podcast.mp3",
-        image: podcast.thumbnail,
-      })
+        source: podcast.siteTitle || podcast.link,
+        thumbnail: podcast.thumbnail,
+      });
+      
+      // Show a success toast
+      toast({
+        title: "Playing podcast",
+        description: `Now playing: ${podcast.title}`,
+      });
     }
   }
 

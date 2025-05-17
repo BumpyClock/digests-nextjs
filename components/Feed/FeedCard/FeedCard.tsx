@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Share2, Play, Pause, Bookmark } from "lucide-react";
-import { useAudio } from "@/components/audio-player-provider";
+import useAudioStore, { PlayerMode } from "@/store/useAudioStore";
 import { toast } from "sonner";
 import { ReaderViewModal } from "@/components/reader-view-modal";
 import { PodcastDetailsModal } from "@/components/podcast-details-modal";
@@ -166,7 +166,44 @@ export const FeedCard = memo(function FeedCard({
     height: 0,
   });
   const cardRef = useRef<HTMLDivElement>(null);
-  const { playAudio, isPlaying, currentAudio } = useAudio();
+  // Use direct store access to avoid hooks that could cause infinite loops
+  const getAudioState = () => {
+    if (typeof window === 'undefined') {
+      return { 
+        isPlaying: false,
+        currentContent: null
+      };
+    }
+    const state = useAudioStore.getState();
+    return {
+      isPlaying: state.isPlaying,
+      currentContent: state.currentContent
+    };
+  };
+  
+  // Get initial state
+  const [audioState, setAudioState] = useState(getAudioState());
+  
+  // Subscribe to changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Set initial state
+    setAudioState(getAudioState());
+    
+    // Subscribe to changes that matter to this component
+    const unsubscribe = useAudioStore.subscribe(
+      state => ({ 
+        isPlaying: state.isPlaying,
+        currentContent: state.currentContent
+      }),
+      newState => {
+        setAudioState(newState);
+      }
+    );
+    
+    return unsubscribe;
+  }, []);
   const [imageError, setImageError] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -257,16 +294,18 @@ export const FeedCard = memo(function FeedCard({
           markAsRead(feedItem.id);
         }, 0);
 
-        playAudio({
-          id: feedItem.id,
-          title: feedItem.title,
-          source: feedItem.siteTitle,
-          audioUrl: feedItem.enclosures?.[0]?.url || "",
-          image: feedItem.favicon || feedItem.thumbnail,
-        });
+        // Use the store directly to avoid hook issues
+        if (typeof window !== 'undefined') {
+          useAudioStore.getState().playAudio(feedItem.enclosures?.[0]?.url || "", {
+            id: feedItem.id,
+            title: feedItem.title,
+            source: feedItem.siteTitle,
+            thumbnail: feedItem.thumbnail || feedItem.favicon,
+          });
+        }
       }
     },
-    [feedItem, playAudio, markAsRead]
+    [feedItem, markAsRead]
   );
 
 
@@ -274,8 +313,10 @@ export const FeedCard = memo(function FeedCard({
     return dayjs(dateString).fromNow();
   }, []);
 
-  const isCurrentlyPlaying =
-    currentAudio && currentAudio.id === feedItem.id && isPlaying;
+  const isCurrentlyPlaying = 
+    audioState.currentContent && 
+    audioState.currentContent.id === feedItem.id && 
+    audioState.isPlaying;
 
   const handleImageError = useCallback(() => {
     setImageError(true);

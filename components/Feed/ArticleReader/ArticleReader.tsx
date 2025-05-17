@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState, useRef, useCallback } from "react";
 import Image from "next/image";
 import { FeedItem, ReaderViewResponse } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,7 +10,9 @@ import { cleanupModalContent } from "@/utils/htmlUtils";
 import { useFeedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-media-query";
-import { useTTS } from "@/components/tts-provider";
+import useAudioStore, { PlayerMode } from "@/store/useAudioStore";
+import { UnifiedPlayer } from "@/components/player/UnifiedPlayer";
+import { shallow } from "zustand/shallow";
 
 export const ArticleImage = memo(({ 
   src, 
@@ -91,9 +93,11 @@ export const ArticleHeader = memo(({
 }) => {
   const isModal = layout === "modal";
   const isCompact = layout === "compact";
-  const { speak } = useTTS();
   const { addToReadLater, removeFromReadLater, isInReadLater } = useFeedStore();
   const [isInReadLaterList, setIsInReadLaterList] = useState(false);
+  
+  // Access audio store functions directly for stability
+  const playTTS = useAudioStore.getState().playTTS;
 
   useEffect(() => {
     setIsInReadLaterList(isInReadLater(feedItem.id));
@@ -138,10 +142,35 @@ export const ArticleHeader = memo(({
     }
   };
 
-  const handleTts = () => {
+  const handleTts = useCallback(() => {
     const text = readerView?.textContent || feedItem.description || "";
-    speak(text);
-  };
+    const title = readerView?.title || feedItem.title || "Article";
+    const source = feedItem.siteTitle || "Reader";
+    const thumbnail = feedItem.thumbnail || ""; // Use article thumbnail if available
+    
+    // Create unique ID for this article
+    const id = `article-${feedItem.id}`;
+    
+    // Access store directly for more direct control
+    const storeState = useAudioStore.getState();
+    
+    // First set visibility and player mode to guarantee UI is ready
+    // This solves the delayed appearance problem
+    storeState.setVisibility(true);
+    storeState.setPlayerMode(layout === "modal" ? PlayerMode.INLINE : PlayerMode.MINI);
+    
+    // Then start TTS playback
+    // We do this in a slight delay to ensure UI has updated first
+    setTimeout(() => {
+      storeState.playTTS(text, {
+        id,
+        title,
+        source,
+        thumbnail
+      });
+    }, 10);
+    
+  }, [feedItem, readerView, layout]);
 
   return (
     <>
@@ -281,8 +310,50 @@ export const ArticleHeader = memo(({
 ArticleHeader.displayName = 'ArticleHeader';
 
 // Article content component
-export const ArticleContent = memo(({ content, className }: { content: string, className?: string }) => {
-  const { isVisible } = useTTS();
+export const ArticleContent = memo(({ content, className, layout = "standard" }: { content: string, className?: string, layout?: "standard" | "compact" | "modal" }) => {
+  // State to track audio state with local state
+  const [audioState, setAudioState] = useState({
+    isVisible: false,
+    playerMode: PlayerMode.DISABLED
+  });
+  
+  // Subscribe to store changes with safe pattern
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Get initial state
+    const store = useAudioStore.getState();
+    setAudioState({
+      isVisible: store.isVisible,
+      playerMode: store.playerMode
+    });
+    
+    // Subscribe to changes
+    const unsubscribe = useAudioStore.subscribe(
+      state => ({
+        isVisible: state.isVisible,
+        playerMode: state.playerMode
+      }),
+      newState => {
+        setAudioState(newState);
+      }
+    );
+    
+    return unsubscribe;
+  }, []);
+  
+  // Destructure local state for convenience
+  const { isVisible, playerMode } = audioState;
+  
+  // Force inline player mode when in modal layout
+  useEffect(() => {
+    if (layout === "modal" && isVisible && playerMode !== PlayerMode.INLINE) {
+      console.log("Setting player mode to inline for modal layout");
+      const store = useAudioStore.getState();
+      store.setPlayerMode(PlayerMode.INLINE);
+    }
+  }, [layout, isVisible, playerMode]);
+  
   useEffect(() => {
     const replaceNextImages = () => {
       const nextImages = document.querySelectorAll('next-image');
@@ -314,10 +385,18 @@ export const ArticleContent = memo(({ content, className }: { content: string, c
   }, [content]);
 
   return (
-    <div
-      className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-foreground px-6 md:px-8 lg:px-12 ${isVisible ? 'pb-20' : ''} ${className || 'w-full md:max-w-4xl'}`}
-      dangerouslySetInnerHTML={{ __html: content }}
-    />
+    <>
+      {/* Only render inline player here for non-modal layouts */}
+      {isVisible && playerMode === PlayerMode.INLINE && layout !== "modal" && (
+        <div className={`${className || 'w-full md:max-w-4xl'} mx-auto`}>
+          <UnifiedPlayer mode="inline" minimizable={true} />
+        </div>
+      )}
+      <div
+        className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-foreground px-6 md:px-8 lg:px-12 ${isVisible && playerMode === PlayerMode.MINI ? 'pb-20' : ''} ${className || 'w-full md:max-w-4xl'}`}
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
+    </>
   );
 });
 ArticleContent.displayName = 'ArticleContent';

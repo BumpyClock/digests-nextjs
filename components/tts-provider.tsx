@@ -1,166 +1,218 @@
 "use client";
-import React, { createContext, useContext, useState, useRef, useCallback } from "react";
-import { useTtsSettingsStore } from "@/store/useTtsSettingsStore";
-import { Slider } from "@/components/ui/slider";
+
+import React, { ReactNode, memo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, X } from "lucide-react";
+import { Play, Pause, X, Volume2 } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
+import { useTTS, formatTime } from "@/hooks/use-tts";
+import { PlayerMode } from "@/store/useTtsStore";
+import TtsErrorHandler from "./tts-error-handler";
 
-interface TtsContextValue {
-  isVisible: boolean;
-  isPlaying: boolean;
-  progress: number;
-  rate: number;
-  speak: (text: string) => void;
-  pause: () => void;
-  resume: () => void;
-  stop: () => void;
-  seek: (progress: number) => void;
-  setRate: (rate: number) => void;
+// Only import the Zustand store directly - don't use the selector hooks at the module level
+import { useTtsStore } from "@/store/useTtsStore";
+
+export { useTTS, formatTime };
+
+interface TtsProviderProps {
+  children: ReactNode;
 }
 
-const TtsContext = createContext<TtsContextValue | undefined>(undefined);
-
-export function useTTS() {
-  const ctx = useContext(TtsContext);
-  if (!ctx) throw new Error("useTTS must be used within TtsProvider");
-  return ctx;
-}
-
-export function TtsProvider({ children }: { children: React.ReactNode }) {
-  const { rate: storedRate, setRate: persistRate } = useTtsSettingsStore();
-  const [isVisible, setIsVisible] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [rate, setRateState] = useState(storedRate || 1);
-  const textRef = useRef("");
-
-  const speak = useCallback(
-    (text: string) => {
-      if (!text || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-      window.speechSynthesis.cancel();
-      textRef.current = text;
-      setIsVisible(true);
-      setIsPlaying(true);
-      setProgress(0);
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.rate = rate;
-      utter.onboundary = (e) => {
-        setProgress(e.charIndex / text.length);
-      };
-      utter.onend = () => {
-        setIsPlaying(false);
-        setProgress(1);
-      };
-      window.speechSynthesis.speak(utter);
-    },
-    [rate]
-  );
-
-  const pause = useCallback(() => {
-    if (typeof window !== "undefined") {
-      window.speechSynthesis.pause();
-      setIsPlaying(false);
+/**
+ * TTS Provider component that wraps children and provides a global TTS player when needed
+ * Using memo to prevent unnecessary re-renders
+ */
+export const TtsProvider = memo(function TtsProvider({ children }: TtsProviderProps) {
+  // Since useTtsStore is a store instance, not a hook, we need to use React's useState and useEffect
+  // to get and subscribe to the store values
+  const [state, setState] = React.useState(() => ({
+    isVisible: false,
+    playerMode: PlayerMode.DISABLED,
+    hasError: false
+  }));
+  
+  // Subscribe to store changes
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Initial update
+    setState({
+      isVisible: useTtsStore.getState().isVisible,
+      playerMode: useTtsStore.getState().playerMode,
+      hasError: useTtsStore.getState().error !== null
+    });
+    
+    // Subscribe to changes
+    const unsubscribe = useTtsStore.subscribe(
+      (state) => ({
+        isVisible: state.isVisible,
+        playerMode: state.playerMode,
+        hasError: state.error !== null
+      }),
+      (newState) => {
+        setState(newState);
+      }
+    );
+    
+    return unsubscribe;
+  }, []);
+  
+  // Initialize on client-side only
+  useEffect(() => {
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      // Only initialize if not already initialized
+      if (!useTtsStore.getState().isInitialized) {
+        useTtsStore.getState().initialize().catch(e => {
+          console.error("Failed to initialize TTS:", e);
+        });
+      }
     }
   }, []);
-
-  const resume = useCallback(() => {
-    if (typeof window !== "undefined") {
-      window.speechSynthesis.resume();
-      setIsPlaying(true);
-    }
-  }, []);
-
-  const stop = useCallback(() => {
-    if (typeof window !== "undefined") {
-      window.speechSynthesis.cancel();
-    }
-    setIsPlaying(false);
-    setIsVisible(false);
-    setProgress(0);
-  }, []);
-
-  const seek = useCallback(
-    (p: number) => {
-      if (typeof window === "undefined" || !textRef.current) return;
-      const index = Math.floor(textRef.current.length * p);
-      window.speechSynthesis.cancel();
-      const utter = new SpeechSynthesisUtterance(textRef.current.slice(index));
-      utter.rate = rate;
-      utter.onboundary = (e) => {
-        setProgress((index + e.charIndex) / textRef.current.length);
-      };
-      utter.onend = () => {
-        setIsPlaying(false);
-        setProgress(1);
-      };
-      setProgress(index / textRef.current.length);
-      setIsPlaying(true);
-      window.speechSynthesis.speak(utter);
-    },
-    [rate]
-  );
-
-  const setRate = useCallback(
-    (r: number) => {
-      setRateState(r);
-      persistRate(r);
-    },
-    [persistRate]
-  );
-
-  const value: TtsContextValue = {
-    isVisible,
-    isPlaying,
-    progress,
-    rate,
-    speak,
-    pause,
-    resume,
-    stop,
-    seek,
-    setRate,
-  };
-
+  
   return (
-    <TtsContext.Provider value={value}>
+    <>
+      {state.hasError && <TtsErrorHandler />}
       {children}
-      {isVisible && <TtsPlayer />}
-    </TtsContext.Provider>
+      {state.isVisible && state.playerMode === PlayerMode.MINI && <GlobalTtsPlayer />}
+    </>
   );
-}
+});
 
-function TtsPlayer() {
-  const { isPlaying, pause, resume, stop, progress, seek, rate, setRate } = useTTS();
-  const toggle = () => (isPlaying ? pause() : resume());
+/**
+ * Global TTS player that appears at the bottom of the screen
+ * Using memo to prevent unnecessary re-renders
+ */
+export const GlobalTtsPlayer = memo(function GlobalTtsPlayer() {
+  // Use useState and useEffect with store subscription
+  const [state, setState] = React.useState(() => ({
+    isPlaying: false,
+    isPaused: false,
+    progress: 0,
+    duration: 0,
+    currentPosition: 0,
+    playbackRate: 1,
+    currentArticle: null
+  }));
+  
+  // Store references to functions to avoid recreating them
+  const actionRef = React.useRef({
+    pause: () => useTtsStore.getState().pause(),
+    resume: () => useTtsStore.getState().resume(),
+    stop: () => useTtsStore.getState().stop(),
+    seek: (pos: number) => useTtsStore.getState().seek(pos),
+    setPlaybackRate: (rate: number) => useTtsStore.getState().setPlaybackRate(rate)
+  });
+  
+  // Subscribe to store changes
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    // Initial update
+    const currentState = useTtsStore.getState();
+    setState({
+      isPlaying: currentState.isPlaying,
+      isPaused: currentState.isPaused,
+      progress: currentState.progress,
+      duration: currentState.duration,
+      currentPosition: currentState.currentPosition,
+      playbackRate: currentState.playbackRate,
+      currentArticle: currentState.currentArticle
+    });
+    
+    // Subscribe to changes
+    const unsubscribe = useTtsStore.subscribe(
+      (state) => ({
+        isPlaying: state.isPlaying,
+        isPaused: state.isPaused,
+        progress: state.progress,
+        duration: state.duration,
+        currentPosition: state.currentPosition,
+        playbackRate: state.playbackRate,
+        currentArticle: state.currentArticle
+      }),
+      (newState) => {
+        setState(newState);
+      }
+    );
+    
+    return unsubscribe;
+  }, []);
+  
+  // Stable toggle function
+  const toggle = React.useCallback(() => {
+    if (state.isPlaying) {
+      actionRef.current.pause();
+    } else {
+      actionRef.current.resume();
+    }
+  }, [state.isPlaying]);
+  
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background p-2">
+    <div 
+      className="fixed bottom-0 left-0 right-0 z-40 border-t bg-background p-2 shadow-lg animate-in slide-in-from-bottom duration-300"
+    >
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={toggle} className="h-8 w-8">
-          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-        </Button>
-        <Slider
-          value={[progress * 100]}
-          max={100}
-          step={1}
-          onValueChange={(v) => seek(v[0] / 100)}
-          className="flex-1"
-        />
-        <div className="flex gap-2 text-sm">
-          {[1, 1.25, 1.5, 2].map((r) => (
+        <div className="flex items-center gap-2">
+          <Volume2 className={`h-4 w-4 text-muted-foreground ml-1 ${state.isPlaying ? 'animate-pulse' : ''}`} />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={toggle} 
+            className="h-8 w-8 hover:bg-primary/10 transition-colors"
+            aria-label={state.isPlaying ? "Pause" : "Play"}
+          >
+            {state.isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+          </Button>
+        </div>
+        
+        <div className="hidden md:block text-sm font-medium truncate max-w-[150px]">
+          {state.currentArticle?.title || "Text-to-Speech"}
+        </div>
+        
+        <div className="flex-1 flex flex-col">
+          <Slider
+            value={[state.progress]}
+            max={100}
+            step={1}
+            onValueChange={(v) => actionRef.current.seek((v[0] / 100) * state.duration)}
+            className="flex-1"
+            aria-label="Progress"
+          />
+          <div className="flex justify-between mt-1 text-xs text-muted-foreground">
+            <span>{formatTime(state.currentPosition)}</span>
+            <span>{formatTime(state.duration)}</span>
+          </div>
+        </div>
+        
+        <div className="flex gap-1 text-sm">
+          {[1, 1.25, 1.5, 2].map((rate) => (
             <button
-              key={r}
-              onClick={() => setRate(r)}
-              className={r === rate ? "font-bold" : ""}
+              key={rate}
+              onClick={() => actionRef.current.setPlaybackRate(rate)}
+              className={`px-2 py-1 rounded transition-colors ${
+                rate === state.playbackRate 
+                  ? "bg-primary/10 font-bold text-primary" 
+                  : "hover:bg-secondary"
+              }`}
+              aria-label={`Set playback rate to ${rate}x`}
             >
-              {r}x
+              {rate}x
             </button>
           ))}
         </div>
-        <Button variant="ghost" size="icon" onClick={stop} className="h-8 w-8">
+        
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => actionRef.current.stop()} 
+          className="h-8 w-8 hover:bg-red-500/10 transition-colors"
+          aria-label="Stop playback"
+        >
           <X className="h-4 w-4" />
         </Button>
       </div>
     </div>
   );
-}
+});
 
+export default TtsProvider;
