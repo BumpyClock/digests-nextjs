@@ -12,6 +12,13 @@ export function WorkerInitializer() {
     // Initialize worker service
     console.log("Initializing worker service");
     workerService.initialize();
+
+    // Register PWA service worker if supported
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .catch(err => console.error('Service worker registration failed', err));
+    }
     
     // Cleanup on unmount
     return () => {

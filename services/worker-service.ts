@@ -5,6 +5,11 @@ import { getApiConfig } from '@/store/useApiConfigStore';
 
 const isClient = typeof window !== 'undefined'
 
+const DEFAULT_CACHE_TTL = (() => {
+  const ttl = Number(process.env.NEXT_PUBLIC_WORKER_CACHE_TTL);
+  return Number.isFinite(ttl) ? ttl : 30 * 60 * 1000; // 30 minutes
+})();
+
 // Define the types for messages to and from the worker
 type WorkerMessage = 
   | { type: 'FETCH_FEEDS'; payload: { urls: string[]; apiBaseUrl?: string } }
@@ -16,7 +21,8 @@ type WorkerMessage =
       isDarkMode: boolean 
     } }
   | { type: 'CHECK_UPDATES'; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: 'SET_API_URL'; payload: { url: string } };
+  | { type: 'SET_API_URL'; payload: { url: string } }
+  | { type: 'SET_CACHE_TTL'; payload: { ttl: number } };
 
 type WorkerResponse = 
   | { type: 'FEEDS_RESULT'; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
@@ -36,6 +42,7 @@ class WorkerService {
   private messageHandlers: Map<string, Set<(data: any) => void>> = new Map();
   private isInitialized = false;
   private fallbackMode = false;
+  private cacheTtl = DEFAULT_CACHE_TTL;
 
   /**
    * Initializes the worker service
@@ -64,6 +71,10 @@ class WorkerService {
         type: 'SET_API_URL',
         payload: { url: apiConfig.baseUrl }
       });
+      this.rssWorker.postMessage({
+        type: 'SET_CACHE_TTL',
+        payload: { ttl: this.cacheTtl }
+      });
       
       this.isInitialized = true;
       console.log('WorkerService: Workers initialized');
@@ -84,6 +95,20 @@ class WorkerService {
       this.rssWorker.postMessage({
         type: 'SET_API_URL',
         payload: { url }
+      });
+    }
+  }
+
+  /**
+   * Updates cache TTL in the worker
+   */
+  updateCacheTtl(ttl: number): void {
+    this.cacheTtl = ttl;
+    if (!this.isInitialized) this.initialize();
+    if (this.rssWorker) {
+      this.rssWorker.postMessage({
+        type: 'SET_CACHE_TTL',
+        payload: { ttl }
       });
     }
   }
