@@ -49,10 +49,16 @@ const LoadingAnimation = () => {
 }
 
 /**
- * FeedGrid component that displays a grid of feed items.
- * 
- * @param {FeedGridProps} props - The properties for the FeedGrid component.
- * @returns {JSX.Element} The rendered FeedGrid component.
+ * Displays a responsive masonry grid of feed items with loading and periodic update checking.
+ *
+ * Shows a loading animation until the component is mounted, a minimum loading time has elapsed, and items are available. Periodically checks for new feed items and notifies the user with a toast if updates are found, allowing manual refresh.
+ *
+ * @param items - The array of feed items to display.
+ * @param isLoading - Whether the feed is currently loading.
+ *
+ * @returns The rendered feed grid or a loading animation.
+ *
+ * @remark If new items are detected during periodic checks, a toast notification is shown with an option to refresh the feed.
  */
 export function FeedGrid({ items, isLoading }: FeedGridProps) {
   const { checkForUpdates, refreshFeeds } = useFeedStore()

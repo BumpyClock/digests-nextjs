@@ -67,7 +67,13 @@ const workerCache = new WorkerCache(DEFAULT_CACHE_TTL);
 let apiBaseUrl = DEFAULT_API_CONFIG.baseUrl;
 
 /**
- * Fetches feeds from the API
+ * Retrieves RSS feeds and their items from the API, using caching to minimize redundant requests.
+ *
+ * @param urls - The list of feed URLs to fetch.
+ * @param customApiUrl - Optional override for the API base URL.
+ * @returns An object containing the fetched feeds and their items.
+ *
+ * @throws {Error} If the API response is invalid or the HTTP request fails.
  */
 async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
   const currentApiUrl = customApiUrl || apiBaseUrl;
@@ -156,7 +162,13 @@ async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feed
 }
 
 /**
- * Fetches reader view from the API
+ * Retrieves reader view data for the specified URLs from the API, using caching to avoid redundant requests.
+ *
+ * @param urls - An array of URLs to fetch reader view data for.
+ * @param customApiUrl - Optional API base URL to override the default.
+ * @returns An array of {@link ReaderViewResponse} objects corresponding to the requested URLs.
+ *
+ * @throws {Error} If the API response is not successful or returns invalid data.
  */
 async function fetchReaderView(urls: string[], customApiUrl?: string): Promise<ReaderViewResponse[]> {
   const currentApiUrl = customApiUrl || apiBaseUrl;

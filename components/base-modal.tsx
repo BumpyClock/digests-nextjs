@@ -16,6 +16,13 @@ interface BaseModalProps {
   className?: string
 }
 
+/**
+ * Renders a modal dialog with customizable content, title, and initial position.
+ *
+ * The modal supports responsive styling, an optional title, and a close button. The initial position and scale can be set via the {@link initialPosition} prop.
+ *
+ * @param initialPosition - Specifies the initial x and y coordinates, width, and height for modal placement and scaling.
+ */
 export function BaseModal({ isOpen, onClose, title, initialPosition, children, className }: BaseModalProps) {
 
   useEffect(() => {
