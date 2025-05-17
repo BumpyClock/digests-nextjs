@@ -2,7 +2,7 @@
  * Caching implementation for storing data with TTL
  */
 
-import Logger from '@/utils/logger'
+import { Logger } from '@/utils/logger'
 
 /**
  * Cache item with metadata
