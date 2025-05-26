@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Bookmark, Share2 } from "lucide-react"
-import { fetchFeedsAction, toggleFavoriteAction } from "@/app/actions"
+import { getFeedItemsAction, toggleFavoriteAction } from "@/app/actions"
 import { useToast } from "@/hooks/use-toast"
-import { useAudioContent } from "@/store/useAudioStore"
+import { useAudioContent } from "@/store/useUnifiedAudioStore"
 import Image from "next/image"
 import type { FeedItem } from "@/types/feed"
 
@@ -18,13 +18,13 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
   const [isBookmarked, setIsBookmarked] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
-  const { playAudio } = useAudioContent()
+  const { loadContent } = useAudioContent()
 
   useEffect(() => {
     async function loadPodcast() {
       setLoading(true)
 
-      const { success, items } = await fetchFeedsAction()
+      const { success, items } = await getFeedItemsAction()
 
       if (success && items) {
         const foundPodcast = items.find((item: FeedItem) => item.id === params.id && item.type === "podcast")
@@ -81,12 +81,14 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
       // Get the correct audio URL from the podcast
       const audioUrl = podcast.enclosures?.[0]?.url || podcast.link || "";
       
-      // Use the new playAudio method from our unified audio system
-      playAudio(audioUrl, {
+      // Use the new loadContent method from our unified audio system
+      loadContent({
         id: podcast.id,
         title: podcast.title,
         source: podcast.siteTitle || podcast.link,
         thumbnail: podcast.thumbnail,
+        audioUrl: audioUrl,
+        autoplay: true
       });
       
       // Show a success toast

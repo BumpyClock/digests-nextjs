@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Share2, Play, Pause, Bookmark } from "lucide-react";
-import useAudioStore, { PlayerMode } from "@/store/useAudioStore";
+import { useUnifiedAudioStore, PlayerMode } from "@/store/useUnifiedAudioStore";
 import { toast } from "sonner";
 import { ReaderViewModal } from "@/components/reader-view-modal";
 import { PodcastDetailsModal } from "@/components/podcast-details-modal";
@@ -174,7 +174,7 @@ export const FeedCard = memo(function FeedCard({
         currentContent: null
       };
     }
-    const state = useAudioStore.getState();
+    const state = useUnifiedAudioStore.getState();
     return {
       isPlaying: state.isPlaying,
       currentContent: state.currentContent
@@ -192,7 +192,7 @@ export const FeedCard = memo(function FeedCard({
     setAudioState(getAudioState());
     
     // Subscribe to changes that matter to this component
-    const unsubscribe = useAudioStore.subscribe(
+    const unsubscribe = useUnifiedAudioStore.subscribe(
       state => ({ 
         isPlaying: state.isPlaying,
         currentContent: state.currentContent
@@ -296,11 +296,13 @@ export const FeedCard = memo(function FeedCard({
 
         // Use the store directly to avoid hook issues
         if (typeof window !== 'undefined') {
-          useAudioStore.getState().playAudio(feedItem.enclosures?.[0]?.url || "", {
+          useUnifiedAudioStore.getState().loadContent({
             id: feedItem.id,
             title: feedItem.title,
             source: feedItem.siteTitle,
             thumbnail: feedItem.thumbnail || feedItem.favicon,
+            audioUrl: feedItem.enclosures?.[0]?.url || "",
+            autoplay: true
           });
         }
       }

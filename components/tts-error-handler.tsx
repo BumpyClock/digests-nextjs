@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, memo } from "react";
-import { useTtsStore } from "@/store/useTtsStore";
+import { useUnifiedAudioStore } from "@/store/useUnifiedAudioStore";
 import { useToast } from "@/hooks/use-toast";
 import { AlertCircle, Volume2Off, Repeat } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -76,20 +76,20 @@ const getRecoveryAction = (type: TtsErrorType, error: Error | null): (() => void
       // Try to re-initialize
       return () => {
         // Get fresh state when the action is actually called
-        const ttsState = useTtsStore.getState();
+        const ttsState = useUnifiedAudioStore.getState();
         ttsState.initialize();
       };
     case TtsErrorType.NO_VOICES_AVAILABLE:
       // Try to refresh voices
       return () => {
-        const ttsState = useTtsStore.getState();
+        const ttsState = useUnifiedAudioStore.getState();
         ttsState.refreshVoices();
       };
     case TtsErrorType.SPEECH_ERROR:
     case TtsErrorType.PLAYBACK_ERROR:
       // Try to restart speech
       return () => {
-        const ttsState = useTtsStore.getState();
+        const ttsState = useUnifiedAudioStore.getState();
         const { currentText, currentArticle } = ttsState;
         if (currentText) {
           ttsState.play(currentText, currentArticle);
@@ -98,7 +98,7 @@ const getRecoveryAction = (type: TtsErrorType, error: Error | null): (() => void
     default:
       // General retry
       return () => {
-        const ttsState = useTtsStore.getState();
+        const ttsState = useUnifiedAudioStore.getState();
         ttsState.initialize();
       };
   }
@@ -181,14 +181,14 @@ export const TtsErrorHandler = memo(function TtsErrorHandler() {
     if (typeof window === 'undefined') return;
     
     // Initial update
-    const currentState = useTtsStore.getState();
+    const currentState = useUnifiedAudioStore.getState();
     setStoreState({
       error: currentState.error,
       isInitialized: currentState.isInitialized
     });
     
     // Subscribe to changes
-    const unsubscribe = useTtsStore.subscribe(
+    const unsubscribe = useUnifiedAudioStore.subscribe(
       (state) => ({
         error: state.error,
         isInitialized: state.isInitialized
@@ -285,7 +285,8 @@ export const TtsErrorHandler = memo(function TtsErrorHandler() {
  * Hook for handling TTS errors programmatically
  */
 export function useTtsErrorHandler() {
-  const { error, isInitialized } = useTtsState();
+  const store = useUnifiedAudioStore();
+  const { error, isInitialized } = store;
   const [errorType, setErrorType] = useState<TtsErrorType | null>(null);
   
   // Determine error type when an error occurs

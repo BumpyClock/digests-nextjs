@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Play, Pause, X, Volume2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { useTTS, formatTime } from "@/hooks/use-tts";
-import { PlayerMode } from "@/store/useTtsStore";
+import { PlayerMode } from "@/store/useUnifiedAudioStore";
 import TtsErrorHandler from "./tts-error-handler";
 
 // Only import the Zustand store directly - don't use the selector hooks at the module level
-import { useTtsStore } from "@/store/useTtsStore";
+import { useUnifiedAudioStore } from "@/store/useUnifiedAudioStore";
 
 export { useTTS, formatTime };
 
@@ -22,7 +22,7 @@ interface TtsProviderProps {
  * Using memo to prevent unnecessary re-renders
  */
 export const TtsProvider = memo(function TtsProvider({ children }: TtsProviderProps) {
-  // Since useTtsStore is a store instance, not a hook, we need to use React's useState and useEffect
+  // Since useUnifiedAudioStore is a store instance, not a hook, we need to use React's useState and useEffect
   // to get and subscribe to the store values
   const [state, setState] = React.useState(() => ({
     isVisible: false,
@@ -36,13 +36,13 @@ export const TtsProvider = memo(function TtsProvider({ children }: TtsProviderPr
     
     // Initial update
     setState({
-      isVisible: useTtsStore.getState().isVisible,
-      playerMode: useTtsStore.getState().playerMode,
-      hasError: useTtsStore.getState().error !== null
+      isVisible: useUnifiedAudioStore.getState().isVisible,
+      playerMode: useUnifiedAudioStore.getState().playerMode,
+      hasError: useUnifiedAudioStore.getState().error !== null
     });
     
     // Subscribe to changes
-    const unsubscribe = useTtsStore.subscribe(
+    const unsubscribe = useUnifiedAudioStore.subscribe(
       (state) => ({
         isVisible: state.isVisible,
         playerMode: state.playerMode,
@@ -61,8 +61,8 @@ export const TtsProvider = memo(function TtsProvider({ children }: TtsProviderPr
     // Check if we're in a browser environment
     if (typeof window !== 'undefined') {
       // Only initialize if not already initialized
-      if (!useTtsStore.getState().isInitialized) {
-        useTtsStore.getState().initialize().catch(e => {
+      if (!useUnifiedAudioStore.getState().isInitialized) {
+        useUnifiedAudioStore.getState().initialize().catch(e => {
           console.error("Failed to initialize TTS:", e);
         });
       }
@@ -96,11 +96,11 @@ export const GlobalTtsPlayer = memo(function GlobalTtsPlayer() {
   
   // Store references to functions to avoid recreating them
   const actionRef = React.useRef({
-    pause: () => useTtsStore.getState().pause(),
-    resume: () => useTtsStore.getState().resume(),
-    stop: () => useTtsStore.getState().stop(),
-    seek: (pos: number) => useTtsStore.getState().seek(pos),
-    setPlaybackRate: (rate: number) => useTtsStore.getState().setPlaybackRate(rate)
+    pause: () => useUnifiedAudioStore.getState().pause(),
+    resume: () => useUnifiedAudioStore.getState().resume(),
+    stop: () => useUnifiedAudioStore.getState().stop(),
+    seek: (pos: number) => useUnifiedAudioStore.getState().seek(pos),
+    setPlaybackRate: (rate: number) => useUnifiedAudioStore.getState().setPlaybackRate(rate)
   });
   
   // Subscribe to store changes
@@ -108,27 +108,27 @@ export const GlobalTtsPlayer = memo(function GlobalTtsPlayer() {
     if (typeof window === 'undefined') return;
     
     // Initial update
-    const currentState = useTtsStore.getState();
+    const currentState = useUnifiedAudioStore.getState();
     setState({
       isPlaying: currentState.isPlaying,
       isPaused: currentState.isPaused,
       progress: currentState.progress,
       duration: currentState.duration,
-      currentPosition: currentState.currentPosition,
-      playbackRate: currentState.playbackRate,
-      currentArticle: currentState.currentArticle
+      currentPosition: currentState.currentTime,
+      playbackRate: currentState.settings.playbackRate,
+      currentArticle: currentState.currentContent
     });
     
     // Subscribe to changes
-    const unsubscribe = useTtsStore.subscribe(
+    const unsubscribe = useUnifiedAudioStore.subscribe(
       (state) => ({
         isPlaying: state.isPlaying,
         isPaused: state.isPaused,
         progress: state.progress,
         duration: state.duration,
-        currentPosition: state.currentPosition,
-        playbackRate: state.playbackRate,
-        currentArticle: state.currentArticle
+        currentPosition: state.currentTime,
+        playbackRate: state.settings.playbackRate,
+        currentArticle: state.currentContent
       }),
       (newState) => {
         setState(newState);

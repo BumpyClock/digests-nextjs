@@ -1,7 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { Play, Pause } from "lucide-react"
-import { useAudioContent, useAudioPlayback } from "@/store/useAudioStore"
+import { useAudioContent, useAudioPlayback } from "@/store/useUnifiedAudioStore"
 import { formatDuration } from "@/utils/formatDuration"
 import type { FeedItem } from "@/lib/rss"
 import { BaseModal } from "./base-modal"
@@ -18,7 +18,7 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast, initialPosition 
   // Use local state to track if this podcast is playing
   const [isCurrentlyPlaying, setIsCurrentlyPlaying] = useState(false)
   
-  const { playAudio } = useAudioContent()
+  const { loadContent, currentContent } = useAudioContent()
   const { isPlaying, pause, resume } = useAudioPlayback()
 
   const handlePlayPause = () => {
@@ -31,44 +31,23 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast, initialPosition 
       }
     } else {
       // If not playing this podcast, start playing it
-      playAudio(podcast.enclosures?.[0]?.url || "", {
+      loadContent({
         id: podcast.id,
         title: podcast.title,
         source: podcast.siteTitle,
         thumbnail: podcast.thumbnail,
+        audioUrl: podcast.enclosures?.[0]?.url || "",
+        autoplay: true
       });
     }
   }
   
   // Update when audio playback changes
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const state = useAudioContent.getState()
-      const isThisPodcast = state.currentContent?.id === podcast.id
-      setIsCurrentlyPlaying(isThisPodcast && isPlaying)
-    }
-  }, [podcast.id, isPlaying])
-  
-  // Subscribe to current content changes
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    // Initial check
-    const state = useAudioContent.getState()
-    const isThisPodcast = state.currentContent?.id === podcast.id
+    const isThisPodcast = currentContent?.id === podcast.id
     setIsCurrentlyPlaying(isThisPodcast && isPlaying)
-    
-    // Subscribe to changes
-    const unsubscribe = useAudioContent.subscribe(
-      (state) => ({ currentContentId: state.currentContent?.id }),
-      (newState) => {
-        const isThisPodcast = newState.currentContentId === podcast.id
-        setIsCurrentlyPlaying(isThisPodcast && isPlaying)
-      }
-    );
-    
-    return unsubscribe;
-  }, [podcast.id, isPlaying]);
+  }, [podcast.id, isPlaying, currentContent])
+  
 
   const duration = formatDuration(
     podcast.duration || podcast.enclosures?.[0]?.length || "0"

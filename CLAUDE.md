@@ -5,46 +5,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Always create a tasklist before starting any code changes. This will help you stay organized and ensure that you cover all necessary steps in the development process.
 ## Tasklist
  Use [] for incomplete tasks and [x] for completed tasks.
-- [ ] Understand the context of the project by reading the README.md and CodingGuidelines.md files.
+- [x] Understand the context of the project by reading the README.md and CodingGuidelines.md files.
 - [ ] Identify the specific task or request.
-- [ ] Plan the implementation by outlining the steps needed to implement the changes.
-- [ ] Implement the changes according to the plan.
-- [ ] Test the changes to ensure they work as expected.
-- [ ] Document the changes made in the code and any relevant documentation files.
-- [ ] Write clear and descriptive commit messages.
-- [ ] Push the changes to the appropriate branch in the repository.
-- [ ] Create a pull request with a clear description of the changes made.
-- [ ] Review the code and be open to feedback from other team members.
-- [ ] Make any necessary adjustments based on code reviews.
-- [ ] Ensure that all tests pass and the code adheres to the project's coding standards.
-- [ ] Ensure that the code is properly formatted and follows the project's style guidelines.
-- [ ] Ensure that the code is properly documented and follows the project's documentation standards.
-- [ ] Ensure that the code is properly tested and follows the project's testing standards.
-- [ ] Ensure that the code is properly versioned and follows the project's versioning standards.
-# Process
-1. **Understand the Context**: Read the README.md and CodingGuidelines.md files to understand the project structure, purpose, and coding standards.
-2. **Identify the Task**: Determine what specific code changes or additions are needed based on the request. Before starting, clarify any uncertainties with the requester. 
-    - If the task is to add a new feature, understand the requirements and how it fits into the existing codebase.
-    - If the task is to fix a bug, reproduce the issue and understand its cause before attempting a fix.
-    - If the task is to refactor code, identify the areas that need improvement and understand the current implementation.
-    - If the task is to write tests, understand the existing test structure and what needs to be tested.
-3. **Plan the Implementation**: Outline the steps needed to implement the changes. This may include:
-   - Identifying the files and components that will be affected.Think of at least 2 ideas for the implementation and discuss with the requester before proceeding. This is important to ensure that the approach aligns with the project goals and coding standards.
-   - Determining the best approach to implement the changes while adhering to the coding guidelines.
-   - Considering how the changes will affect existing functionality and ensuring backward compatibility.
-4. **Implement the Changes**: Write the code according to the plan, ensuring it adheres to the project's structure and standards.
-5. **Test the Changes**: Run the application locally to ensure the changes work as expected and do not introduce any errors. This may include:
-   - Running existing tests to ensure they pass.
-   - Writing new tests for any new functionality or changes made.
-   - Manually testing the application to verify that the changes work as intended.
-6. **Document the Changes**: Update any relevant documentation or comments in the code to reflect the changes made. This may include:
-   - Updating README.md or other documentation files to reflect new features or changes.
-   - Adding comments in the code to explain complex logic or important decisions made during implementation.
-7. **Code Implementation**: Write the code according to the guidelines, ensuring it adheres to the project's structure and standards.
-8. **Commit Changes**: Use clear and descriptive commit messages that follow the project's commit message conventions.
-9. **Push Changes**: Push the changes to the appropriate branch in the repository.
-10. **Pull Request**: Create a pull request with a clear description of the changes made, linking to any relevant issues or discussions.
-11. **Review**: Be open to feedback and make any necessary adjustments based on code reviews from other team members.
+
+# Writing code
+
+- YOU MUST NEVER USE --no-verify WHEN COMMITTING CODE
+- We prefer simple, clean, maintainable solutions over clever or complex ones, even if the latter are more concise or performant. Readability and maintainability are primary concerns.
+- Make the smallest reasonable changes to get to the desired outcome. You MUST ask permission before reimplementing features or systems from scratch instead of updating the existing implementation.
+- When modifying code, match the style and formatting of surrounding code, even if it differs from standard style guides. Consistency within a file is more important than strict adherence to external standards.
+- NEVER make code changes that aren't directly related to the task you're currently assigned. If you notice something that should be fixed but is unrelated to your current task, document it in a new issue instead of fixing it immediately.
+- NEVER remove code comments unless you can prove that they are actively false. Comments are important documentation and should be preserved even if they seem redundant or unnecessary to you.
+- All code files should start with a brief 2 line comment explaining what the file does. Each line of the comment should start with the string "ABOUTME: " to make it easy to grep for.
+- When writing comments, avoid referring to temporal context about refactors or recent changes. Comments should be evergreen and describe the code as it is, not how it evolved or was recently changed.
+- NEVER implement a mock mode for testing or for any purpose. We always use real data and real APIs, never mock implementations.
+- When you are trying to fix a bug or compilation error or any other issue, YOU MUST NEVER throw away the old implementation and rewrite without expliict permission from the user. If you are going to do this, YOU MUST STOP and get explicit permission from the user.
+- NEVER name things as 'improved' or 'new' or 'enhanced', etc. Code naming should be evergreen. What is new today will be "old" someday.
+
+# Getting help
+
+- ALWAYS ask for clarification rather than making assumptions.
+- If you're having trouble with something, it's ok to stop and ask for help. Especially if it's something your human might be better at.
+
+
+# Specific Technologies
+
+- @~/.claude/docs/typescript.md
+- @~/.claude/docs/source-control.md
+- @~/.claude/docs/using-pnpm.md
+- @~/.claude/docs/CodingGuidelines.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Commands
 - Build: `pnpm build`

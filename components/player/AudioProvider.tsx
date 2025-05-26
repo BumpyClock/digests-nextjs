@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, ReactNode, useState } from "react";
-import useAudioStore, { PlayerMode } from "@/store/useAudioStore";
+import { useUnifiedAudioStore, PlayerMode } from "@/store/useUnifiedAudioStore";
 import dynamic from 'next/dynamic';
 
 // Dynamically import components with no SSR to avoid hydration issues
@@ -45,7 +45,7 @@ export function AudioProvider({ children }: AudioProviderProps) {
     const initializeAudio = async () => {
       try {
         // Access the store directly to avoid hooks in effects
-        const store = useAudioStore.getState();
+        const store = useUnifiedAudioStore.getState();
         await store.initialize();
       } catch (error) {
         console.error("Failed to initialize audio system:", error);
@@ -58,7 +58,7 @@ export function AudioProvider({ children }: AudioProviderProps) {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         // Pause playback when page is not visible
-        const store = useAudioStore.getState();
+        const store = useUnifiedAudioStore.getState();
         if (store.isPlaying) {
           console.log('Page hidden, pausing audio playback');
           store.pause();
@@ -68,7 +68,7 @@ export function AudioProvider({ children }: AudioProviderProps) {
     
     // Handle page unload (stop when navigating away entirely)
     const handleBeforeUnload = () => {
-      const store = useAudioStore.getState();
+      const store = useUnifiedAudioStore.getState();
       if (store.isPlaying || store.isPaused) {
         console.log('Page unloading, stopping audio playback');
         store.stop();
@@ -87,7 +87,7 @@ export function AudioProvider({ children }: AudioProviderProps) {
         window.removeEventListener('beforeunload', handleBeforeUnload);
         
         // Clean up audio system
-        useAudioStore.getState().cleanup();
+        useUnifiedAudioStore.getState().cleanup();
       }
     };
   }, []);
@@ -96,7 +96,7 @@ export function AudioProvider({ children }: AudioProviderProps) {
   const handleModeChange = (mode: "inline" | "mini") => {
     if (typeof window === 'undefined') return;
     
-    const store = useAudioStore.getState();
+    const store = useUnifiedAudioStore.getState();
     if (mode === "inline") {
       store.setPlayerMode(PlayerMode.INLINE);
     } else if (mode === "mini") {

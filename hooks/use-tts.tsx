@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useTtsStore, PlayerMode } from "@/store/useTtsStore";
+import { useUnifiedAudioStore, PlayerMode } from "@/store/useUnifiedAudioStore";
 import { shallow } from "zustand/shallow";
 
 // Format time for display
@@ -36,35 +36,52 @@ export function useTTS() {
   const functionRefs = useRef({
     play: async (text: string, metadata?: any) => {
       if (typeof window === 'undefined') return;
-      return useTtsStore.getState().play(text, metadata);
+      const store = useUnifiedAudioStore.getState();
+      return store.loadContent({
+        id: metadata?.id || `tts-${Date.now()}`,
+        title: metadata?.title || 'Text to Speech',
+        source: metadata?.source || 'Article',
+        thumbnail: metadata?.thumbnail,
+        textContent: text,
+        autoplay: true
+      });
     },
     playInMode: async (text: string, mode: PlayerMode, metadata?: any) => {
       if (typeof window === 'undefined') return;
-      return useTtsStore.getState().playInMode(text, mode, metadata);
+      const store = useUnifiedAudioStore.getState();
+      store.setPlayerMode(mode);
+      return store.loadContent({
+        id: metadata?.id || `tts-${Date.now()}`,
+        title: metadata?.title || 'Text to Speech',
+        source: metadata?.source || 'Article',
+        thumbnail: metadata?.thumbnail,
+        textContent: text,
+        autoplay: true
+      });
     },
     pause: () => {
       if (typeof window === 'undefined') return;
-      useTtsStore.getState().pause();
+      useUnifiedAudioStore.getState().pause();
     },
     resume: () => {
       if (typeof window === 'undefined') return;
-      useTtsStore.getState().resume();
+      useUnifiedAudioStore.getState().resume();
     },
     stop: () => {
       if (typeof window === 'undefined') return;
-      useTtsStore.getState().stop();
+      useUnifiedAudioStore.getState().stop();
     },
     seek: (position: number) => {
       if (typeof window === 'undefined') return;
-      useTtsStore.getState().seek(position);
+      useUnifiedAudioStore.getState().seek(position);
     },
     setPlaybackRate: (rate: number) => {
       if (typeof window === 'undefined') return;
-      useTtsStore.getState().setPlaybackRate(rate);
+      useUnifiedAudioStore.getState().setPlaybackRate(rate);
     },
     setPlayerMode: (mode: PlayerMode) => {
       if (typeof window === 'undefined') return;
-      useTtsStore.getState().setPlayerMode(mode);
+      useUnifiedAudioStore.getState().setPlayerMode(mode);
     }
   });
 
@@ -74,25 +91,25 @@ export function useTTS() {
     
     // Initial state update
     setState({
-      isPlaying: useTtsStore.getState().isPlaying,
-      isPaused: useTtsStore.getState().isPaused,
-      progress: useTtsStore.getState().progress,
-      duration: useTtsStore.getState().duration,
-      currentPosition: useTtsStore.getState().currentPosition,
-      playbackRate: useTtsStore.getState().playbackRate,
-      playerMode: useTtsStore.getState().playerMode,
-      isVisible: useTtsStore.getState().isVisible
+      isPlaying: useUnifiedAudioStore.getState().isPlaying,
+      isPaused: useUnifiedAudioStore.getState().isPaused,
+      progress: useUnifiedAudioStore.getState().progress,
+      duration: useUnifiedAudioStore.getState().duration,
+      currentPosition: useUnifiedAudioStore.getState().currentTime,
+      playbackRate: useUnifiedAudioStore.getState().settings.playbackRate,
+      playerMode: useUnifiedAudioStore.getState().playerMode,
+      isVisible: useUnifiedAudioStore.getState().isVisible
     });
     
     // Subscribe to changes
-    const unsubscribe = useTtsStore.subscribe(
+    const unsubscribe = useUnifiedAudioStore.subscribe(
       (state) => ({
         isPlaying: state.isPlaying,
         isPaused: state.isPaused,
         progress: state.progress,
         duration: state.duration,
-        currentPosition: state.currentPosition,
-        playbackRate: state.playbackRate,
+        currentPosition: state.currentTime,
+        playbackRate: state.settings.playbackRate,
         playerMode: state.playerMode,
         isVisible: state.isVisible
       }),

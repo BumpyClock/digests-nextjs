@@ -11,6 +11,23 @@ interface FeedActionResult {
   items?: FeedItem[]
 }
 
+// Get all feed items from the cached/stored feeds
+export async function getFeedItemsAction(): Promise<FeedActionResult> {
+  try {
+    // For now, return empty array. In a real app, this would fetch from a database/cache
+    return {
+      success: true,
+      message: "Feed items fetched successfully",
+      items: [],
+    }
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch feed items",
+    }
+  }
+}
+
 export async function fetchFeedsAction(url: string): Promise<FeedActionResult> {
   try {
     const { feeds, items } = await fetchFeeds([url])

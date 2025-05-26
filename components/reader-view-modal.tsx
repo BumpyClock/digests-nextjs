@@ -9,7 +9,7 @@ import { useScrollShadow } from "@/hooks/use-scroll-shadow";
 import { ScrollShadow } from "./ui/scroll-shadow";
 import { ReaderContent } from "@/components/Feed/ReaderContent";
 import { UnifiedPlayer } from "@/components/player/UnifiedPlayer";
-import useAudioStore, { PlayerMode } from "@/store/useAudioStore";
+import { useUnifiedAudioStore, PlayerMode } from "@/store/useUnifiedAudioStore";
 
 interface ReaderViewModalProps {
   isOpen: boolean;
@@ -39,7 +39,7 @@ export function ReaderViewModal({
     if (typeof window === 'undefined') return;
     
     // Get initial state
-    const state = useAudioStore.getState();
+    const state = useUnifiedAudioStore.getState();
     setAudioState({
       isPlaying: state.isPlaying,
       playerMode: state.playerMode,
@@ -47,7 +47,7 @@ export function ReaderViewModal({
     });
     
     // Subscribe to changes
-    const unsubscribe = useAudioStore.subscribe(
+    const unsubscribe = useUnifiedAudioStore.subscribe(
       state => ({
         isPlaying: state.isPlaying,
         playerMode: state.playerMode,
@@ -81,7 +81,7 @@ export function ReaderViewModal({
   useEffect(() => {
     if (isOpen && audioState.isPlaying && audioState.playerMode !== PlayerMode.INLINE) {
       console.log("Modal open with active audio: Forcing inline player mode");
-      useAudioStore.getState().setPlayerMode(PlayerMode.INLINE);
+      useUnifiedAudioStore.getState().setPlayerMode(PlayerMode.INLINE);
     }
   }, [isOpen, audioState.isPlaying, audioState.playerMode]);
   
@@ -90,7 +90,7 @@ export function ReaderViewModal({
     // When the modal opens
     if (isOpen) {
       // Pre-initialize the audio store for faster response
-      const store = useAudioStore.getState();
+      const store = useUnifiedAudioStore.getState();
       if (!store.isInitialized) {
         store.initialize().catch(error => {
           console.error("Error pre-initializing audio system:", error);
@@ -103,7 +103,7 @@ export function ReaderViewModal({
       // Only clean up if the modal is actually closing
       if (isOpen === false) {
         // This will run when the modal is unmounted or isOpen changes to false
-        const store = useAudioStore.getState();
+        const store = useUnifiedAudioStore.getState();
         
         // If the TTS content belongs to this article specifically, check if we should clean up
         // We don't want to clean up if the audio is being played in mini mode or a different article
@@ -118,7 +118,7 @@ export function ReaderViewModal({
   
   // Handle modal close - ensure proper cleanup and state management
   const handleModalClose = () => {
-    const store = useAudioStore.getState();
+    const store = useUnifiedAudioStore.getState();
     const currentContent = store.currentContent;
     const wasPlaying = audioState.isPlaying;
     

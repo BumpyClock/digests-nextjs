@@ -6,12 +6,12 @@
  */
 import { useCallback, useEffect } from 'react';
 import { 
-  useTtsStore, 
-  useTtsPlayerMode,
+  useUnifiedAudioStore, 
   PlayerMode,
-  useTtsPlayback,
-  useTtsArticle
-} from '@/store/useTtsStore';
+  useAudioPlayback,
+  useAudioContent,
+  useAudioUI
+} from '@/store/useUnifiedAudioStore';
 import TtsAudioAdapter from '@/components/tts-audio-adapter';
 
 // Define all possible transition events
@@ -75,16 +75,18 @@ export function useTtsPlayerModeTransitions() {
     };
   }
   
-  const { playerMode, setPlayerMode, setVisibility } = useTtsPlayerMode();
-  const { isPlaying, isPaused, play, stop, pause, resume } = useTtsPlayback();
-  const { currentText, currentArticle } = useTtsArticle();
+  const { playerMode, setPlayerMode } = useAudioUI();
+  const { isPlaying, isPaused, stop, pause, resume } = useAudioPlayback();
+  const { currentContent, loadContent } = useAudioContent();
+  const currentText = currentContent?.text || '';
+  const currentArticle = currentContent;
   
   // Track previous mode for toggling - but ensure we access the store safely
   let previousMode = PlayerMode.INLINE;
   try {
-    previousMode = useTtsStore.getState().playerMode === PlayerMode.DISABLED 
+    previousMode = useUnifiedAudioStore.getState().playerMode === PlayerMode.DISABLED 
       ? PlayerMode.INLINE 
-      : useTtsStore.getState().playerMode;
+      : useUnifiedAudioStore.getState().playerMode;
   } catch (e) {
     // Ignore errors during SSR
   }
@@ -110,13 +112,16 @@ export function useTtsPlayerModeTransitions() {
         }
         
         setPlayerMode(PlayerMode.INLINE);
-        setVisibility(true);
         
         if (isPaused) {
           resume();
-        } else if (!isPlaying) {
+        } else if (!isPlaying && currentText) {
           // Only start playing if not already playing
-          play(currentText, currentArticle);
+          loadContent({
+            ...currentArticle,
+            textContent: currentText,
+            autoplay: true
+          });
         }
         break;
         
@@ -127,13 +132,16 @@ export function useTtsPlayerModeTransitions() {
         }
         
         setPlayerMode(PlayerMode.MINI);
-        setVisibility(true);
         
         if (isPaused) {
           resume();
-        } else if (!isPlaying) {
+        } else if (!isPlaying && currentText) {
           // Only start playing if not already playing
-          play(currentText, currentArticle);
+          loadContent({
+            ...currentArticle,
+            textContent: currentText,
+            autoplay: true
+          });
         }
         break;
         
@@ -156,16 +164,14 @@ export function useTtsPlayerModeTransitions() {
       case 'STOP':
         stop();
         setPlayerMode(PlayerMode.DISABLED);
-        setVisibility(false);
         break;
     }
   }, [
     playerMode, 
     setPlayerMode, 
-    setVisibility, 
     isPlaying, 
     isPaused, 
-    play, 
+    loadContent, 
     stop, 
     resume, 
     currentText, 

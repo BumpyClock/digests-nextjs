@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext } from "react"
 import { AudioInfo } from "@/types"
-import useAudioStore, { PlayerMode } from "@/store/useAudioStore"
+import { useUnifiedAudioStore, PlayerMode } from "@/store/useUnifiedAudioStore"
 
 // This file provides backward compatibility with the old AudioPlayerProvider
 // It re-exports the old context API, but uses the new unified audio system internally
@@ -41,48 +41,33 @@ export const useAudio = useAudioPlayer
 
 // Provider component that wraps around the app
 export function AudioPlayerProvider({ children }: { children: React.ReactNode }) {
-  // Safe approach: use the raw Zustand store directly instead of hooks
-  // This ensures we avoid the "getSnapshot" issue that occurs with multiple selector hooks
-  // Access store state directly through the store instance
-
-  // Function to get current state (safe for SSR)
-  const getState = () => {
-    if (typeof window === 'undefined') {
-      return {
-        isPlaying: false,
-        isPaused: false,
-        currentTime: 0,
-        duration: 0,
-        volume: 1,
-        playerMode: PlayerMode.DISABLED,
-        currentContent: null
-      };
-    }
-    return useAudioStore.getState();
-  };
-
-  // Get current state once
-  const state = getState();
+  // Use individual selectors to avoid creating new objects
+  const isPlaying = useUnifiedAudioStore(state => state.isPlaying);
+  const isPaused = useUnifiedAudioStore(state => state.isPaused);
+  const currentTime = useUnifiedAudioStore(state => state.currentTime);
+  const duration = useUnifiedAudioStore(state => state.duration);
+  const volume = useUnifiedAudioStore(state => state.settings.volume);
+  const playerMode = useUnifiedAudioStore(state => state.playerMode);
+  const currentContent = useUnifiedAudioStore(state => state.currentContent);
   
   // Map the new system to the old API
   const audioPlayerValue: AudioPlayerContextType = {
     // State
-    currentAudio: state.currentContent ? {
-      id: state.currentContent.id,
-      title: state.currentContent.title,
-      source: state.currentContent.source,
-      audioUrl: state.currentContent.audioUrl || '',
-      image: state.currentContent.thumbnail,
-      isTTS: state.currentContent.type === 'article',
-      duration: state.duration
+    currentAudio: currentContent ? {
+      id: currentContent.id,
+      title: currentContent.title,
+      source: currentContent.source,
+      audioUrl: currentContent.audioUrl || '',
+      image: currentContent.thumbnail,
+      isTTS: currentContent.type === 'article'
     } : null,
-    isPlaying: state.isPlaying,
-    duration: state.duration,
-    currentTime: state.currentTime,
-    volume: state.volume,
-    isMuted: state.volume === 0,
-    isMinimized: state.playerMode === PlayerMode.MINI,
-    showMiniPlayer: state.playerMode !== PlayerMode.DISABLED,
+    isPlaying: isPlaying,
+    duration: duration,
+    currentTime: currentTime,
+    volume: volume,
+    isMuted: volume === 0,
+    isMinimized: playerMode === PlayerMode.MINI,
+    showMiniPlayer: playerMode !== PlayerMode.DISABLED,
     
     // Functions - use store methods directly
     playAudio: (audioInfo: AudioInfo) => {
@@ -92,17 +77,19 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
         // This would need text content, which we don't have in the old API
         console.warn("TTS playback through old API is not fully supported");
       } else {
-        useAudioStore.getState().playAudio(audioInfo.audioUrl || "", {
+        useUnifiedAudioStore.getState().loadContent({
           id: audioInfo.id,
           title: audioInfo.title,
           source: audioInfo.source,
-          thumbnail: audioInfo.image
+          thumbnail: audioInfo.image,
+          audioUrl: audioInfo.audioUrl || "",
+          autoplay: true
         });
       }
     },
     togglePlayPause: () => {
       if (typeof window === 'undefined') return;
-      const store = useAudioStore.getState();
+      const store = useUnifiedAudioStore.getState();
       
       if (store.isPlaying) {
         store.pause();
@@ -112,17 +99,17 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     },
     seek: (value: number) => {
       if (typeof window === 'undefined') return;
-      useAudioStore.getState().seek(value);
+      useUnifiedAudioStore.getState().seek(value);
     },
     setVolume: (value: number) => {
       if (typeof window === 'undefined') return;
-      useAudioStore.getState().setVolume(value);
+      useUnifiedAudioStore.getState().setVolume(value);
     },
     toggleMute: () => {
       if (typeof window === 'undefined') return;
-      const store = useAudioStore.getState();
+      const store = useUnifiedAudioStore.getState();
       
-      if (store.volume > 0) {
+      if (store.settings.volume > 0) {
         store.setVolume(0);
       } else {
         store.setVolume(1);
@@ -130,7 +117,7 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     },
     toggleMinimize: () => {
       if (typeof window === 'undefined') return;
-      const store = useAudioStore.getState();
+      const store = useUnifiedAudioStore.getState();
       
       store.setPlayerMode(
         store.playerMode === PlayerMode.MINI ? PlayerMode.INLINE : PlayerMode.MINI
@@ -138,14 +125,13 @@ export function AudioPlayerProvider({ children }: { children: React.ReactNode })
     },
     setShowMiniPlayer: (show: boolean) => {
       if (typeof window === 'undefined') return;
-      const store = useAudioStore.getState();
+      const store = useUnifiedAudioStore.getState();
       
       if (show) {
         store.setPlayerMode(PlayerMode.MINI);
       } else {
         store.setPlayerMode(PlayerMode.DISABLED);
       }
-      store.setVisibility(show);
     }
   };
   

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Play, Pause, Volume2, X, ChevronDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
-import { useTtsStore, PlayerMode } from "@/store/useTtsStore";
+import { useUnifiedAudioStore, PlayerMode } from "@/store/useUnifiedAudioStore";
 import { shallow } from "zustand/shallow";
 
 interface InlineTtsPlayerProps {
@@ -37,27 +37,27 @@ export function InlineTtsPlayer({
   const stableFunctions = useRef({
     pause: () => {
       if (typeof window === 'undefined') return;
-      useTtsStore.getState().pause();
+      useUnifiedAudioStore.getState().pause();
     },
     resume: () => {
       if (typeof window === 'undefined') return;
-      useTtsStore.getState().resume();
+      useUnifiedAudioStore.getState().resume();
     },
     stop: () => {
       if (typeof window === 'undefined') return;
-      useTtsStore.getState().stop();
+      useUnifiedAudioStore.getState().stop();
     },
     seek: (position: number) => {
       if (typeof window === 'undefined') return;
-      useTtsStore.getState().seek(position);
+      useUnifiedAudioStore.getState().seek(position);
     },
     setPlaybackRate: (rate: number) => {
       if (typeof window === 'undefined') return;
-      useTtsStore.getState().setPlaybackRate(rate);
+      useUnifiedAudioStore.getState().setPlaybackRate(rate);
     },
     setPlayerMode: (mode: PlayerMode) => {
       if (typeof window === 'undefined') return;
-      useTtsStore.getState().setPlayerMode(mode);
+      useUnifiedAudioStore.getState().setPlayerMode(mode);
     }
   }).current;
   
@@ -66,31 +66,31 @@ export function InlineTtsPlayer({
     if (typeof window === 'undefined') return;
     
     // Initial state update
+    const state = useUnifiedAudioStore.getState();
     setPlayerState({
-      isPlaying: useTtsStore.getState().isPlaying,
-      isPaused: useTtsStore.getState().isPaused,
-      progress: useTtsStore.getState().progress,
-      duration: useTtsStore.getState().duration,
-      currentPosition: useTtsStore.getState().currentPosition,
-      playbackRate: useTtsStore.getState().playbackRate,
-      playerMode: useTtsStore.getState().playerMode
+      isPlaying: state.isPlaying,
+      isPaused: state.isPaused,
+      progress: state.progress,
+      duration: state.duration,
+      currentPosition: state.currentTime,
+      playbackRate: state.settings.playbackRate,
+      playerMode: state.playerMode
     });
     
     // Subscribe to changes
-    const unsubscribe = useTtsStore.subscribe(
+    const unsubscribe = useUnifiedAudioStore.subscribe(
       (state) => ({
         isPlaying: state.isPlaying,
         isPaused: state.isPaused,
         progress: state.progress,
         duration: state.duration,
-        currentPosition: state.currentPosition,
-        playbackRate: state.playbackRate,
+        currentPosition: state.currentTime,
+        playbackRate: state.settings.playbackRate,
         playerMode: state.playerMode
       }),
       (newState) => {
         setPlayerState(newState);
-      },
-      { equalityFn: shallow }
+      }
     );
     
     return unsubscribe;

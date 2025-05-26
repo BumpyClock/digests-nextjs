@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
-import useAudioStore from "@/store/useAudioStore";
+import { useUnifiedAudioStore } from "@/store/useUnifiedAudioStore";
 
 interface AudioErrorHandlerProps {
   showToasts?: boolean;
@@ -32,13 +32,13 @@ export function AudioErrorHandler({ showToasts = true }: AudioErrorHandlerProps)
     if (typeof window === 'undefined') return;
     
     // Initial state
-    const initialError = useAudioStore.getState().error;
+    const initialError = useUnifiedAudioStore.getState().error;
     if (initialError) {
       setError(initialError);
     }
     
     // Subscribe to error changes
-    const unsubscribe = useAudioStore.subscribe(
+    const unsubscribe = useUnifiedAudioStore.subscribe(
       state => state.error,
       (currentError) => {
         setError(currentError);
@@ -70,13 +70,13 @@ export function AudioErrorHandler({ showToasts = true }: AudioErrorHandlerProps)
           onClick: () => {
             if (typeof window !== 'undefined') {
               // Clear the error in the store
-              useAudioStore.getState().clearError();
+              useUnifiedAudioStore.getState().clearError();
               
               // If it's a browser interaction error, we can try to resume playback
               if (error.code === 'USER_INTERACTION_REQUIRED') {
                 setTimeout(() => {
-                  const store = useAudioStore.getState();
-                  if (store.audioSource && store.isPaused) {
+                  const store = useUnifiedAudioStore.getState();
+                  if (store.isPaused) {
                     store.resume();
                   }
                 }, 500);
@@ -94,7 +94,7 @@ export function AudioErrorHandler({ showToasts = true }: AudioErrorHandlerProps)
     // Auto-clear error after toast is shown
     const timerId = setTimeout(() => {
       if (typeof window !== 'undefined') {
-        useAudioStore.getState().clearError();
+        useUnifiedAudioStore.getState().clearError();
       }
     }, 5000);
     

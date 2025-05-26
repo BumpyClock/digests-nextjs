@@ -20,9 +20,9 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
-  useAudioStore,
+  useUnifiedAudioStore,
   PlayerMode
-} from "@/store/useAudioStore";
+} from "@/store/useUnifiedAudioStore";
 
 interface UnifiedPlayerProps {
   className?: string;
@@ -58,8 +58,8 @@ export function UnifiedPlayer({
     volume: 1,
     playerMode: mode === "mini" ? PlayerMode.MINI : PlayerMode.INLINE,
     isVisible: true,
-    currentContent: null,
-    contentType: 'none' as 'none' | 'article' | 'podcast'
+    currentContent: null as any,
+    contentType: 'none' as any
   });
   
   // Subscribe to store changes using a single effect
@@ -67,7 +67,7 @@ export function UnifiedPlayer({
     if (typeof window === 'undefined') return;
     
     // Initial state from store
-    const store = useAudioStore.getState();
+    const store = useUnifiedAudioStore.getState();
     setPlayerState({
       isPlaying: store.isPlaying,
       isPaused: store.isPaused,
@@ -76,8 +76,8 @@ export function UnifiedPlayer({
       currentTime: store.currentTime,
       duration: store.duration,
       formattedTime: store.getFormattedTime(),
-      playbackRate: store.playbackRate,
-      volume: store.volume,
+      playbackRate: store.settings.playbackRate,
+      volume: store.settings.volume,
       playerMode: store.playerMode,
       isVisible: store.isVisible,
       currentContent: store.currentContent,
@@ -85,7 +85,7 @@ export function UnifiedPlayer({
     });
     
     // Subscribe to changes
-    const unsubscribe = useAudioStore.subscribe(
+    const unsubscribe = useUnifiedAudioStore.subscribe(
       state => ({
         isPlaying: state.isPlaying,
         isPaused: state.isPaused,
@@ -94,8 +94,8 @@ export function UnifiedPlayer({
         currentTime: state.currentTime,
         duration: state.duration,
         formattedTime: state.getFormattedTime(),
-        playbackRate: state.playbackRate,
-        volume: state.volume,
+        playbackRate: state.settings.playbackRate,
+        volume: state.settings.volume,
         playerMode: state.playerMode,
         isVisible: state.isVisible,
         currentContent: state.currentContent,
@@ -132,31 +132,31 @@ export function UnifiedPlayer({
   const storeActions = React.useRef({
     pause: () => {
       if (typeof window === 'undefined') return;
-      useAudioStore.getState().pause();
+      useUnifiedAudioStore.getState().pause();
     },
     resume: () => {
       if (typeof window === 'undefined') return;
-      useAudioStore.getState().resume();
+      useUnifiedAudioStore.getState().resume();
     },
     stop: () => {
       if (typeof window === 'undefined') return;
-      useAudioStore.getState().stop();
+      useUnifiedAudioStore.getState().stop();
     },
     seek: (time: number) => {
       if (typeof window === 'undefined') return;
-      useAudioStore.getState().seek(time);
+      useUnifiedAudioStore.getState().seek(time);
     },
     setPlaybackRate: (rate: number) => {
       if (typeof window === 'undefined') return;
-      useAudioStore.getState().setPlaybackRate(rate);
+      useUnifiedAudioStore.getState().setPlaybackRate(rate);
     },
     setVolume: (vol: number) => {
       if (typeof window === 'undefined') return;
-      useAudioStore.getState().setVolume(vol);
+      useUnifiedAudioStore.getState().setVolume(vol);
     },
     setPlayerMode: (mode: PlayerMode) => {
       if (typeof window === 'undefined') return;
-      useAudioStore.getState().setPlayerMode(mode);
+      useUnifiedAudioStore.getState().setPlayerMode(mode);
     }
   }).current;
 
@@ -421,7 +421,7 @@ export function UnifiedPlayer({
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       key={rate}
-                      onClick={() => setPlaybackRate(rate)}
+                      onClick={() => storeActions.setPlaybackRate(rate)}
                       className={`px-2 py-1 rounded transition-colors ${
                         rate === playbackRate
                           ? "bg-primary/10 font-bold text-primary"
@@ -560,7 +560,7 @@ export function UnifiedPlayer({
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setPlaybackRate(playbackRate === 1 ? 1.5 : 1)}
+              onClick={() => storeActions.setPlaybackRate(playbackRate === 1 ? 1.5 : 1)}
               className={`px-2 py-1 rounded transition-colors bg-primary/10 font-medium text-primary hover:bg-primary/20`}
               aria-label={`Playback speed ${playbackRate}x`}
             >

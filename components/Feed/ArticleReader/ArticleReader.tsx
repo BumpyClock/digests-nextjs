@@ -10,7 +10,7 @@ import { cleanupModalContent } from "@/utils/htmlUtils";
 import { useFeedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-media-query";
-import useAudioStore, { PlayerMode } from "@/store/useAudioStore";
+import { useUnifiedAudioStore, PlayerMode } from "@/store/useUnifiedAudioStore";
 import { UnifiedPlayer } from "@/components/player/UnifiedPlayer";
 import { shallow } from "zustand/shallow";
 
@@ -97,7 +97,7 @@ export const ArticleHeader = memo(({
   const [isInReadLaterList, setIsInReadLaterList] = useState(false);
   
   // Access audio store functions directly for stability
-  const playTTS = useAudioStore.getState().playTTS;
+  const loadContent = useUnifiedAudioStore.getState().loadContent;
 
   useEffect(() => {
     setIsInReadLaterList(isInReadLater(feedItem.id));
@@ -152,21 +152,22 @@ export const ArticleHeader = memo(({
     const id = `article-${feedItem.id}`;
     
     // Access store directly for more direct control
-    const storeState = useAudioStore.getState();
+    const storeState = useUnifiedAudioStore.getState();
     
-    // First set visibility and player mode to guarantee UI is ready
+    // First set player mode to guarantee UI is ready
     // This solves the delayed appearance problem
-    storeState.setVisibility(true);
     storeState.setPlayerMode(layout === "modal" ? PlayerMode.INLINE : PlayerMode.MINI);
     
     // Then start TTS playback
     // We do this in a slight delay to ensure UI has updated first
     setTimeout(() => {
-      storeState.playTTS(text, {
+      storeState.loadContent({
         id,
         title,
         source,
-        thumbnail
+        thumbnail,
+        textContent: text,
+        autoplay: true
       });
     }, 10);
     
@@ -322,14 +323,14 @@ export const ArticleContent = memo(({ content, className, layout = "standard" }:
     if (typeof window === 'undefined') return;
     
     // Get initial state
-    const store = useAudioStore.getState();
+    const store = useUnifiedAudioStore.getState();
     setAudioState({
       isVisible: store.isVisible,
       playerMode: store.playerMode
     });
     
     // Subscribe to changes
-    const unsubscribe = useAudioStore.subscribe(
+    const unsubscribe = useUnifiedAudioStore.subscribe(
       state => ({
         isVisible: state.isVisible,
         playerMode: state.playerMode
@@ -349,7 +350,7 @@ export const ArticleContent = memo(({ content, className, layout = "standard" }:
   useEffect(() => {
     if (layout === "modal" && isVisible && playerMode !== PlayerMode.INLINE) {
       console.log("Setting player mode to inline for modal layout");
-      const store = useAudioStore.getState();
+      const store = useUnifiedAudioStore.getState();
       store.setPlayerMode(PlayerMode.INLINE);
     }
   }, [layout, isVisible, playerMode]);
