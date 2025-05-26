@@ -6,7 +6,9 @@ import "./typography.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
+import { AudioProvider } from "@/components/player/AudioProvider";
 import { AudioPlayerProvider } from "@/components/audio-player-provider";
+import { AudioErrorHandler } from "@/components/player/AudioErrorHandler";
 import { WorkerInitializer } from "@/components/worker-init";
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/react';
@@ -51,23 +53,25 @@ export default function RootLayout({
       </head>
       <body className={notoSans.className}>
         <ThemeProvider>
-          <AudioPlayerProvider>
-            <WorkerInitializer />
-            <AmbilightFilterDefs
-              saturation={1}
-              spread={2}
-              blur={8}
-            />
-            <div className="flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1 w-full p-4 xs:p-4 md:p-4 xs:max-w-full md:max-w-5xl lg:max-w-full">
-                {children}
-                <SpeedInsights />
-                <Analytics />
-              </main>
-            </div>
-            <Toaster />
-          </AudioPlayerProvider>
+          <AudioProvider>
+            <AudioPlayerProvider>
+              <WorkerInitializer />
+              <AmbilightFilterDefs
+                saturation={1}
+                spread={2}
+                blur={8}
+              />
+              <div className="flex min-h-screen flex-col">
+                <Header />
+                <main className="flex-1 w-full p-4 xs:p-4 md:p-4 xs:max-w-full md:max-w-5xl lg:max-w-full">
+                  {children}
+                  <SpeedInsights />
+                  <Analytics />
+                </main>
+              </div>
+              <Toaster />
+            </AudioPlayerProvider>
+          </AudioProvider>
         </ThemeProvider>
       </body>
     </html>

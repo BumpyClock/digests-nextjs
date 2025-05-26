@@ -1,3 +1,6 @@
+// ABOUTME: OPML generation and export utilities for feed subscriptions
+// ABOUTME: Handles creating OPML XML format and downloading feed exports
+
 import type { Feed } from "@/types"
 
 export function generateOPML(feeds: Feed[]): string {
@@ -34,4 +37,4 @@ export function downloadBlob(content: string, filename: string, contentType: str
 export function exportOPML(feeds: Feed[]): void {
   const opml = generateOPML(feeds)
   downloadBlob(opml, "digests-subscriptions.opml", "text/xml")
-} 
+}

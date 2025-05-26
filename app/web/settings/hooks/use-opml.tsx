@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react"
 import { useFeedStore } from "@/store/useFeedStore"
 import { toast } from "sonner"
-import { exportOPML } from "../utils/opml"
+import { exportOPML } from "@/utils/opml"
 
 interface FeedItem {
   url: string

@@ -1,17 +1,11 @@
 "use client"
 
-import React, { createContext, useContext, useState, useRef, useEffect, useCallback, useMemo } from "react"
-import { Card, CardContent } from "@/components/ui/card"
-import { AudioControls } from "@/components/AudioControls"
-import { AudioMiniPlayer } from "@/components/AudioMiniPlayer"
-import Image from "next/image"
-interface AudioInfo {
-  id: string
-  title: string
-  source: string
-  audioUrl: string
-  image?: string
-}
+import React, { createContext, useContext } from "react"
+import { AudioInfo } from "@/types"
+import { useUnifiedAudioStore, PlayerMode } from "@/store/useUnifiedAudioStore"
+
+// This file provides backward compatibility with the old AudioPlayerProvider
+// It re-exports the old context API, but uses the new unified audio system internally
 
 interface AudioPlayerContextType {
   currentAudio: AudioInfo | null
@@ -31,6 +25,7 @@ interface AudioPlayerContextType {
   setShowMiniPlayer: (show: boolean) => void
 }
 
+// Create a context with a default value
 const AudioPlayerContext = createContext<AudioPlayerContextType | undefined>(undefined)
 
 export const useAudioPlayer = () => {
@@ -41,204 +36,108 @@ export const useAudioPlayer = () => {
   return context
 }
 
+// Alias for backward compatibility
 export const useAudio = useAudioPlayer
 
-const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentAudio, setCurrentAudio] = useState<AudioInfo | null>(null)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [duration, setDuration] = useState(0)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [volume, setVolume] = useState(1)
-  const [isMuted, setIsMuted] = useState(false)
-  const [isMinimized, setIsMinimized] = useState(false)
-  const [showMiniPlayer, setShowMiniPlayer] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const animationRef = useRef<number | undefined>(undefined)
-
-  const playAudio = useCallback((audioInfo: AudioInfo) => {
-    setCurrentAudio((prev) => {
-      if (prev && prev.id === audioInfo.id) {
-        setIsPlaying((prevPlaying) => !prevPlaying)
-        return prev
-      }
-      setIsPlaying(true)
-      setShowMiniPlayer(true)
-      setIsMinimized(true)
-      return audioInfo
-    })
-  }, [])
-
-  const togglePlayPause = useCallback(() => {
-    setIsPlaying((prev) => {
-      if (!prev) {
-        setShowMiniPlayer(true)
-      }
-      return !prev
-    })
-  }, [])
-
-  const seek = useCallback((value: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = value
-      setCurrentTime(value)
-    }
-  }, [])
-
-  const updateVolume = useCallback((value: number) => {
-    setVolume(value)
-    setIsMuted(value === 0)
-  }, [])
-
-  const toggleMute = useCallback(() => {
-    setIsMuted((prev) => !prev)
-  }, [])
-
-  const toggleMinimize = useCallback(() => {
-    setIsMinimized((prev) => !prev)
-  }, [])
-
-  const setShowMiniPlayerHandler = useCallback((show: boolean) => {
-    setShowMiniPlayer(show)
-  }, [])
-
-  const updateTime = useCallback(() => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime)
-      animationRef.current = requestAnimationFrame(updateTime)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.play().catch((error) => {
-          console.error("Error playing audio:", error)
-          setIsPlaying(false)
-        })
-        animationRef.current = requestAnimationFrame(updateTime)
+// Provider component that wraps around the app
+export function AudioPlayerProvider({ children }: { children: React.ReactNode }) {
+  // Use individual selectors to avoid creating new objects
+  const isPlaying = useUnifiedAudioStore(state => state.isPlaying);
+  const isPaused = useUnifiedAudioStore(state => state.isPaused);
+  const currentTime = useUnifiedAudioStore(state => state.currentTime);
+  const duration = useUnifiedAudioStore(state => state.duration);
+  const volume = useUnifiedAudioStore(state => state.settings.volume);
+  const playerMode = useUnifiedAudioStore(state => state.playerMode);
+  const currentContent = useUnifiedAudioStore(state => state.currentContent);
+  
+  // Map the new system to the old API
+  const audioPlayerValue: AudioPlayerContextType = {
+    // State
+    currentAudio: currentContent ? {
+      id: currentContent.id,
+      title: currentContent.title,
+      source: currentContent.source,
+      audioUrl: currentContent.audioUrl || '',
+      image: currentContent.thumbnail,
+      isTTS: currentContent.type === 'article'
+    } : null,
+    isPlaying: isPlaying,
+    duration: duration,
+    currentTime: currentTime,
+    volume: volume,
+    isMuted: volume === 0,
+    isMinimized: playerMode === PlayerMode.MINI,
+    showMiniPlayer: playerMode !== PlayerMode.DISABLED,
+    
+    // Functions - use store methods directly
+    playAudio: (audioInfo: AudioInfo) => {
+      if (typeof window === 'undefined') return;
+      
+      if (audioInfo.isTTS) {
+        // This would need text content, which we don't have in the old API
+        console.warn("TTS playback through old API is not fully supported");
       } else {
-        audioRef.current.pause()
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current)
-        }
+        useUnifiedAudioStore.getState().loadContent({
+          id: audioInfo.id,
+          title: audioInfo.title,
+          source: audioInfo.source,
+          thumbnail: audioInfo.image,
+          audioUrl: audioInfo.audioUrl || "",
+          autoplay: true
+        });
+      }
+    },
+    togglePlayPause: () => {
+      if (typeof window === 'undefined') return;
+      const store = useUnifiedAudioStore.getState();
+      
+      if (store.isPlaying) {
+        store.pause();
+      } else {
+        store.resume();
+      }
+    },
+    seek: (value: number) => {
+      if (typeof window === 'undefined') return;
+      useUnifiedAudioStore.getState().seek(value);
+    },
+    setVolume: (value: number) => {
+      if (typeof window === 'undefined') return;
+      useUnifiedAudioStore.getState().setVolume(value);
+    },
+    toggleMute: () => {
+      if (typeof window === 'undefined') return;
+      const store = useUnifiedAudioStore.getState();
+      
+      if (store.settings.volume > 0) {
+        store.setVolume(0);
+      } else {
+        store.setVolume(1);
+      }
+    },
+    toggleMinimize: () => {
+      if (typeof window === 'undefined') return;
+      const store = useUnifiedAudioStore.getState();
+      
+      store.setPlayerMode(
+        store.playerMode === PlayerMode.MINI ? PlayerMode.INLINE : PlayerMode.MINI
+      );
+    },
+    setShowMiniPlayer: (show: boolean) => {
+      if (typeof window === 'undefined') return;
+      const store = useUnifiedAudioStore.getState();
+      
+      if (show) {
+        store.setPlayerMode(PlayerMode.MINI);
+      } else {
+        store.setPlayerMode(PlayerMode.DISABLED);
       }
     }
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current)
-      }
-    }
-  }, [isPlaying, updateTime])
-
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume
-    }
-  }, [volume, isMuted])
-
-  const handleLoadedMetadata = useCallback(() => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration)
-    }
-  }, [])
-
-  const contextValue = useMemo(
-    () => ({
-      currentAudio,
-      isPlaying,
-      duration,
-      currentTime,
-      volume,
-      isMuted,
-      isMinimized,
-      showMiniPlayer,
-      playAudio,
-      togglePlayPause,
-      seek,
-      setVolume: updateVolume,
-      toggleMute,
-      toggleMinimize,
-      setShowMiniPlayer: setShowMiniPlayerHandler,
-    }),
-    [
-      currentAudio,
-      isPlaying,
-      duration,
-      currentTime,
-      volume,
-      isMuted,
-      isMinimized,
-      showMiniPlayer,
-      playAudio,
-      togglePlayPause,
-      seek,
-      updateVolume,
-      toggleMute,
-      toggleMinimize,
-      setShowMiniPlayerHandler,
-    ],
-  )
-
+  };
+  
   return (
-    <AudioPlayerContext.Provider value={contextValue}>
+    <AudioPlayerContext.Provider value={audioPlayerValue}>
       {children}
-      {currentAudio && (
-        <audio
-          ref={audioRef}
-          src={currentAudio.audioUrl}
-          onLoadedMetadata={handleLoadedMetadata}
-          onEnded={() => setIsPlaying(false)}
-        />
-      )}
     </AudioPlayerContext.Provider>
   )
 }
-
-const AudioControlsWrapper = React.memo(() => <AudioControls />)
-AudioControlsWrapper.displayName = 'AudioControlsWrapper'
-
-
-const AudioPlayer = React.memo(() => {
-  const { currentAudio, isMinimized, showMiniPlayer } = useAudioPlayer()
-
-  if (!currentAudio || !showMiniPlayer) return null
-
-  if (isMinimized) {
-    return <AudioMiniPlayer />
-  }
-
-  return (
-    <Card className="fixed bottom-0 left-0 right-0 z-40">
-      <CardContent className="p-4 flex items-center">
-        <div className="flex items-center flex-1">
-          {currentAudio.image && (
-            <div className="w-12 h-12 rounded overflow-hidden mr-3 flex-shrink-0">
-              <Image
-                src={currentAudio.image || "/placeholder.svg"}
-                alt={currentAudio.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
-          <div className="flex-1">
-            <div className="font-medium truncate">{currentAudio.title}</div>
-            <div className="text-xs text-muted-foreground">{currentAudio.source}</div>
-          </div>
-        </div>
-        <AudioControlsWrapper />
-      </CardContent>
-    </Card>
-  )
-})
-
-AudioPlayer.displayName = "AudioPlayer"
-
-export function AudioPlayerProvider({ children }: { children: React.ReactNode }) {
-  return (
-    <AudioProvider>
-      {children}
-      <AudioPlayer />
-    </AudioProvider>
-  )
-}
-

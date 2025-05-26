@@ -17,3 +17,13 @@ export interface Result<T, E = Error> {
   data?: T
   error?: E
 }
+
+export interface AudioInfo {
+  id: string;
+  title: string;
+  source: string;
+  audioUrl: string;
+  image?: string;
+  isTTS?: boolean;
+  ttsAdapter?: any; // Will be a TTSAudioAdapter instance
+}
