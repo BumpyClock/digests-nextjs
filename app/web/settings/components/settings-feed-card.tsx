@@ -1,18 +1,31 @@
-import { memo, useCallback } from "react"
+import { memo, useCallback, useState } from "react"
 import { Trash2, Copy } from "lucide-react"
 import Image from "next/image"
 import noise from "@/public/noise.svg"
 import placeholderRss from "@/public/placeholder-rss.svg"
 import placeholderPodcast from "@/public/placeholder-podcast.svg"
 import type { Feed } from "@/types"
+import { Ambilight } from "@/components/ui/ambilight"
 
+/**
+ * Props for the SettingsFeedCard component
+ */
 interface FeedCardProps {
+  /** Feed data to display */
   feed: Feed;
+  /** Optional callback for when the delete button is clicked */
   onDelete?: () => void
+  /** Optional callback for when the copy button is clicked */
   onCopy?: () => void
 }
 
+/**
+ * Card component for displaying feed information in the settings page.
+ * Includes delete and copy functionality with hover effects and animations.
+ */
 export const SettingsFeedCard = memo(function SettingsFeedCard({ feed, onDelete, onCopy }: FeedCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
   const handleDelete = useCallback(() => {
     onDelete?.()
   }, [onDelete])
@@ -24,17 +37,27 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({ feed, onDelete,
   const placeholderImage = feed.type === 'podcast' ? placeholderPodcast : placeholderRss
 
   return (
-    <div className="relative group transition-all duration-200 group-hover:scale-105 group-hover:translate-y-[-8px]">
+    <div 
+      className="relative group transition-all duration-200 group-hover:scale-105 group-hover:translate-y-[-8px]"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       <div id={`settings-feed-card-${feed.feedUrl}`} className="relative p-5 flex flex-col h-full z-2">
         <div className="flex-1">
           <div className="mb-4 transition-all duration-300 group-hover:translate-y-[-4px]">
-            <Image 
-              src={feed.favicon || placeholderImage} 
-              alt={`${feed.siteTitle} icon`} 
-              width={48} 
-              height={48} 
-              className="rounded-sm group-hover:scale-110 transition-all duration-200" 
-            />
+            <Ambilight
+              className="relative w-[48px] h-[48px] rounded-sm overflow-hidden"
+              parentHovered={isHovered}
+              opacity={{ rest: 0, hover: 0.3 }}
+            >
+              <Image 
+                src={feed.favicon || placeholderImage} 
+                alt={`${feed.siteTitle} icon`} 
+                width={48} 
+                height={48} 
+                className="rounded-sm group-hover:scale-110 transition-all duration-200" 
+              />
+            </Ambilight>
           </div>
           <h3 className="font-bold text-sm mb-1 line-clamp-2">{feed.siteTitle}</h3>
           {feed.feedTitle && <p className="text-caption text-sm mb-2">{feed.feedTitle}</p>}

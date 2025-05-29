@@ -13,6 +13,10 @@ interface AmbilightFilterDefsProps {
    * If true, the final image is composited over the blurred glow, so it won't look blurry.
    */
   showSource?: boolean;
+  /**
+   * Controls the opacity of the glow effect (0-1)
+   */
+  opacity?: number;
 }
 
 /**
@@ -23,6 +27,7 @@ export function AmbilightFilterDefs({
   saturation = 1,
   spread = 2,
   blur = 8,
+  opacity = 1,  
 }: AmbilightFilterDefsProps) {
   return (
     <svg width="0" height="0" style={{ position: "absolute" }}>
@@ -69,9 +74,14 @@ export function AmbilightFilterDefs({
             result="ambilight-light"
           />
 
+          {/* Adjust opacity of the glow */}
+          <feComponentTransfer in="ambilight-light" result="adjusted-opacity">
+            <feFuncA type="linear" slope={opacity} />
+          </feComponentTransfer>
+
           {/* Composite: Put the original image on top of the glow */}
           <feOffset in="SourceGraphic" result="source" />
-          <feComposite in="source" in2="ambilight-light" operator="over" />
+          <feComposite in="source" in2="adjusted-opacity" operator="over" />
         </filter>
       </defs>
     </svg>

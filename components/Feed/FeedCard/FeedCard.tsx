@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, MessageSquare, Share2, Play, Pause } from "lucide-react";
-import { useAudio } from "@/components/audio-player-provider";
+import { useAudioStore } from "@/store/useAudioStore";
 import { useToast } from "@/hooks/use-toast";
 import { ReaderViewModal } from "@/components/reader-view-modal";
 import { PodcastDetailsModal } from "@/components/podcast-details-modal";
@@ -31,89 +31,19 @@ interface FeedCardProps {
 }
 
 /**
- * CardFooter component for displaying like, comment, and share buttons.
- *
- * @param {Object} props - Component props.
- * @param {boolean} props.liked - Indicates if the item is liked.
- * @param {boolean} props.isTogglingFavorite - Indicates if the favorite toggle is in progress.
- * @param {function} props.handleLikeClick - Function to handle like button click.
- * @param {string} props.feedType - Type of the feed item (e.g., podcast).
- * @param {number} [props.duration] - Duration of the podcast, if applicable.
- */
-const CardFooter = memo(function CardFooter({
-  liked,
-  isTogglingFavorite,
-  handleLikeClick,
-  feedType,
-  duration,
-}: {
-  liked: boolean;
-  isTogglingFavorite: boolean;
-  handleLikeClick: (e: React.MouseEvent) => void;
-  feedType: string;
-  duration?: number;
-}) {
-  return (
-    <CardFooterUI className="p-4 pt-0 flex justify-between">
-      <div className="flex space-x-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          onClick={handleLikeClick}
-          disabled={isTogglingFavorite}
-        >
-          <Heart
-            className={`h-4 w-4 ${liked ? "fill-red-500 text-red-500" : ""}`}
-          />
-          <span className="sr-only">Like</span>
-        </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <MessageSquare className="h-4 w-4" />
-          <span className="sr-only">Comment</span>
-        </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <Share2 className="h-4 w-4" />
-          <span className="sr-only">Share</span>
-        </Button>
-      </div>
-      {feedType === "podcast" && duration && (
-        <div className="text-xs text-muted-foreground">
-          {formatDuration(duration)}
-        </div>
-      )}
-    </CardFooterUI>
-  );
-});
-
-function useCardShadow(id: string, color: { r: number; g: number; b: number }) {
-  const { theme } = useTheme();
-  const isDarkMode = theme === "dark";
-  const [shadows, setShadows] = useState({
-    restShadow: "",
-    hoverShadow: "",
-    pressedShadow: "",
-  });
-
-  useEffect(() => {
-    workerService
-      .generateShadows(id, color, isDarkMode)
-      .then((newShadows) => {
-        setShadows(newShadows);
-      })
-      .catch((error) => {
-        console.error("Error generating shadows:", error);
-      });
-  }, [id, color, isDarkMode]);
-
-  return shadows;
-}
-
-/**
- * FeedCard component for displaying individual feed items.
- *
- * @param {Object} props - Component props.
- * @param {FeedItem} props.feed - The feed item to display.
+ * FeedCard component for displaying individual feed items with interactive features like
+ * reading articles, playing podcasts, and favoriting content.
+ * 
+ * Features:
+ * - Interactive card with hover and press animations
+ * - Dynamic shadow effects based on thumbnail color
+ * - Support for both article and podcast content types
+ * - Reader view and podcast details modals
+ * - Audio playback controls for podcasts
+ * - Like, comment, and share functionality
+ * 
+ * @param {Object} props - Component props
+ * @param {FeedItem} props.feed - The feed item to display
  */
 export const FeedCard = memo(function FeedCard({
   feed: feedItem,
@@ -129,7 +59,7 @@ export const FeedCard = memo(function FeedCard({
     height: 0,
   });
   const cardRef = useRef<HTMLDivElement>(null);
-  const { playAudio, isPlaying, currentAudio } = useAudio();
+  const { playAudio, isPlaying, currentAudio } = useAudioStore();
   const { toast } = useToast();
   const [imageError, setImageError] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
@@ -150,14 +80,17 @@ export const FeedCard = memo(function FeedCard({
   }, [readItems, feedItem.id]);
 
   /**
-   * Handles the click event on the card.
-   *
-   * @param {React.MouseEvent<HTMLDivElement>} e - The click event.
+   * Handles the click event on the card, preventing default behavior
+   * and managing the card's interactive states.
    */
   const handleCardClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
   }, []);
 
+  /**
+   * Handles the mouse down event, setting up the initial position
+   * for animations and marking the card as pressed.
+   */
   const handleMouseDown = useCallback(() => {
     if (!isAnimating) {
       setIsPressed(true);
@@ -174,6 +107,10 @@ export const FeedCard = memo(function FeedCard({
     }
   }, [isAnimating]);
 
+  /**
+   * Handles the mouse up event, managing the card's animation states
+   * and opening the appropriate modal based on content type.
+   */
   const handleMouseUp = useCallback(() => {
     if (isPressed) {
       setIsPressed(false);
@@ -204,6 +141,10 @@ export const FeedCard = memo(function FeedCard({
     };
   }, []);
 
+  /**
+   * Handles the play button click for podcast content,
+   * initiating audio playback and marking the item as read.
+   */
   const handlePlayClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
@@ -225,9 +166,8 @@ export const FeedCard = memo(function FeedCard({
   );
 
   /**
-   * Handles the click event on the like button.
-   *
-   * @param {React.MouseEvent} e - The click event.
+   * Handles the like button click, managing the favorite state
+   * with optimistic updates and error handling.
    */
   const handleLikeClick = useCallback(
     async (e: React.MouseEvent) => {
@@ -260,6 +200,9 @@ export const FeedCard = memo(function FeedCard({
     [isTogglingFavorite, toast]
   );
 
+  /**
+   * Formats a date string into a relative time format (e.g., "2 hours ago").
+   */
   const formatDate = useCallback((dateString: string) => {
     return dayjs(dateString).fromNow();
   }, []);
@@ -267,18 +210,54 @@ export const FeedCard = memo(function FeedCard({
   const isCurrentlyPlaying =
     currentAudio && currentAudio.id === feedItem.id && isPlaying;
 
+  /**
+   * Handles image loading errors for the main thumbnail.
+   */
   const handleImageError = useCallback(() => {
     setImageError(true);
   }, []);
 
+  /**
+   * Handles favicon loading errors.
+   */
   const handleFaviconError = useCallback(() => {
     setFaviconError(true);
   }, []);
 
+  /**
+   * Returns the appropriate shadow style based on the card's current state.
+   */
   const getShadowStyle = () => {
     if (isPressed) return pressedShadow;
     if (isHovered) return hoverShadow;
     return restShadow;
+  };
+
+  /**
+   * Renders the appropriate modal based on the content type and state.
+   */
+  const renderModal = () => {
+    if (!isReaderViewOpen && !isPodcastDetailsOpen) return null;
+
+    if (feedItem.type === "podcast") {
+      return isPodcastDetailsOpen ? (
+        <PodcastDetailsModal
+          isOpen={isPodcastDetailsOpen}
+          onClose={() => setIsPodcastDetailsOpen(false)}
+          podcast={feedItem}
+          initialPosition={initialPosition}
+        />
+      ) : null;
+    } else {
+      return isReaderViewOpen ? (
+        <ReaderViewModal
+          isOpen={isReaderViewOpen}
+          onClose={() => setIsReaderViewOpen(false)}
+          feedItem={feedItem}
+          initialPosition={initialPosition}
+        />
+      ) : null;
+    }
   };
 
   return (
@@ -290,7 +269,7 @@ export const FeedCard = memo(function FeedCard({
             boxShadow: getShadowStyle(),
             transition: "all 100ms ease-out",
             transform: isPressed ? "translateY(2px)" : "none",
-            opacity: isRead ? 0.8 : 1,
+            opacity: isRead ? 0.4 : 1,
           } as React.CSSProperties
         }
         className={`card w-full bg-card overflow-hidden cursor-pointer rounded-[40px] relative group ${isRead ? "read-item" : ""
@@ -331,7 +310,7 @@ export const FeedCard = memo(function FeedCard({
               <Ambilight
   className="relative w-full aspect-[16/9] rounded-[32px] overflow-hidden"
   parentHovered={isHovered}
-  opacity={{ rest: 0, hover: 0.7 }}
+  opacity={{ rest: 0, hover: 1 }}
 >
                 {imageLoading && (
                   <Skeleton className="absolute inset-0 z-10 rounded-[32px]" />
@@ -420,21 +399,94 @@ export const FeedCard = memo(function FeedCard({
           />
         </div>
       </Card>
-      {feedItem.type === "podcast" ? (
-        <PodcastDetailsModal
-          isOpen={isPodcastDetailsOpen}
-          onClose={() => setIsPodcastDetailsOpen(false)}
-          podcast={feedItem}
-          initialPosition={initialPosition}
-        />
-      ) : (
-        <ReaderViewModal
-          isOpen={isReaderViewOpen}
-          onClose={() => setIsReaderViewOpen(false)}
-          feedItem={feedItem}
-          initialPosition={initialPosition}
-        />
-      )}
+      {renderModal()}
     </>
   );
 });
+
+/**
+ * CardFooter component for displaying interactive actions and metadata.
+ * 
+ * @param {Object} props - Component props
+ * @param {boolean} props.liked - Indicates if the item is liked
+ * @param {boolean} props.isTogglingFavorite - Indicates if the favorite toggle is in progress
+ * @param {function} props.handleLikeClick - Function to handle like button click
+ * @param {string} props.feedType - Type of the feed item (e.g., podcast)
+ * @param {number} [props.duration] - Duration of the podcast, if applicable
+ */
+const CardFooter = memo(function CardFooter({
+  liked,
+  isTogglingFavorite,
+  handleLikeClick,
+  feedType,
+  duration,
+}: {
+  liked: boolean;
+  isTogglingFavorite: boolean;
+  handleLikeClick: (e: React.MouseEvent) => void;
+  feedType: string;
+  duration?: number;
+}) {
+  return (
+    <CardFooterUI className="p-4 pt-0 flex justify-between">
+      <div className="flex space-x-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={handleLikeClick}
+          disabled={isTogglingFavorite}
+        >
+          <Heart
+            className={`h-4 w-4 ${liked ? "fill-red-500 text-red-500" : ""}`}
+          />
+          <span className="sr-only">Like</span>
+        </Button>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MessageSquare className="h-4 w-4" />
+          <span className="sr-only">Comment</span>
+        </Button>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <Share2 className="h-4 w-4" />
+          <span className="sr-only">Share</span>
+        </Button>
+      </div>
+      {feedType === "podcast" && duration && (
+        <div className="text-xs text-muted-foreground">
+          {formatDuration(duration)}
+        </div>
+      )}
+    </CardFooterUI>
+  );
+});
+
+/**
+ * Custom hook to manage card shadow styles based on theme and state.
+ * Generates dynamic shadows using a web worker for performance.
+ * 
+ * @param {string} id - The unique identifier for the card
+ * @param {{ r: number; g: number; b: number }} color - The RGB color object for the shadow
+ * @returns {{ restShadow: string; hoverShadow: string; pressedShadow: string }} - The shadow styles
+ */
+function useCardShadow(id: string, color: { r: number; g: number; b: number }) {
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const [shadows, setShadows] = useState({
+    restShadow: "",
+    hoverShadow: "",
+    pressedShadow: "",
+  });
+
+  useEffect(() => {
+    workerService
+      .generateShadows(id, color, isDarkMode)
+      .then((newShadows) => {
+        setShadows(newShadows);
+      })
+      .catch((error) => {
+        console.error("Error generating shadows:", error);
+      });
+  }, [id, color, isDarkMode]);
+
+  return shadows;
+}

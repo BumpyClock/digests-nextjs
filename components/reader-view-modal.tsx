@@ -10,14 +10,23 @@ import { workerService } from "@/services/worker-service";
 import { Scrollbars } from "react-custom-scrollbars-2";
 import { cleanupModalContent } from "@/utils/htmlUtils";
 
+/**
+ * Props for the ReaderViewModal component
+ */
 interface ReaderViewModalProps {
+  /** Whether the modal is currently open */
   isOpen: boolean;
+  /** Callback function to close the modal */
   onClose: () => void;
+  /** Feed item to display in the reader view */
   feedItem: FeedItem;
+  /** Initial position and dimensions for the modal animation */
   initialPosition: { x: number; y: number; width: number; height: number };
 }
 
-// Memoized Image component for better performance
+/**
+ * Memoized Image component for displaying article images with consistent dimensions
+ */
 const ArticleImage = memo(({ src, alt, className, style }: { src: string; alt: string; className: string; style?: React.CSSProperties }) => (
   <Image
     src={src || "/placeholder.svg"}
@@ -30,7 +39,9 @@ const ArticleImage = memo(({ src, alt, className, style }: { src: string; alt: s
 ));
 ArticleImage.displayName = 'ArticleImage';
 
-// Memoized favicon component
+/**
+ * Memoized favicon component for displaying site icons
+ */
 const SiteFavicon = memo(({ favicon, siteTitle }: { favicon: string; siteTitle: string }) => (
   <Image
     src={favicon || "/placeholder.svg"}
@@ -42,7 +53,9 @@ const SiteFavicon = memo(({ favicon, siteTitle }: { favicon: string; siteTitle: 
 ));
 SiteFavicon.displayName = 'SiteFavicon';
 
-// Memoized article header component
+/**
+ * Memoized article header component displaying title, site info, and reading time
+ */
 const ArticleHeader = memo(({ feedItem, readerView, parallaxOffset }: { 
   feedItem: FeedItem; 
   readerView: ReaderViewResponse | null;
@@ -78,7 +91,9 @@ const ArticleHeader = memo(({ feedItem, readerView, parallaxOffset }: {
 ));
 ArticleHeader.displayName = 'ArticleHeader';
 
-// Memoized reading time component
+/**
+ * Memoized reading time component that calculates and displays estimated reading time
+ */
 const ReadingTime = memo(({ content }: { content?: string }) => {
   const readingTimeText = useMemo(() => {
     if (!content) return 'Reading time N/A';
@@ -96,7 +111,9 @@ const ReadingTime = memo(({ content }: { content?: string }) => {
 });
 ReadingTime.displayName = 'ReadingTime';
 
-// Memoized article content component
+/**
+ * Memoized article content component that handles content rendering and image replacement
+ */
 const ArticleContent = memo(({ content }: { content: string }) => {
   useEffect(() => {
     const replaceNextImages = () => {
@@ -137,7 +154,9 @@ const ArticleContent = memo(({ content }: { content: string }) => {
 });
 ArticleContent.displayName = 'ArticleContent';
 
-// Memoized loading skeleton component
+/**
+ * Memoized loading skeleton component for displaying while content is being fetched
+ */
 const LoadingSkeleton = memo(() => (
   <div className="space-y-4">
     <Skeleton className="h-[400px] max-h-[50vh] w-full rounded-[32px]" />
@@ -151,7 +170,10 @@ const LoadingSkeleton = memo(() => (
 ));
 LoadingSkeleton.displayName = 'LoadingSkeleton';
 
-export function ReaderViewModal({
+/**
+ * ReaderViewModal component that displays article content in a reader-friendly format
+ */
+export const ReaderViewModal = memo(function ReaderViewModal({
   feedItem,
   isOpen,
   onClose,
@@ -163,7 +185,26 @@ export function ReaderViewModal({
   const [isBottomVisible, setIsBottomVisible] = useState(false);
   const { toast } = useToast();
 
-  console.log(readerView);
+  useEffect(() => {
+    if (isOpen) {
+      console.log('[ReaderViewModal] state update:', { 
+        isOpen, 
+        feedItemId: feedItem.id,
+        hasReaderView: Boolean(readerView),
+        loading
+      });
+    }
+  }, [isOpen, feedItem.id, readerView, loading]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setReaderView(null);
+      setLoading(true);
+      setScrollTop(0);
+      setIsBottomVisible(false);
+    }
+  }, [isOpen]);
+
   const cleanedContent = useMemo(() => {
     if (!readerView?.content) return '';
     return cleanupModalContent(readerView.content);
@@ -173,7 +214,11 @@ export function ReaderViewModal({
     return Math.min(scrollTop * 0.2, 50);
   }, [scrollTop]);
 
-  const handleScroll = useCallback(({ scrollTop, scrollHeight, clientHeight }: { 
+  const handleScroll = useCallback(({ 
+    scrollTop, 
+    scrollHeight, 
+    clientHeight 
+  }: { 
     scrollTop: number, 
     scrollHeight: number, 
     clientHeight: number 
@@ -184,32 +229,36 @@ export function ReaderViewModal({
     setIsBottomVisible(!isAtBottom);
   }, []);
 
-  useEffect(() => {
-    async function loadReaderView() {
-      if (!isOpen) return;
+  const loadReaderView = useCallback(async () => {
+    if (!isOpen) return;
+    
+    console.log('[ReaderViewModal] loading reader view for:', feedItem.id);
+    setLoading(true);
+    try {
+      const result = await workerService.fetchReaderView(feedItem.link);
       
-      setLoading(true);
-      try {
-        const result = await workerService.fetchReaderView(feedItem.link);
-        
-        if (result.success && result.data.length > 0 && result.data[0].status === "ok") {
-          setReaderView(result.data[0]);
-        } else {
-          throw new Error(result.message || "Failed to load reader view");
-        }
-      } catch (error) {
-        console.error("Error fetching reader view:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load reader view. Please try again.",
-          variant: "destructive",
-        });
+      if (result.success && result.data.length > 0 && result.data[0].status === "ok") {
+        console.log('[ReaderViewModal] successfully loaded reader view for:', feedItem.id);
+        setReaderView(result.data[0]);
+      } else {
+        throw new Error(result.message || "Failed to load reader view");
       }
-      setLoading(false);
+    } catch (error) {
+      console.error("[ReaderViewModal] Error fetching reader view:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load reader view. Please try again.",
+        variant: "destructive",
+      });
     }
+    setLoading(false);
+  }, [isOpen, feedItem.link, feedItem.id, toast]);
 
-    loadReaderView();
-  }, [isOpen, feedItem.link, toast]);
+  useEffect(() => {
+    if (isOpen) {
+      loadReaderView();
+    }
+  }, [isOpen, loadReaderView]);
 
   return (
     <BaseModal
@@ -277,4 +326,19 @@ export function ReaderViewModal({
       </div>
     </BaseModal>
   );
-}
+}, (prevProps, nextProps) => {
+  const propsChanged = {
+    isOpen: prevProps.isOpen !== nextProps.isOpen,
+    feedItemId: prevProps.feedItem.id !== nextProps.feedItem.id,
+    feedItemLink: prevProps.feedItem.link !== nextProps.feedItem.link,
+    initialPosition: JSON.stringify(prevProps.initialPosition) !== JSON.stringify(nextProps.initialPosition)
+  };
+
+  const shouldUpdate = Object.values(propsChanged).some(Boolean);
+  
+  if (shouldUpdate) {
+    console.log('[ReaderViewModal] will update due to:', propsChanged);
+  }
+  
+  return !shouldUpdate;
+});

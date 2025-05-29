@@ -1,29 +1,54 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useCallback, useMemo, useEffect } from "react"
 import { Dialog, DialogContent, DialogTitle, DialogOverlay } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Bookmark, Share2, ExternalLink, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { memo } from "react"
 
-
+/**
+ * Props for the BaseModal component
+ */
 interface BaseModalProps {
+  /** Whether the modal is currently open */
   isOpen: boolean
+  /** Callback function to close the modal */
   onClose: () => void
+  /** Optional title to display in the modal */
   title?: string
+  /** URL to link to when clicking the external link button */
   link: string
+  /** Initial position and dimensions for the modal animation */
   initialPosition: { x: number; y: number; width: number; height: number }
+  /** Child elements to render inside the modal */
   children: React.ReactNode
+  /** Optional additional CSS classes */
   className?: string
 }
 
-export function BaseModal({ isOpen, onClose, title, link, initialPosition, children, className }: BaseModalProps) {
+/**
+ * Base modal component that provides a consistent layout and behavior for all modals in the application.
+ * Includes bookmark, share, external link, and close functionality.
+ */
+export const BaseModal = memo(function BaseModal({ isOpen, onClose, title, link, initialPosition, children, className }: BaseModalProps) {
+  // Only log when modal is actually open
+  useEffect(() => {
+    if (isOpen) {
+      console.log('[BaseModal] render:', { 
+        isOpen, 
+        title,
+        initialPositionChanged: JSON.stringify(initialPosition)
+      });
+    }
+  }, [isOpen, title, initialPosition]);
+
   const [isBookmarked, setIsBookmarked] = useState(false)
   const { toast } = useToast()
 
-  const handleBookmark = () => {
+  const handleBookmark = useCallback(() => {
     setIsBookmarked(!isBookmarked)
     toast({
       title: isBookmarked ? "Removed from bookmarks" : "Added to bookmarks",
@@ -31,21 +56,20 @@ export function BaseModal({ isOpen, onClose, title, link, initialPosition, child
         ? "This item has been removed from your bookmarks."
         : "This item has been added to your bookmarks.",
     })
-  }
+  }, [isBookmarked, toast])
 
-  const handleShare = () => {
+  const handleShare = useCallback(() => {
     toast({
       title: "Share link copied",
       description: "The link to this item has been copied to your clipboard.",
     })
-  }
-  console.log("[BaseModal] title: ", title);
+  }, [toast])
 
-  const modalStyle = {
+  const modalStyle = useMemo(() => ({
     "--initial-x": `${initialPosition.x}px`,
     "--initial-y": `${initialPosition.y}px`,
     "--initial-scale": `${initialPosition.width / window.innerWidth}`,
-  } as React.CSSProperties
+  } as React.CSSProperties), [initialPosition])
 
   return (
     <Dialog open={isOpen}  onOpenChange={onClose}>
@@ -87,5 +111,24 @@ export function BaseModal({ isOpen, onClose, title, link, initialPosition, child
    
     </Dialog>
   )
-}
+}, (prevProps, nextProps) => {
+  // Don't compare props if both modals are closed
+  if (!prevProps.isOpen && !nextProps.isOpen) return true;
+
+  const propsChanged = {
+    isOpen: prevProps.isOpen !== nextProps.isOpen,
+    title: prevProps.title !== nextProps.title,
+    link: prevProps.link !== nextProps.link,
+    initialPosition: JSON.stringify(prevProps.initialPosition) !== JSON.stringify(nextProps.initialPosition),
+    className: prevProps.className !== nextProps.className
+  };
+
+  const shouldUpdate = Object.values(propsChanged).some(Boolean);
+  
+  if (shouldUpdate) {
+    console.log('[BaseModal] will update due to:', propsChanged);
+  }
+  
+  return !shouldUpdate;
+});
 

@@ -1,11 +1,12 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { Play, Pause } from "lucide-react"
-import { useAudio } from "@/components/audio-player-provider"
+import { useAudioStore } from "@/store/useAudioStore"
 import { formatDuration } from "@/utils/formatDuration"
-import type { FeedItem } from "@/lib/rss"
+import type { FeedItem } from "@/types"
 import { BaseModal } from "./base-modal"
 import Image from "next/image"
+
 interface PodcastDetailsModalProps {
   isOpen: boolean
   onClose: () => void
@@ -14,7 +15,7 @@ interface PodcastDetailsModalProps {
 }
 
 export function PodcastDetailsModal({ isOpen, onClose, podcast, initialPosition }: PodcastDetailsModalProps) {
-  const { playAudio, isPlaying, currentAudio } = useAudio()
+  const { playAudio, isPlaying, currentAudio } = useAudioStore()
 
   const handlePlayPause = () => {
     playAudio({
@@ -29,7 +30,7 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast, initialPosition 
   const isCurrentlyPlaying = currentAudio && currentAudio.id === podcast.id && isPlaying
 
   const duration = formatDuration(
-    podcast.duration || podcast.enclosures?.[0]?.length || "0"
+    Number(podcast.duration || podcast.enclosures?.[0]?.length || 0)
   )
 
   return (
