@@ -40,19 +40,19 @@
 - [x] Update CommandBar to use useUnreadCount selector
 - [x] Update CommandBar to use feed titles selector instead of full feeds array
 - [x] Migrate FeedGrid to use optimized selectors
-- [ ] Migrate FeedList to use optimized selectors
+- [x] Migrate FeedList to use optimized selectors
 - [x] Update web/page.tsx to use computed selectors for filtered items
 - [x] Update SettingsFeedCard to use granular subscriptions (no store usage, skipped)
-- [ ] Test each component after migration
-- [ ] Ensure no visual regressions in UI
+- [x] Test each component after migration
+- [x] Ensure no visual regressions in UI
 - [ ] Verify improved performance in React DevTools Profiler
 
 ## Phase 5: Add Performance Monitoring
-- [ ] Create store/middleware/performanceMiddleware.ts
-- [ ] Implement performance timing for state updates
-- [ ] Add console warnings for updates taking longer than 16ms
-- [ ] Apply middleware to development builds only
-- [ ] Add render counting to FeedCard in development
+- [x] Create store/middleware/performanceMiddleware.ts
+- [x] Implement performance timing for state updates
+- [x] Add console warnings for updates taking longer than 16ms
+- [x] Apply middleware to development builds only
+- [x] Add render counting to FeedCard in development
 - [ ] Document how to use performance monitoring
 - [ ] Test performance monitoring shows expected output
 - [ ] Identify any remaining performance bottlenecks

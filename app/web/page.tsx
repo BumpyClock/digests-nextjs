@@ -224,8 +224,7 @@ function WebPageContent() {
 
   const readLaterItems = useMemo(() => {
     return getReadLaterItems();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getReadLaterItems, storeReadLaterItems]); // storeReadLaterItems needed for updates when items are saved
+  }, [getReadLaterItems]);
 
   const clearFeedFilter = useCallback(() => {
     window.history.pushState({}, "", "/web"); // or just /web

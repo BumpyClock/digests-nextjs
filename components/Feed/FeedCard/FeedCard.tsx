@@ -22,6 +22,7 @@ import { useTheme } from "next-themes";
 import { workerService } from "@/services/worker-service";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsItemRead, useIsInReadLater, useReadActions, useReadLaterActions } from "@/hooks/useFeedSelectors";
+import { useRenderCount } from "@/store/middleware/performanceMiddleware";
 import { cleanupTextContent } from "@/utils/htmlUtils";
 import { Ambilight } from "@/components/ui/ambilight";
 dayjs.extend(relativeTime);
@@ -153,6 +154,10 @@ function useCardShadow(id: string, color: { r: number; g: number; b: number }) {
 export const FeedCard = memo(function FeedCard({
   feed: feedItem,
 }: FeedCardProps) {
+  // Track render count in development
+  if (process.env.NODE_ENV === 'development') {
+    useRenderCount(`FeedCard-${feedItem.id}`);
+  }
   const [isReaderViewOpen, setIsReaderViewOpen] = useState(false);
   const [isPodcastDetailsOpen, setIsPodcastDetailsOpen] = useState(false);
   const [initialPosition, setInitialPosition] = useState({
