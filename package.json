@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@heroui/scroll-shadow": "^2.3.13",
+    "@imagekit/react": "^5.0.1",
     "@mdx-js/loader": "^3.1.0",
     "@mdx-js/react": "^3.1.0",
     "@next/mdx": "^15.3.1",
@@ -38,7 +39,7 @@
     "clsx": "^2.1.1",
     "cmdk": "1.0.0",
     "dayjs": "^1.11.13",
-    "framer-motion": "^12.9.7",
+    "motion": "^12.15.0",
     "gray-matter": "^4.0.3",
     "install": "^0.13.0",
     "localforage": "^1.10.0",

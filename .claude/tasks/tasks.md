@@ -1,88 +1,151 @@
-# Zustand Store Refactoring Tasks
+# Connected Animation Implementation Tasks
 
-## Phase 1: Setup Slices Structure
-- [x] Create store/slices directory
-- [x] Create store/slices/feedSlice.ts with feeds array and feed-related actions
-- [x] Create store/slices/itemsSlice.ts with feedItems array and sorting functions
-- [x] Create store/slices/readStatusSlice.ts with readItems and readLaterItems Sets
-- [x] Create store/slices/metadataSlice.ts with loading states and metadata
-- [x] Move existing store methods to appropriate slices
-- [x] Update imports in slice files to reference get() for cross-slice access
-- [x] Combine all slices in store/useFeedStore.ts using spread operator
-- [x] Test that all existing functionality still works after slice refactoring
-- [x] Commit changes with message "refactor: organize store into slices"
+## Setup Phase
+- [ ] Install motion library using `pnpm add motion`
+- [ ] Create `.env` variable `NEXT_PUBLIC_ENABLE_ANIMATIONS` for feature flag
+- [ ] Add motion library to project dependencies in package.json
+- [ ] Create `contexts` folder in project root if it doesn't exist
+- [ ] Create `utils/animation-config.ts` file for animation configurations
+- [ ] Add motion imports to relevant component files
 
-## Phase 2: Create Selector Hooks
-- [x] Create hooks/useFeedSelectors.ts file
-- [x] Implement useIsItemRead selector that returns boolean for specific item ID
-- [x] Implement useIsInReadLater selector that returns boolean for specific item ID
-- [x] Implement useReadActions selector with shallow equality for action functions
-- [x] Implement useReadLaterActions selector with shallow equality
-- [x] Implement useUnreadCount computed selector
-- [x] Implement useFeedItemsByFeed selector with shallow equality
-- [x] Implement useActiveFeedItems selector for active feed filtering
-- [x] Add JSDoc comments to each selector explaining usage
-- [x] Export all selectors from hooks/useFeedSelectors.ts
+## Animation Context
+- [ ] Create `contexts/FeedAnimationContext.tsx` file
+- [ ] Define AnimationState interface with activeItemId, isAnimating, and animationSource
+- [ ] Implement FeedAnimationProvider component with state management
+- [ ] Add reduced motion preference detection in context
+- [ ] Export useFeedAnimation custom hook
+- [ ] Wrap app with FeedAnimationProvider in root layout
+- [ ] Add MotionConfig with reducedMotion setting
 
-## Phase 3: Migrate FeedCard Component
-- [x] Backup current FeedCard component implementation
-- [x] Replace readItems subscription with useIsItemRead selector
-- [x] Replace isInReadLater check with useIsInReadLater selector
-- [x] Replace action imports with useReadActions and useReadLaterActions
-- [x] Remove useMemo for isRead calculation (no longer needed)
-- [x] Test FeedCard still displays read/unread status correctly
-- [x] Test mark as read functionality works
-- [x] Test read later functionality works
-- [x] Verify component only re-renders when its specific item changes
-- [x] Commit changes with message "perf: optimize FeedCard with granular subscriptions"
+## Motion Components - FeedCard
+- [ ] Create `components/Feed/FeedCard/MotionFeedCard.tsx` file
+- [ ] Import motion and AnimatePresence from motion library
+- [ ] Add layoutId to card container element
+- [ ] Add layoutId to thumbnail image element
+- [ ] Add layoutId to title element
+- [ ] Add layoutId to metadata container
+- [ ] Add layoutId to favicon image
+- [ ] Add layoutId to site title text
+- [ ] Implement whileHover animation for card lift effect
+- [ ] Implement whileTap animation for card press effect
+- [ ] Add spring transition configuration for card animations
+- [ ] Create exit animations for card-only elements
+- [ ] Connect setActiveItemId to card click handler
 
-## Phase 4: Migrate Other High-Impact Components
-- [x] Update CommandBar to use useUnreadCount selector
-- [x] Update CommandBar to use feed titles selector instead of full feeds array
-- [x] Migrate FeedGrid to use optimized selectors
-- [x] Migrate FeedList to use optimized selectors
-- [x] Update web/page.tsx to use computed selectors for filtered items
-- [x] Update SettingsFeedCard to use granular subscriptions (no store usage, skipped)
-- [x] Test each component after migration
-- [x] Ensure no visual regressions in UI
-- [ ] Verify improved performance in React DevTools Profiler
+## Motion Components - BaseModal
+- [ ] Create `components/MotionBaseModal.tsx` file
+- [ ] Import Dialog components from Radix UI
+- [ ] Wrap Dialog.Portal with AnimatePresence
+- [ ] Add forceMount prop to Dialog.Portal and Dialog.Overlay
+- [ ] Create motion.div wrapper for Dialog.Overlay with fade animation
+- [ ] Create motion.div wrapper for Dialog.Content with scale animation
+- [ ] Add exit animations for modal closing
+- [ ] Implement handleClose with animation delay
+- [ ] Add layoutId to modal container matching card container
 
-## Phase 5: Add Performance Monitoring
-- [x] Create store/middleware/performanceMiddleware.ts
-- [x] Implement performance timing for state updates
-- [x] Add console warnings for updates taking longer than 16ms
-- [x] Apply middleware to development builds only
-- [x] Add render counting to FeedCard in development
-- [x] Document how to use performance monitoring
-- [x] Test performance monitoring shows expected output
-- [ ] Identify any remaining performance bottlenecks
+## Motion Components - ReaderViewModal
+- [ ] Create `components/MotionReaderViewModal.tsx` file
+- [ ] Import MotionBaseModal component
+- [ ] Add layoutId to thumbnail container matching FeedCard
+- [ ] Add layoutId to thumbnail image matching FeedCard
+- [ ] Add layoutId to metadata container matching FeedCard
+- [ ] Add layoutId to favicon matching FeedCard
+- [ ] Add layoutId to site title matching FeedCard
+- [ ] Add layoutId to article title matching FeedCard
+- [ ] Create contentVariants for staggered animations
+- [ ] Add motion wrapper for article content with fade-in animation
+- [ ] Add motion wrapper for action buttons with slide-up animation
+- [ ] Implement staggerChildren for sequential animations
 
-## Phase 6: Optimize Remaining Components
-- [ ] Audit all components using useFeedStore directly
-- [ ] Create additional granular selectors as needed
-- [ ] Replace direct store access with appropriate selectors
-- [ ] Add React.memo to components that receive stable props
-- [ ] Implement subscription debugging in development mode
-- [ ] Test all feed operations (add, remove, refresh)
-- [ ] Test persistence and hydration still work correctly
-- [ ] Verify client-side only behavior is maintained
+## Motion Components - PodcastDetailsModal
+- [ ] Create `components/MotionPodcastDetailsModal.tsx` file
+- [ ] Use different layoutId prefix for podcast items
+- [ ] Add layoutId for podcast artwork
+- [ ] Add layoutId for podcast title
+- [ ] Add layoutId for podcast metadata
+- [ ] Add layoutId for play button element
+- [ ] Implement podcast-specific animations
+- [ ] Add motion wrapper for podcast description
+- [ ] Add motion wrapper for episode list
 
-## Phase 7: Documentation and Cleanup
-- [ ] Update store documentation with new slice structure
-- [ ] Document all available selectors in hooks/useFeedSelectors.ts
-- [ ] Add examples of proper selector usage
-- [ ] Remove any commented-out old code
-- [ ] Update CLAUDE.md with new store patterns
-- [ ] Create a performance optimization guide
-- [ ] Add notes about when to use granular vs regular subscriptions
-- [ ] Final testing of all functionality
-- [ ] Create PR with comprehensive description of changes
+## Animation Configurations
+- [ ] Define springConfig object with gentle, snappy, and smooth presets
+- [ ] Create fadeInUp animation variant
+- [ ] Create scaleIn animation variant
+- [ ] Create slideInFromBottom animation variant
+- [ ] Define modalVariants with hidden and visible states
+- [ ] Set up default transition timings
+- [ ] Configure GPU-accelerated properties list
 
-## Phase 8: Future Considerations (Optional)
-- [ ] Evaluate if store splitting is needed based on performance metrics
-- [ ] Consider implementing separate stores for truly independent data
-- [ ] Add TypeScript types for better type inference in selectors
-- [ ] Implement store devtools for debugging
-- [ ] Consider adding immer for immutable updates if needed
-- [ ] Evaluate adding computed values cache
-- [ ] Plan migration strategy for any remaining performance issues
+## Integration - Update Existing Components
+- [ ] Update FeedCard to conditionally use MotionFeedCard based on feature flag
+- [ ] Update BaseModal to conditionally use MotionBaseModal
+- [ ] Update ReaderViewModal to use MotionReaderViewModal
+- [ ] Update PodcastDetailsModal to use MotionPodcastDetailsModal
+- [ ] Add activeItemId tracking to existing click handlers
+- [ ] Integrate animation context with existing modal state
+
+## ScrollArea Integration
+- [ ] Wrap ScrollArea content with motion.div
+- [ ] Add opacity animation to ScrollArea content
+- [ ] Add delay to ScrollArea animation
+- [ ] Implement scroll position preservation
+- [ ] Test scroll behavior during animations
+
+## Progressive Image Integration
+- [ ] Wrap ProgressiveImage with motion.div container
+- [ ] Add layoutId to image container
+- [ ] Ensure image animations work with progressive loading
+- [ ] Test image transitions with different loading states
+
+## Performance Optimizations
+- [ ] Create trackAnimationPerformance utility function
+- [ ] Add animation duration logging in development
+- [ ] Implement 600ms threshold warning
+- [ ] Add will-change CSS property to animated elements
+- [ ] Implement lazy loading for motion components
+- [ ] Create mobile-specific animation simplifications
+- [ ] Add useReducedMotion hook implementation
+
+## Gesture Controls
+- [ ] Add swipe-to-close gesture for mobile modals
+- [ ] Implement drag constraints for modal dismissal
+- [ ] Add drag elastic configuration
+- [ ] Test gesture controls on touch devices
+
+## Testing Implementation
+- [ ] Create test file for rapid open/close scenarios
+- [ ] Test keyboard navigation with animations
+- [ ] Test with prefers-reduced-motion enabled
+- [ ] Test on mobile devices for performance
+- [ ] Test with slow network conditions
+- [ ] Test exit animations on ESC key press
+- [ ] Test animations at different viewport sizes
+- [ ] Test with long scrollable content
+- [ ] Test with missing or broken images
+- [ ] Test z-index layering during animations
+
+## Polish and Fine-tuning
+- [ ] Adjust spring stiffness values for natural motion
+- [ ] Fine-tune damping values for smooth stops
+- [ ] Optimize animation durations for each element
+- [ ] Add subtle scale animations to interactive elements
+- [ ] Implement loading state animations
+- [ ] Create error state animations
+- [ ] Add micro-interactions for hover states
+
+## Documentation
+- [ ] Document animation timing guidelines
+- [ ] Create animation component usage examples
+- [ ] Document layoutId naming conventions
+- [ ] Add performance optimization notes
+- [ ] Create troubleshooting guide for common issues
+- [ ] Document accessibility considerations
+
+## Cleanup and Deployment
+- [ ] Remove console logs from production build
+- [ ] Test feature flag toggle functionality
+- [ ] Verify backward compatibility without animations
+- [ ] Run performance profiling on animations
+- [ ] Update component documentation
+- [ ] Create migration guide for team members

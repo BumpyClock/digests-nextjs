@@ -435,6 +435,23 @@ a {
   opacity: 1;
 }
 
+/* Fix SimpleBar width issues */
+.simplebar-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.simplebar-content-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+
+.simplebar-content {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 /* Variant styles */
 .simplebar-modal .simplebar-track.simplebar-vertical {
   right: 4px;

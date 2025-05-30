@@ -48,7 +48,7 @@ const ScrollArea = React.forwardRef<SimpleBar, ScrollAreaProps>(
       <SimpleBar
         ref={ref}
         className={cn(
-          "relative",
+          "relative w-full",
           variantStyles[variant],
           className
         )}
@@ -60,7 +60,9 @@ const ScrollArea = React.forwardRef<SimpleBar, ScrollAreaProps>(
         }}
         {...props}
       >
-        {children}
+        <div className="w-full">
+          {children}
+        </div>
       </SimpleBar>
     )
   }

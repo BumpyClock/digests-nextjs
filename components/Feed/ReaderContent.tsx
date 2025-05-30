@@ -18,6 +18,7 @@ interface ReaderContentProps {
   layout?: ReaderLayout;
   parallaxOffset?: number;
   className?: string;
+  initialThumbnailSrc?: string;
 }
 
 export const ReaderContent = memo(function ReaderContent({
@@ -27,7 +28,8 @@ export const ReaderContent = memo(function ReaderContent({
   cleanedContent,
   layout = "standard",
   parallaxOffset,
-  className = ""
+  className = "",
+  initialThumbnailSrc
 }: ReaderContentProps) {
   const isMobile = useIsMobile();
   const isCompact = layout === "compact" || (isMobile && layout === "standard");
@@ -57,6 +59,7 @@ export const ReaderContent = memo(function ReaderContent({
           readerView={readerView} 
           parallaxOffset={parallaxOffset}
           layout={layout}
+          initialThumbnailSrc={initialThumbnailSrc}
         />
         <ArticleContent 
           content={cleanedContent} 

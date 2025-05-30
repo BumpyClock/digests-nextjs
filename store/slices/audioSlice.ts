@@ -1,5 +1,6 @@
 import { StateCreator } from "zustand"
 import type { AudioInfo } from "@/components/AudioPlayer/types"
+import { handleAudioError } from "@/utils/audio"
 
 export interface AudioSlice {
   // State
@@ -58,6 +59,12 @@ export const createAudioSlice: StateCreator<any, [], [], AudioSlice> = (set, get
     playAudio: (audioInfo) => {
       if (!audioElement) return
 
+      // Validate audio URL
+      if (!audioInfo.audioUrl) {
+        handleAudioError(new Error("No audio URL provided"), audioInfo.title)
+        return
+      }
+
       const currentAudio = get().currentAudio
       const isPlaying = get().isPlaying
 
@@ -65,7 +72,10 @@ export const createAudioSlice: StateCreator<any, [], [], AudioSlice> = (set, get
         // Toggle play/pause for the same audio
         set({ isPlaying: !isPlaying })
         if (!isPlaying) {
-          audioElement.play().catch(console.error)
+          audioElement.play().catch((error) => {
+            handleAudioError(error, audioInfo.title)
+            set({ isPlaying: false })
+          })
         } else {
           audioElement.pause()
         }
@@ -83,7 +93,7 @@ export const createAudioSlice: StateCreator<any, [], [], AudioSlice> = (set, get
       audioElement.src = audioInfo.audioUrl
       audioElement.volume = get().isMuted ? 0 : get().volume
       audioElement.play().catch((error) => {
-        console.error("Error playing audio:", error)
+        handleAudioError(error, audioInfo.title)
         set({ isPlaying: false })
       })
     },
@@ -102,7 +112,10 @@ export const createAudioSlice: StateCreator<any, [], [], AudioSlice> = (set, get
       }
 
       if (!isPlaying) {
-        audioElement.play().catch(console.error)
+        audioElement.play().catch((error) => {
+          handleAudioError(error, get().currentAudio?.title)
+          set({ isPlaying: false })
+        })
       } else {
         audioElement.pause()
       }

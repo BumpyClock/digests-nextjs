@@ -14,6 +14,7 @@ interface ReaderViewModalProps {
   onClose: () => void;
   feedItem: FeedItem;
   initialPosition: { x: number; y: number; width: number; height: number };
+  initialThumbnailSrc?: string;
 }
 
 export function ReaderViewModal({
@@ -21,6 +22,7 @@ export function ReaderViewModal({
   isOpen,
   onClose,
   initialPosition,
+  initialThumbnailSrc,
 }: ReaderViewModalProps) {
   const { readerView, loading, cleanedContent } = useReaderView(feedItem, isOpen);
   const { scrollTop, isBottomVisible, handleScroll, hasScrolled } = useScrollShadow();
@@ -58,6 +60,7 @@ export function ReaderViewModal({
               cleanedContent={cleanedContent}
               layout="modal"
               parallaxOffset={parallaxOffset}
+              initialThumbnailSrc={initialThumbnailSrc}
             />
           </div>
         </ScrollArea>

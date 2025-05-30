@@ -1,18 +1,18 @@
 "use client";
 
 import type React from "react";
-import { useState, useRef, useCallback, memo, useEffect } from "react";
+import { useState, useRef, useCallback, memo, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
   CardFooter as CardFooterUI,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Share2, Play, Pause, Bookmark } from "lucide-react";
+import { Share2, Bookmark } from "lucide-react";
 // Removed useAudio import - now using integrated audio from store
 import { toast } from "sonner";
 import { ReaderViewModal } from "@/components/reader-view-modal";
-import { PodcastDetailsModal } from "@/components/podcast-details-modal";
+import { PodcastDetailsModal } from "@/components/Podcast/PodcastDetailsModal";
 import { formatDuration } from "@/utils/formatDuration";
 import type { FeedItem } from "@/types";
 import Image from "next/image";
@@ -21,10 +21,14 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { useTheme } from "next-themes";
 import { workerService } from "@/services/worker-service";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsItemRead, useIsInReadLater, useReadActions, useReadLaterActions, useIsAudioPlaying, useAudioActions } from "@/hooks/useFeedSelectors";
+import { useIsItemRead, useIsInReadLater, useReadActions, useReadLaterActions } from "@/hooks/useFeedSelectors";
 import { useRenderCount } from "@/store/middleware/performanceMiddleware";
 import { cleanupTextContent } from "@/utils/htmlUtils";
 import { Ambilight } from "@/components/ui/ambilight";
+import { PodcastPlayButton } from "@/components/Podcast/shared/PodcastPlayButton";
+import { isPodcast } from "@/types/podcast";
+import { getImageProps } from "@/utils/image-config";
+import { getImageKitUrl, IMAGE_PRESETS, canUseImageKit } from "@/utils/imagekit";
 dayjs.extend(relativeTime);
 
 interface FeedCardProps {
@@ -42,17 +46,9 @@ interface FeedCardProps {
  * @param {function} props.onPlayClick - Function to handle play button click.
  */
 const CardFooter = memo(function CardFooter({
-  feedType,
-  duration,
   feedItem,
-  isCurrentlyPlaying,
-  onPlayClick,
 }: {
-  feedType: string;
-  duration?: number;
   feedItem: FeedItem;
-  isCurrentlyPlaying: boolean;
-  onPlayClick: () => void;
 }) {
   const isInReadLaterList = useIsInReadLater(feedItem.id);
   const { addToReadLater, removeFromReadLater } = useReadLaterActions();
@@ -98,22 +94,13 @@ const CardFooter = memo(function CardFooter({
   return (
     <CardFooterUI className="p-4 pt-0 flex justify-between">
       <div className="flex space-x-2">
-        {feedType === "podcast" && (
-          <Button
+        {isPodcast(feedItem) && (
+          <PodcastPlayButton
+            podcast={feedItem}
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            onClick={onPlayClick}
-          >
-            {isCurrentlyPlaying ? (
-              <Pause className="h-4 w-4" />
-            ) : (
-              <Play className="h-4 w-4" />
-            )}
-            <span className="sr-only">
-              {isCurrentlyPlaying ? "Pause" : "Play"}
-            </span>
-          </Button>
+          />
         )}
         
         <Button
@@ -135,9 +122,9 @@ const CardFooter = memo(function CardFooter({
           <span className="sr-only">Share</span>
         </Button>
       </div>
-      {feedType === "podcast" && duration && (
+      {isPodcast(feedItem) && feedItem.duration && (
         <div className="text-xs text-muted-foreground">
-          {formatDuration(duration)}
+          {formatDuration(feedItem.duration)}
         </div>
       )}
     </CardFooterUI>
@@ -189,8 +176,6 @@ export const FeedCard = memo(function FeedCard({
     height: 0,
   });
   const cardRef = useRef<HTMLDivElement>(null);
-  const { playAudio } = useAudioActions();
-  const isCurrentlyPlaying = useIsAudioPlaying(feedItem.id);
   const [imageError, setImageError] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
   const [showPlaceholder, setShowPlaceholder] = useState(false);
@@ -247,7 +232,7 @@ export const FeedCard = memo(function FeedCard({
         }, 0);
 
         const timeout = setTimeout(() => {
-          if (feedItem.type === "podcast") {
+          if (isPodcast(feedItem)) {
             setIsPodcastDetailsOpen(true);
           } else {
             setIsReaderViewOpen(true);
@@ -271,25 +256,6 @@ export const FeedCard = memo(function FeedCard({
     };
   }, []);
 
-  const handlePlayClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      if (feedItem.type === "podcast") {
-        setTimeout(() => {
-          markAsRead(feedItem.id);
-        }, 0);
-
-        playAudio({
-          id: feedItem.id,
-          title: feedItem.title,
-          source: feedItem.siteTitle,
-          audioUrl: feedItem.enclosures?.[0]?.url || "",
-          image: feedItem.favicon || feedItem.thumbnail,
-        });
-      }
-    },
-    [feedItem, playAudio, markAsRead]
-  );
 
 
   const formatDate = useCallback((dateString: string) => {
@@ -320,6 +286,17 @@ export const FeedCard = memo(function FeedCard({
     if (isHovered) return hoverShadow;
     return restShadow;
   };
+
+  // Generate the FeedCard thumbnail URL that's already been loaded
+  const feedCardThumbnailUrl = useMemo(() => {
+    if (showPlaceholder) {
+      return isPodcast(feedItem) ? "/placeholder-podcast.svg" : "/placeholder-rss.svg";
+    }
+    if (canUseImageKit(feedItem.thumbnail)) {
+      return getImageKitUrl(feedItem.thumbnail, IMAGE_PRESETS.feedCardThumbnail);
+    }
+    return feedItem.thumbnail;
+  }, [feedItem, feedItem.thumbnail, showPlaceholder]);
 
   return (
     <>
@@ -377,16 +354,21 @@ export const FeedCard = memo(function FeedCard({
                   <Skeleton className="absolute inset-0 z-10 rounded-[32px]" />
                 )}
                 <Image
-                  src={showPlaceholder ? (feedItem.type === "podcast" ? "/placeholder-podcast.svg" : "/placeholder-rss.svg") : feedItem.thumbnail}
+                  src={showPlaceholder 
+                    ? (isPodcast(feedItem) ? "/placeholder-podcast.svg" : "/placeholder-rss.svg") 
+                    : (canUseImageKit(feedItem.thumbnail) 
+                        ? getImageKitUrl(feedItem.thumbnail, IMAGE_PRESETS.feedCardThumbnail)
+                        : feedItem.thumbnail)
+                  }
                   alt={feedItem.title}
+                  width={400}
                   height={300}
-                  width={300}
                   className={`w-full h-full object-cover rounded-[32px] group-hover:scale-[1.05] transition-all duration-150 ${
                     imageLoading ? "opacity-0" : "opacity-100"
                   }`}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   onError={handleImageError}
                   onLoad={() => setImageLoading(false)}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
                   loading="lazy"
                   priority={false}
                 />
@@ -406,11 +388,8 @@ export const FeedCard = memo(function FeedCard({
                       src={feedItem.favicon}
                       alt={`${cleanupTextContent(feedItem.siteTitle)} favicon`}
                       className="w-6 h-6 bg-white rounded-[4px] "
-                      height={48}
-                      width={48}
                       onError={handleFaviconError}
-                      loading="lazy"
-                      priority={false}
+                      {...getImageProps("icon", "lazy")}
                     />
                   ) : (
                     <div className="w-6 h-6 bg-muted rounded-[4px] flex items-center justify-center text-xs font-medium">
@@ -439,16 +418,10 @@ export const FeedCard = memo(function FeedCard({
             </div>
           </CardContent>
 
-          <CardFooter
-            feedType={feedItem.type}
-            duration={feedItem.duration ? feedItem.duration : undefined}
-            feedItem={feedItem}
-            isCurrentlyPlaying={isCurrentlyPlaying}
-            onPlayClick={handlePlayClick}
-          />
+          <CardFooter feedItem={feedItem} />
         </div>
       </Card>
-      {feedItem.type === "podcast" ? (
+      {isPodcast(feedItem) ? (
         <PodcastDetailsModal
           isOpen={isPodcastDetailsOpen}
           onClose={() => setIsPodcastDetailsOpen(false)}
@@ -461,6 +434,7 @@ export const FeedCard = memo(function FeedCard({
           onClose={() => setIsReaderViewOpen(false)}
           feedItem={feedItem}
           initialPosition={initialPosition}
+          initialThumbnailSrc={feedCardThumbnailUrl}
         />
       )}
     </>

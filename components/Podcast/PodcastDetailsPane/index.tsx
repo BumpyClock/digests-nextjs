@@ -1,16 +1,14 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmptyState } from "@/components/Feed/ArticleReader/ArticleReader";
 import { useFeedStore } from "@/store/useFeedStore";
-import { useAudioActions, useIsAudioPlaying } from "@/hooks/useFeedSelectors";
 import { type FeedItem } from "@/types";
-import { Button } from "@/components/ui/button";
-import { Play, Pause } from "lucide-react";
-import { formatDuration } from "@/utils/formatDuration";
-import Image from "next/image";
 import { cleanupTextContent } from "@/utils/htmlUtils";
+import { PodcastArtwork } from "../PodcastArtwork";
+import { PodcastMetadata } from "../PodcastMetadata";
+import { PodcastPlayButton } from "../shared/PodcastPlayButton";
 
 interface PodcastDetailsPaneProps {
   feedItem: FeedItem | null;
@@ -18,8 +16,6 @@ interface PodcastDetailsPaneProps {
 
 export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
   const { markAsRead } = useFeedStore();
-  const { playAudio } = useAudioActions();
-  const isCurrentlyPlaying = useIsAudioPlaying(feedItem?.id || "");
   
   // Mark as read after viewing
   useEffect(() => {
@@ -32,25 +28,10 @@ export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
     }
   }, [feedItem, markAsRead]);
 
-  const handlePlayPause = useCallback(() => {
-    if (!feedItem) return;
-    
-    playAudio({
-      id: feedItem.id,
-      title: feedItem.title,
-      source: feedItem.siteTitle,
-      audioUrl: feedItem.enclosures?.[0]?.url || "",
-      image: feedItem.thumbnail || feedItem.favicon,
-    });
-  }, [feedItem, playAudio]);
-
   if (!feedItem) {
     return <EmptyState />;
   }
 
-  const duration = formatDuration(
-    feedItem.duration || feedItem.enclosures?.[0]?.length || "0"
-  );
 
   return (
     <div className="h-full border rounded-md overflow-hidden bg-card">
@@ -61,14 +42,13 @@ export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
           <div className={`flex flex-col gap-6 mb-6 ${feedItem.thumbnail ? 'lg:flex-row' : ''}`}>
             {/* Podcast Artwork */}
             {feedItem.thumbnail && (
-              <div className="relative w-full lg:w-1/3 aspect-square overflow-hidden rounded-lg">
-                <Image
+              <div className="relative w-full lg:w-1/3">
+                <PodcastArtwork
                   src={feedItem.thumbnail}
                   alt={feedItem.title}
-                  className="object-cover w-full h-full"
-                  width={400}
-                  height={400}
-                  priority
+                  size="xl"
+                  showAmbilight={true}
+                  className="aspect-square rounded-lg w-full"
                 />
               </div>
             )}
@@ -90,34 +70,19 @@ export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
                 <p className="font-medium">{cleanupTextContent(feedItem.siteTitle)}</p>
               </div>
               
-              <p className="text-sm text-muted-foreground mb-4">
-                {new Date(feedItem.published).toLocaleDateString(undefined, {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}{" "}
-                • {duration}
-              </p>
+              <PodcastMetadata
+                published={feedItem.published}
+                duration={feedItem.duration || feedItem.enclosures?.[0]?.length}
+                author={feedItem.author ? cleanupTextContent(feedItem.author) : undefined}
+                variant="compact"
+                className="mb-4"
+              />
               
-              {feedItem.author && (
-                <p className="text-sm text-muted-foreground mb-4">
-                  By {cleanupTextContent(feedItem.author)}
-                </p>
-              )}
-              
-              <Button size="lg" onClick={handlePlayPause}>
-                {isCurrentlyPlaying ? (
-                  <>
-                    <Pause className="mr-2 h-5 w-5" />
-                    Pause
-                  </>
-                ) : (
-                  <>
-                    <Play className="mr-2 h-5 w-5" />
-                    Play Episode
-                  </>
-                )}
-              </Button>
+              <PodcastPlayButton
+                podcast={feedItem}
+                size="lg"
+                showLabel={true}
+              />
             </div>
           </div>
           
