@@ -283,6 +283,16 @@ export const FeedCard = memo(function FeedCard({
     setFaviconError(true);
   }, []);
 
+  const isValidUrl = (url: string | undefined): boolean => {
+    if (!url) return false;
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   const getShadowStyle = () => {
     if (isPressed) return pressedShadow;
     if (isHovered) return hoverShadow;
@@ -334,7 +344,7 @@ export const FeedCard = memo(function FeedCard({
           className="relative z-10 "
         >
           {/* Card Thumbnail image*/}
-          {!imageError && feedItem.thumbnail && (
+          {!imageError && feedItem.thumbnail && isValidUrl(feedItem.thumbnail) && (
             <div className="relative w-full p-2">
               <Ambilight
   className="relative w-full aspect-[16/9] rounded-[32px] overflow-hidden"
@@ -385,7 +395,7 @@ export const FeedCard = memo(function FeedCard({
                 className="flex flex-wrap items-center justify-between gap-2 font-regular"
               >
                 <div className="flex space-between gap-2 align-center items-center ">
-                  {!faviconError && feedItem.favicon && (
+                  {!faviconError && feedItem.favicon && isValidUrl(feedItem.favicon) && (
                     <Image
                       src={feedItem.favicon}
                       alt={`${cleanupTextContent(feedItem.siteTitle)} favicon`}
