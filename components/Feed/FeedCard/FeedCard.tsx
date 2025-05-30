@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Share2, Play, Pause, Bookmark } from "lucide-react";
-import { useAudio } from "@/components/audio-player-provider";
+// Removed useAudio import - now using integrated audio from store
 import { toast } from "sonner";
 import { ReaderViewModal } from "@/components/reader-view-modal";
 import { PodcastDetailsModal } from "@/components/podcast-details-modal";
@@ -21,7 +21,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { useTheme } from "next-themes";
 import { workerService } from "@/services/worker-service";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsItemRead, useIsInReadLater, useReadActions, useReadLaterActions } from "@/hooks/useFeedSelectors";
+import { useIsItemRead, useIsInReadLater, useReadActions, useReadLaterActions, useIsAudioPlaying, useAudioActions } from "@/hooks/useFeedSelectors";
 import { useRenderCount } from "@/store/middleware/performanceMiddleware";
 import { cleanupTextContent } from "@/utils/htmlUtils";
 import { Ambilight } from "@/components/ui/ambilight";
@@ -32,23 +32,27 @@ interface FeedCardProps {
 }
 
 /**
- * CardFooter component for displaying like, comment, and share buttons.
+ * CardFooter component for displaying action buttons (play, bookmark, share).
  *
  * @param {Object} props - Component props.
- * @param {boolean} props.liked - Indicates if the item is liked.
- * @param {boolean} props.isTogglingFavorite - Indicates if the favorite toggle is in progress.
- * @param {function} props.handleLikeClick - Function to handle like button click.
  * @param {string} props.feedType - Type of the feed item (e.g., podcast).
  * @param {number} [props.duration] - Duration of the podcast, if applicable.
+ * @param {FeedItem} props.feedItem - The feed item data.
+ * @param {boolean} props.isCurrentlyPlaying - Indicates if this podcast is currently playing.
+ * @param {function} props.onPlayClick - Function to handle play button click.
  */
 const CardFooter = memo(function CardFooter({
   feedType,
   duration,
   feedItem,
+  isCurrentlyPlaying,
+  onPlayClick,
 }: {
   feedType: string;
   duration?: number;
   feedItem: FeedItem;
+  isCurrentlyPlaying: boolean;
+  onPlayClick: () => void;
 }) {
   const isInReadLaterList = useIsInReadLater(feedItem.id);
   const { addToReadLater, removeFromReadLater } = useReadLaterActions();
@@ -94,6 +98,24 @@ const CardFooter = memo(function CardFooter({
   return (
     <CardFooterUI className="p-4 pt-0 flex justify-between">
       <div className="flex space-x-2">
+        {feedType === "podcast" && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={onPlayClick}
+          >
+            {isCurrentlyPlaying ? (
+              <Pause className="h-4 w-4" />
+            ) : (
+              <Play className="h-4 w-4" />
+            )}
+            <span className="sr-only">
+              {isCurrentlyPlaying ? "Pause" : "Play"}
+            </span>
+          </Button>
+        )}
+        
         <Button
           variant="ghost"
           size="icon"
@@ -167,7 +189,8 @@ export const FeedCard = memo(function FeedCard({
     height: 0,
   });
   const cardRef = useRef<HTMLDivElement>(null);
-  const { playAudio, isPlaying, currentAudio } = useAudio();
+  const { playAudio } = useAudioActions();
+  const isCurrentlyPlaying = useIsAudioPlaying(feedItem.id);
   const [imageError, setImageError] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -272,9 +295,6 @@ export const FeedCard = memo(function FeedCard({
     return dayjs(dateString).fromNow();
   }, []);
 
-  const isCurrentlyPlaying =
-    currentAudio && currentAudio.id === feedItem.id && isPlaying;
-
   const handleImageError = useCallback(() => {
     setImageError(true);
   }, []);
@@ -369,22 +389,6 @@ export const FeedCard = memo(function FeedCard({
                   priority={false}
                 />
               </Ambilight>
-              {feedItem.type === "podcast" && (
-                <Button
-                  size="icon"
-                  className="absolute bottom-4 right-4 rounded-full"
-                  onClick={handlePlayClick}
-                >
-                  {isCurrentlyPlaying ? (
-                    <Pause className="h-4 w-4" />
-                  ) : (
-                    <Play className="h-4 w-4" />
-                  )}
-                  <span className="sr-only">
-                    {isCurrentlyPlaying ? "Pause" : "Play"}
-                  </span>
-                </Button>
-              )}
             </div>
           )}
 
@@ -433,6 +437,8 @@ export const FeedCard = memo(function FeedCard({
             feedType={feedItem.type}
             duration={feedItem.duration ? feedItem.duration : undefined}
             feedItem={feedItem}
+            isCurrentlyPlaying={isCurrentlyPlaying}
+            onPlayClick={handlePlayClick}
           />
         </div>
       </Card>

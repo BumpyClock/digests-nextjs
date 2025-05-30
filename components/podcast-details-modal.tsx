@@ -1,7 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { Play, Pause } from "lucide-react"
-import { useAudio } from "@/components/audio-player-provider"
+import { useAudioActions, useIsAudioPlaying } from "@/hooks/useFeedSelectors"
 import { formatDuration } from "@/utils/formatDuration"
 import type { FeedItem } from "@/lib/rss"
 import { BaseModal } from "./base-modal"
@@ -14,7 +14,8 @@ interface PodcastDetailsModalProps {
 }
 
 export function PodcastDetailsModal({ isOpen, onClose, podcast, initialPosition }: PodcastDetailsModalProps) {
-  const { playAudio, isPlaying, currentAudio } = useAudio()
+  const { playAudio } = useAudioActions()
+  const isCurrentlyPlaying = useIsAudioPlaying(podcast.id)
 
   const handlePlayPause = () => {
     playAudio({
@@ -25,8 +26,6 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast, initialPosition 
       image: podcast.thumbnail,
     })
   }
-
-  const isCurrentlyPlaying = currentAudio && currentAudio.id === podcast.id && isPlaying
 
   const duration = formatDuration(
     podcast.duration || podcast.enclosures?.[0]?.length || "0"

@@ -8,6 +8,7 @@ import { FeedItem } from "@/types";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { PodcastDetailsPane } from "./PodcastDetailsPane";
 import "./FeedMasterDetail.css";
 
 interface FeedMasterDetailProps {
@@ -91,7 +92,11 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
               </Button>
             </div>
             <div className="mobile-reader-content">
-              <ReaderViewPane feedItem={selectedItem} />
+              {selectedItem?.type === "podcast" ? (
+                <PodcastDetailsPane feedItem={selectedItem} />
+              ) : (
+                <ReaderViewPane feedItem={selectedItem} />
+              )}
             </div>
           </div>
         )}
@@ -118,7 +123,11 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
         <ResizableHandle withHandle />
         
         <ResizablePanel defaultSize={70}>
-          <ReaderViewPane feedItem={selectedItem} />
+          {selectedItem?.type === "podcast" ? (
+            <PodcastDetailsPane feedItem={selectedItem} />
+          ) : (
+            <ReaderViewPane feedItem={selectedItem} />
+          )}
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

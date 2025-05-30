@@ -208,3 +208,70 @@ export const useWebPageData = () => {
     }))
   );
 };
+
+/**
+ * Hook to check if a specific audio item is currently playing
+ * @param audioId - The ID of the audio item to check
+ * @returns boolean indicating if the audio is currently playing
+ */
+export const useIsAudioPlaying = (audioId: string): boolean => {
+  return useFeedStore(state => 
+    state.currentAudio?.id === audioId && state.isPlaying
+  );
+};
+
+/**
+ * Hook to get audio playback actions
+ * Uses shallow equality to prevent re-renders when functions don't change
+ * @returns Object with audio control functions
+ */
+export const useAudioActions = () => {
+  return useFeedStore(
+    useShallow(state => ({
+      playAudio: state.playAudio,
+      togglePlayPause: state.togglePlayPause,
+      seek: state.seek,
+      setVolume: state.setVolume,
+      toggleMute: state.toggleMute,
+      toggleMinimize: state.toggleMinimize,
+    }))
+  );
+};
+
+/**
+ * Hook to get current audio info
+ * @returns Current audio info or null
+ */
+export const useCurrentAudio = () => {
+  return useFeedStore(state => state.currentAudio);
+};
+
+/**
+ * Hook to get audio playback state
+ * Uses shallow equality for efficient updates
+ * @returns Object with playback state
+ */
+export const useAudioPlaybackState = () => {
+  return useFeedStore(
+    useShallow(state => ({
+      isPlaying: state.isPlaying,
+      currentTime: state.currentTime,
+      duration: state.duration,
+      volume: state.volume,
+      isMuted: state.isMuted,
+    }))
+  );
+};
+
+/**
+ * Hook to get audio UI state
+ * @returns Object with UI state
+ */
+export const useAudioUIState = () => {
+  return useFeedStore(
+    useShallow(state => ({
+      isMinimized: state.isMinimized,
+      showMiniPlayer: state.showMiniPlayer,
+    }))
+  );
+};

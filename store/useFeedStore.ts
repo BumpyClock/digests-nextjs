@@ -10,6 +10,7 @@ import { createFeedSlice } from "./slices/feedSlice"
 import { createItemsSlice } from "./slices/itemsSlice"
 import { createReadStatusSlice } from "./slices/readStatusSlice"
 import { createMetadataSlice } from "./slices/metadataSlice"
+import { createAudioSlice, type AudioSlice } from "./slices/audioSlice"
 import { withPerformanceMonitoring } from "./middleware/performanceMiddleware"
 
 /**
@@ -45,7 +46,7 @@ import { withPerformanceMonitoring } from "./middleware/performanceMiddleware"
  * @method isInReadLater - Checks if an item is in read later
  * @method getReadLaterItems - Gets all items in the read later list
  */
-interface FeedState {
+interface FeedState extends AudioSlice {
   // From slices
   feeds: Feed[]
   feedItems: FeedItem[]
@@ -100,6 +101,7 @@ export const useFeedStore = create<FeedState>()(
       ...createItemsSlice(set, get, api),
       ...createReadStatusSlice(set, get, api),
       ...createMetadataSlice(set, get, api),
+      ...createAudioSlice(set, get, api),
 
       // Complex methods that need cross-slice access
       refreshFeeds: async () => {
@@ -179,6 +181,10 @@ export const useFeedStore = create<FeedState>()(
         readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
         activeFeed: state.activeFeed,
         readLaterItems: Array.isArray(state.readLaterItems) ? state.readLaterItems : Array.from(state.readLaterItems || []),
+        // Audio state
+        volume: state.volume,
+        isMuted: state.isMuted,
+        isMinimized: state.isMinimized,
       }),
       onRehydrateStorage: () => (state) => {
         if (state && typeof window !== 'undefined') {
@@ -246,6 +252,7 @@ export const useFeedStore = create<FeedState>()(
       ...createItemsSlice(set, get, api),
       ...createReadStatusSlice(set, get, api),
       ...createMetadataSlice(set, get, api),
+      ...createAudioSlice(set, get, api),
 
       // Complex methods that need cross-slice access
       refreshFeeds: async () => {
@@ -325,6 +332,10 @@ export const useFeedStore = create<FeedState>()(
         readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
         activeFeed: state.activeFeed,
         readLaterItems: Array.isArray(state.readLaterItems) ? state.readLaterItems : Array.from(state.readLaterItems || []),
+        // Audio state
+        volume: state.volume,
+        isMuted: state.isMuted,
+        isMinimized: state.isMinimized,
       }),
       onRehydrateStorage: () => (state) => {
         if (state && typeof window !== 'undefined') {
