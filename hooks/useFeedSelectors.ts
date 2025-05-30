@@ -115,6 +115,7 @@ export const useFeedActions = () => {
       removeFeed: state.removeFeed,
       refreshFeeds: state.refreshFeeds,
       setActiveFeed: state.setActiveFeed,
+      checkForUpdates: state.checkForUpdates,
     }))
   );
 };
@@ -184,4 +185,26 @@ export const useUnreadItems = (): FeedItem[] => {
  */
 export const useReadLaterItems = (): FeedItem[] => {
   return useFeedStore(state => state.getReadLaterItems());
+};
+
+/**
+ * Hook for the main web page data needs
+ * Combines multiple selectors for optimal performance
+ * @returns Object with all necessary data for the web page
+ */
+export const useWebPageData = () => {
+  return useFeedStore(
+    useShallow(state => ({
+      feedItems: state.feedItems,
+      loading: state.loading,
+      refreshing: state.refreshing,
+      initialized: state.initialized,
+      hydrated: state.hydrated,
+      refreshFeeds: state.refreshFeeds,
+      setInitialized: state.setInitialized,
+      getUnreadItems: state.getUnreadItems,
+      setActiveFeed: state.setActiveFeed,
+      getReadLaterItems: state.getReadLaterItems,
+    }))
+  );
 };

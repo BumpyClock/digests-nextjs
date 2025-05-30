@@ -5,7 +5,7 @@ import { FeedItem } from "@/types";
 import Image from "next/image";
 import { Heart } from "lucide-react";
 import { Scrollbars } from "react-custom-scrollbars-2";
-import { useFeedStore } from "@/store/useFeedStore";
+import { useIsItemRead } from "@/hooks/useFeedSelectors";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { cleanupTextContent } from "@/utils/htmlUtils";
@@ -23,13 +23,12 @@ const FeedListItem = memo(function FeedListItem({
   item,
   isSelected,
   onSelect,
-  isRead,
 }: {
   item: FeedItem;
   isSelected: boolean;
   onSelect: () => void;
-  isRead: boolean;
 }) {
+  const isRead = useIsItemRead(item.id);
   const formattedDate = useMemo(() => {
     return item.published ? dayjs(item.published).fromNow() : "Date unknown";
   }, [item.published]);
@@ -96,7 +95,6 @@ export function FeedList({
   onItemSelect,
   savedScrollPosition = 0,
 }: FeedListProps) {
-  const { readItems } = useFeedStore();
   const scrollbarsRef = useRef<Scrollbars>(null);
   const [currentScrollTop, setCurrentScrollTop] = useState(0);
 
@@ -111,13 +109,6 @@ export function FeedList({
     setCurrentScrollTop(scrollTop);
   }, []);
 
-  const isItemRead = useCallback(
-    (id: string) => {
-      if (!readItems || !(readItems instanceof Set)) return false;
-      return readItems.has(id);
-    },
-    [readItems]
-  );
 
   const handleItemSelect = useCallback(
     (item: FeedItem) => {
@@ -176,7 +167,6 @@ export function FeedList({
             item={item}
             isSelected={selectedItem?.id === item.id}
             onSelect={() => handleItemSelect(item)}
-            isRead={isItemRead(item.id)}
           />
         ))}
       </Scrollbars>

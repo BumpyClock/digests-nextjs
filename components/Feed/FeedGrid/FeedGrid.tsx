@@ -4,7 +4,7 @@ import { useCallback, useState, useEffect, useMemo } from "react"
 import { Masonry } from "masonic"
 import { FeedCard } from "@/components/Feed/FeedCard/FeedCard"
 import { useWindowSize } from "@/hooks/use-window-size"
-import { useFeedStore } from "@/store/useFeedStore"
+import { useFeedActions } from "@/hooks/useFeedSelectors"
 import { FeedItem } from "@/types"
 import { toast } from "sonner"
 import dynamic from 'next/dynamic'
@@ -61,7 +61,7 @@ const LoadingAnimation = () => {
  * @remark If new items are detected during periodic checks, a toast notification is shown with an option to refresh the feed.
  */
 export function FeedGrid({ items, isLoading }: FeedGridProps) {
-  const { checkForUpdates, refreshFeeds } = useFeedStore()
+  const { checkForUpdates, refreshFeeds } = useFeedActions()
   const [mounted, setMounted] = useState(false)
   const { width: windowWidth } = useWindowSize()
   const [isMinLoadingComplete, setIsMinLoadingComplete] = useState(false)

@@ -30,19 +30,19 @@
 - [x] Replace isInReadLater check with useIsInReadLater selector
 - [x] Replace action imports with useReadActions and useReadLaterActions
 - [x] Remove useMemo for isRead calculation (no longer needed)
-- [ ] Test FeedCard still displays read/unread status correctly
-- [ ] Test mark as read functionality works
-- [ ] Test read later functionality works
-- [ ] Verify component only re-renders when its specific item changes
-- [ ] Commit changes with message "perf: optimize FeedCard with granular subscriptions"
+- [x] Test FeedCard still displays read/unread status correctly
+- [x] Test mark as read functionality works
+- [x] Test read later functionality works
+- [x] Verify component only re-renders when its specific item changes
+- [x] Commit changes with message "perf: optimize FeedCard with granular subscriptions"
 
 ## Phase 4: Migrate Other High-Impact Components
-- [ ] Update CommandBar to use useUnreadCount selector
-- [ ] Update CommandBar to use feed titles selector instead of full feeds array
-- [ ] Migrate FeedGrid to use optimized selectors
+- [x] Update CommandBar to use useUnreadCount selector
+- [x] Update CommandBar to use feed titles selector instead of full feeds array
+- [x] Migrate FeedGrid to use optimized selectors
 - [ ] Migrate FeedList to use optimized selectors
-- [ ] Update web/page.tsx to use computed selectors for filtered items
-- [ ] Update SettingsFeedCard to use granular subscriptions
+- [x] Update web/page.tsx to use computed selectors for filtered items
+- [x] Update SettingsFeedCard to use granular subscriptions (no store usage, skipped)
 - [ ] Test each component after migration
 - [ ] Ensure no visual regressions in UI
 - [ ] Verify improved performance in React DevTools Profiler
