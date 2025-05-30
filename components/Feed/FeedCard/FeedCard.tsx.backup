@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useRef, useCallback, memo, useEffect } from "react";
+import { useState, useRef, useCallback, memo, useEffect, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -21,7 +21,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { useTheme } from "next-themes";
 import { workerService } from "@/services/worker-service";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsItemRead, useIsInReadLater, useReadActions, useReadLaterActions } from "@/hooks/useFeedSelectors";
+import { useFeedStore } from "@/store/useFeedStore";
 import { cleanupTextContent } from "@/utils/htmlUtils";
 import { Ambilight } from "@/components/ui/ambilight";
 dayjs.extend(relativeTime);
@@ -49,8 +49,12 @@ const CardFooter = memo(function CardFooter({
   duration?: number;
   feedItem: FeedItem;
 }) {
-  const isInReadLaterList = useIsInReadLater(feedItem.id);
-  const { addToReadLater, removeFromReadLater } = useReadLaterActions();
+  const { addToReadLater, removeFromReadLater, isInReadLater } = useFeedStore();
+  const [isInReadLaterList, setIsInReadLaterList] = useState(false);
+
+  useEffect(() => {
+    setIsInReadLaterList(isInReadLater(feedItem.id));
+  }, [feedItem.id, isInReadLater]);
 
   const handleShare = async () => {
     try {
@@ -87,7 +91,7 @@ const CardFooter = memo(function CardFooter({
         description: "The article has been added to your reading list.",
       });
     }
-    // State update handled by store
+    setIsInReadLaterList(!isInReadLaterList);
   };
 
   return (
@@ -175,8 +179,11 @@ export const FeedCard = memo(function FeedCard({
   const animationTimeoutRef = useRef<NodeJS.Timeout>(null);
   const transitionDuration = 150; // matches our transition duration in ms
   const [imageLoading, setImageLoading] = useState(true);
-  const isRead = useIsItemRead(feedItem.id);
-  const { markAsRead } = useReadActions();
+  const { markAsRead, readItems } = useFeedStore();
+  const isRead = useMemo(() => {
+    if (!readItems || !(readItems instanceof Set)) return false;
+    return readItems.has(feedItem.id);
+  }, [readItems, feedItem.id]);
 
   /**
    * Handles the click event on the card.

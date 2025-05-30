@@ -9,27 +9,27 @@
 - [x] Move existing store methods to appropriate slices
 - [x] Update imports in slice files to reference get() for cross-slice access
 - [x] Combine all slices in store/useFeedStore.ts using spread operator
-- [ ] Test that all existing functionality still works after slice refactoring
-- [ ] Commit changes with message "refactor: organize store into slices"
+- [x] Test that all existing functionality still works after slice refactoring
+- [x] Commit changes with message "refactor: organize store into slices"
 
 ## Phase 2: Create Selector Hooks
-- [ ] Create hooks/useFeedSelectors.ts file
-- [ ] Implement useIsItemRead selector that returns boolean for specific item ID
-- [ ] Implement useIsInReadLater selector that returns boolean for specific item ID
-- [ ] Implement useReadActions selector with shallow equality for action functions
-- [ ] Implement useReadLaterActions selector with shallow equality
-- [ ] Implement useUnreadCount computed selector
-- [ ] Implement useFeedItemsByFeed selector with shallow equality
-- [ ] Implement useActiveFeedItems selector for active feed filtering
-- [ ] Add JSDoc comments to each selector explaining usage
-- [ ] Export all selectors from hooks/useFeedSelectors.ts
+- [x] Create hooks/useFeedSelectors.ts file
+- [x] Implement useIsItemRead selector that returns boolean for specific item ID
+- [x] Implement useIsInReadLater selector that returns boolean for specific item ID
+- [x] Implement useReadActions selector with shallow equality for action functions
+- [x] Implement useReadLaterActions selector with shallow equality
+- [x] Implement useUnreadCount computed selector
+- [x] Implement useFeedItemsByFeed selector with shallow equality
+- [x] Implement useActiveFeedItems selector for active feed filtering
+- [x] Add JSDoc comments to each selector explaining usage
+- [x] Export all selectors from hooks/useFeedSelectors.ts
 
 ## Phase 3: Migrate FeedCard Component
-- [ ] Backup current FeedCard component implementation
-- [ ] Replace readItems subscription with useIsItemRead selector
-- [ ] Replace isInReadLater check with useIsInReadLater selector
-- [ ] Replace action imports with useReadActions and useReadLaterActions
-- [ ] Remove useMemo for isRead calculation (no longer needed)
+- [x] Backup current FeedCard component implementation
+- [x] Replace readItems subscription with useIsItemRead selector
+- [x] Replace isInReadLater check with useIsInReadLater selector
+- [x] Replace action imports with useReadActions and useReadLaterActions
+- [x] Remove useMemo for isRead calculation (no longer needed)
 - [ ] Test FeedCard still displays read/unread status correctly
 - [ ] Test mark as read functionality works
 - [ ] Test read later functionality works
