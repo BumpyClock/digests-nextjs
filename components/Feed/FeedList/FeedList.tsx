@@ -4,7 +4,7 @@ import { memo, useCallback, useMemo, useRef, useEffect, useState } from "react";
 import { FeedItem } from "@/types";
 import Image from "next/image";
 import { Heart } from "lucide-react";
-import { Scrollbars } from "react-custom-scrollbars-2";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useIsItemRead } from "@/hooks/useFeedSelectors";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -95,18 +95,20 @@ export function FeedList({
   onItemSelect,
   savedScrollPosition = 0,
 }: FeedListProps) {
-  const scrollbarsRef = useRef<Scrollbars>(null);
+  const scrollbarsRef = useRef<any>(null);
+  const scrollableNodeRef = useRef<HTMLDivElement>(null);
   const [currentScrollTop, setCurrentScrollTop] = useState(0);
 
   // Restore scroll position when component remounts
   useEffect(() => {
-    if (scrollbarsRef.current && savedScrollPosition > 0) {
-      scrollbarsRef.current.scrollTop(savedScrollPosition);
+    if (scrollableNodeRef.current && savedScrollPosition > 0) {
+      scrollableNodeRef.current.scrollTop = savedScrollPosition;
     }
   }, [savedScrollPosition]);
 
-  const handleScroll = useCallback(({ scrollTop }: { scrollTop: number }) => {
-    setCurrentScrollTop(scrollTop);
+  const handleScroll = useCallback((e: Event) => {
+    const target = e.target as HTMLDivElement;
+    setCurrentScrollTop(target.scrollTop);
   }, []);
 
 
@@ -138,9 +140,12 @@ export function FeedList({
   if (isLoading) {
     return (
       <div className="border rounded-md overflow-hidden h-full">
-        <Scrollbars autoHide style={{ height: "100%" }}>
+        <ScrollArea 
+          variant="list"
+          className="h-full"
+        >
           {renderSkeletons()}
-        </Scrollbars>
+        </ScrollArea>
       </div>
     );
   }
@@ -155,11 +160,12 @@ export function FeedList({
 
   return (
     <div className="border rounded-md overflow-hidden h-full">
-      <Scrollbars 
+      <ScrollArea 
         ref={scrollbarsRef}
-        autoHide 
-        style={{ height: "100%" }}
-        onScrollFrame={handleScroll}
+        variant="list"
+        className="h-full"
+        onScroll={handleScroll}
+        scrollableNodeRef={scrollableNodeRef}
       >
         {items.map((item) => (
           <FeedListItem
@@ -169,7 +175,7 @@ export function FeedList({
             onSelect={() => handleItemSelect(item)}
           />
         ))}
-      </Scrollbars>
+      </ScrollArea>
     </div>
   );
 } 

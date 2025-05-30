@@ -68,7 +68,7 @@ export function AudioMiniPlayer() {
           {currentAudio.image && (
             <div className="w-[180px] h-[180px] overflow-hidden flex-shrink-0 rounded-[16px]">
               <Image
-                src={currentAudio.image || "/placeholder.svg"}
+                src={currentAudio.image || "/placeholder-podcast.svg"}
                 alt={currentAudio.title || "Album cover"}
                 className="w-full h-full object-cover"
                 loading="lazy" // Lazy loading for images - performance optimization

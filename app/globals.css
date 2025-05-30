@@ -141,19 +141,6 @@ width: 100%;
 word-break: break-word;
 }
 
-.reader-view-article::-webkit-scrollbar {
-  width: 8px;
-}
-
-.reader-view-article::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.reader-view-article::-webkit-scrollbar-thumb {
-  background-color: rgba(155, 155, 155, 0.5);
-  border-radius: 20px;
-  border: transparent;
-}
 
 
 .reader-view-article a {
@@ -425,51 +412,36 @@ a {
 }
 }
 
-@media (prefers-color-scheme: dark) {
-/* width */
-::-webkit-scrollbar {
-  width: 10px;
+/* SimpleBar Custom Styles */
+.simplebar-scrollbar::before {
+  background-color: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+  opacity: 1;
 }
 
-/* Track */
-::-webkit-scrollbar-track {
-  background: transparent;
+.simplebar-track.simplebar-vertical {
+  width: 8px;
 }
 
-/* Handle */
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 5px;
+.simplebar-track.simplebar-horizontal {
+  height: 8px;
 }
 
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-::-webkit-scrollbar-thumb:vertical:active {
-  background: rgba(255,255,255,0.61); /* Some darker color when you click it */
-  -webkit-border-radius: 100px;
+.simplebar-scrollbar:hover::before {
+  background-color: hsl(var(--muted-foreground) / 0.5);
 }
 
+.simplebar-scrollbar.simplebar-visible::before {
+  opacity: 1;
 }
 
-@media (prefers-color-scheme: light) {
-/* width */
-::-webkit-scrollbar {
-  width: 10px;
+/* Variant styles */
+.simplebar-modal .simplebar-track.simplebar-vertical {
+  right: 4px;
 }
 
-/* Track */
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 5px;
-}
-
-
+.simplebar-list .simplebar-track.simplebar-vertical {
+  right: 2px;
 }
 
 /* Hero Section */

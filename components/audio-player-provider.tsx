@@ -214,9 +214,11 @@ const AudioPlayer = React.memo(() => {
           {currentAudio.image && (
             <div className="w-12 h-12 rounded overflow-hidden mr-3 flex-shrink-0">
               <Image
-                src={currentAudio.image || "/placeholder.svg"}
+                src={currentAudio.image || "/placeholder-podcast.svg"}
                 alt={currentAudio.title}
                 className="w-full h-full object-cover"
+                width={48}
+                height={48}
               />
             </div>
           )}

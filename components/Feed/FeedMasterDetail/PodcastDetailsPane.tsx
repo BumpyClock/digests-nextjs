@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import { Scrollbars } from "react-custom-scrollbars-2";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmptyState } from "@/components/Feed/ArticleReader/ArticleReader";
 import { useFeedStore } from "@/store/useFeedStore";
 import { useAudioActions, useIsAudioPlaying } from "@/hooks/useFeedSelectors";
@@ -54,26 +54,27 @@ export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
 
   return (
     <div className="h-full border rounded-md overflow-hidden bg-card">
-      <Scrollbars 
-        style={{ width: '100%', height: '100%' }}
-        autoHide
+      <ScrollArea 
+        className="h-full w-full"
       >
         <div className="p-6">
-          <div className="flex flex-col lg:flex-row gap-6 mb-6">
+          <div className={`flex flex-col gap-6 mb-6 ${feedItem.thumbnail ? 'lg:flex-row' : ''}`}>
             {/* Podcast Artwork */}
-            <div className="relative w-full lg:w-1/3 aspect-square overflow-hidden rounded-lg">
-              <Image
-                src={feedItem.thumbnail || "/placeholder-podcast.svg"}
-                alt={feedItem.title}
-                className="object-cover w-full h-full"
-                width={400}
-                height={400}
-                priority
-              />
-            </div>
+            {feedItem.thumbnail && (
+              <div className="relative w-full lg:w-1/3 aspect-square overflow-hidden rounded-lg">
+                <Image
+                  src={feedItem.thumbnail}
+                  alt={feedItem.title}
+                  className="object-cover w-full h-full"
+                  width={400}
+                  height={400}
+                  priority
+                />
+              </div>
+            )}
             
             {/* Podcast Info */}
-            <div className="flex-1">
+            <div className={feedItem.thumbnail ? "flex-1" : "w-full"}>
               <h1 className="text-2xl font-bold mb-4">{cleanupTextContent(feedItem.title)}</h1>
               
               <div className="flex items-center mb-4">
@@ -131,7 +132,7 @@ export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
             />
           </div>
         </div>
-      </Scrollbars>
+      </ScrollArea>
     </div>
   );
 }

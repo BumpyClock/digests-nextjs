@@ -10,6 +10,7 @@ import { cleanupModalContent } from "@/utils/htmlUtils";
 import { useFeedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { Ambilight } from "@/components/ui/ambilight";
 
 export const ArticleImage = memo(({ 
   src, 
@@ -21,16 +22,35 @@ export const ArticleImage = memo(({
   alt: string; 
   className: string; 
   style?: React.CSSProperties 
-}) => (
-  <Image
-    src={src || "/placeholder.svg"}
-    width={550}
-    height={550}
-    alt={alt}
-    className={className}
-    style={style}
-  />
-));
+}) => {
+  // Validate the URL before rendering
+  const isValidUrl = (url: string) => {
+    if (!url || url.trim() === '') return false;
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      // If it's not a full URL, check if it's a valid relative path
+      return url.startsWith('/') || url.startsWith('http');
+    }
+  };
+
+  // Don't render anything if there's no valid image
+  if (!isValidUrl(src)) {
+    return null;
+  }
+
+  return (
+    <Image
+      src={src}
+      width={550}
+      height={550}
+      alt={alt}
+      className={className}
+      style={style}
+    />
+  );
+});
 ArticleImage.displayName = 'ArticleImage';
 
 export const SiteFavicon = memo(({ 
@@ -41,15 +61,31 @@ export const SiteFavicon = memo(({
   favicon: string; 
   siteTitle: string;
   size?: "small" | "medium" 
-}) => (
-  <Image
-    src={favicon || "/placeholder.svg"}
-    alt={siteTitle}
-    className={`rounded ${size === "small" ? "max-h-5 max-w-5" : "max-h-6 max-w-6"}`}
-    width={size === "small" ? 20 : 24}
-    height={size === "small" ? 20 : 24}
-  />
-));
+}) => {
+  // Validate the URL before rendering
+  const isValidUrl = (url: string) => {
+    if (!url || url.trim() === '') return false;
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      // If it's not a full URL, check if it's a valid relative path
+      return url.startsWith('/') || url.startsWith('http');
+    }
+  };
+
+  const faviconSrc = isValidUrl(favicon) ? favicon : "/placeholder-rss.svg";
+
+  return (
+    <Image
+      src={faviconSrc}
+      alt={siteTitle}
+      className={`rounded ${size === "small" ? "max-h-5 max-w-5" : "max-h-6 max-w-6"}`}
+      width={size === "small" ? 20 : 24}
+      height={size === "small" ? 20 : 24}
+    />
+  );
+});
 SiteFavicon.displayName = 'SiteFavicon';
 
 // Memoized reading time component
@@ -138,8 +174,12 @@ export const ArticleHeader = memo(({
 
   return (
     <>
-      {showThumbnail && feedItem.thumbnail && (
-        <div className={`overflow-hidden ${isModal ? 'rounded-[24px] mb-6' : 'rounded-lg mb-6 mt-4'}`}>
+      {showThumbnail && feedItem.thumbnail && feedItem.thumbnail.trim() !== '' && (
+        <Ambilight
+          className={`overflow-hidden ${isModal ? 'rounded-[24px] mb-6' : 'rounded-lg mb-6 mt-4'}`}
+          isActive={true}
+          opacity={{ rest: 0.5, hover: 0.7 }}
+        >
           <ArticleImage
             src={feedItem.thumbnail}
             alt={feedItem.title}
@@ -149,7 +189,7 @@ export const ArticleHeader = memo(({
               marginTop: isModal ? '-80px' : undefined,
             } : undefined}
           />
-        </div>
+        </Ambilight>
       )}
       
       {/* Reader View Header */}
@@ -163,7 +203,7 @@ export const ArticleHeader = memo(({
               </h1>
             )}
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground max-w-[200px]">
                 {feedItem.favicon && (
                   <SiteFavicon 
                     favicon={feedItem.favicon} 
@@ -171,7 +211,12 @@ export const ArticleHeader = memo(({
                     size="small" 
                   />
                 )}
-                <span>{feedItem.siteTitle}</span>
+                <span 
+                  className="truncate block"
+                  title={feedItem.siteTitle}
+                >
+                  {feedItem.siteTitle}
+                </span>
               </div>
               <div className="flex">
                 <Button 
@@ -207,7 +252,7 @@ export const ArticleHeader = memo(({
         ) : (
           <>
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground max-w-[400px]">
                 {feedItem.favicon && (
                   <SiteFavicon 
                     favicon={feedItem.favicon} 
@@ -215,7 +260,12 @@ export const ArticleHeader = memo(({
                     size={isModal ? "medium" : "small"} 
                   />
                 )}
-                <span>{feedItem.siteTitle}</span>
+                <span 
+                  className="truncate block"
+                  title={feedItem.siteTitle}
+                >
+                  {feedItem.siteTitle}
+                </span>
               </div>
               
               {/* Actions */}

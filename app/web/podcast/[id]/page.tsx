@@ -143,7 +143,7 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
         <div className="flex flex-col md:flex-row gap-6 mb-6">
           <div className="relative w-full md:w-1/3 aspect-square overflow-hidden rounded-lg">
             <Image
-              src={podcast.thumbnail || "/placeholder.svg?height=300&width=300"}
+              src={podcast.thumbnail || "/placeholder-podcast.svg"}
               alt={podcast.title}
               className="object-cover"
               fill

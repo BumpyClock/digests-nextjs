@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { FeedItem } from "@/types";
 import { BaseModal } from "./base-modal";
-import { Scrollbars } from "react-custom-scrollbars-2";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useReaderView } from "@/hooks/use-reader-view";
 import { useScrollShadow } from "@/hooks/use-scroll-shadow";
 import { ScrollShadow } from "./ui/scroll-shadow";
@@ -29,6 +29,11 @@ export function ReaderViewModal({
     return Math.min(scrollTop * 0.2, 50);
   }, [scrollTop]);
 
+  const handleScrollEvent = (e: Event) => {
+    const target = e.target as HTMLDivElement;
+    handleScroll({ scrollTop: target.scrollTop, scrollHeight: target.scrollHeight, clientHeight: target.clientHeight });
+  };
+
   return (
     <BaseModal
       isOpen={isOpen}
@@ -40,12 +45,12 @@ export function ReaderViewModal({
       <div className="relative">
         <ScrollShadow visible={hasScrolled} position="top" />
         
-        <Scrollbars 
+        <ScrollArea 
+          variant="modal"
           style={{ width: '100%', height: 'calc(100vh - 10px)' }}
-          autoHide
-          onScrollFrame={handleScroll}
+          onScroll={handleScrollEvent}
         > 
-          <div className=" mx-auto">
+          <div className="mx-auto">
             <ReaderContent
               feedItem={feedItem}
               readerView={readerView}
@@ -55,7 +60,7 @@ export function ReaderViewModal({
               parallaxOffset={parallaxOffset}
             />
           </div>
-        </Scrollbars>
+        </ScrollArea>
 
         <ScrollShadow visible={isBottomVisible} position="bottom" />
       </div>

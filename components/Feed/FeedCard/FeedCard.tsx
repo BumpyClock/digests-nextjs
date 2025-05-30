@@ -193,6 +193,7 @@ export const FeedCard = memo(function FeedCard({
   const isCurrentlyPlaying = useIsAudioPlaying(feedItem.id);
   const [imageError, setImageError] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
+  const [showPlaceholder, setShowPlaceholder] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
   const { restShadow, hoverShadow, pressedShadow } = useCardShadow(
@@ -297,6 +298,7 @@ export const FeedCard = memo(function FeedCard({
 
   const handleImageError = useCallback(() => {
     setImageError(true);
+    setShowPlaceholder(true);
   }, []);
 
   const handleFaviconError = useCallback(() => {
@@ -364,7 +366,7 @@ export const FeedCard = memo(function FeedCard({
           className="relative z-10 "
         >
           {/* Card Thumbnail image*/}
-          {!imageError && feedItem.thumbnail && isValidUrl(feedItem.thumbnail) && (
+          {((!imageError && feedItem.thumbnail && isValidUrl(feedItem.thumbnail)) || showPlaceholder) && (
             <div className="relative w-full p-2">
               <Ambilight
   className="relative w-full aspect-[16/9] rounded-[32px] overflow-hidden"
@@ -375,7 +377,7 @@ export const FeedCard = memo(function FeedCard({
                   <Skeleton className="absolute inset-0 z-10 rounded-[32px]" />
                 )}
                 <Image
-                  src={feedItem.thumbnail}
+                  src={showPlaceholder ? (feedItem.type === "podcast" ? "/placeholder-podcast.svg" : "/placeholder-rss.svg") : feedItem.thumbnail}
                   alt={feedItem.title}
                   height={300}
                   width={300}
@@ -399,7 +401,7 @@ export const FeedCard = memo(function FeedCard({
                 className="flex flex-wrap items-center justify-between gap-2 font-regular"
               >
                 <div className="flex space-between gap-2 align-center items-center ">
-                  {!faviconError && feedItem.favicon && isValidUrl(feedItem.favicon) && (
+                  {(!faviconError && feedItem.favicon && isValidUrl(feedItem.favicon)) ? (
                     <Image
                       src={feedItem.favicon}
                       alt={`${cleanupTextContent(feedItem.siteTitle)} favicon`}
@@ -410,6 +412,10 @@ export const FeedCard = memo(function FeedCard({
                       loading="lazy"
                       priority={false}
                     />
+                  ) : (
+                    <div className="w-6 h-6 bg-muted rounded-[4px] flex items-center justify-center text-xs font-medium">
+                      {cleanupTextContent(feedItem.siteTitle).charAt(0).toUpperCase()}
+                    </div>
                   )}
                   <div className="text-xs  line-clamp-1 font-regular">
                     {cleanupTextContent(feedItem.siteTitle)}
