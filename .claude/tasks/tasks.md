@@ -53,8 +53,8 @@
 - [x] Add console warnings for updates taking longer than 16ms
 - [x] Apply middleware to development builds only
 - [x] Add render counting to FeedCard in development
-- [ ] Document how to use performance monitoring
-- [ ] Test performance monitoring shows expected output
+- [x] Document how to use performance monitoring
+- [x] Test performance monitoring shows expected output
 - [ ] Identify any remaining performance bottlenecks
 
 ## Phase 6: Optimize Remaining Components
