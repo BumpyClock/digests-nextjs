@@ -43,6 +43,7 @@ export function ReaderViewModal({
       title={readerView?.title || "Loading..."}
       initialPosition={initialPosition}
       className=""
+      itemId={feedItem.id}
     >
       <div className="relative">
         <ScrollShadow visible={hasScrolled} position="top" />

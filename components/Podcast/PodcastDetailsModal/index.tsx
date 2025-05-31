@@ -54,6 +54,7 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast, initialPosition 
       onClose={onClose}
       title={podcast.title}
       initialPosition={initialPosition}
+      itemId={podcast.id}
     >
       <ScrollArea 
         variant="modal"

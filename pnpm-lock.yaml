@@ -111,7 +111,7 @@ importers:
         specifier: link:zustand/middleware
         version: link:zustand/middleware
       motion:
-        specifier: ^12.9.7
+        specifier: ^12.15.0
         version: 12.15.0(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       next:
         specifier: 15.2.1

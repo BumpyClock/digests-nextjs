@@ -14,6 +14,9 @@ import { Ambilight } from "@/components/ui/ambilight";
 import { getImageProps } from "@/utils/image-config";
 import { ProgressiveImage } from "@/components/ui/progressive-image";
 import { canUseImageKit } from "@/utils/imagekit";
+import { motion } from "motion/react";
+import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
+import { springConfig } from "@/utils/animation-config";
 
 export const ArticleImage = memo(
   ({
@@ -176,6 +179,9 @@ export const ArticleHeader = memo(
     const { addToReadLater, removeFromReadLater, isInReadLater } =
       useFeedStore();
     const [isInReadLaterList, setIsInReadLaterList] = useState(false);
+    const { animationEnabled } = useFeedAnimation();
+    // Enable layoutIds for modal content
+    const shouldEnableLayoutId = animationEnabled && isModal;
 
     useEffect(() => {
       setIsInReadLaterList(isInReadLater(feedItem.id));
@@ -226,37 +232,62 @@ export const ArticleHeader = memo(
         {showThumbnail &&
           feedItem.thumbnail &&
           feedItem.thumbnail.trim() !== "" && (
-            <Ambilight
-              className={`overflow-hidden ${
-                isModal
-                  ? "rounded-[24px] mb-6 max-h-[600px]"
-                  : "rounded-lg mb-6 mt-4"
-              }`}
-              isActive={true}
-              opacity={{ rest: 0.5, hover: 0.7 }}
+            <motion.div
+              layoutId={
+                shouldEnableLayoutId
+                  ? `thumbnail-container-${feedItem.id}`
+                  : undefined
+              }
+              initial={false}
             >
-              <ArticleImage
-                src={feedItem.thumbnail}
-                alt={feedItem.title}
-                className={`w-full ${
-                  isModal ? "thumbnail-image max-h-[450px]" : "max-h-[450px]"
-                } object-cover ${
+              <Ambilight
+                className={`overflow-hidden ${
                   isModal
-                    ? "drop-shadow-lg transition-transform duration-0"
-                    : ""
+                    ? "rounded-[24px] mb-6 max-h-[450px]"
+                    : "rounded-lg mb-6 mt-4"
                 }`}
-                style={
-                  parallaxOffset !== undefined
-                    ? {
-                        transform: `translateY(${parallaxOffset}px)`,
-                      }
-                    : undefined
-                }
-                priority={isModal}
-                progressive={isModal}
-                initialSrc={initialThumbnailSrc}
-              />
-            </Ambilight>
+                isActive={true}
+                opacity={{ rest: 0.5, hover: 0.7 }}
+              >
+                <motion.div
+                  layoutId={
+                    shouldEnableLayoutId
+                      ? `thumbnail-${feedItem.id}`
+                      : undefined
+                  }
+                  transition={
+                    shouldEnableLayoutId
+                      ? { layout: springConfig.stiff }
+                      : undefined
+                  }
+                  initial={false}
+                >
+                  <ArticleImage
+                    src={feedItem.thumbnail}
+                    alt={feedItem.title}
+                    className={`w-full ${
+                      isModal
+                        ? "thumbnail-image max-h-[450px]"
+                        : "max-h-[450px]"
+                    } object-cover ${
+                      isModal
+                        ? "drop-shadow-lg transition-transform duration-0"
+                        : ""
+                    }`}
+                    style={
+                      parallaxOffset !== undefined
+                        ? {
+                            transform: `translateY(${parallaxOffset}px)`,
+                          }
+                        : undefined
+                    }
+                    priority={isModal}
+                    progressive={isModal}
+                    initialSrc={initialThumbnailSrc}
+                  />
+                </motion.div>
+              </Ambilight>
+            </motion.div>
           )}
 
         {/* Reader View Header */}
@@ -325,19 +356,45 @@ export const ArticleHeader = memo(
           ) : (
             <>
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground max-w-[400px]">
+                <motion.div
+                  className="flex items-center space-x-2 text-sm text-muted-foreground max-w-[400px]"
+                  layoutId={
+                    shouldEnableLayoutId
+                      ? `metadata-${feedItem.id}`
+                      : undefined
+                  }
+                  initial={false}
+                >
                   {feedItem.favicon && (
-                    <SiteFavicon
-                      favicon={feedItem.favicon}
-                      siteTitle={feedItem.siteTitle}
-                      size={isModal ? "medium" : "small"}
-                      priority={isModal}
-                    />
+                    <motion.div
+                      layoutId={
+                        shouldEnableLayoutId
+                          ? `favicon-${feedItem.id}`
+                          : undefined
+                      }
+                      initial={false}
+                    >
+                      <SiteFavicon
+                        favicon={feedItem.favicon}
+                        siteTitle={feedItem.siteTitle}
+                        size={isModal ? "medium" : "small"}
+                        priority={isModal}
+                      />
+                    </motion.div>
                   )}
-                  <span className="truncate block" title={feedItem.siteTitle}>
+                  <motion.span
+                    className="truncate block"
+                    title={feedItem.siteTitle}
+                    layoutId={
+                      shouldEnableLayoutId
+                        ? `site-title-${feedItem.id}`
+                        : undefined
+                    }
+                    initial={false}
+                  >
                     {feedItem.siteTitle}
-                  </span>
-                </div>
+                  </motion.span>
+                </motion.div>
 
                 {/* Actions */}
                 {actions || (
@@ -369,16 +426,22 @@ export const ArticleHeader = memo(
               </div>
 
               {readerView?.title && (
-                <h1
+                <motion.h1
                   className={
                     isModal
                       ? "text-4xl font-bold mb-2 text-left"
                       : "text-2xl sm:text-3xl font-bold mb-3 text-left"
                   }
                   id={isModal ? "reader-view-title" : undefined}
+                  layoutId={
+                    shouldEnableLayoutId
+                      ? `title-${feedItem.id}`
+                      : undefined
+                  }
+                  initial={false}
                 >
                   {readerView.title}
-                </h1>
+                </motion.h1>
               )}
 
               <ReadingTime content={readerView?.content} />
@@ -440,7 +503,7 @@ ArticleContent.displayName = "ArticleContent";
 
 // Loading skeleton component
 export const LoadingSkeleton = memo(({ compact }: { compact?: boolean }) => (
-  <div className="space-y-4 p-6">
+  <div className="space-y-4 p-4">
     <div className="flex justify-between items-center mb-6">
       <Skeleton className="h-5 w-32" />
       <div className="flex gap-2">
@@ -468,7 +531,7 @@ export const EmptyState = memo(() => {
 
   return (
     <div
-      className={`flex flex-col items-center justify-center h-full p-8 ${
+      className={`flex flex-col items-center justify-center h-full p-4 ${
         isMobile ? "p-4" : "p-8"
       }`}
     >

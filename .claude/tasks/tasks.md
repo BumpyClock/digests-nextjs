@@ -1,59 +1,86 @@
 # Connected Animation Implementation Tasks
 
+## Context Brief
+
+### Overview
+We're implementing smooth, connected animations between FeedCard components and their detail modals (ReaderViewModal/PodcastDetailsModal) using the motion library (formerly framer-motion). The goal is to create a seamless visual transition where clicking a feed card causes its elements to smoothly expand and morph into the modal view.
+
+### Current State
+- **Existing**: Position tracking via `getBoundingClientRect()`, Radix UI Dialog modals, BaseModal wrapper, shared elements (thumbnail, title, metadata)
+- **Missing**: No shared element transitions, basic zoom animations only, position data underutilized, no exit animations
+
+### Implementation Approach
+1. **Shared Layout Animations**: Using motion's `layoutId` to connect elements between card and modal states
+2. **Progressive Enhancement**: Feature flag (`NEXT_PUBLIC_ENABLE_ANIMATIONS`) for gradual rollout
+3. **Animation Timeline**: Click → Press (100ms) → Morph (300ms) → Content Fade (200ms) = 600ms total
+4. **Key Elements to Animate**:
+   - Primary (shared): Thumbnail/artwork, title, site metadata (favicon + name)
+   - Secondary (fade/slide): Article content, action buttons, scroll areas
+
+### Technical Strategy
+- Create motion-enhanced versions alongside existing components (non-breaking)
+- Use AnimatePresence for enter/exit animations
+- Implement spring physics for natural motion
+- Respect prefers-reduced-motion for accessibility
+- Optimize for 60fps performance using GPU-accelerated properties
+
+### Expected Outcome
+A delightful interaction where feed cards smoothly transform into their detail views, creating a clear visual connection that enhances user understanding of the interface hierarchy.
+
 ## Setup Phase
-- [ ] Install motion library using `pnpm add motion`
-- [ ] Create `.env` variable `NEXT_PUBLIC_ENABLE_ANIMATIONS` for feature flag
-- [ ] Add motion library to project dependencies in package.json
-- [ ] Create `contexts` folder in project root if it doesn't exist
-- [ ] Create `utils/animation-config.ts` file for animation configurations
+- [x] Install motion library using `pnpm add motion`
+- [x] Create `.env` variable `NEXT_PUBLIC_ENABLE_ANIMATIONS` for feature flag
+- [x] Add motion library to project dependencies in package.json
+- [x] Create `contexts` folder in project root if it doesn't exist
+- [x] Create `utils/animation-config.ts` file for animation configurations
 - [ ] Add motion imports to relevant component files
 
 ## Animation Context
-- [ ] Create `contexts/FeedAnimationContext.tsx` file
-- [ ] Define AnimationState interface with activeItemId, isAnimating, and animationSource
-- [ ] Implement FeedAnimationProvider component with state management
-- [ ] Add reduced motion preference detection in context
-- [ ] Export useFeedAnimation custom hook
-- [ ] Wrap app with FeedAnimationProvider in root layout
-- [ ] Add MotionConfig with reducedMotion setting
+- [x] Create `contexts/FeedAnimationContext.tsx` file
+- [x] Define AnimationState interface with activeItemId, isAnimating, and animationSource
+- [x] Implement FeedAnimationProvider component with state management
+- [x] Add reduced motion preference detection in context
+- [x] Export useFeedAnimation custom hook
+- [x] Wrap app with FeedAnimationProvider in root layout
+- [x] Add MotionConfig with reducedMotion setting
 
 ## Motion Components - FeedCard
-- [ ] Create `components/Feed/FeedCard/MotionFeedCard.tsx` file
-- [ ] Import motion and AnimatePresence from motion library
-- [ ] Add layoutId to card container element
-- [ ] Add layoutId to thumbnail image element
-- [ ] Add layoutId to title element
-- [ ] Add layoutId to metadata container
-- [ ] Add layoutId to favicon image
-- [ ] Add layoutId to site title text
-- [ ] Implement whileHover animation for card lift effect
-- [ ] Implement whileTap animation for card press effect
-- [ ] Add spring transition configuration for card animations
-- [ ] Create exit animations for card-only elements
-- [ ] Connect setActiveItemId to card click handler
+- [x] Create `components/Feed/FeedCard/MotionFeedCard.tsx` file (Updated existing FeedCard instead)
+- [x] Import motion and AnimatePresence from motion library
+- [x] Add layoutId to card container element
+- [x] Add layoutId to thumbnail image element
+- [x] Add layoutId to title element
+- [x] Add layoutId to metadata container
+- [x] Add layoutId to favicon image
+- [x] Add layoutId to site title text
+- [x] Implement whileHover animation for card lift effect
+- [x] Implement whileTap animation for card press effect
+- [x] Add spring transition configuration for card animations
+- [x] Create exit animations for card-only elements
+- [x] Connect setActiveItemId to card click handler
 
 ## Motion Components - BaseModal
-- [ ] Create `components/MotionBaseModal.tsx` file
-- [ ] Import Dialog components from Radix UI
-- [ ] Wrap Dialog.Portal with AnimatePresence
-- [ ] Add forceMount prop to Dialog.Portal and Dialog.Overlay
-- [ ] Create motion.div wrapper for Dialog.Overlay with fade animation
-- [ ] Create motion.div wrapper for Dialog.Content with scale animation
-- [ ] Add exit animations for modal closing
-- [ ] Implement handleClose with animation delay
-- [ ] Add layoutId to modal container matching card container
+- [x] Create `components/MotionBaseModal.tsx` file (Updated existing BaseModal instead)
+- [x] Import Dialog components from Radix UI
+- [x] Wrap Dialog.Portal with AnimatePresence
+- [x] Add forceMount prop to Dialog.Portal and Dialog.Overlay
+- [x] Create motion.div wrapper for Dialog.Overlay with fade animation
+- [x] Create motion.div wrapper for Dialog.Content with scale animation
+- [x] Add exit animations for modal closing
+- [x] Implement handleClose with animation delay
+- [x] Add layoutId to modal container matching card container
 
 ## Motion Components - ReaderViewModal
-- [ ] Create `components/MotionReaderViewModal.tsx` file
-- [ ] Import MotionBaseModal component
-- [ ] Add layoutId to thumbnail container matching FeedCard
-- [ ] Add layoutId to thumbnail image matching FeedCard
-- [ ] Add layoutId to metadata container matching FeedCard
-- [ ] Add layoutId to favicon matching FeedCard
-- [ ] Add layoutId to site title matching FeedCard
-- [ ] Add layoutId to article title matching FeedCard
-- [ ] Create contentVariants for staggered animations
-- [ ] Add motion wrapper for article content with fade-in animation
+- [x] Create `components/MotionReaderViewModal.tsx` file (Updated existing components instead)
+- [x] Import MotionBaseModal component (BaseModal already has motion support)
+- [x] Add layoutId to thumbnail container matching FeedCard
+- [x] Add layoutId to thumbnail image matching FeedCard
+- [x] Add layoutId to metadata container matching FeedCard
+- [x] Add layoutId to favicon matching FeedCard
+- [x] Add layoutId to site title matching FeedCard
+- [x] Add layoutId to article title matching FeedCard
+- [x] Create contentVariants for staggered animations
+- [x] Add motion wrapper for article content with fade-in animation
 - [ ] Add motion wrapper for action buttons with slide-up animation
 - [ ] Implement staggerChildren for sequential animations
 
@@ -69,13 +96,13 @@
 - [ ] Add motion wrapper for episode list
 
 ## Animation Configurations
-- [ ] Define springConfig object with gentle, snappy, and smooth presets
-- [ ] Create fadeInUp animation variant
-- [ ] Create scaleIn animation variant
-- [ ] Create slideInFromBottom animation variant
-- [ ] Define modalVariants with hidden and visible states
-- [ ] Set up default transition timings
-- [ ] Configure GPU-accelerated properties list
+- [x] Define springConfig object with gentle, snappy, and smooth presets
+- [x] Create fadeInUp animation variant
+- [x] Create scaleIn animation variant
+- [x] Create slideInFromBottom animation variant
+- [x] Define modalVariants with hidden and visible states
+- [x] Set up default transition timings
+- [x] Configure GPU-accelerated properties list
 
 ## Integration - Update Existing Components
 - [ ] Update FeedCard to conditionally use MotionFeedCard based on feature flag

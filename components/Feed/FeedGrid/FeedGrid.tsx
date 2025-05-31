@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import dynamic from 'next/dynamic'
 import { Logger } from "@/utils/logger"
 import loadingAnimation from "@/public/assets/animations/feed-loading.json"
+import { motion } from "motion/react"
 
 const Lottie = dynamic(() => import('lottie-react'), { 
   ssr: false,
@@ -120,7 +121,11 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
   )
 
   const renderItem = useCallback(
-    ({ data: feed }: { data: FeedItem }) => <FeedCard feed={feed} />,
+    ({ data: feed }: { data: FeedItem }) => (
+      <div style={{ contain: 'layout style' }}>
+        <FeedCard feed={feed} />
+      </div>
+    ),
     []
   )
 
@@ -148,7 +153,13 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
 
   try {
     return (
-      <div id="feed-grid" className="pt-6 h-screen">
+      <motion.div 
+        id="feed-grid" 
+        className="pt-6 h-screen"
+        initial={false}
+        animate={false}
+        layout={false}
+      >
         <Masonry
           key={cacheKey} 
           items={memoizedItems}
@@ -159,7 +170,7 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
           overscanBy={2}
           itemKey={itemKey}
         />
-      </div>
+      </motion.div>
     )
   } catch (error) {
     console.error('Error rendering FeedGrid:', error)
