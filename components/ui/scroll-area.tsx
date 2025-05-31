@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import SimpleBar from "simplebar-react"
-import type { Props as SimpleBarProps } from "simplebar-react"
+// import type { Props as SimpleBarProps } from "simplebar-react"
 import { cn } from "@/lib/utils"
 import "simplebar-react/dist/simplebar.min.css"
 

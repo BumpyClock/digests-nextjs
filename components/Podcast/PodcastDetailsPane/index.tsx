@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Image from "next/image";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmptyState } from "@/components/Feed/ArticleReader/ArticleReader";
 import { useFeedStore } from "@/store/useFeedStore";

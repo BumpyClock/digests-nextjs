@@ -14,7 +14,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { FeedItem, Feed } from "@/types";
-import { useFeeds, useReadActions, useUnreadCount } from "@/hooks/useFeedSelectors";
+import { useFeeds, useReadActions } from "@/hooks/useFeedSelectors";
 import { useFeedStore } from "@/store/useFeedStore";
 import { Button } from "@/components/ui/button";
 import {
@@ -250,7 +250,7 @@ export function CommandBar({
   const { setTheme } = useTheme();
   const feeds = useFeeds();
   const { markAllAsRead } = useReadActions();
-  const unreadCount = useUnreadCount();
+  // const unreadCount = useUnreadCount();
   const { feedItems } = useFeedStore(); // Still need feedItems for search
   const { open, setOpen, handleKeyDown, handleClose } =
     useCommandBarShortcuts(onApplySearch);
