@@ -343,6 +343,8 @@ export const ArticleHeader = memo(
                   >
                     <a
                       href={feedItem.link}
+                      title="Open in new tab"
+                      aria-label="Open in new tab"
                       target="_blank"
                       rel="noopener noreferrer"
                     >
@@ -359,9 +361,7 @@ export const ArticleHeader = memo(
                 <motion.div
                   className="flex items-center space-x-2 text-sm text-muted-foreground max-w-[400px]"
                   layoutId={
-                    shouldEnableLayoutId
-                      ? `metadata-${feedItem.id}`
-                      : undefined
+                    shouldEnableLayoutId ? `metadata-${feedItem.id}` : undefined
                   }
                   initial={false}
                 >
@@ -434,9 +434,7 @@ export const ArticleHeader = memo(
                   }
                   id={isModal ? "reader-view-title" : undefined}
                   layoutId={
-                    shouldEnableLayoutId
-                      ? `title-${feedItem.id}`
-                      : undefined
+                    shouldEnableLayoutId ? `title-${feedItem.id}` : undefined
                   }
                   initial={false}
                 >
