@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/EmptyState";
 import { FeedGrid } from "@/components/Feed/FeedGrid/FeedGrid";
 import { FeedMasterDetail } from "@/components/Feed/FeedMasterDetail/FeedMasterDetail";
-import { useFeedStore } from "@/store/useFeedStore";
+import { useWebPageData } from "@/hooks/useFeedSelectors";
 import { FeedItem } from "@/types";
 
 import { CommandBar } from "@/components/CommandBar/CommandBar";
@@ -24,7 +24,7 @@ import { normalizeUrl } from "@/utils/url";
  */
 const useHydration = () => {
   const [hydrated, setHydrated] = useState(false);
-  const storeHydrated = useFeedStore((state) => state.hydrated);
+  const { hydrated: storeHydrated } = useWebPageData();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -65,8 +65,7 @@ function WebPageContent() {
     getUnreadItems,
     setActiveFeed,
     getReadLaterItems,
-    readLaterItems: storeReadLaterItems,
-  } = useFeedStore();
+  } = useWebPageData();
 
   /**
    * If your store needs an initial fetch, run it once.
@@ -225,8 +224,7 @@ function WebPageContent() {
 
   const readLaterItems = useMemo(() => {
     return getReadLaterItems();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getReadLaterItems, storeReadLaterItems]); // storeReadLaterItems needed for updates when items are saved
+  }, [getReadLaterItems]);
 
   const clearFeedFilter = useCallback(() => {
     window.history.pushState({}, "", "/web"); // or just /web

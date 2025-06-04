@@ -147,7 +147,7 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
           <div className="flex items-center space-x-2">
             {readerView?.favicon && (
               <Image 
-                src={readerView.favicon || "/placeholder.svg"} 
+                src={readerView.favicon || "/placeholder-rss.svg"} 
                 alt="Site favicon" 
                 width={24}
                 height={24}
@@ -186,7 +186,7 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
         {readerView?.image && (
           <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-6">
             <Image
-              src={readerView.image || "/placeholder.svg"}
+              src={readerView.image || "/placeholder-rss.svg"}
               alt={readerView.title}
               fill
               className="object-cover"

@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useEffect } from "react";
-import { ScrollData } from "@/types/reader";
-import { Scrollbars } from "react-custom-scrollbars-2";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { EmptyState } from "@/components/Feed/ArticleReader/ArticleReader";
 import { useFeedStore } from "@/store/useFeedStore";
 import { useReaderView } from "@/hooks/use-reader-view";
@@ -29,8 +28,9 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
   }, [feedItem, markAsRead]);
 
   // Mark as read on scroll
-  const handleScroll = useCallback(({ scrollTop }: ScrollData) => {
-    if (scrollTop > 100 && feedItem) {
+  const handleScroll = useCallback((e: Event) => {
+    const target = e.target as HTMLDivElement;
+    if (target.scrollTop > 100 && feedItem) {
       markAsRead(feedItem.id);
     }
   }, [feedItem, markAsRead]);
@@ -41,10 +41,9 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
 
   return (
     <div className="h-full border rounded-md overflow-hidden bg-card">
-      <Scrollbars 
-        style={{ width: '100%', height: '100%' }}
-        autoHide
-        onScrollFrame={handleScroll}
+      <ScrollArea 
+        className="h-full w-full"
+        onScroll={handleScroll}
       >
         <ReaderContent
           feedItem={feedItem}
@@ -53,7 +52,7 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
           cleanedContent={cleanedContent}
           layout="standard"
         />
-      </Scrollbars>
+      </ScrollArea>
     </div>
   );
 } 

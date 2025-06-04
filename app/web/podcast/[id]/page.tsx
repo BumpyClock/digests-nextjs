@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Bookmark, Share2 } from "lucide-react"
 import { fetchFeedsAction, toggleFavoriteAction } from "@/app/actions"
 import { useToast } from "@/hooks/use-toast"
-import { useAudioPlayer } from "@/components/audio-player-provider"
+import { useAudioActions } from "@/hooks/useFeedSelectors"
 import Image from "next/image"
 import type { FeedItem } from "@/types/feed"
 
@@ -18,7 +18,7 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
   const [isBookmarked, setIsBookmarked] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
-  const { playAudio } = useAudioPlayer()
+  const { playAudio } = useAudioActions()
 
   useEffect(() => {
     async function loadPodcast() {
@@ -143,7 +143,7 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
         <div className="flex flex-col md:flex-row gap-6 mb-6">
           <div className="relative w-full md:w-1/3 aspect-square overflow-hidden rounded-lg">
             <Image
-              src={podcast.thumbnail || "/placeholder.svg?height=300&width=300"}
+              src={podcast.thumbnail || "/placeholder-podcast.svg"}
               alt={podcast.title}
               className="object-cover"
               fill

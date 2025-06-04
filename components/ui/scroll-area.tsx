@@ -1,48 +1,77 @@
 "use client"
 
 import * as React from "react"
-import * as ScrollAreaPrimitive from "@radix-ui/react-scroll-area"
-
+import SimpleBar from "simplebar-react"
+// import type { Props as SimpleBarProps } from "simplebar-react"
 import { cn } from "@/lib/utils"
+import "simplebar-react/dist/simplebar.min.css"
 
-const ScrollArea = React.forwardRef<
-  React.ElementRef<typeof ScrollAreaPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root>
->(({ className, children, ...props }, ref) => (
-  <ScrollAreaPrimitive.Root
-    ref={ref}
-    className={cn("relative overflow-hidden", className)}
-    {...props}
-  >
-    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">
-      {children}
-    </ScrollAreaPrimitive.Viewport>
-    <ScrollBar />
-    <ScrollAreaPrimitive.Corner />
-  </ScrollAreaPrimitive.Root>
-))
-ScrollArea.displayName = ScrollAreaPrimitive.Root.displayName
+export interface ScrollAreaProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onScroll'> {
+  children: React.ReactNode
+  // Custom props for different use cases
+  variant?: "default" | "modal" | "list"
+  // SimpleBar options
+  maxHeight?: string | number
+  autoHide?: boolean
+  // For components that need scroll position tracking
+  onScroll?: (e: Event) => void
+  // Ref to access SimpleBar instance
+  scrollableNodeRef?: React.Ref<HTMLDivElement>
+}
 
-const ScrollBar = React.forwardRef<
-  React.ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
-  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>
->(({ className, orientation = "vertical", ...props }, ref) => (
-  <ScrollAreaPrimitive.ScrollAreaScrollbar
-    ref={ref}
-    orientation={orientation}
-    className={cn(
-      "flex touch-none select-none transition-colors",
-      orientation === "vertical" &&
-        "h-full w-2.5 border-l border-l-transparent p-[1px]",
-      orientation === "horizontal" &&
-        "h-2.5 flex-col border-t border-t-transparent p-[1px]",
-      className
-    )}
-    {...props}
-  >
-    <ScrollAreaPrimitive.ScrollAreaThumb className="relative flex-1 rounded-full bg-border" />
-  </ScrollAreaPrimitive.ScrollAreaScrollbar>
-))
-ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName
+const ScrollArea = React.forwardRef<SimpleBar, ScrollAreaProps>(
+  ({ 
+    className, 
+    children, 
+    variant = "default",
+    maxHeight,
+    autoHide = true,
+    onScroll,
+    scrollableNodeRef,
+    style,
+    ...props 
+  }, ref) => {
+    // Different configurations for different variants
+    const variantStyles = {
+      default: "",
+      modal: "simplebar-modal",
+      list: "simplebar-list",
+    }
 
-export { ScrollArea, ScrollBar }
+    // Merge styles
+    const mergedStyle = {
+      maxHeight: maxHeight || "100%",
+      ...style,
+    }
+
+    return (
+      <SimpleBar
+        ref={ref}
+        className={cn(
+          "relative w-full",
+          variantStyles[variant],
+          className
+        )}
+        style={mergedStyle}
+        autoHide={autoHide}
+        scrollableNodeProps={{ 
+          ref: scrollableNodeRef,
+          onScroll: onScroll 
+        }}
+        {...props}
+      >
+        <div className="w-full">
+          {children}
+        </div>
+      </SimpleBar>
+    )
+  }
+)
+ScrollArea.displayName = "ScrollArea"
+
+// Export a hook to access SimpleBar instance methods
+export const useScrollAreaRef = () => {
+  return React.useRef<SimpleBar>(null)
+}
+
+export { ScrollArea }
