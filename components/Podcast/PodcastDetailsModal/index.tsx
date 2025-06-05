@@ -16,10 +16,9 @@ interface PodcastDetailsModalProps {
   isOpen: boolean
   onClose: () => void
   podcast: FeedItem
-  initialPosition: { x: number; y: number; width: number; height: number }
 }
 
-export function PodcastDetailsModal({ isOpen, onClose, podcast, initialPosition }: PodcastDetailsModalProps) {
+export function PodcastDetailsModal({ isOpen, onClose, podcast }: PodcastDetailsModalProps) {
 
   const handleShare = async () => {
     try {
@@ -53,7 +52,6 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast, initialPosition 
       isOpen={isOpen}
       onClose={onClose}
       title={podcast.title}
-      initialPosition={initialPosition}
       itemId={podcast.id}
     >
       <ScrollArea 

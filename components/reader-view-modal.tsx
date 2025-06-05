@@ -13,7 +13,6 @@ interface ReaderViewModalProps {
   isOpen: boolean;
   onClose: () => void;
   feedItem: FeedItem;
-  initialPosition: { x: number; y: number; width: number; height: number };
   initialThumbnailSrc?: string;
 }
 
@@ -21,7 +20,6 @@ export function ReaderViewModal({
   feedItem,
   isOpen,
   onClose,
-  initialPosition,
   initialThumbnailSrc,
 }: ReaderViewModalProps) {
   const { readerView, loading, cleanedContent } = useReaderView(feedItem, isOpen);
@@ -41,7 +39,6 @@ export function ReaderViewModal({
       isOpen={isOpen}
       onClose={onClose}
       title={readerView?.title || "Loading..."}
-      initialPosition={initialPosition}
       className=""
       itemId={feedItem.id}
     >

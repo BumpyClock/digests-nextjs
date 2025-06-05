@@ -169,12 +169,6 @@ export const FeedCard = memo(function FeedCard({
   useRenderCount(renderCountEnabled ? `FeedCard-${feedItem.id}` : '');
   const [isReaderViewOpen, setIsReaderViewOpen] = useState(false);
   const [isPodcastDetailsOpen, setIsPodcastDetailsOpen] = useState(false);
-  const [initialPosition, setInitialPosition] = useState({
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-  });
   const cardRef = useRef<HTMLDivElement>(null);
   const [imageError, setImageError] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
@@ -209,15 +203,6 @@ export const FeedCard = memo(function FeedCard({
     if (!isAnimating) {
       setIsPressed(true);
 
-      if (cardRef.current) {
-        const rect = cardRef.current.getBoundingClientRect();
-        setInitialPosition({
-          x: rect.left,
-          y: rect.top,
-          width: rect.width,
-          height: rect.height,
-        });
-      }
     }
   }, [isAnimating]);
 
@@ -527,7 +512,6 @@ export const FeedCard = memo(function FeedCard({
             }
           }}
           podcast={feedItem}
-          initialPosition={initialPosition}
         />
       ) : (
         <ReaderViewModal
@@ -539,7 +523,6 @@ export const FeedCard = memo(function FeedCard({
             }
           }}
           feedItem={feedItem}
-          initialPosition={initialPosition}
           initialThumbnailSrc={feedCardThumbnailUrl}
         />
       )}
