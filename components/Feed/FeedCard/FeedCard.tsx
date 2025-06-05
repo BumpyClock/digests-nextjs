@@ -320,18 +320,15 @@ export const FeedCard = memo(function FeedCard({
 
   // Always enable layoutIds when animations are enabled for connected animations
   const shouldEnableLayoutId = animationEnabled;
-  
-  // Use motion.div directly instead of wrapping Card
-  const CardWrapper = animationEnabled ? motion.div : 'div';
 
   return (
     <>
-      <CardWrapper
+      <motion.div
         layoutId={shouldEnableLayoutId ? `card-${feedItem.id}` : undefined}
         whileHover={animationEnabled && isReadyToShow ? { y: -4 } : undefined}
         whileTap={animationEnabled && isReadyToShow ? { scale: 0.98 } : undefined}
         transition={shouldEnableLayoutId ? springConfig.controlled : undefined}
-        initial={animationEnabled ? { opacity: 0, y: 50 } : false}
+        initial={animationEnabled ? { opacity: 0, y: 50 } : undefined}
         animate={animationEnabled ? { opacity: isReadyToShow ? 1 : 0, y: isReadyToShow ? 0 : 50 } : undefined}
         data-motion="card"
       >
@@ -519,7 +516,7 @@ export const FeedCard = memo(function FeedCard({
           </AnimatePresence>
         </div>
         </Card>
-      </CardWrapper>
+      </motion.div>
       {isPodcast(feedItem) ? (
         <PodcastDetailsModal
           isOpen={isPodcastDetailsOpen}

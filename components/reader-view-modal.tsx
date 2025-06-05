@@ -45,15 +45,15 @@ export function ReaderViewModal({
       className=""
       itemId={feedItem.id}
     >
-      <div className="relative">
+      <div className="relative h-full overflow-hidden">
         <ScrollShadow visible={hasScrolled} position="top" />
         
         <ScrollArea 
           variant="modal"
-          style={{ width: '100%', height: 'calc(100vh - 10px)' }}
+          className="h-full"
           onScroll={handleScrollEvent}
         > 
-          <div className="mx-auto">
+          <div className="mx-auto pb-20">
             <ReaderContent
               feedItem={feedItem}
               readerView={readerView}

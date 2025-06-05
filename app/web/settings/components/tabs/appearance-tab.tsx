@@ -8,9 +8,11 @@ import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useTheme } from "next-themes"
 import { themes } from "@/lib/theme-definitions"
+import { useUiPreferencesStore } from "@/store/useUiPreferencesStore"
 
 export const AppearanceTab = memo(function AppearanceTab() {
   const { theme, setTheme } = useTheme();
+  const { animationsEnabled, setAnimationsEnabled } = useUiPreferencesStore();
 
   return (
     <Card>
@@ -40,6 +42,17 @@ export const AppearanceTab = memo(function AppearanceTab() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label htmlFor="animations">Animations</Label>
+            <p className="text-sm text-muted-foreground">Enable smooth transitions and animations</p>
+          </div>
+          <Switch 
+            id="animations" 
+            checked={animationsEnabled}
+            onCheckedChange={setAnimationsEnabled}
+          />
         </div>
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">

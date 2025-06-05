@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from "react"
 import { MotionConfig } from "motion/react"
+import { useUiPreferencesStore } from "@/store/useUiPreferencesStore"
 
 interface AnimationContextValue {
   activeItemId: string | null
@@ -17,28 +18,31 @@ const FeedAnimationContext = createContext<AnimationContextValue>({
 
 export function FeedAnimationProvider({ children }: { children: ReactNode }) {
   const [activeItemId, setActiveItemId] = useState<string | null>(null)
-  const [animationEnabled, setAnimationEnabled] = useState(true)
+  const userPreference = useUiPreferencesStore((state) => state.animationsEnabled)
+  const [animationEnabled, setAnimationEnabled] = useState(userPreference)
   
   useEffect(() => {
-    // Check both feature flag and reduced motion preference
-    const featureFlagEnabled = process.env.NEXT_PUBLIC_ENABLE_ANIMATIONS === "true"
+    // Check both user preference and reduced motion preference
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     
-    setAnimationEnabled(featureFlagEnabled && !prefersReducedMotion)
+    setAnimationEnabled(userPreference && !prefersReducedMotion)
     
     // Listen for reduced motion changes
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
     const handleChange = (e: MediaQueryListEvent) => {
-      setAnimationEnabled(featureFlagEnabled && !e.matches)
+      setAnimationEnabled(userPreference && !e.matches)
     }
     
     mediaQuery.addEventListener("change", handleChange)
     return () => mediaQuery.removeEventListener("change", handleChange)
-  }, [])
+  }, [userPreference])
   
   return (
     <FeedAnimationContext.Provider value={{ activeItemId, setActiveItemId, animationEnabled }}>
-      <MotionConfig reducedMotion={animationEnabled ? "never" : "always"}>
+      <MotionConfig 
+        reducedMotion={animationEnabled ? "never" : "always"}
+        transition={animationEnabled ? undefined : { duration: 0 }}
+      >
         {children}
       </MotionConfig>
     </FeedAnimationContext.Provider>
