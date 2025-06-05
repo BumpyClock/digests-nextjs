@@ -31,7 +31,7 @@ export function useOPML() {
       const text = await file.text()
       const parser = new DOMParser()
       const doc = parser.parseFromString(text, 'text/xml')
-      const outlines = doc.querySelectorAll('outline')
+      const outlines = doc.querySelectorAll('outline-solid')
       
       // Get unique feed URLs from OPML
       const existingUrls = new Set(feeds.map(f => f.feedUrl))

@@ -14,7 +14,7 @@ export function ScrollShadow({ visible, position }: ScrollShadowProps) {
                  bg-background/35 z-10 pointer-events-none transition-all ease-in-out 
                  dark:bg-background/85 duration-300 
                  ${visible ? 'opacity-100 h-24' : 'opacity-0 h-0'}
-                 [@supports_not_(backdrop-filter:blur(0))]:bg-background/90`}
+                 not-[@supports_(backdrop-filter:blur(0))]:bg-background/90`}
       style={{
         filter: 'brightness(0.75)',
         backdropFilter: 'blur(40px)',

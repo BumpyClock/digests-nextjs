@@ -53,7 +53,7 @@ const FeedListItem = memo(function FeedListItem({
       onClick={onSelect}
     >
       {item.thumbnail && isValidUrl(item.thumbnail) && (
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <Image
             src={item.thumbnail}
             alt={cleanupTextContent(item.title)}
@@ -63,7 +63,7 @@ const FeedListItem = memo(function FeedListItem({
           />
         </div>
       )}
-      <div className="flex-grow min-w-0">
+      <div className="grow min-w-0">
         <div className="flex items-center gap-2 mb-1">
           {item.favicon && isValidUrl(item.favicon) && (
             <Image
@@ -126,7 +126,7 @@ export function FeedList({
         <div key={i} className="p-4 border-b animate-pulse">
           <div className="flex gap-3">
             <div className="bg-secondary h-[70px] w-[70px] rounded-md"></div>
-            <div className="flex-grow">
+            <div className="grow">
               <div className="h-2 bg-secondary rounded w-16 mb-2"></div>
               <div className="h-4 bg-secondary rounded w-full mb-2"></div>
               <div className="h-4 bg-secondary rounded w-3/4 mb-2"></div>

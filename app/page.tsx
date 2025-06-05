@@ -143,7 +143,7 @@ everywhere.
               <h3 className="text-xl font-bold">Desktop</h3>
             </div>
             <div className="flex flex-col items-center space-y-2">
-              <div className="relative aspect-[9/16] w-[225px] overflow-hidden rounded-lg border">
+              <div className="relative aspect-9/16 w-[225px] overflow-hidden rounded-lg border">
                 <Image
                   src="/placeholder.svg?height=400&width=225"
                   width={225}
@@ -155,7 +155,7 @@ everywhere.
               <h3 className="text-xl font-bold">Mobile</h3>
             </div>
             <div className="flex flex-col items-center space-y-2">
-              <div className="relative aspect-[4/3] w-[300px] overflow-hidden rounded-lg border">
+              <div className="relative aspect-4/3 w-[300px] overflow-hidden rounded-lg border">
                 <Image
                   src="/placeholder.svg?height=225&width=300"
                   width={300}

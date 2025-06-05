@@ -66,15 +66,15 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
+    "@tailwindcss/postcss": "^4.1.8",
     "@types/node": "22.13.9",
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4",
     "@types/tinycolor2": "^1.4.6",
-    "autoprefixer": "^10.4.21",
     "eslint": "9.21.0",
     "eslint-config-next": "15.2.1",
     "postcss": "^8.5.3",
-    "tailwindcss": "^3.4.17",
+    "tailwindcss": "^4.1.8",
     "tinycolor2": "^1.6.0",
     "typescript": "^5.8.3"
   },

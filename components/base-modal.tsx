@@ -95,7 +95,7 @@ export function BaseModal({ isOpen, onClose, title, children, className, itemId 
                       variant="ghost" 
                       size="icon" 
                       onClick={handleClose}
-                      className="bg-background/80 backdrop-blur-sm hover:bg-background/90"
+                      className="bg-background/80 backdrop-blur-xs hover:bg-background/90"
                     >
                       <X className="h-4 w-4" />
                       <span className="sr-only">Close</span>

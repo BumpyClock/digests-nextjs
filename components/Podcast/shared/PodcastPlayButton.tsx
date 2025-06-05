@@ -10,7 +10,7 @@ import { getPodcastAudioUrl } from "@/types/podcast"
 
 interface PodcastPlayButtonProps {
   podcast: FeedItem
-  variant?: "default" | "ghost" | "outline"
+  variant?: "default" | "ghost" | "outline-solid"
   size?: "default" | "sm" | "lg" | "icon"
   className?: string
   showLabel?: boolean

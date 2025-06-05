@@ -62,7 +62,7 @@ export function ModeToggle() {
           className="flex justify-between items-center"
         >
           <div className="flex items-center gap-2">
-            <Sun className="h-[1rem] w-[1rem]" />
+            <Sun className="h-4 w-4" />
             <span>Light</span>
           </div>
           {isLight && <Check className="h-4 w-4" />}
@@ -75,7 +75,7 @@ export function ModeToggle() {
           className="flex justify-between items-center"
         >
           <div className="flex items-center gap-2">
-            <Moon className="h-[1rem] w-[1rem]" />
+            <Moon className="h-4 w-4" />
             <span>Dark</span>
           </div>
           {isDark && <Check className="h-4 w-4" />}
@@ -97,7 +97,7 @@ export function ModeToggle() {
             <AccordionItem value="color-schemes" className="border-b-0">
               <AccordionTrigger className="py-1.5 hover:no-underline">
                 <div className="flex items-center gap-2">
-                  <Palette className="h-[1rem] w-[1rem]" />
+                  <Palette className="h-4 w-4" />
                   <span>Color Scheme</span>
                 </div>
               </AccordionTrigger>

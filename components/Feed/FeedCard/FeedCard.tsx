@@ -347,7 +347,7 @@ export const FeedCard = memo(function FeedCard({
           className="absolute inset-0 overflow-hidden z-0"
         >
           <div 
-            className="w-full h-full opacity-10 dark:opacity-15 group-hover:opacity-20 group-hover:dark:opacity-25 transition-all"
+            className="w-full h-full opacity-10 dark:opacity-15 group-hover:opacity-20 dark:group-hover:opacity-25 transition-all"
             style={{
               backgroundColor: feedItem.thumbnailColor ? tinycolor({ r: feedItem.thumbnailColor.r, g: feedItem.thumbnailColor.g, b: feedItem.thumbnailColor.b }).toRgbString() : 'transparent',
              
@@ -369,7 +369,7 @@ export const FeedCard = memo(function FeedCard({
               data-motion="thumbnail-container"
             >
               <Ambilight
-  className="relative w-full aspect-[16/9] rounded-[32px] overflow-hidden"
+  className="relative w-full aspect-video rounded-[32px] overflow-hidden"
   parentHovered={isHovered}
   opacity={{ rest: 0, hover: 0.7 }}
 >
