@@ -1,80 +1,60 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { workerService } from '@/services/worker-service'
-import { useFeedStore } from '@/store/useFeedStore'
+import { useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { feedsKeys } from './use-feeds-query'
+import type { FeedItem } from '@/types'
 
-// Background sync hook for checking updates
-export const useFeedBackgroundSync = (intervalMs: number = 30 * 60 * 1000) => {
-  const feeds = useFeedStore(state => state.feeds)
+// Hook that detects new items by comparing successive query results
+export const useFeedBackgroundSync = () => {
   const queryClient = useQueryClient()
+  const [syncData, setSyncData] = useState({ hasNewItems: false, count: 0 })
+  const previousItemsRef = useRef<Set<string>>(new Set())
+  const hasInitialDataRef = useRef(false)
   
-  return useQuery({
-    queryKey: feedsKeys.sync(),
-    queryFn: async () => {
-      if (feeds.length === 0) {
-        return { hasNewItems: false, count: 0, newItems: [] }
-      }
-      
-      const feedUrls = feeds.map(f => f.feedUrl)
-      const result = await workerService.checkForUpdates(feedUrls)
-      
-      if (result.success) {
-        // Get existing items from React Query cache instead of Zustand
-        const currentData = queryClient.getQueryData(feedsKeys.lists()) as { items?: any[] } | undefined
-        const existingItems = currentData?.items || []
-        const existingIds = new Set(existingItems.map(item => item.id))
-        const newItems = result.items.filter(item => !existingIds.has(item.id))
+  useEffect(() => {
+    // Subscribe to feeds query updates
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      // Only listen to the feeds query
+      if (event.type === 'updated' && 
+          event.query.queryKey.toString() === feedsKeys.lists().toString()) {
         
-        return {
-          hasNewItems: newItems.length > 0,
-          count: newItems.length,
-          newItems,
-          allItems: result.items,
-          allFeeds: result.feeds
+        const queryState = event.query.state
+        
+        // Only process successful queries with data
+        if (queryState.status === 'success' && queryState.data) {
+          const currentItems = (queryState.data as { items?: FeedItem[] }).items || []
+          const currentItemIds = new Set(currentItems.map(item => item.id))
+          
+          // If this is the first successful fetch, just store the baseline
+          if (!hasInitialDataRef.current) {
+            previousItemsRef.current = currentItemIds
+            hasInitialDataRef.current = true
+            setSyncData({ hasNewItems: false, count: 0 })
+            return
+          }
+          
+          // Compare against previous fetch to find genuinely new items
+          const newItems = currentItems.filter(item => !previousItemsRef.current.has(item.id))
+          
+          if (newItems.length > 0) {
+            setSyncData({ hasNewItems: true, count: newItems.length })
+          } else {
+            setSyncData({ hasNewItems: false, count: 0 })
+          }
+          
+          // Update baseline for next comparison
+          previousItemsRef.current = currentItemIds
         }
       }
-      
-      return { hasNewItems: false, count: 0, newItems: [] }
-    },
-    refetchInterval: intervalMs,
-    enabled: feeds.length > 0,
-    staleTime: 0, // Always consider this query stale for background checks
-    gcTime: 2 * 60 * 1000, // 2 minutes cache time for sync data
-    refetchOnWindowFocus: false, // Don't refetch on focus for background sync
-  })
+    })
+    
+    return unsubscribe
+  }, [queryClient])
+  
+  // Method to manually clear the notification (e.g., when user clicks refresh)
+  const clearNotification = () => {
+    setSyncData({ hasNewItems: false, count: 0 })
+  }
+  
+  return { data: syncData, clearNotification }
 }
 
-// Hook for one-time update check (used by refresh button)
-export const useCheckForUpdates = () => {
-  const feeds = useFeedStore(state => state.feeds)
-  const queryClient = useQueryClient()
-  
-  return useQuery({
-    queryKey: [...feedsKeys.sync(), 'manual'],
-    queryFn: async () => {
-      if (feeds.length === 0) {
-        return { hasNewItems: false, count: 0 }
-      }
-      
-      const feedUrls = feeds.map(f => f.feedUrl)
-      const result = await workerService.checkForUpdates(feedUrls)
-      
-      if (result.success) {
-        // Get existing items from React Query cache instead of Zustand
-        const currentData = queryClient.getQueryData(feedsKeys.lists()) as { items?: any[] } | undefined
-        const existingItems = currentData?.items || []
-        const existingIds = new Set(existingItems.map(item => item.id))
-        const newItems = result.items.filter(item => !existingIds.has(item.id))
-        
-        return {
-          hasNewItems: newItems.length > 0,
-          count: newItems.length
-        }
-      }
-      
-      return { hasNewItems: false, count: 0 }
-    },
-    enabled: false, // Only run when manually triggered
-    staleTime: 0, // Always fresh when manually triggered
-  })
-}

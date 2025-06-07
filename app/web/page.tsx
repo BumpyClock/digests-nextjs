@@ -62,7 +62,7 @@ function WebPageContent() {
   // React Query hooks for server state
   const feedsQuery = useFeedsQuery();
   const refreshMutation = useRefreshFeedsMutation();
-  const backgroundSync = useFeedBackgroundSync();
+  const { data: backgroundSyncData, clearNotification } = useFeedBackgroundSync();
 
   // Zustand hooks for client state only
   const {
@@ -110,6 +110,9 @@ function WebPageContent() {
         setStableUnreadItems(currentUnreadItems);
         refreshedRef.current = true;
         
+        // Clear new items notification immediately
+        clearNotification();
+        
         // Dispatch event for other components
         window.dispatchEvent(new CustomEvent(FEED_REFRESHED_EVENT));
         
@@ -120,15 +123,15 @@ function WebPageContent() {
         toast.error("Failed to refresh feeds");
       }
     });
-  }, [refreshMutation, getUnreadItems]);
+  }, [refreshMutation, getUnreadItems, clearNotification]);
 
   /**
    * Handle background sync notifications
    */
   useEffect(() => {
-    if (backgroundSync.data?.hasNewItems) {
+    if (backgroundSyncData?.hasNewItems) {
       toast("New items available", {
-        description: `${backgroundSync.data.count} new item${backgroundSync.data.count === 1 ? '' : 's'} available`,
+        description: `${backgroundSyncData.count} new item${backgroundSyncData.count === 1 ? '' : 's'} available`,
         action: {
           label: "Refresh",
           onClick: handleRefresh
@@ -136,7 +139,7 @@ function WebPageContent() {
         duration: 10000, // 10 seconds
       });
     }
-  }, [backgroundSync.data, handleRefresh]);
+  }, [backgroundSyncData, handleRefresh]);
 
   /**
    * Listen for feed refresh events from FeedGrid

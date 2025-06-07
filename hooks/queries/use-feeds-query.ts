@@ -15,6 +15,8 @@ export const feedsKeys = {
 
 // Main feeds query - fetches and refreshes all feeds
 export const useFeedsQuery = () => {
+  const queryClient = useQueryClient()
+  
   return useQuery({
     queryKey: feedsKeys.lists(),
     queryFn: async () => {
@@ -35,6 +37,8 @@ export const useFeedsQuery = () => {
     enabled: false, // Start disabled, enable manually when needed
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchInterval: 30 * 60 * 1000, // 30 minutes background refresh
+    refetchIntervalInBackground: true,
   })
 }
 
@@ -142,8 +146,7 @@ export const useRefreshFeedsMutation = () => {
       // Update cache with fresh data
       queryClient.setQueryData(feedsKeys.lists(), data)
       
-      // Invalidate background sync to re-check against fresh data
-      queryClient.invalidateQueries({ queryKey: feedsKeys.sync() })
+      // Background sync will automatically detect this update via subscription
     },
     onError: (error) => {
       console.error('Failed to refresh feeds:', error)
