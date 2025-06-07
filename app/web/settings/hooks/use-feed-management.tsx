@@ -1,17 +1,24 @@
 import { useCallback } from "react"
-import { useFeedStore } from "@/store/useFeedStore"
+import { useRemoveFeedMutation } from "@/hooks/queries"
 import { toast } from "sonner"
 
 export function useFeedManagement() {
-  const { removeFeed } = useFeedStore()
-
+  const removeFeedMutation = useRemoveFeedMutation()
 
   const handleRemoveFeed = useCallback((feedUrl: string) => {
-    removeFeed(feedUrl)
-    toast.success("Feed removed", {
-      description: "The feed has been removed from your subscriptions.",
+    removeFeedMutation.mutate(feedUrl, {
+      onSuccess: () => {
+        toast.success("Feed removed", {
+          description: "The feed has been removed from your subscriptions.",
+        })
+      },
+      onError: (error: any) => {
+        toast.error("Failed to remove feed", {
+          description: error?.message || "Failed to remove the feed. Please try again.",
+        })
+      }
     })
-  }, [removeFeed])
+  }, [removeFeedMutation])
 
   const handleCopyFeed = useCallback((feedUrl: string) => {
     navigator.clipboard.writeText(feedUrl)
@@ -23,5 +30,6 @@ export function useFeedManagement() {
   return {
     handleRemoveFeed,
     handleCopyFeed,
+    isRemoving: removeFeedMutation.isPending,
   }
 } 
