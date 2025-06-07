@@ -73,7 +73,6 @@ function WebPageContent() {
     getUnreadItems,
     setActiveFeed,
     getReadLaterItems,
-    hydrated: storeHydrated,
   } = useWebPageData();
 
   // Use React Query data if available, fallback to Zustand during transition

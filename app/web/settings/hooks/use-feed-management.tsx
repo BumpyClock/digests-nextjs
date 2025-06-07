@@ -12,9 +12,9 @@ export function useFeedManagement() {
           description: "The feed has been removed from your subscriptions.",
         })
       },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
         toast.error("Failed to remove feed", {
-          description: error?.message || "Failed to remove the feed. Please try again.",
+          description: (error as Error)?.message || "Failed to remove the feed. Please try again.",
         })
       }
     })

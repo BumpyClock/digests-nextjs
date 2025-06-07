@@ -28,10 +28,10 @@ export function useFeedForm() {
           description: "The feed has been added to your subscriptions.",
           duration: 5000,
         })
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error adding feed:", error)
         toast.error("Failed to add feed", {
-          description: error?.message || "Failed to add the feed. Please try again.",
+          description: (error as Error)?.message || "Failed to add the feed. Please try again.",
         })
       }
     },

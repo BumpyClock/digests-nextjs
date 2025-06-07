@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react"
 import { useFeedStore } from "@/store/useFeedStore"
+import { useBatchAddFeedsMutation } from "@/hooks/queries"
 import { toast } from "sonner"
 import { exportOPML } from "../utils/opml"
 
@@ -11,7 +12,8 @@ interface FeedItem {
 
 export function useOPML() {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { feeds, addFeeds } = useFeedStore()
+  const { feeds } = useFeedStore()
+  const batchAddFeedsMutation = useBatchAddFeedsMutation()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [detectedFeeds, setDetectedFeeds] = useState<FeedItem[]>([])
 
@@ -31,7 +33,7 @@ export function useOPML() {
       const text = await file.text()
       const parser = new DOMParser()
       const doc = parser.parseFromString(text, 'text/xml')
-      const outlines = doc.querySelectorAll('outline-solid')
+      const outlines = doc.querySelectorAll('outline')
       
       // Get unique feed URLs from OPML
       const existingUrls = new Set(feeds.map(f => f.feedUrl))
@@ -79,16 +81,23 @@ export function useOPML() {
       return
     }
 
-    const { successful, failed } = await addFeeds(selectedUrls)
+    try {
+      const result = await batchAddFeedsMutation.mutateAsync(selectedUrls)
 
-    toast.success(`Import complete`, {
-      description: `Added ${successful.length} new feeds. ${
-        failed.length > 0 ? `${failed.length} feeds failed to import.` : ''
-      }`,
-    })
+      toast.success(`Import complete`, {
+        description: `Added ${result.successfulCount} new feeds. ${
+          result.failedCount > 0 ? `${result.failedCount} feeds failed to import.` : ''
+        }`,
+      })
 
-    setIsDialogOpen(false)
-  }, [addFeeds])
+      setIsDialogOpen(false)
+    } catch (error) {
+      console.error('Error during batch import:', error)
+      toast.error("Import failed", {
+        description: "An error occurred while importing feeds. Please try again.",
+      })
+    }
+  }, [batchAddFeedsMutation])
 
   return {
     fileInputRef,

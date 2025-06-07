@@ -110,7 +110,7 @@ export const useRemoveFeedMutation = () => {
       })
       
       // Update Zustand immediately
-      useFeedStore.getState().removeFeed(feedUrl)
+      useFeedStore.getState().removeFeedFromCache(feedUrl)
       
       return { previousFeeds }
     },
@@ -157,17 +157,93 @@ export const useRefreshFeedsMutation = () => {
       setFeeds(data.feeds)
       setFeedItems(sortedItems)
       
-      // Update metadata
-      useFeedStore.getState().setRefreshing(false)
-      useFeedStore.setState({ lastRefreshed: Date.now() })
+      // Server state metadata now handled by React Query
     },
     onError: (error) => {
       console.error('Failed to refresh feeds:', error)
-      useFeedStore.getState().setRefreshing(false)
+      // Refreshing state now handled by React Query (mutation.isPending)
     },
-    onMutate: () => {
-      // Set refreshing state
-      useFeedStore.getState().setRefreshing(true)
+  })
+}
+
+// Batch add feeds mutation for OPML import
+export const useBatchAddFeedsMutation = () => {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: async (urls: string[]) => {
+      // Use the worker's native ability to handle multiple URLs in one call
+      // instead of making concurrent calls that cause race conditions
+      const allFeeds: Feed[] = []
+      const allItems: FeedItem[] = []
+      let successfulCount = 0
+      let failedCount = 0
+      const failedUrls: string[] = []
+      
+      // Process URLs one by one to avoid worker race conditions
+      for (const url of urls) {
+        try {
+          const result = await workerService.fetchFeeds(url)
+          if (result.success) {
+            allFeeds.push(...result.feeds)
+            allItems.push(...result.items)
+            successfulCount++
+          } else {
+            failedUrls.push(url)
+            failedCount++
+          }
+        } catch (error) {
+          console.error(`Failed to fetch feed ${url}:`, error)
+          failedUrls.push(url)
+          failedCount++
+        }
+      }
+      
+      return { 
+        feeds: allFeeds, 
+        items: allItems, 
+        successfulCount,
+        failedCount,
+        failedUrls
+      }
+    },
+    onSuccess: (data) => {
+      // Update the feeds query cache
+      queryClient.setQueryData(feedsKeys.lists(), (old: any) => {
+        if (!old) return { feeds: data.feeds, items: data.items }
+        
+        // Deduplicate feeds and items
+        const existingFeedUrls = new Set(old.feeds.map((f: Feed) => f.feedUrl))
+        const existingItemIds = new Set(old.items.map((i: FeedItem) => i.id))
+        
+        const newFeeds = data.feeds.filter(f => !existingFeedUrls.has(f.feedUrl))
+        const newItems = data.items.filter(i => !existingItemIds.has(i.id))
+        
+        return {
+          feeds: [...old.feeds, ...newFeeds],
+          items: [...old.items, ...newItems]
+        }
+      })
+      
+      // Sync to Zustand in one operation
+      const { setFeeds, setFeedItems, sortFeedItemsByDate } = useFeedStore.getState()
+      const currentState = useFeedStore.getState()
+      
+      // Deduplicate against current Zustand state too
+      const existingZustandUrls = new Set(currentState.feeds.map(f => f.feedUrl))
+      const newZustandFeeds = data.feeds.filter(f => !existingZustandUrls.has(f.feedUrl))
+      const newZustandItems = data.items.filter(i => 
+        !currentState.feedItems.some(existing => existing.id === i.id)
+      )
+      
+      const mergedFeeds = [...currentState.feeds, ...newZustandFeeds]
+      const mergedItems = sortFeedItemsByDate([...currentState.feedItems, ...newZustandItems])
+      
+      setFeeds(mergedFeeds)
+      setFeedItems(mergedItems)
+    },
+    onError: (error) => {
+      console.error('Failed to batch add feeds:', error)
     },
   })
 }
