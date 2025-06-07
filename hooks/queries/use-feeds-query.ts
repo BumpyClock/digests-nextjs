@@ -142,7 +142,8 @@ export const useRefreshFeedsMutation = () => {
       // Update cache with fresh data
       queryClient.setQueryData(feedsKeys.lists(), data)
       
-      // React Query cache is updated above - no sync needed
+      // Invalidate background sync to re-check against fresh data
+      queryClient.invalidateQueries({ queryKey: feedsKeys.sync() })
     },
     onError: (error) => {
       console.error('Failed to refresh feeds:', error)

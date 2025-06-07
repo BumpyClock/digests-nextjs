@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { workerService } from '@/services/worker-service'
 import { useFeedStore } from '@/store/useFeedStore'
 import { feedsKeys } from './use-feeds-query'
@@ -6,6 +6,7 @@ import { feedsKeys } from './use-feeds-query'
 // Background sync hook for checking updates
 export const useFeedBackgroundSync = (intervalMs: number = 30 * 60 * 1000) => {
   const feeds = useFeedStore(state => state.feeds)
+  const queryClient = useQueryClient()
   
   return useQuery({
     queryKey: feedsKeys.sync(),
@@ -18,7 +19,9 @@ export const useFeedBackgroundSync = (intervalMs: number = 30 * 60 * 1000) => {
       const result = await workerService.checkForUpdates(feedUrls)
       
       if (result.success) {
-        const existingItems = useFeedStore.getState().feedItems
+        // Get existing items from React Query cache instead of Zustand
+        const currentData = queryClient.getQueryData(feedsKeys.lists()) as { items?: any[] } | undefined
+        const existingItems = currentData?.items || []
         const existingIds = new Set(existingItems.map(item => item.id))
         const newItems = result.items.filter(item => !existingIds.has(item.id))
         
@@ -44,6 +47,7 @@ export const useFeedBackgroundSync = (intervalMs: number = 30 * 60 * 1000) => {
 // Hook for one-time update check (used by refresh button)
 export const useCheckForUpdates = () => {
   const feeds = useFeedStore(state => state.feeds)
+  const queryClient = useQueryClient()
   
   return useQuery({
     queryKey: [...feedsKeys.sync(), 'manual'],
@@ -56,7 +60,9 @@ export const useCheckForUpdates = () => {
       const result = await workerService.checkForUpdates(feedUrls)
       
       if (result.success) {
-        const existingItems = useFeedStore.getState().feedItems
+        // Get existing items from React Query cache instead of Zustand
+        const currentData = queryClient.getQueryData(feedsKeys.lists()) as { items?: any[] } | undefined
+        const existingItems = currentData?.items || []
         const existingIds = new Set(existingItems.map(item => item.id))
         const newItems = result.items.filter(item => !existingIds.has(item.id))
         
