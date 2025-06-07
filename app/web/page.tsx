@@ -119,6 +119,29 @@ function WebPageContent() {
   }, [isHydrated, initialized, getUnreadItems]);
 
   /**
+   *  Handler to refresh feeds using React Query
+   */
+  const handleRefresh = useCallback(() => {
+    Logger.debug("Refreshing feeds with React Query...");
+    refreshMutation.mutate(undefined, {
+      onSuccess: () => {
+        const currentUnreadItems = getUnreadItems();
+        setStableUnreadItems(currentUnreadItems);
+        refreshedRef.current = true;
+        
+        // Dispatch event for other components
+        window.dispatchEvent(new CustomEvent(FEED_REFRESHED_EVENT));
+        
+        toast.success("Feeds refreshed successfully");
+      },
+      onError: (error) => {
+        console.error("Failed to refresh feeds:", error);
+        toast.error("Failed to refresh feeds");
+      }
+    });
+  }, [refreshMutation, getUnreadItems]);
+
+  /**
    * Handle background sync notifications
    */
   useEffect(() => {
@@ -148,29 +171,6 @@ function WebPageContent() {
       window.removeEventListener(FEED_REFRESHED_EVENT, handleFeedRefresh);
     };
   }, [getUnreadItems]);
-
-  /**
-   *  Handler to refresh feeds using React Query
-   */
-  const handleRefresh = useCallback(() => {
-    Logger.debug("Refreshing feeds with React Query...");
-    refreshMutation.mutate(undefined, {
-      onSuccess: () => {
-        const currentUnreadItems = getUnreadItems();
-        setStableUnreadItems(currentUnreadItems);
-        refreshedRef.current = true;
-        
-        // Dispatch event for other components
-        window.dispatchEvent(new CustomEvent(FEED_REFRESHED_EVENT));
-        
-        toast.success("Feeds refreshed successfully");
-      },
-      onError: (error) => {
-        console.error("Failed to refresh feeds:", error);
-        toast.error("Failed to refresh feeds");
-      }
-    });
-  }, [refreshMutation, getUnreadItems]);
 
   /**
    * Called from CommandBar when user picks a feed from the list.
