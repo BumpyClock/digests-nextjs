@@ -2,30 +2,18 @@ import type { Feed, FeedItem } from "@/types";
 import { StateCreator } from "zustand";
 
 // Simplified FeedSlice - server state is now handled by React Query
-// This slice only manages client-side synchronization and local state
+// This slice only manages local client state
 type FeedSlice = {
   feeds: Feed[];
   setFeeds: (feeds: Feed[]) => void;
-  syncFeedsFromQuery: (feeds: Feed[], items: FeedItem[]) => void;
   removeFeedFromCache: (feedUrl: string) => void;
 };
 
 export const createFeedSlice: StateCreator<any, [], [], FeedSlice> = (set, get) => ({
   feeds: [] as Feed[],
 
-  // Simple setter for feeds data (used during hydration and initial load)
+  // Simple setter for feeds data (used during hydration)
   setFeeds: (feeds: Feed[]) => set({ feeds }),
-
-  // Sync feeds and items from React Query to Zustand (for components still using Zustand)
-  syncFeedsFromQuery: (feeds: Feed[], items: FeedItem[]) => {
-    const { sortFeedItemsByDate } = get();
-    const sortedItems = sortFeedItemsByDate ? sortFeedItemsByDate(items) : items;
-    
-    set({
-      feeds,
-      feedItems: sortedItems,
-    });
-  },
 
   // Remove feed from local cache (used by React Query mutations for immediate UI updates)
   removeFeedFromCache: (feedUrl: string) => {

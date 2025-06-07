@@ -20,7 +20,6 @@ import { normalizeUrl } from "@/utils/url";
 
 // React Query imports
 import { useFeedsQuery, useRefreshFeedsMutation, useFeedBackgroundSync } from "@/hooks/queries";
-import { useFeedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
 
 /**
@@ -65,9 +64,8 @@ function WebPageContent() {
   const refreshMutation = useRefreshFeedsMutation();
   const backgroundSync = useFeedBackgroundSync();
 
-  // Zustand hooks for client state and remaining server state (during transition)
+  // Zustand hooks for client state only
   const {
-    feedItems: zustandFeedItems,
     initialized,
     setInitialized,
     getUnreadItems,
@@ -75,35 +73,19 @@ function WebPageContent() {
     getReadLaterItems,
   } = useWebPageData();
 
-  // Use React Query data if available, fallback to Zustand during transition
-  const feedItems = feedsQuery.data?.items || zustandFeedItems;
+  // React Query is now the single source of truth for server state
+  const feedItems = feedsQuery.data?.items || [];
   const loading = feedsQuery.isLoading || (!initialized && feedItems.length === 0);
   const refreshing = refreshMutation.isPending;
 
   /**
-   * Initialize feeds data using React Query
+   * Simple initialization - React Query handles all data fetching
    */
   useEffect(() => {
     if (isHydrated && !initialized) {
-      Logger.debug("Initializing store with React Query...");
-      
-      // Check if we have feeds to refresh
-      const zustandFeeds = useFeedStore.getState().feeds;
-      if (zustandFeeds.length > 0) {
-        Logger.debug("Found existing feeds, enabling React Query...");
-        feedsQuery.refetch().then(() => {
-          setInitialized(true);
-          Logger.debug("React Query initialized");
-        }).catch((error) => {
-          console.error("Failed to initialize with React Query:", error);
-          setInitialized(true);
-        });
-      } else {
-        Logger.debug("No feeds found, marking as initialized");
-        setInitialized(true);
-      }
+      setInitialized(true);
     }
-  }, [isHydrated, initialized, setInitialized, feedsQuery]);
+  }, [isHydrated, initialized, setInitialized]);
 
   /**
    * On mount (or after store is hydrated), capture unread items.

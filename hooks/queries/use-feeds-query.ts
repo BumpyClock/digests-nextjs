@@ -68,14 +68,7 @@ export const useAddFeedMutation = () => {
         }
       })
       
-      // Also sync to Zustand for client state dependencies
-      const { setFeeds, setFeedItems, sortFeedItemsByDate } = useFeedStore.getState()
-      const currentState = useFeedStore.getState()
-      const mergedFeeds = [...currentState.feeds, ...data.feeds]
-      const mergedItems = sortFeedItemsByDate([...currentState.feedItems, ...data.items])
-      
-      setFeeds(mergedFeeds)
-      setFeedItems(mergedItems)
+      // React Query cache is now the single source of truth
     },
     onError: (error) => {
       console.error('Failed to add feed:', error)
@@ -109,8 +102,7 @@ export const useRemoveFeedMutation = () => {
         }
       })
       
-      // Update Zustand immediately
-      useFeedStore.getState().removeFeedFromCache(feedUrl)
+      // React Query cache handles the removal
       
       return { previousFeeds }
     },
@@ -150,14 +142,7 @@ export const useRefreshFeedsMutation = () => {
       // Update cache with fresh data
       queryClient.setQueryData(feedsKeys.lists(), data)
       
-      // Sync to Zustand
-      const { setFeeds, setFeedItems, sortFeedItemsByDate } = useFeedStore.getState()
-      const sortedItems = sortFeedItemsByDate(data.items)
-      
-      setFeeds(data.feeds)
-      setFeedItems(sortedItems)
-      
-      // Server state metadata now handled by React Query
+      // React Query cache is updated above - no sync needed
     },
     onError: (error) => {
       console.error('Failed to refresh feeds:', error)
@@ -225,22 +210,7 @@ export const useBatchAddFeedsMutation = () => {
         }
       })
       
-      // Sync to Zustand in one operation
-      const { setFeeds, setFeedItems, sortFeedItemsByDate } = useFeedStore.getState()
-      const currentState = useFeedStore.getState()
-      
-      // Deduplicate against current Zustand state too
-      const existingZustandUrls = new Set(currentState.feeds.map(f => f.feedUrl))
-      const newZustandFeeds = data.feeds.filter(f => !existingZustandUrls.has(f.feedUrl))
-      const newZustandItems = data.items.filter(i => 
-        !currentState.feedItems.some(existing => existing.id === i.id)
-      )
-      
-      const mergedFeeds = [...currentState.feeds, ...newZustandFeeds]
-      const mergedItems = sortFeedItemsByDate([...currentState.feedItems, ...newZustandItems])
-      
-      setFeeds(mergedFeeds)
-      setFeedItems(mergedItems)
+      // React Query cache handles all data - no sync needed
     },
     onError: (error) => {
       console.error('Failed to batch add feeds:', error)

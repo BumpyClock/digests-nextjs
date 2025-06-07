@@ -59,7 +59,6 @@ interface FeedState extends AudioSlice {
 
   // Client-side actions (server actions moved to React Query)
   sortFeedItemsByDate: (items: FeedItem[]) => FeedItem[]
-  syncFeedsFromQuery: (feeds: Feed[], items: FeedItem[]) => void
   removeFeedFromCache: (feedUrl: string) => void
   markAsRead: (itemId: string) => void
   getUnreadItems: () => FeedItem[]
@@ -86,7 +85,6 @@ export const useFeedStore = create<FeedState>()(
       ...createAudioSlice(set, get, api),
 
       // Server state is now handled by React Query
-      // These methods provide compatibility for components still using Zustand
     }),
     {
       name: "digests-feed-store",
@@ -173,7 +171,6 @@ export const useFeedStore = create<FeedState>()(
       ...createAudioSlice(set, get, api),
 
       // Server state is now handled by React Query
-      // These methods provide compatibility for components still using Zustand
     }),
     {
       name: "digests-feed-store",

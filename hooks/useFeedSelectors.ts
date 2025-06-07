@@ -112,9 +112,8 @@ export const useFeedActions = () => {
   return useFeedStore(
     useShallow(state => ({
       setActiveFeed: state.setActiveFeed,
-      syncFeedsFromQuery: state.syncFeedsFromQuery,
       removeFeedFromCache: state.removeFeedFromCache,
-      // Server actions (addFeed, removeFeed, refreshFeeds, checkForUpdates) now handled by React Query
+      // Server actions now handled by React Query
     }))
   );
 };
@@ -194,14 +193,13 @@ export const useReadLaterItems = (): FeedItem[] => {
 export const useWebPageData = () => {
   return useFeedStore(
     useShallow(state => ({
-      feedItems: state.feedItems,
       initialized: state.initialized,
       hydrated: state.hydrated,
       setInitialized: state.setInitialized,
       getUnreadItems: state.getUnreadItems,
       setActiveFeed: state.setActiveFeed,
       getReadLaterItems: state.getReadLaterItems,
-      // Server state (loading, refreshing, refreshFeeds) now handled by React Query
+      // Server state now handled by React Query
     }))
   );
 };
