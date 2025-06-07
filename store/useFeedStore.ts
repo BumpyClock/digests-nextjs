@@ -5,23 +5,21 @@ import localforage from "localforage"
 import { useState, useEffect } from "react"
 
 import type { Feed, FeedItem } from "@/types"
-import { workerService } from "@/services/worker-service"
 import { createFeedSlice } from "./slices/feedSlice"
 import { createItemsSlice } from "./slices/itemsSlice"
 import { createReadStatusSlice } from "./slices/readStatusSlice"
 import { createMetadataSlice } from "./slices/metadataSlice"
 import { createAudioSlice, type AudioSlice } from "./slices/audioSlice"
 import { withPerformanceMonitoring } from "./middleware/performanceMiddleware"
+import { workerService } from "@/services/worker-service"
 
 /**
- * The Zustand store shape with web worker integration
+ * The Zustand store shape optimized for React Query integration
+ * Server state is now handled by React Query, this only manages client state
  * @typedef {Object} FeedState
- * @property {Feed[]} feeds - List of feeds
- * @property {FeedItem[]} feedItems - List of feed items
- * @property {boolean} loading - Loading state
- * @property {boolean} refreshing - Refreshing state
+ * @property {Feed[]} feeds - List of feeds (synced from React Query)
+ * @property {FeedItem[]} feedItems - List of feed items (synced from React Query)
  * @property {boolean} initialized - Initialization state
- * @property {number | null} lastRefreshed - Timestamp of last refresh
  * @property {boolean} hydrated - Hydration state
  * @property {Set<string>} readItems - Track read item IDs
  * @property {string | null} activeFeed - Track active feed URL
@@ -29,14 +27,10 @@ import { withPerformanceMonitoring } from "./middleware/performanceMiddleware"
  * @method setFeeds - Sets the feeds in the store
  * @method setFeedItems - Sets the feed items in the store
  * @method setHydrated - Sets the hydration state
- * @method addFeed - Adds a new feed
- * @method refreshFeeds - Refreshes all feeds
  * @method sortFeedItemsByDate - Sorts feed items by published date
- * @method removeFeed - Removes a feed by URL
+ * @method syncFeedsFromQuery - Syncs data from React Query
+ * @method removeFeedFromCache - Removes a feed from local cache
  * @method setInitialized - Sets the initialized state
- * @method shouldRefresh - Checks if it's time to refresh feeds
- * @method addFeeds - Adds multiple feeds at once
- * @method checkForUpdates - Checks for new items without updating the store
  * @method markAsRead - Marks a specific feed item as read
  * @method getUnreadItems - Gets all unread feed items
  * @method markAllAsRead - Marks all feed items as read
@@ -50,10 +44,7 @@ interface FeedState extends AudioSlice {
   // From slices
   feeds: Feed[]
   feedItems: FeedItem[]
-  loading: boolean
-  refreshing: boolean
   initialized: boolean
-  lastRefreshed: number | null
   hydrated: boolean
   readItems: Set<string>
   activeFeed: string | null
@@ -64,21 +55,12 @@ interface FeedState extends AudioSlice {
   setFeedItems: (items: FeedItem[]) => void
   setHydrated: (state: boolean) => void
   setActiveFeed: (feedUrl: string | null) => void
-  setLoading: (loading: boolean) => void
-  setRefreshing: (refreshing: boolean) => void
   setInitialized: (value: boolean) => void
 
-  // Actions
-  addFeed: (url: string) => Promise<{ success: boolean; message: string }>
-  refreshFeeds: () => Promise<void>
+  // Client-side actions (server actions moved to React Query)
   sortFeedItemsByDate: (items: FeedItem[]) => FeedItem[]
-  removeFeed: (feedUrl: string) => void
-  shouldRefresh: () => boolean
-  addFeeds: (urls: string[]) => Promise<{ 
-    successful: Array<{ url: string, message: string }>, 
-    failed: Array<{ url: string, message: string }> 
-  }>
-  checkForUpdates: () => Promise<{ hasNewItems: boolean, count: number }>
+  syncFeedsFromQuery: (feeds: Feed[], items: FeedItem[]) => void
+  removeFeedFromCache: (feedUrl: string) => void
   markAsRead: (itemId: string) => void
   getUnreadItems: () => FeedItem[]
   markAllAsRead: () => void
@@ -103,71 +85,8 @@ export const useFeedStore = create<FeedState>()(
       ...createMetadataSlice(set, get, api),
       ...createAudioSlice(set, get, api),
 
-      // Complex methods that need cross-slice access
-      refreshFeeds: async () => {
-        const { feeds, feedItems, shouldRefresh: needsRefresh } = get();
-        
-        if (!feeds.length) {
-          set({ initialized: true, refreshing: false });
-          return;
-        }
-
-        set({ refreshing: true });
-        try {
-          const feedUrls = feeds.map((f) => f.feedUrl);
-          const result = await workerService.refreshFeeds(feedUrls);
-          
-          if (result.success) {
-            // Deduplicate items by ID
-            const existingIds = new Set(feedItems.map(item => item.id));
-            const newItems = result.items.filter(item => !existingIds.has(item.id));
-            const mergedItems = [...feedItems, ...newItems];
-            const sorted = get().sortFeedItemsByDate(mergedItems);
-
-            set({
-              feeds: result.feeds,
-              feedItems: sorted,
-              lastRefreshed: Date.now(),
-              initialized: true
-            });
-          }
-        } catch (error) {
-          console.error("Error refreshing feeds:", error);
-          // Set initialized even on error to prevent infinite refresh attempts
-          set({ initialized: true });
-        } finally {
-          set({ refreshing: false });
-        }
-      },
-
-      checkForUpdates: async () => {
-        const { feeds, feedItems } = get();
-        
-        if (!feeds.length) {
-          return { hasNewItems: false, count: 0 };
-        }
-
-        try {
-          const feedUrls = feeds.map((f) => f.feedUrl);
-          const result = await workerService.checkForUpdates(feedUrls);
-          
-          if (result.success) {
-            // Check for new items by comparing IDs
-            const existingIds = new Set(feedItems.map(item => item.id));
-            const newItems = result.items.filter(item => !existingIds.has(item.id));
-            
-            return { 
-              hasNewItems: newItems.length > 0,
-              count: newItems.length
-            };
-          }
-          
-          return { hasNewItems: false, count: 0 };
-        } catch (error) {
-          console.error("Error checking for updates:", error);
-          return { hasNewItems: false, count: 0 };
-        }
-      },
+      // Server state is now handled by React Query
+      // These methods provide compatibility for components still using Zustand
     }),
     {
       name: "digests-feed-store",
@@ -177,7 +96,6 @@ export const useFeedStore = create<FeedState>()(
         feeds: state.feeds,
         feedItems: state.feedItems,
         initialized: state.initialized,
-        lastRefreshed: state.lastRefreshed,
         readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
         activeFeed: state.activeFeed,
         readLaterItems: Array.isArray(state.readLaterItems) ? state.readLaterItems : Array.from(state.readLaterItems || []),
@@ -254,71 +172,8 @@ export const useFeedStore = create<FeedState>()(
       ...createMetadataSlice(set, get, api),
       ...createAudioSlice(set, get, api),
 
-      // Complex methods that need cross-slice access
-      refreshFeeds: async () => {
-        const { feeds, feedItems, shouldRefresh: needsRefresh } = get();
-        
-        if (!feeds.length) {
-          set({ initialized: true, refreshing: false });
-          return;
-        }
-
-        set({ refreshing: true });
-        try {
-          const feedUrls = feeds.map((f) => f.feedUrl);
-          const result = await workerService.refreshFeeds(feedUrls);
-          
-          if (result.success) {
-            // Deduplicate items by ID
-            const existingIds = new Set(feedItems.map(item => item.id));
-            const newItems = result.items.filter(item => !existingIds.has(item.id));
-            const mergedItems = [...feedItems, ...newItems];
-            const sorted = get().sortFeedItemsByDate(mergedItems);
-
-            set({
-              feeds: result.feeds,
-              feedItems: sorted,
-              lastRefreshed: Date.now(),
-              initialized: true
-            });
-          }
-        } catch (error) {
-          console.error("Error refreshing feeds:", error);
-          // Set initialized even on error to prevent infinite refresh attempts
-          set({ initialized: true });
-        } finally {
-          set({ refreshing: false });
-        }
-      },
-
-      checkForUpdates: async () => {
-        const { feeds, feedItems } = get();
-        
-        if (!feeds.length) {
-          return { hasNewItems: false, count: 0 };
-        }
-
-        try {
-          const feedUrls = feeds.map((f) => f.feedUrl);
-          const result = await workerService.checkForUpdates(feedUrls);
-          
-          if (result.success) {
-            // Check for new items by comparing IDs
-            const existingIds = new Set(feedItems.map(item => item.id));
-            const newItems = result.items.filter(item => !existingIds.has(item.id));
-            
-            return { 
-              hasNewItems: newItems.length > 0,
-              count: newItems.length
-            };
-          }
-          
-          return { hasNewItems: false, count: 0 };
-        } catch (error) {
-          console.error("Error checking for updates:", error);
-          return { hasNewItems: false, count: 0 };
-        }
-      },
+      // Server state is now handled by React Query
+      // These methods provide compatibility for components still using Zustand
     }),
     {
       name: "digests-feed-store",
@@ -328,7 +183,6 @@ export const useFeedStore = create<FeedState>()(
         feeds: state.feeds,
         feedItems: state.feedItems,
         initialized: state.initialized,
-        lastRefreshed: state.lastRefreshed,
         readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
         activeFeed: state.activeFeed,
         readLaterItems: Array.isArray(state.readLaterItems) ? state.readLaterItems : Array.from(state.readLaterItems || []),

@@ -4,11 +4,8 @@ import { useCallback, useState, useEffect, useMemo } from "react"
 import { Masonry } from "masonic"
 import { FeedCard } from "@/components/Feed/FeedCard/FeedCard"
 import { useWindowSize } from "@/hooks/use-window-size"
-import { useFeedActions } from "@/hooks/useFeedSelectors"
 import { FeedItem } from "@/types"
-import { toast } from "sonner"
 import dynamic from 'next/dynamic'
-import { Logger } from "@/utils/logger"
 import loadingAnimation from "@/public/assets/animations/feed-loading.json"
 import { motion } from "motion/react"
 
@@ -62,7 +59,6 @@ const LoadingAnimation = () => {
  * @remark If new items are detected during periodic checks, a toast notification is shown with an option to refresh the feed.
  */
 export function FeedGrid({ items, isLoading }: FeedGridProps) {
-  const { checkForUpdates, refreshFeeds } = useFeedActions()
   const [mounted, setMounted] = useState(false)
   const { width: windowWidth } = useWindowSize()
   const [isMinLoadingComplete, setIsMinLoadingComplete] = useState(false)
@@ -76,42 +72,8 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
     return () => clearTimeout(timer)
   }, [])
 
-  useEffect(() => {
-    if (!mounted) return
-
-    const checkUpdates = async () => {
-      try {
-        Logger.debug(`Checking for updates at time ${new Date().toLocaleString()}`)
-        const { hasNewItems, count } = await checkForUpdates()
-        
-        if (hasNewItems) {
-          toast("New items available", {
-            description: `${count} new item${count === 1 ? '' : 's'} available`,
-            action: {
-              label: "Refresh",
-              onClick: () => {
-                refreshFeeds().then(() => {
-                  // Dispatch a custom event to notify that feeds have been refreshed
-                  // This will be caught by the page component to update stableUnreadItems
-                  window.dispatchEvent(new CustomEvent(FEED_REFRESHED_EVENT));
-                })
-              }
-            },
-            duration: 10000, // 10 seconds
-          })
-        } else {
-          Logger.debug("No updates available")
-        }
-      } catch (error) {
-        console.error('Error checking for updates:', error)
-      }
-    }
-    checkUpdates()
-
-    const interval = setInterval(checkUpdates, 30 * 60 * 1000)
-
-    return () => clearInterval(interval)
-  }, [mounted, checkForUpdates, refreshFeeds])
+  // Background sync is now handled by the main page component using React Query
+  // This simplifies the FeedGrid component to focus only on rendering
 
   const columnWidth = 320
   const columnGutter = 24

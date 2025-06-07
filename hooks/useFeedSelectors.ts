@@ -111,26 +111,25 @@ export const useActiveFeedItems = (): FeedItem[] => {
 export const useFeedActions = () => {
   return useFeedStore(
     useShallow(state => ({
-      addFeed: state.addFeed,
-      removeFeed: state.removeFeed,
-      refreshFeeds: state.refreshFeeds,
       setActiveFeed: state.setActiveFeed,
-      checkForUpdates: state.checkForUpdates,
+      syncFeedsFromQuery: state.syncFeedsFromQuery,
+      removeFeedFromCache: state.removeFeedFromCache,
+      // Server actions (addFeed, removeFeed, refreshFeeds, checkForUpdates) now handled by React Query
     }))
   );
 };
 
 /**
- * Hook to get loading and refresh states
+ * Hook to get client state (loading states now handled by React Query)
  * Uses shallow equality to prevent re-renders when values don't change
- * @returns Object with loading and refreshing states
+ * @returns Object with client state
  */
-export const useLoadingStates = () => {
+export const useClientStates = () => {
   return useFeedStore(
     useShallow(state => ({
-      loading: state.loading,
-      refreshing: state.refreshing,
       initialized: state.initialized,
+      hydrated: state.hydrated,
+      // Server loading states (loading, refreshing) now handled by React Query
     }))
   );
 };
@@ -196,15 +195,13 @@ export const useWebPageData = () => {
   return useFeedStore(
     useShallow(state => ({
       feedItems: state.feedItems,
-      loading: state.loading,
-      refreshing: state.refreshing,
       initialized: state.initialized,
       hydrated: state.hydrated,
-      refreshFeeds: state.refreshFeeds,
       setInitialized: state.setInitialized,
       getUnreadItems: state.getUnreadItems,
       setActiveFeed: state.setActiveFeed,
       getReadLaterItems: state.getReadLaterItems,
+      // Server state (loading, refreshing, refreshFeeds) now handled by React Query
     }))
   );
 };

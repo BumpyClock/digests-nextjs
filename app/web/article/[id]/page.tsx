@@ -5,53 +5,50 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Bookmark, Share2, ExternalLink } from "lucide-react"
-import { getFeedItemsAction, toggleFavoriteAction } from "@/app/actions"
+import { toggleFavoriteAction } from "@/app/actions"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import { fetchReaderView} from "@/lib/rss"
 import { type ReaderViewResponse } from "@/types/api"
 import Image from "next/image"
 import { FeedItem } from "@/types"
+import { useFeedsQuery } from "@/hooks/queries"
 
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
   const [article, setArticle] = useState<FeedItem | null>(null)
   const [readerView, setReaderView] = useState<ReaderViewResponse | null>(null)
-  const [loading, setLoading] = useState(true)
   const [isBookmarked, setIsBookmarked] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  
+  // Use React Query to get feeds data
+  const feedsQuery = useFeedsQuery()
 
   useEffect(() => {
     async function loadArticle() {
-      setLoading(true)
+      if (!feedsQuery.data?.items) return
 
-      const { success, items } = await getFeedItemsAction()
+      const foundArticle = feedsQuery.data.items.find((item: FeedItem) => item.id === params.id && item.type === "article")
 
-      if (success && items) {
-        const foundArticle = items.find((item: FeedItem) => item.id === params.id && item.type === "article")
+      if (foundArticle) {
+        setArticle(foundArticle)
+        setIsBookmarked(foundArticle.favorite || false)
 
-        if (foundArticle) {
-          setArticle(foundArticle)
-          setIsBookmarked(foundArticle.favorite || false)
-
-          // Fetch reader view
-          try {
-            const readerViewData = await fetchReaderView([foundArticle.link])
-            if (readerViewData.length > 0 && readerViewData[0].status === "ok") {
-              setReaderView(readerViewData[0])
-            }
-          } catch (error) {
-            console.error("Error fetching reader view:", error)
+        // Fetch reader view
+        try {
+          const readerViewData = await fetchReaderView([foundArticle.link])
+          if (readerViewData.length > 0 && readerViewData[0].status === "ok") {
+            setReaderView(readerViewData[0])
           }
+        } catch (error) {
+          console.error("Error fetching reader view:", error)
         }
       }
-
-      setLoading(false)
     }
 
     loadArticle()
-  }, [params.id])
+  }, [params.id, feedsQuery.data?.items])
 
   const handleBookmark = async () => {
     if (!article) return
@@ -88,7 +85,7 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
     })
   }
 
-  if (loading) {
+  if (feedsQuery.isLoading) {
     return (
       <div className="container max-w-3xl py-8">
         <div className="mb-6">

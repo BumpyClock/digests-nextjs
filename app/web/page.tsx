@@ -18,6 +18,11 @@ import { LayoutGrid, Columns } from "lucide-react";
 import { FEED_REFRESHED_EVENT } from "@/components/Feed/FeedGrid/FeedGrid";
 import { normalizeUrl } from "@/utils/url";
 
+// React Query imports
+import { useFeedsQuery, useRefreshFeedsMutation, useFeedBackgroundSync } from "@/hooks/queries";
+import { useFeedStore } from "@/store/useFeedStore";
+import { toast } from "sonner";
+
 /**
  * If your store has a "hydrated" field, we can track if it's
  * fully loaded, or just remove if you don't need it.
@@ -55,11 +60,14 @@ function WebPageContent() {
   // Normalize/trim the feed URL
   const feedUrlDecoded = feedParam ? normalizeUrl(feedParam) : "";
 
+  // React Query hooks for server state
+  const feedsQuery = useFeedsQuery();
+  const refreshMutation = useRefreshFeedsMutation();
+  const backgroundSync = useFeedBackgroundSync();
+
+  // Zustand hooks for client state and remaining server state (during transition)
   const {
-    feedItems,
-    loading,
-    refreshing,
-    refreshFeeds,
+    feedItems: zustandFeedItems,
     initialized,
     setInitialized,
     getUnreadItems,
@@ -67,23 +75,35 @@ function WebPageContent() {
     getReadLaterItems,
   } = useWebPageData();
 
+  // Use React Query data if available, fallback to Zustand during transition
+  const feedItems = feedsQuery.data?.items || zustandFeedItems;
+  const loading = feedsQuery.isLoading || (!initialized && feedItems.length === 0);
+  const refreshing = refreshMutation.isPending;
+
   /**
-   * If your store needs an initial fetch, run it once.
+   * Initialize feeds data using React Query
    */
   useEffect(() => {
     if (isHydrated && !initialized) {
-      Logger.debug("Initializing store...");
-      refreshFeeds()
-        .then(() => {
+      Logger.debug("Initializing store with React Query...");
+      
+      // Check if we have feeds to refresh
+      const zustandFeeds = useFeedStore.getState().feeds;
+      if (zustandFeeds.length > 0) {
+        Logger.debug("Found existing feeds, enabling React Query...");
+        feedsQuery.refetch().then(() => {
           setInitialized(true);
-          Logger.debug("Store initialized");
-        })
-        .catch((error) => {
-          console.error("Failed to initialize store:", error);
+          Logger.debug("React Query initialized");
+        }).catch((error) => {
+          console.error("Failed to initialize with React Query:", error);
           setInitialized(true);
         });
+      } else {
+        Logger.debug("No feeds found, marking as initialized");
+        setInitialized(true);
+      }
     }
-  }, [isHydrated, initialized, refreshFeeds, setInitialized]);
+  }, [isHydrated, initialized, setInitialized, feedsQuery]);
 
   /**
    * On mount (or after store is hydrated), capture unread items.
@@ -96,6 +116,45 @@ function WebPageContent() {
       refreshedRef.current = true;
     }
   }, [isHydrated, initialized, getUnreadItems]);
+
+  /**
+   *  Handler to refresh feeds using React Query
+   */
+  const handleRefresh = useCallback(() => {
+    Logger.debug("Refreshing feeds with React Query...");
+    refreshMutation.mutate(undefined, {
+      onSuccess: () => {
+        const currentUnreadItems = getUnreadItems();
+        setStableUnreadItems(currentUnreadItems);
+        refreshedRef.current = true;
+        
+        // Dispatch event for other components
+        window.dispatchEvent(new CustomEvent(FEED_REFRESHED_EVENT));
+        
+        toast.success("Feeds refreshed successfully");
+      },
+      onError: (error) => {
+        console.error("Failed to refresh feeds:", error);
+        toast.error("Failed to refresh feeds");
+      }
+    });
+  }, [refreshMutation, getUnreadItems]);
+
+  /**
+   * Handle background sync notifications
+   */
+  useEffect(() => {
+    if (backgroundSync.data?.hasNewItems) {
+      toast("New items available", {
+        description: `${backgroundSync.data.count} new item${backgroundSync.data.count === 1 ? '' : 's'} available`,
+        action: {
+          label: "Refresh",
+          onClick: handleRefresh
+        },
+        duration: 10000, // 10 seconds
+      });
+    }
+  }, [backgroundSync.data, handleRefresh]);
 
   /**
    * Listen for feed refresh events from FeedGrid
@@ -111,18 +170,6 @@ function WebPageContent() {
       window.removeEventListener(FEED_REFRESHED_EVENT, handleFeedRefresh);
     };
   }, [getUnreadItems]);
-
-  /**
-   *  Handler to refresh feeds
-   */
-  const handleRefresh = useCallback(() => {
-    Logger.debug("Refreshing feeds...");
-    refreshFeeds().then(() => {
-      const currentUnreadItems = getUnreadItems();
-      setStableUnreadItems(currentUnreadItems);
-      refreshedRef.current = true;
-    });
-  }, [refreshFeeds, getUnreadItems]);
 
   /**
    * Called from CommandBar when user picks a feed from the list.
@@ -234,7 +281,7 @@ function WebPageContent() {
     setSelectedTab(value);
   }, []);
 
-  const isLoading = loading || (!initialized && feedItems.length === 0);
+  const isLoading = loading || (!initialized && feedItems.length === 0) || refreshing;
 
   return (
     <div className="container pt-6 max-w-[1600px] mx-auto max-h-screen">
@@ -298,7 +345,7 @@ function WebPageContent() {
             </Button>
             <RefreshButton
               onClick={handleRefresh}
-              isLoading={loading || refreshing}
+              isLoading={refreshing}
             />
           </div>
         </div>
