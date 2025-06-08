@@ -88,6 +88,150 @@ function chooseBestImageVersion(images: ImageInfo[]): ImageInfo {
 }
 
 /**
+ * Removes redundant title, author, and source information from markdown content
+ * since these are already displayed in the ArticleHeader component
+ */
+function cleanupMarkdownMetadata(markdown: string, title?: string, author?: string, siteName?: string): { cleanedMarkdown: string; extractedAuthor?: { name: string; image?: string } } {
+  if (!markdown) return { cleanedMarkdown: markdown };
+  
+  let cleaned = markdown;
+  
+  // Remove title if it appears at the beginning
+  if (title) {
+    // Match various title patterns at the start of content
+    const titlePatterns = [
+      new RegExp(`^#{1,6}\\s*${escapeRegExp(title)}\\s*\n+`, 'i'),
+      new RegExp(`^\\*\\*${escapeRegExp(title)}\\*\\*\\s*\n+`, 'i'),
+      new RegExp(`^${escapeRegExp(title)}\\s*\n[=\\-]{3,}\\s*\n+`, 'i'), // Setext headers
+    ];
+    
+    titlePatterns.forEach(pattern => {
+      cleaned = cleaned.replace(pattern, '');
+    });
+  }
+  
+  // Remove author information
+  if (author) {
+    const authorPatterns = [
+      new RegExp(`^\\s*By\\s+\\*\\*?${escapeRegExp(author)}\\*\\*?\\s*\n+`, 'im'),
+      new RegExp(`^\\s*Author:\\s*\\*\\*?${escapeRegExp(author)}\\*\\*?\\s*\n+`, 'im'),
+      new RegExp(`^\\s*\\*\\*?By\\s+${escapeRegExp(author)}\\*\\*?\\s*\n+`, 'im'),
+      new RegExp(`^\\s*\\*${escapeRegExp(author)}\\*\\s*\n+`, 'im'),
+      new RegExp(`\\*\\*By\\s+${escapeRegExp(author)}\\*\\*`, 'gi'),
+    ];
+    
+    authorPatterns.forEach(pattern => {
+      cleaned = cleaned.replace(pattern, '\n');
+    });
+  }
+  
+  // Remove source/site information
+  if (siteName) {
+    const sourcePatterns = [
+      new RegExp(`^\\s*Source:\\s*\\*\\*?${escapeRegExp(siteName)}\\*\\*?\\s*\n+`, 'im'),
+      new RegExp(`^\\s*Originally\\s+published\\s+(at|on)\\s+\\*\\*?${escapeRegExp(siteName)}\\*\\*?\\s*\n+`, 'im'),
+      new RegExp(`^\\s*From\\s+\\*\\*?${escapeRegExp(siteName)}\\*\\*?\\s*\n+`, 'im'),
+      new RegExp(`\\*\\*${escapeRegExp(siteName)}\\*\\*`, 'gi'),
+    ];
+    
+    sourcePatterns.forEach(pattern => {
+      cleaned = cleaned.replace(pattern, '\n');
+    });
+  }
+  
+  // Remove common generic patterns
+  const genericPatterns = [
+    /^\s*\*\*Author:\*\*\s*[^|\n]+\s*\|\s*\*\*Source:\*\*\s*[^.\n]+\s*\n+/im, // "**Author:** Name | **Source:** Site"
+    /^\s*Author:\s*[^|\n]+\s*\|\s*Source:\s*[^.\n]+\s*\n+/im, // "Author: Name | Source: Site"
+    /^\s*\*\*Author:\*\*\s*[^.\n]+\s*\n+/im, // "**Author:** [Name]"
+    /^\s*\*\*Source:\*\*\s*[^.\n]+\s*\n+/im, // "**Source:** [Site]"
+    /^\s*By\s+[^.\n]+\s*\n+/im, // Generic "By [Author]" at start
+    /^\s*Source:\s*[^.\n]+\s*\n+/im, // Generic "Source: [Site]"
+    /^\s*Author:\s*[^.\n]+\s*\n+/im, // Generic "Author: [Name]"
+    /^\s*Originally\s+published\s+(at|on)\s+[^.\n]+\s*\n+/im, // Generic source attribution
+    /^\s*\*{1,2}Originally\s+published.*?\*{1,2}\s*\n+/im, // Bold source attribution
+    /^\s*---+\s*\n+/m, // Horizontal rules at start
+  ];
+  
+  genericPatterns.forEach(pattern => {
+    cleaned = cleaned.replace(pattern, '\n');
+  });
+  
+  // Extract author names and images from the original markdown
+  const authorNames = new Set<string>();
+  let extractedAuthor: { name: string; image?: string } | undefined;
+  
+  // Add provided author if available
+  if (author) {
+    authorNames.add(author.toLowerCase().trim());
+    extractedAuthor = { name: author };
+  }
+  
+  // Extract author names from various patterns in the original markdown
+  const authorExtractionPatterns = [
+    /(?:\*\*)?Author:(?:\*\*)?\s*([^|\n]+?)(?:\s*\||\s*\n)/gi,
+    /(?:\*\*)?By\s+([^.\n]+?)(?:\s*\n)/gi,
+  ];
+  
+  authorExtractionPatterns.forEach(pattern => {
+    let match;
+    while ((match = pattern.exec(markdown)) !== null) {
+      const extractedAuthorName = match[1].trim();
+      const extractedAuthorLower = extractedAuthorName.toLowerCase();
+      if (extractedAuthorName && !extractedAuthor) {
+        extractedAuthor = { name: extractedAuthorName };
+      }
+      if (extractedAuthorLower) {
+        authorNames.add(extractedAuthorLower);
+        // Also add first and last names separately for better matching
+        const nameParts = extractedAuthorLower.split(/\s+/);
+        if (nameParts.length > 1) {
+          authorNames.add(nameParts[0]); // First name
+          authorNames.add(nameParts[nameParts.length - 1]); // Last name
+        }
+      }
+    }
+  });
+  
+  // Find and extract author images (images where alt text matches author names)
+  if (authorNames.size > 0) {
+    const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+    cleaned = cleaned.replace(imageRegex, (match, altText, imageUrl) => {
+      if (altText && imageUrl) {
+        const altLower = altText.toLowerCase().trim();
+        // Check if alt text matches any author name
+        for (const authorName of authorNames) {
+          if (altLower.includes(authorName) || authorName.includes(altLower)) {
+            // Save the author image if we haven't found one yet
+            if (extractedAuthor && !extractedAuthor.image) {
+              extractedAuthor.image = imageUrl;
+            }
+            return ''; // Remove the image from content
+          }
+        }
+      }
+      return match; // Keep the image
+    });
+  }
+  
+  // Clean up excessive whitespace
+  cleaned = cleaned.replace(/^\s*\n+/, ''); // Remove leading newlines
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n'); // Limit consecutive newlines
+  
+  return { 
+    cleanedMarkdown: cleaned.trim(),
+    extractedAuthor 
+  };
+}
+
+/**
+ * Helper function to escape special regex characters
+ */
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Removes duplicate images from markdown content based on sophisticated URL analysis
  */
 export function deduplicateMarkdownImages(markdown: string, thumbnailUrl?: string): string {
@@ -218,6 +362,35 @@ export function deduplicateHtmlImages(htmlContent: string, thumbnailUrl?: string
   
   return doc.body.innerHTML;
 }
+
+/**
+ * Comprehensive markdown cleanup: removes metadata and duplicate images
+ */
+export function cleanupMarkdownContent(
+  markdown: string, 
+  thumbnailUrl?: string,
+  title?: string,
+  author?: string,
+  siteName?: string
+): { cleanedMarkdown: string; extractedAuthor?: { name: string; image?: string } } {
+  if (!markdown) return { cleanedMarkdown: markdown };
+  
+  // First remove metadata (title, author, source) and extract author info
+  const { cleanedMarkdown: metadataCleaned, extractedAuthor } = cleanupMarkdownMetadata(markdown, title, author, siteName);
+  
+  // Then remove duplicate images
+  const finalCleaned = deduplicateMarkdownImages(metadataCleaned, thumbnailUrl);
+  
+  return { 
+    cleanedMarkdown: finalCleaned,
+    extractedAuthor 
+  };
+}
+
+/**
+ * Export the metadata cleanup function for standalone use
+ */
+export { cleanupMarkdownMetadata };
 
 /**
  * Unified function to deduplicate images in both HTML and markdown content
