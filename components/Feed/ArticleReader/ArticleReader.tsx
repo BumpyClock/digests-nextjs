@@ -557,23 +557,30 @@ export const ArticleContent = memo(
       h4: ({ children }: { children: React.ReactNode }) => (
         <h4 className="text-lg font-semibold mt-4 mb-2">{children}</h4>
       ),
-      p: ({ children }: { children: React.ReactNode }) => (
-        <p className="my-4 leading-relaxed text-foreground/90">{children}</p>
-      ),
+      p: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => {
+        // Check if children contains images and handle differently
+        const hasImages = React.Children.toArray(children).some(
+          child => React.isValidElement(child) && child.type === 'img'
+        );
+        
+        if (hasImages) {
+          return <div className="my-4 leading-relaxed text-foreground/90" {...props}>{children}</div>;
+        }
+        
+        return <p className="my-4 leading-relaxed text-foreground/90" {...props}>{children}</p>;
+      },
       img: ({ src, alt = '', ...props }: { src?: string; alt?: string; [key: string]: unknown }) => {
         if (!src) return null;
+        // Use a regular img tag to avoid Next.js Image component div wrapper issues
         return (
-          <div className="my-8 rounded-lg overflow-hidden">
-            <Image 
-              src={src} 
-              alt={alt} 
-              width={800} 
-              height={600} 
-              className="w-full h-auto object-cover"
-              style={{ aspectRatio: '16/10' }}
-              {...props} 
-            />
-          </div>
+          <img
+            src={src}
+            alt={alt}
+            className="w-full h-auto object-cover rounded-lg my-8 max-w-full block"
+            style={{ aspectRatio: '16/10' }}
+            loading="lazy"
+            {...props}
+          />
         );
       },
       blockquote: ({ children }: { children: React.ReactNode }) => (
@@ -685,6 +692,8 @@ export const ArticleContent = memo(
             components={components}
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw]}
+            allowedElements={undefined}
+            disallowedElements={[]}
           >
             {markdown}
           </ReactMarkdown>
