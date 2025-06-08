@@ -64,7 +64,7 @@ export const ReaderContent = memo(function ReaderContent({
         />
         <ArticleContent
           content={cleanedContent}
-          markdown={cleanedMarkdown || readerView?.markdown}
+          markdown={cleanedMarkdown ?? readerView?.markdown}
           className={`w-full ${isMobile ? "max-w-full" : "md:max-w-4xl"} ${
             layout === "modal" ? "no-animation" : ""
           }`}

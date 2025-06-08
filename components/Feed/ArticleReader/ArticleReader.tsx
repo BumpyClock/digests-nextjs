@@ -363,9 +363,11 @@ export const ArticleHeader = memo(
                       {extractedAuthor && (
                         <div className="flex items-center gap-1">
                           {extractedAuthor.image && (
-                            <img
+                            <Image
                               src={extractedAuthor.image}
                               alt={extractedAuthor.name}
+                              width={20}
+                              height={20}
                               className="w-5 h-5 rounded-full object-cover flex-shrink-0"
                               loading="lazy"
                             />
@@ -484,9 +486,11 @@ export const ArticleHeader = memo(
                       {extractedAuthor && (
                         <div className="flex items-center gap-2">
                           {extractedAuthor.image && (
-                            <img
+                            <Image
                               src={extractedAuthor.image}
                               alt={extractedAuthor.name}
+                              width={24}
+                              height={24}
                               className="w-6 h-6 rounded-full object-cover flex-shrink-0"
                               loading="lazy"
                             />

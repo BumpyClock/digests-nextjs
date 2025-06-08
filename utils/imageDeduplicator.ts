@@ -22,21 +22,33 @@ function extractImageInfo(url: string): ImageInfo {
     const base = `${urlObj.origin}${urlObj.pathname}`;
     
     // Extract quality (default to 90 if not specified)
-    const quality = parseInt(params.get('quality') || '90');
+    const quality = Number.parseInt(params.get('quality') || '90', 10);
     
     // Extract width (default to 0 if not specified)
-    const width = parseInt(params.get('w') || params.get('width') || '0');
+    const width = Number.parseInt(params.get('w') || params.get('width') || '0', 10);
     
     // Extract height (default to 0 if not specified) 
-    const height = parseInt(params.get('h') || params.get('height') || '0');
+    const height = Number.parseInt(params.get('h') || params.get('height') || '0', 10);
     
     // Calculate crop area from crop parameter if present
     // Format: crop=left,top,right,bottom (percentages)
     let cropArea = 10000; // Default to full area (100% x 100%)
     const crop = params.get('crop');
     if (crop) {
-      const [left, top, right, bottom] = crop.split(',').map(v => parseFloat(v) || 0);
-      cropArea = (right - left) * (bottom - top);
+      const coords = crop.split(',').map(v => {
+        const parsed = Number.parseFloat(v);
+        return Number.isNaN(parsed) ? 0 : Math.max(0, Math.min(100, parsed));
+      });
+      
+      if (coords.length === 4) {
+        const [left, top, right, bottom] = coords;
+        // Ensure right >= left and bottom >= top
+        if (right >= left && bottom >= top) {
+          cropArea = (right - left) * (bottom - top);
+        } else {
+          cropArea = 0; // Invalid crop coordinates
+        }
+      }
     }
     
     return {
@@ -257,12 +269,14 @@ export function deduplicateMarkdownImages(markdown: string, thumbnailUrl?: strin
     if (!imageGroups.has(base)) {
       imageGroups.set(base, []);
     }
-    imageGroups.get(base)!.push(img);
+    const group = imageGroups.get(base);
+    if (group) {
+      group.push(img);
+    }
   });
   
   // Choose best version from each group and create replacement map
   const replacements = new Map<string, string>();
-  const thumbnailSet = thumbnailUrl ? new Set([thumbnailUrl, normalizeUrl(thumbnailUrl)]) : new Set();
   
   imageGroups.forEach((group, base) => {
     // Skip thumbnail images
@@ -311,6 +325,13 @@ export function deduplicateMarkdownImages(markdown: string, thumbnailUrl?: strin
 export function deduplicateHtmlImages(htmlContent: string, thumbnailUrl?: string): string {
   if (!htmlContent) return htmlContent;
   
+  // Check if running in browser environment
+  if (typeof window === 'undefined' || typeof DOMParser === 'undefined') {
+    // In Node.js environment, return content as-is or implement server-side parsing
+    console.warn('DOMParser not available in server environment, skipping HTML image deduplication');
+    return htmlContent;
+  }
+  
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlContent, 'text/html');
   const images = Array.from(doc.querySelectorAll('img'));
@@ -332,7 +353,10 @@ export function deduplicateHtmlImages(htmlContent: string, thumbnailUrl?: string
     if (!imageGroups.has(info.base)) {
       imageGroups.set(info.base, []);
     }
-    imageGroups.get(info.base)!.push({ element: img, info });
+    const group = imageGroups.get(info.base);
+    if (group) {
+      group.push({ element: img, info });
+    }
   });
   
   // Process each group
