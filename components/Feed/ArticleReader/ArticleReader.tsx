@@ -685,7 +685,6 @@ export const ArticleContent = memo(
             components={components}
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw]}
-            className="markdown-content"
           >
             {markdown}
           </ReactMarkdown>
