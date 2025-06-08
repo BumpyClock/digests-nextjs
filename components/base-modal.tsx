@@ -1,14 +1,13 @@
 "use client"
 
 import type React from "react"
-import {  useEffect } from "react"
+import { useEffect } from "react"
 import { Logger } from "@/utils/logger"
-import { Dialog, DialogTitle } from "@/components/ui/dialog"
+import { Dialog } from "@/components/ui/dialog"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
-import { useFeedAnimation } from "@/contexts/FeedAnimationContext"
 
 interface BaseModalProps {
   isOpen: boolean
@@ -16,90 +15,98 @@ interface BaseModalProps {
   title?: string
   children: React.ReactNode
   className?: string
-  itemId?: string
 }
 
 /**
- * Renders a modal dialog with customizable content and title.
+ * Renders a modal dialog with smooth animations and blurred backdrop.
  *
- * The modal supports responsive styling, an optional title, and a close button.
+ * Features:
+ * - 80% opacity backdrop with 40px blur
+ * - Smooth scale and fade animations
+ * - Centered modal with proper sizing
  */
-export function BaseModal({ isOpen, onClose, title, children, className, itemId }: BaseModalProps) {
-  const { setActiveItemId, animationEnabled } = useFeedAnimation()
-
+export function BaseModal({ isOpen, onClose, title, children, className }: BaseModalProps) {
   useEffect(() => {
     if (isOpen) {
       Logger.debug(`[BaseModal] title: ${title}`)
     }
   }, [isOpen, title])
 
-  const handleClose = () => {
-    if (animationEnabled && itemId) {
-      setActiveItemId(null)
-      // Delay actual close to allow exit animation
-      setTimeout(onClose, 200)
-    } else {
-      onClose()
-    }
-  }
-
-
-  // Always use the same structure, let MotionConfig handle animation preferences
   return (
     <AnimatePresence>
       {isOpen && (
-        <Dialog open={isOpen} onOpenChange={handleClose}>
-          <DialogPrimitive.Portal forceMount>
-            <DialogPrimitive.Overlay asChild forceMount>
+        <Dialog open={isOpen} onOpenChange={onClose}>
+          <DialogPrimitive.Portal>
+            {/* Custom backdrop with blur and opacity */}
+            <DialogPrimitive.Overlay asChild>
               <motion.div
-                className="fixed inset-0 bg-black/20 dark:bg-white/10 backdrop-blur-3xl z-50"
+                className="fixed inset-0 z-50 bg-black/80 backdrop-blur-[40px]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
               />
             </DialogPrimitive.Overlay>
             
-            <DialogPrimitive.Content asChild forceMount>
+            {/* Modal content */}
+            <DialogPrimitive.Content asChild>
               <motion.div
-                className="fixed inset-4 md:inset-8 lg:inset-12 z-50"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
+                className="fixed left-1/2 top-1/2 z-50 w-full max-w-[1050px] max-h-[90vh]"
+                initial={{ 
+                  opacity: 0, 
+                  scale: 0.9,
+                  x: "-50%",
+                  y: "-50%"
+                }}
+                animate={{ 
+                  opacity: 1, 
+                  scale: 1,
+                  x: "-50%",
+                  y: "-50%"
+                }}
+                exit={{ 
+                  opacity: 0, 
+                  scale: 0.9,
+                  x: "-50%",
+                  y: "-50%"
+                }}
+                transition={{ 
+                  duration: 0.25, 
+                  ease: [0.16, 1, 0.3, 1] // Custom ease for smooth feel
+                }}
               >
-                <div className="relative w-full max-w-[1050px] mx-auto h-full">
+                <div className={`relative w-full h-full bg-background rounded-[32px] shadow-2xl overflow-hidden ${className || ""}`}>
+                  {/* Invisible title for accessibility */}
+                  <DialogPrimitive.Title className="sr-only">
+                    {title || "Content"}
+                  </DialogPrimitive.Title>
+                  
+                  {/* Close button */}
                   <motion.div
-                    layoutId={animationEnabled && itemId ? `card-${itemId}` : undefined}
-                    className={`
-                      bg-background rounded-[32px] h-full overflow-hidden shadow-2xl
-                      w-full
-                      ${className || ""}
-                    `}
-                    transition={{
-                      layout: { type: "spring", stiffness: 800, damping: 70 },
-                    }}
-                  >
-                    <DialogTitle className="sr-only">{title || "Content"}</DialogTitle>
-                    <div className="h-full w-full overflow-hidden">
-                      {children}
-                    </div>
-                  </motion.div>
-                  {/* Close button positioned outside the animated container */}
-                  <motion.div 
                     className="absolute top-4 right-4 z-50"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.15 }}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1, duration: 0.2 }}
                   >
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      onClick={handleClose}
-                      className="bg-background/80 backdrop-blur-xs hover:bg-background/90"
+                      onClick={onClose}
+                      className="bg-background/90 backdrop-blur-sm hover:bg-background border border-border/20"
                     >
                       <X className="h-4 w-4" />
                       <span className="sr-only">Close</span>
                     </Button>
+                  </motion.div>
+
+                  {/* Content area */}
+                  <motion.div 
+                    className="h-full w-full overflow-hidden"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1, duration: 0.25 }}
+                  >
+                    {children}
                   </motion.div>
                 </div>
               </motion.div>

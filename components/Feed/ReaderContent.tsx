@@ -21,7 +21,6 @@ interface ReaderContentProps {
   layout?: ReaderLayout;
   parallaxOffset?: number;
   className?: string;
-  initialThumbnailSrc?: string;
 }
 
 export const ReaderContent = memo(function ReaderContent({
@@ -32,7 +31,6 @@ export const ReaderContent = memo(function ReaderContent({
   layout = "standard",
   parallaxOffset,
   className = "",
-  initialThumbnailSrc,
 }: ReaderContentProps) {
   const isMobile = useIsMobile();
   const isCompact = layout === "compact" || (isMobile && layout === "standard");
@@ -69,7 +67,6 @@ export const ReaderContent = memo(function ReaderContent({
           readerView={readerView}
           parallaxOffset={parallaxOffset}
           layout={layout}
-          initialThumbnailSrc={initialThumbnailSrc}
         />
         <ContentWrapper
           {...(animationEnabled && layout === "modal"

@@ -1,23 +1,18 @@
 "use client"
 
-import { createContext, useContext, useState, ReactNode, useEffect } from "react"
+import { createContext, useContext, ReactNode, useEffect, useState } from "react"
 import { MotionConfig } from "motion/react"
 import { useUiPreferencesStore } from "@/store/useUiPreferencesStore"
 
 interface AnimationContextValue {
-  activeItemId: string | null
-  setActiveItemId: (id: string | null) => void
   animationEnabled: boolean
 }
 
 const FeedAnimationContext = createContext<AnimationContextValue>({
-  activeItemId: null,
-  setActiveItemId: () => {},
   animationEnabled: true,
 })
 
 export function FeedAnimationProvider({ children }: { children: ReactNode }) {
-  const [activeItemId, setActiveItemId] = useState<string | null>(null)
   const userPreference = useUiPreferencesStore((state) => state.animationsEnabled)
   const [animationEnabled, setAnimationEnabled] = useState(userPreference)
   
@@ -38,7 +33,7 @@ export function FeedAnimationProvider({ children }: { children: ReactNode }) {
   }, [userPreference])
   
   return (
-    <FeedAnimationContext.Provider value={{ activeItemId, setActiveItemId, animationEnabled }}>
+    <FeedAnimationContext.Provider value={{ animationEnabled }}>
       <MotionConfig 
         reducedMotion={animationEnabled ? "never" : "always"}
         transition={animationEnabled ? undefined : { duration: 0 }}
