@@ -213,13 +213,9 @@ export const FeedCard = memo(function FeedCard({
 
       // Check if the click was on a share or bookmark button
       const target = e.target as HTMLElement;
-      const isShareOrBookmarkButton = target.closest('button')?.querySelector('.h-4.w-4');
+      const isShareOrBookmarkButton = target.closest('button');
       
       if (!isShareOrBookmarkButton) {
-        setTimeout(() => {
-          markAsRead(feedItem.id);
-        }, 0);
-
         // Set active item for animation
         if (animationEnabled) {
           setActiveItemId(feedItem.id);
@@ -231,6 +227,8 @@ export const FeedCard = memo(function FeedCard({
           } else {
             setIsReaderViewOpen(true);
           }
+          // Mark as read after modal opens to prevent item from disappearing
+          markAsRead(feedItem.id);
           setIsAnimating(false);
         }, transitionDuration);
 

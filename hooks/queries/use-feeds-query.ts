@@ -30,7 +30,13 @@ export const useFeedsQuery = () => {
       
       const result = await workerService.refreshFeeds(feedUrls)
       if (result.success) {
-        return { feeds: result.feeds, items: result.items }
+        // Sort items by date (newest first)
+        const sortedItems = result.items.sort((a, b) => {
+          const dateA = new Date(a.published || a.pubDate || 0).getTime()
+          const dateB = new Date(b.published || b.pubDate || 0).getTime()
+          return dateB - dateA // Newest first
+        })
+        return { feeds: result.feeds, items: sortedItems }
       }
       throw new Error(result.message || 'Failed to fetch feeds')
     },
@@ -138,7 +144,13 @@ export const useRefreshFeedsMutation = () => {
       
       const result = await workerService.refreshFeeds(feedUrls)
       if (result.success) {
-        return { feeds: result.feeds, items: result.items }
+        // Sort items by date (newest first)
+        const sortedItems = result.items.sort((a, b) => {
+          const dateA = new Date(a.published || a.pubDate || 0).getTime()
+          const dateB = new Date(b.published || b.pubDate || 0).getTime()
+          return dateB - dateA // Newest first
+        })
+        return { feeds: result.feeds, items: sortedItems }
       }
       throw new Error(result.message || 'Failed to refresh feeds')
     },

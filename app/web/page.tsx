@@ -20,6 +20,7 @@ import { normalizeUrl } from "@/utils/url";
 
 // React Query imports
 import { useFeedsQuery, useRefreshFeedsMutation, useFeedBackgroundSync } from "@/hooks/queries";
+import { useFeedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
 
 /**
@@ -49,9 +50,9 @@ function WebPageContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("unread");
-  const [stableUnreadItems, setStableUnreadItems] = useState<FeedItem[]>([]);
   const [viewMode, setViewMode] = useState<"grid" | "masterDetail">("grid");
   const refreshedRef = useRef(false);
+  const [stableUnreadItems, setStableUnreadItems] = useState<FeedItem[]>([]);
 
   const searchParams = useSearchParams();
   // Grab ?feed=...
@@ -68,14 +69,17 @@ function WebPageContent() {
   const {
     initialized,
     setInitialized,
-    getUnreadItems,
     setActiveFeed,
     getReadLaterItems,
   } = useWebPageData();
+  
+  // Get read items set for unread filtering
+  const readItems = useFeedStore(state => state.readItems);
 
   // React Query is now the single source of truth for server state
   const feedItems = feedsQuery.data?.items || [];
-  const loading = feedsQuery.isLoading || (!initialized && feedItems.length === 0);
+  const existingFeeds = useFeedStore(state => state.feeds);
+  const loading = feedsQuery.isLoading || (!initialized && existingFeeds.length > 0 && feedItems.length === 0);
   const refreshing = refreshMutation.isPending;
 
   /**
@@ -88,16 +92,36 @@ function WebPageContent() {
   }, [isHydrated, initialized, setInitialized]);
 
   /**
-   * On mount (or after store is hydrated), capture unread items.
-   * Just an example pattern; adapt as needed.
+   * Calculate current unread items (used for tab counts, but not for display on unread tab)
+   */
+  const currentUnreadItems = useMemo(() => {
+    if (!feedItems.length) return [];
+    const readItemsSet = readItems instanceof Set ? readItems : new Set();
+    return feedItems.filter(item => !readItemsSet.has(item.id));
+  }, [feedItems, readItems]);
+
+  /**
+   * Update stable unread items only when feedItems change (on refresh)
+   * This keeps unread page content stable even when items are marked as read
+   */
+  useEffect(() => {
+    if (feedItems.length > 0) {
+      // Use read items state at the time of refresh, not current reactive state
+      const readItemsAtRefresh = readItems instanceof Set ? readItems : new Set();
+      const unreadAtRefresh = feedItems.filter(item => !readItemsAtRefresh.has(item.id));
+      setStableUnreadItems(unreadAtRefresh);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [feedItems]); // Only depend on feedItems, not readItems - intentional for stable content
+
+  /**
+   * Mark as initialized once unread items are calculated
    */
   useEffect(() => {
     if (isHydrated && initialized && !refreshedRef.current) {
-      const currentUnreadItems = getUnreadItems();
-      setStableUnreadItems(currentUnreadItems);
       refreshedRef.current = true;
     }
-  }, [isHydrated, initialized, getUnreadItems]);
+  }, [isHydrated, initialized, currentUnreadItems]);
 
   /**
    *  Handler to refresh feeds using React Query
@@ -106,8 +130,7 @@ function WebPageContent() {
     Logger.debug("Refreshing feeds with React Query...");
     refreshMutation.mutate(undefined, {
       onSuccess: () => {
-        const currentUnreadItems = getUnreadItems();
-        setStableUnreadItems(currentUnreadItems);
+        // Stable unread items will be recalculated by the useEffect when React Query data updates
         refreshedRef.current = true;
         
         // Clear new items notification immediately
@@ -123,7 +146,7 @@ function WebPageContent() {
         toast.error("Failed to refresh feeds");
       }
     });
-  }, [refreshMutation, getUnreadItems, clearNotification]);
+  }, [refreshMutation, clearNotification]);
 
   /**
    * Handle background sync notifications
@@ -146,15 +169,15 @@ function WebPageContent() {
    */
   useEffect(() => {
     const handleFeedRefresh = () => {
-      const currentUnreadItems = getUnreadItems();
-      setStableUnreadItems(currentUnreadItems);
+      // Stable unread items will be automatically recalculated when React Query data changes
+      refreshedRef.current = true;
     };
 
     window.addEventListener(FEED_REFRESHED_EVENT, handleFeedRefresh);
     return () => {
       window.removeEventListener(FEED_REFRESHED_EVENT, handleFeedRefresh);
     };
-  }, [getUnreadItems]);
+  }, []);
 
   /**
    * Called from CommandBar when user picks a feed from the list.
@@ -220,7 +243,7 @@ function WebPageContent() {
     });
   }, [feedItems, feedUrlDecoded, appliedSearchQuery]);
 
-  const filteredStableUnreadItems = useMemo(() => {
+  const filteredUnreadItems = useMemo(() => {
     if (!stableUnreadItems || !Array.isArray(stableUnreadItems)) return [];
     return stableUnreadItems.filter((item) => {
       if (!item?.id) return false;
@@ -242,17 +265,38 @@ function WebPageContent() {
     return filteredItems.filter((i) => i?.type === "article");
   }, [filteredItems]);
 
-  const unreadArticleItems = useMemo(() => {
-    return filteredStableUnreadItems.filter((i) => i?.type === "article");
-  }, [filteredStableUnreadItems]);
-
   const podcastItems = useMemo(() => {
     return filteredItems.filter((i) => i?.type === "podcast");
   }, [filteredItems]);
 
-  const unreadPodcastItems = useMemo(() => {
-    return filteredStableUnreadItems.filter((i) => i?.type === "podcast");
-  }, [filteredStableUnreadItems]);
+  // For tab counts, use current reactive unread items to show accurate counts
+  const currentUnreadArticleItems = useMemo(() => {
+    if (!currentUnreadItems || !Array.isArray(currentUnreadItems)) return [];
+    return currentUnreadItems.filter((item) => {
+      if (!item?.id) return false;
+      if (feedUrlDecoded && normalizeUrl(item.feedUrl) !== feedUrlDecoded) return false;
+      if (appliedSearchQuery) {
+        const searchLower = appliedSearchQuery.toLowerCase();
+        if (!(item.title?.toLowerCase().includes(searchLower) || 
+              item.description?.toLowerCase().includes(searchLower))) return false;
+      }
+      return item?.type === "article";
+    });
+  }, [currentUnreadItems, feedUrlDecoded, appliedSearchQuery]);
+
+  const currentUnreadPodcastItems = useMemo(() => {
+    if (!currentUnreadItems || !Array.isArray(currentUnreadItems)) return [];
+    return currentUnreadItems.filter((item) => {
+      if (!item?.id) return false;
+      if (feedUrlDecoded && normalizeUrl(item.feedUrl) !== feedUrlDecoded) return false;
+      if (appliedSearchQuery) {
+        const searchLower = appliedSearchQuery.toLowerCase();
+        if (!(item.title?.toLowerCase().includes(searchLower) || 
+              item.description?.toLowerCase().includes(searchLower))) return false;
+      }
+      return item?.type === "podcast";
+    });
+  }, [currentUnreadItems, feedUrlDecoded, appliedSearchQuery]);
 
   const readLaterItems = useMemo(() => {
     return getReadLaterItems();
@@ -266,7 +310,7 @@ function WebPageContent() {
     setSelectedTab(value);
   }, []);
 
-  const isLoading = loading || (!initialized && feedItems.length === 0) || refreshing;
+  const isLoading = loading || (!initialized && existingFeeds.length > 0 && feedItems.length === 0) || refreshing;
 
   return (
     <div className="container pt-6 max-w-[1600px] mx-auto max-h-screen">
@@ -293,8 +337,8 @@ function WebPageContent() {
               </TabsTrigger>
               <TabsTrigger value="unread" className="relative">
                 Unread
-                {unreadArticleItems.length > 0 &&
-                  ` (${unreadArticleItems.length})`}
+                {currentUnreadArticleItems.length > 0 &&
+                  ` (${currentUnreadArticleItems.length})`}
               </TabsTrigger>
               <TabsTrigger value="articles">
                 Articles
@@ -302,7 +346,7 @@ function WebPageContent() {
               </TabsTrigger>
               <TabsTrigger value="podcasts">
                 Podcasts
-                {unreadPodcastItems.length > 0 && ` (${unreadPodcastItems.length})`}
+                {currentUnreadPodcastItems.length > 0 && ` (${currentUnreadPodcastItems.length})`}
               </TabsTrigger>
               <TabsTrigger value="readLater">
                 Read Later
@@ -345,7 +389,7 @@ function WebPageContent() {
 
         <TabsContent value="unread" className="h-[calc(100vh-11rem)]">
           <FeedTabContent
-            items={filteredStableUnreadItems}
+            items={filteredUnreadItems}
             isLoading={isLoading}
             viewMode={viewMode}
           />
