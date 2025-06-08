@@ -7,11 +7,7 @@ import { useIsMobile } from "@/hooks/use-media-query";
 import {
   ArticleHeader,
   ArticleContent,
-  LoadingSkeleton,
 } from "@/components/Feed/ArticleReader/ArticleReader";
-import { motion } from "motion/react";
-import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
-import { contentVariants } from "@/utils/animation-config";
 
 interface ReaderContentProps {
   feedItem: FeedItem;
@@ -34,13 +30,8 @@ export const ReaderContent = memo(function ReaderContent({
 }: ReaderContentProps) {
   const isMobile = useIsMobile();
   const isCompact = layout === "compact" || (isMobile && layout === "standard");
-  const { animationEnabled } = useFeedAnimation();
 
-  if (loading) {
-    return <LoadingSkeleton compact={isCompact} />;
-  }
-
-  if (!readerView) {
+  if (!readerView && !loading) {
     return (
       <div className="p-6 text-center">
         <p>Failed to load content. Please try again.</p>
@@ -56,9 +47,6 @@ export const ReaderContent = memo(function ReaderContent({
       ? "px-3 py-4"
       : "p-2";
 
-  const ContentWrapper =
-    animationEnabled && layout === "modal" ? motion.div : "div";
-
   return (
     <div className={`${containerPadding} ${className}`}>
       <article>
@@ -67,23 +55,15 @@ export const ReaderContent = memo(function ReaderContent({
           readerView={readerView}
           parallaxOffset={parallaxOffset}
           layout={layout}
+          loading={loading}
         />
-        <ContentWrapper
-          {...(animationEnabled && layout === "modal"
-            ? {
-                variants: contentVariants,
-                initial: "hidden",
-                animate: "visible",
-              }
-            : {})}
-        >
-          <ArticleContent
-            content={cleanedContent}
-            className={`w-full ${isMobile ? "max-w-full" : "md:max-w-4xl"} ${
-              layout === "modal" ? "no-animation" : ""
-            }`}
-          />
-        </ContentWrapper>
+        <ArticleContent
+          content={cleanedContent}
+          className={`w-full ${isMobile ? "max-w-full" : "md:max-w-4xl"} ${
+            layout === "modal" ? "no-animation" : ""
+          }`}
+          loading={loading}
+        />
       </article>
     </div>
   );
