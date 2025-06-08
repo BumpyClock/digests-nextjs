@@ -263,7 +263,7 @@ export const ArticleHeader = memo(
                   initial={false}
                 >
                   <ArticleImage
-                    src={feedItem.thumbnail}
+                    src={initialThumbnailSrc || feedItem.thumbnail}
                     alt={feedItem.title}
                     className={`w-full ${
                       isModal
@@ -282,7 +282,7 @@ export const ArticleHeader = memo(
                         : undefined
                     }
                     priority={isModal}
-                    progressive={isModal}
+                    progressive={isModal && !initialThumbnailSrc}
                     initialSrc={initialThumbnailSrc}
                   />
                 </motion.div>
