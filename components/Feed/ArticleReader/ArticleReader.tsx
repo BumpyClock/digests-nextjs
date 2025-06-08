@@ -16,9 +16,9 @@ import { ProgressiveImage } from "@/components/ui/progressive-image";
 import { canUseImageKit } from "@/utils/imagekit";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
 import { motion, AnimatePresence } from "motion/react";
-import { MDXRemote } from "next-mdx-remote/rsc";
-import { getMDXComponents } from "@/mdx-components";
+import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 export const ArticleImage = memo(
   ({
@@ -543,24 +543,24 @@ export const ArticleContent = memo(
     className?: string; 
     loading?: boolean;
   }) => {
-    // Custom MDX components with enhanced styling for reader view
-    const components = useMemo(() => getMDXComponents({
-      h1: ({ children }) => (
+    // Custom components for react-markdown with enhanced styling for reader view
+    const components = useMemo(() => ({
+      h1: ({ children }: { children: React.ReactNode }) => (
         <h1 className="text-3xl font-bold mt-8 mb-6 leading-tight">{children}</h1>
       ),
-      h2: ({ children }) => (
+      h2: ({ children }: { children: React.ReactNode }) => (
         <h2 className="text-2xl font-semibold mt-8 mb-4 leading-tight">{children}</h2>
       ),
-      h3: ({ children }) => (
+      h3: ({ children }: { children: React.ReactNode }) => (
         <h3 className="text-xl font-semibold mt-6 mb-3 leading-tight">{children}</h3>
       ),
-      h4: ({ children }) => (
+      h4: ({ children }: { children: React.ReactNode }) => (
         <h4 className="text-lg font-semibold mt-4 mb-2">{children}</h4>
       ),
-      p: ({ children }) => (
+      p: ({ children }: { children: React.ReactNode }) => (
         <p className="my-4 leading-relaxed text-foreground/90">{children}</p>
       ),
-      img: ({ src, alt = '', ...props }) => {
+      img: ({ src, alt = '', ...props }: { src?: string; alt?: string; [key: string]: unknown }) => {
         if (!src) return null;
         return (
           <div className="my-8 rounded-lg overflow-hidden">
@@ -576,31 +576,41 @@ export const ArticleContent = memo(
           </div>
         );
       },
-      blockquote: ({ children }) => (
+      blockquote: ({ children }: { children: React.ReactNode }) => (
         <blockquote className="border-l-4 border-primary/30 pl-6 py-2 my-6 italic text-foreground/80 bg-muted/20 rounded-r-lg">
           {children}
         </blockquote>
       ),
-      code: ({ children }) => (
-        <code className="bg-muted px-2 py-1 rounded text-sm font-mono text-primary">
-          {children}
-        </code>
-      ),
-      pre: ({ children }) => (
+      code: ({ children, className, ...props }: { children: React.ReactNode; className?: string; [key: string]: unknown }) => {
+        const isInline = !className || !className.includes('language-');
+        if (isInline) {
+          return (
+            <code className="bg-muted px-2 py-1 rounded text-sm font-mono text-primary" {...props}>
+              {children}
+            </code>
+          );
+        }
+        return (
+          <code className={className} {...props}>
+            {children}
+          </code>
+        );
+      },
+      pre: ({ children }: { children: React.ReactNode }) => (
         <pre className="bg-muted p-4 rounded-lg overflow-x-auto my-6 text-sm font-mono border">
           {children}
         </pre>
       ),
-      ul: ({ children }) => (
+      ul: ({ children }: { children: React.ReactNode }) => (
         <ul className="list-disc pl-6 my-4 space-y-2">{children}</ul>
       ),
-      ol: ({ children }) => (
+      ol: ({ children }: { children: React.ReactNode }) => (
         <ol className="list-decimal pl-6 my-4 space-y-2">{children}</ol>
       ),
-      li: ({ children }) => (
+      li: ({ children }: { children: React.ReactNode }) => (
         <li className="leading-relaxed">{children}</li>
       ),
-      a: ({ href, children, ...props }) => (
+      a: ({ href, children, ...props }: { href?: string; children: React.ReactNode; [key: string]: unknown }) => (
         <a 
           href={href} 
           className="text-primary hover:text-primary/80 underline decoration-primary/30 hover:decoration-primary/60 transition-colors"
@@ -671,15 +681,14 @@ export const ArticleContent = memo(
         }`}
       >
         {shouldUseMarkdown ? (
-          <MDXRemote 
-            source={markdown} 
+          <ReactMarkdown
             components={components}
-            options={{
-              mdxOptions: {
-                remarkPlugins: [remarkGfm],
-              },
-            }}
-          />
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw]}
+            className="markdown-content"
+          >
+            {markdown}
+          </ReactMarkdown>
         ) : (
           <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(content) }} />
         )}
