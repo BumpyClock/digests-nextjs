@@ -1,12 +1,14 @@
 "use client";
 
-import { memo, useEffect, useMemo, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
+import "./ArticleReader.css";
 import Image from "next/image";
 import { FeedItem, ReaderViewResponse } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Share2, ExternalLink, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cleanupModalContent } from "@/utils/htmlUtils";
+import { cleanupMarkdownContent } from "@/utils/imageDeduplicator";
 import { useFeedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-media-query";
@@ -16,6 +18,9 @@ import { ProgressiveImage } from "@/components/ui/progressive-image";
 import { canUseImageKit } from "@/utils/imagekit";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
 import { motion, AnimatePresence } from "motion/react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 export const ArticleImage = memo(
   ({
@@ -133,19 +138,29 @@ export const SiteFavicon = memo(
 SiteFavicon.displayName = "SiteFavicon";
 
 // Memoized reading time component
-export const ReadingTime = memo(({ content }: { content?: string }) => {
+export const ReadingTime = memo(({ content, markdown }: { content?: string; markdown?: string }) => {
   const readingTimeText = useMemo(() => {
-    if (!content) return "Reading time N/A";
-    const text = content.replace(/<[^>]*>/g, "");
-    const wordCount = text.split(/\s+/).filter(Boolean).length;
+    // Prefer markdown for word count calculation
+    const textToAnalyze = markdown || content;
+    if (!textToAnalyze) return "Reading time N/A";
+    
+    // Remove HTML tags and markdown formatting for accurate word count
+    const cleanText = textToAnalyze
+      .replace(/<[^>]*>/g, "") // Remove HTML tags
+      .replace(/[#*_`~\[\]()]/g, "") // Remove common markdown characters
+      .replace(/!\[.*?\]\(.*?\)/g, "") // Remove markdown images
+      .replace(/\[.*?\]\(.*?\)/g, "") // Remove markdown links
+      .trim();
+    
+    const wordCount = cleanText.split(/\s+/).filter(Boolean).length;
     const readingTimeMinutes = Math.round(wordCount / 225);
     return readingTimeMinutes < 1
       ? "Less than a minute read"
       : `${readingTimeMinutes} minute read`;
-  }, [content]);
+  }, [content, markdown]);
 
   return (
-    <div className="text-sm text-muted-foreground mb-1">
+    <div className="text-fluid-xs text-muted-foreground mb-1">
       <span>{readingTimeText}</span>
     </div>
   );
@@ -163,6 +178,7 @@ export const ArticleHeader = memo(
     actions,
     className,
     loading = false,
+    extractedAuthor,
   }: {
     feedItem: FeedItem;
     readerView: ReaderViewResponse | null;
@@ -172,6 +188,7 @@ export const ArticleHeader = memo(
     actions?: React.ReactNode;
     className?: string;
     loading?: boolean;
+    extractedAuthor?: { name: string; image?: string };
   }) => {
     const isModal = layout === "modal";
     const isCompact = layout === "compact";
@@ -304,22 +321,27 @@ export const ArticleHeader = memo(
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
-                    className="text-xl font-bold mb-2 text-left"
+                    className="text-fluid-xl font-bold mb-2 text-left leading-fluid-tight"
                   >
                     {readerView.title}
                   </motion.h1>
                 )
               )}
               
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground max-w-[200px]">
+              
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+                <div className="flex items-center gap-2 text-fluid-sm text-muted-foreground flex-1 min-w-0">
                   {loading ? (
                     <>
                       <Skeleton className="h-5 w-5 rounded" />
                       <Skeleton className="h-4 w-24" />
+                      <div className="w-px h-5 bg-border mx-1" />
+                      <Skeleton className="w-5 h-5 rounded-full" />
+                      <Skeleton className="h-4 w-16" />
                     </>
                   ) : (
                     <>
+                      {/* Site Info */}
                       {feedItem.favicon && (
                         <SiteFavicon
                           favicon={feedItem.favicon}
@@ -331,6 +353,30 @@ export const ArticleHeader = memo(
                       <span className="truncate block" title={feedItem.siteTitle}>
                         {feedItem.siteTitle}
                       </span>
+                      
+                      {/* Vertical Divider */}
+                      {extractedAuthor && (
+                        <div className="w-px h-5 bg-border mx-1" />
+                      )}
+                      
+                      {/* Author Info */}
+                      {extractedAuthor && (
+                        <div className="flex items-center gap-1">
+                          {extractedAuthor.image && (
+                            <Image
+                              src={extractedAuthor.image}
+                              alt={extractedAuthor.name}
+                              width={20}
+                              height={20}
+                              className="w-5 h-5 rounded-full object-cover flex-shrink-0"
+                              loading="lazy"
+                            />
+                          )}
+                          <span className="text-fluid-xs font-medium text-foreground truncate">
+                            {extractedAuthor.name}
+                          </span>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -346,7 +392,7 @@ export const ArticleHeader = memo(
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3, delay: 0.1 }}
-                    className="flex"
+                    className="flex gap-1"
                   >
                     <Button
                       size="icon"
@@ -397,21 +443,25 @@ export const ArticleHeader = memo(
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3, delay: 0.2 }}
                 >
-                  <ReadingTime content={readerView?.content} />
+                  <ReadingTime content={readerView?.content} markdown={readerView?.markdown} />
                 </motion.div>
               )}
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground max-w-[400px]">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
+                <div className="flex items-center gap-2 text-fluid-sm text-muted-foreground flex-1 min-w-0">
                   {loading ? (
                     <>
                       <Skeleton className="h-5 w-5 rounded" />
                       <Skeleton className="h-4 w-32" />
+                      <div className="w-px h-6 bg-border mx-2" />
+                      <Skeleton className="w-6 h-6 rounded-full" />
+                      <Skeleton className="h-4 w-20" />
                     </>
                   ) : (
                     <>
+                      {/* Site Info */}
                       {feedItem.favicon && (
                         <SiteFavicon
                           favicon={feedItem.favicon}
@@ -426,6 +476,30 @@ export const ArticleHeader = memo(
                       >
                         {feedItem.siteTitle}
                       </span>
+                      
+                      {/* Vertical Divider */}
+                      {extractedAuthor && (
+                        <div className="w-px h-6 bg-border mx-2" />
+                      )}
+                      
+                      {/* Author Info */}
+                      {extractedAuthor && (
+                        <div className="flex items-center gap-2">
+                          {extractedAuthor.image && (
+                            <Image
+                              src={extractedAuthor.image}
+                              alt={extractedAuthor.name}
+                              width={24}
+                              height={24}
+                              className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+                              loading="lazy"
+                            />
+                          )}
+                          <span className="text-fluid-sm font-medium text-foreground truncate">
+                            {extractedAuthor.name}
+                          </span>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -486,8 +560,8 @@ export const ArticleHeader = memo(
                     transition={{ duration: 0.3, delay: 0.1 }}
                     className={
                       isModal
-                        ? "text-4xl font-bold mb-2 text-left"
-                        : "text-2xl sm:text-3xl font-bold mb-3 text-left"
+                        ? "text-fluid-3xl font-bold mb-2 text-left leading-fluid-tight"
+                        : "text-fluid-2xl font-bold mb-3 text-left leading-fluid-tight"
                     }
                     id={isModal ? "reader-view-title" : undefined}
                   >
@@ -505,7 +579,7 @@ export const ArticleHeader = memo(
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3, delay: 0.2 }}
                 >
-                  <ReadingTime content={readerView?.content} />
+                  <ReadingTime content={readerView?.content} markdown={readerView?.markdown} />
                 </motion.div>
               )}
             </>
@@ -519,40 +593,102 @@ ArticleHeader.displayName = "ArticleHeader";
 
 // Article content component
 export const ArticleContent = memo(
-  ({ content, className, loading = false }: { content: string; className?: string; loading?: boolean }) => {
-    useEffect(() => {
-      if (loading) return;
-      
-      const replaceNextImages = () => {
-        const nextImages = document.querySelectorAll("next-image");
-        nextImages.forEach((element) => {
-          const src = element.getAttribute("src") || "";
-          const alt = element.getAttribute("alt") || "";
-          const isSmall = element.hasAttribute("small");
-          const className = element.getAttribute("class") || "";
-
-          const img = document.createElement("img");
-          const imgWrapper = document.createElement("div");
-
-          imgWrapper.className = isSmall
-            ? "relative inline-block"
-            : "relative aspect-video";
-
-          img.src = src;
-          img.alt = alt;
-          img.className = `${className} ${
-            isSmall ? "object-cover" : "object-contain"
-          }`;
-          img.style.width = "100%";
-          img.style.height = "auto";
-
-          imgWrapper.appendChild(img);
-          element.parentNode?.replaceChild(imgWrapper, element);
-        });
-      };
-
-      replaceNextImages();
-    }, [content, loading]);
+  ({ 
+    content, 
+    markdown, 
+    className, 
+    loading = false 
+  }: { 
+    content: string; 
+    markdown?: string; 
+    className?: string; 
+    loading?: boolean;
+  }) => {
+    // Custom components for react-markdown with enhanced styling for reader view
+    const components = useMemo(() => ({
+      h1: ({ children }: { children: React.ReactNode }) => (
+        <h1 className="text-fluid-3xl font-bold mt-8 mb-6 leading-fluid-tight">{children}</h1>
+      ),
+      h2: ({ children }: { children: React.ReactNode }) => (
+        <h2 className="text-fluid-2xl font-semibold mt-8 mb-4 leading-fluid-tight">{children}</h2>
+      ),
+      h3: ({ children }: { children: React.ReactNode }) => (
+        <h3 className="text-fluid-xl font-semibold mt-6 mb-3 leading-fluid-tight">{children}</h3>
+      ),
+      h4: ({ children }: { children: React.ReactNode }) => (
+        <h4 className="text-fluid-lg font-semibold mt-4 mb-2 leading-fluid-normal">{children}</h4>
+      ),
+      p: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => {
+        // Check if children contains images and handle differently
+        const hasImages = React.Children.toArray(children).some(
+          child => React.isValidElement(child) && child.type === 'img'
+        );
+        
+        if (hasImages) {
+          return <div className="my-4 text-foreground/90" {...props}>{children}</div>;
+        }
+        
+        return <p className="my-4 text-foreground/90" {...props}>{children}</p>;
+      },
+      img: ({ src, alt = '', ...props }: { src?: string; alt?: string; [key: string]: unknown }) => {
+        if (!src) return null;
+        // Use a regular img tag to avoid Next.js Image component div wrapper issues
+        return (
+          <img
+            src={src}
+            alt={alt}
+            className="w-full h-auto object-cover rounded-lg my-8 max-w-full block"
+            loading="lazy"
+            {...props}
+          />
+        );
+      },
+      blockquote: ({ children }: { children: React.ReactNode }) => (
+        <blockquote className="border-l-4 border-primary/30 pl-6 py-2 my-6 italic text-foreground/80 bg-muted/20 rounded-r-lg">
+          {children}
+        </blockquote>
+      ),
+      code: ({ children, className, ...props }: { children: React.ReactNode; className?: string; [key: string]: unknown }) => {
+        const isInline = !className || !className.includes('language-');
+        if (isInline) {
+          return (
+            <code className="bg-muted px-2 py-1 rounded text-fluid-sm font-mono text-primary" {...props}>
+              {children}
+            </code>
+          );
+        }
+        return (
+          <code className={className} {...props}>
+            {children}
+          </code>
+        );
+      },
+      pre: ({ children }: { children: React.ReactNode }) => (
+        <pre className="bg-muted p-4 rounded-lg overflow-x-auto my-6 text-sm font-mono border">
+          {children}
+        </pre>
+      ),
+      ul: ({ children }: { children: React.ReactNode }) => (
+        <ul className="list-disc pl-6 my-4 space-y-2">{children}</ul>
+      ),
+      ol: ({ children }: { children: React.ReactNode }) => (
+        <ol className="list-decimal pl-6 my-4 space-y-2">{children}</ol>
+      ),
+      li: ({ children }: { children: React.ReactNode }) => (
+        <li className="leading-relaxed">{children}</li>
+      ),
+      a: ({ href, children, ...props }: { href?: string; children: React.ReactNode; [key: string]: unknown }) => (
+        <a 
+          href={href} 
+          className="text-primary hover:text-primary/80 underline decoration-primary/30 hover:decoration-primary/60 transition-colors"
+          target={href?.startsWith('http') ? '_blank' : undefined}
+          rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+          {...props}
+        >
+          {children}
+        </a>
+      ),
+    }), []);
 
     if (loading) {
       return (
@@ -599,6 +735,9 @@ export const ArticleContent = memo(
       );
     }
 
+    // Prefer markdown if available, fallback to HTML content
+    const shouldUseMarkdown = markdown && markdown.trim() !== '';
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -607,8 +746,21 @@ export const ArticleContent = memo(
         className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-foreground px-6 md:px-8 lg:px-12 ${
           className || "w-full md:max-w-4xl"
         }`}
-        dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(content) }}
-      />
+      >
+        {shouldUseMarkdown ? (
+          <ReactMarkdown
+            components={components}
+            remarkPlugins={[remarkGfm]}
+            rehypePlugins={[rehypeRaw]}
+            allowedElements={undefined}
+            disallowedElements={[]}
+          >
+            {markdown}
+          </ReactMarkdown>
+        ) : (
+          <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(content) }} />
+        )}
+      </motion.div>
     );
   }
 );
@@ -665,8 +817,30 @@ EmptyState.displayName = "EmptyState";
 
 export function processArticleContent(
   readerView: ReaderViewResponse | null
-): string {
-  if (!readerView || !readerView.content) return "";
+): { htmlContent: string; markdownContent: string; extractedAuthor?: { name: string; image?: string } } {
+  if (!readerView) return { htmlContent: "", markdownContent: "" };
 
-  return cleanupModalContent(readerView.content);
+  const thumbnailUrl = readerView.image;
+  
+  // Process HTML content
+  const htmlContent = readerView.content 
+    ? cleanupModalContent(readerView.content, thumbnailUrl)
+    : "";
+  
+  // Process markdown content with comprehensive cleanup (metadata + image deduplication)
+  const markdownResult = readerView.markdown 
+    ? cleanupMarkdownContent(
+        readerView.markdown, 
+        thumbnailUrl, 
+        readerView.title, 
+        undefined, // author not available in ReaderViewResponse
+        readerView.siteName
+      )
+    : { cleanedMarkdown: "" };
+
+  return { 
+    htmlContent, 
+    markdownContent: markdownResult.cleanedMarkdown,
+    extractedAuthor: markdownResult.extractedAuthor
+  };
 }

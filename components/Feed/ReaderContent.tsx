@@ -14,6 +14,8 @@ interface ReaderContentProps {
   readerView: ReaderViewResponse | null;
   loading: boolean;
   cleanedContent: string;
+  cleanedMarkdown?: string;
+  extractedAuthor?: { name: string; image?: string };
   layout?: ReaderLayout;
   parallaxOffset?: number;
   className?: string;
@@ -27,6 +29,8 @@ export const ReaderContent = memo(function ReaderContent({
   layout = "standard",
   parallaxOffset,
   className = "",
+  cleanedMarkdown,
+  extractedAuthor,
 }: ReaderContentProps) {
   const isMobile = useIsMobile();
   const isCompact = layout === "compact" || (isMobile && layout === "standard");
@@ -56,9 +60,11 @@ export const ReaderContent = memo(function ReaderContent({
           parallaxOffset={parallaxOffset}
           layout={layout}
           loading={loading}
+          extractedAuthor={extractedAuthor}
         />
         <ArticleContent
           content={cleanedContent}
+          markdown={cleanedMarkdown ?? readerView?.markdown}
           className={`w-full ${isMobile ? "max-w-full" : "md:max-w-4xl"} ${
             layout === "modal" ? "no-animation" : ""
           }`}
