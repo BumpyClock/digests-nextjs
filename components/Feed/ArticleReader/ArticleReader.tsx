@@ -234,7 +234,7 @@ export const ArticleHeader = memo(
                 isActive={true}
                 opacity={{ rest: 0.5, hover: 0.7 }}
               >
-                <ArticleImage
+                <img
                   src={feedItem.thumbnail}
                   alt={feedItem.title}
                   className={`w-full max-h-[450px] object-cover ${
@@ -249,8 +249,7 @@ export const ArticleHeader = memo(
                         }
                       : undefined
                   }
-                  priority={isModal}
-                  progressive={isModal}
+                  loading={isModal ? "eager" : "lazy"}
                 />
               </Ambilight>
             </div>

@@ -8,6 +8,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
+import { useIsMobile } from "@/hooks/use-media-query"
 
 interface BaseModalProps {
   isOpen: boolean
@@ -26,6 +27,8 @@ interface BaseModalProps {
  * - Centered modal with proper sizing
  */
 export function BaseModal({ isOpen, onClose, title, children, className }: BaseModalProps) {
+  const isMobile = useIsMobile()
+  
   useEffect(() => {
     if (isOpen) {
       Logger.debug(`[BaseModal] title: ${title}`)
@@ -51,31 +54,36 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
             {/* Modal content */}
             <DialogPrimitive.Content asChild>
               <motion.div
-                className="fixed left-1/2 top-1/2 z-50 w-full max-w-[1050px] max-h-[90vh]"
+                className={isMobile 
+                  ? "fixed z-50 w-full h-full left-0 top-0 overflow-hidden"
+                  : "fixed z-50 w-full max-w-[1050px] h-[90vh] left-1/2 top-1/2 mx-4 overflow-hidden"
+                }
                 initial={{ 
                   opacity: 0, 
                   scale: 0.9,
-                  x: "-50%",
-                  y: "-50%"
+                  x: isMobile ? 0 : "-50%",
+                  y: isMobile ? "100%" : "-50%"
                 }}
                 animate={{ 
                   opacity: 1, 
                   scale: 1,
-                  x: "-50%",
-                  y: "-50%"
+                  x: isMobile ? 0 : "-50%",
+                  y: isMobile ? 0 : "-50%"
                 }}
                 exit={{ 
                   opacity: 0, 
                   scale: 0.9,
-                  x: "-50%",
-                  y: "-50%"
+                  x: isMobile ? 0 : "-50%",
+                  y: isMobile ? "100%" : "-50%"
                 }}
                 transition={{ 
                   duration: 0.25, 
                   ease: [0.16, 1, 0.3, 1] // Custom ease for smooth feel
                 }}
               >
-                <div className={`relative w-full h-full bg-background rounded-[32px] shadow-2xl overflow-hidden ${className || ""}`}>
+                <div className={`relative w-full h-full bg-background shadow-2xl overflow-hidden ${
+                  isMobile ? "rounded-none" : "rounded-[32px]"
+                } ${className || ""}`}>
                   {/* Invisible title for accessibility */}
                   <DialogPrimitive.Title className="sr-only">
                     {title || "Content"}
@@ -99,9 +107,9 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
                     </Button>
                   </motion.div>
 
-                  {/* Content area */}
+                  {/* Content area with proper scrolling */}
                   <motion.div 
-                    className="h-full w-full overflow-hidden"
+                    className="h-full w-full overflow-auto"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1, duration: 0.25 }}

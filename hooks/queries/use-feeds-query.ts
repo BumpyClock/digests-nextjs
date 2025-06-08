@@ -16,6 +16,7 @@ export const feedsKeys = {
 // Main feeds query - fetches and refreshes all feeds
 export const useFeedsQuery = () => {
   const queryClient = useQueryClient()
+  const existingFeeds = useFeedStore(state => state.feeds)
   
   return useQuery({
     queryKey: feedsKeys.lists(),
@@ -40,7 +41,7 @@ export const useFeedsQuery = () => {
       }
       throw new Error(result.message || 'Failed to fetch feeds')
     },
-    enabled: false, // Start disabled, enable manually when needed
+    enabled: existingFeeds.length > 0, // Auto-enable when there are feeds to fetch
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchInterval: 30 * 60 * 1000, // 30 minutes background refresh
