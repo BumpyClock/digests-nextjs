@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Share2, ExternalLink, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cleanupModalContent } from "@/utils/htmlUtils";
+import { deduplicateMarkdownImages } from "@/utils/imageDeduplicator";
 import { useFeedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
 import { useIsMobile } from "@/hooks/use-media-query";
@@ -757,8 +758,20 @@ EmptyState.displayName = "EmptyState";
 
 export function processArticleContent(
   readerView: ReaderViewResponse | null
-): string {
-  if (!readerView || !readerView.content) return "";
+): { htmlContent: string; markdownContent: string } {
+  if (!readerView) return { htmlContent: "", markdownContent: "" };
 
-  return cleanupModalContent(readerView.content);
+  const thumbnailUrl = readerView.image;
+  
+  // Process HTML content
+  const htmlContent = readerView.content 
+    ? cleanupModalContent(readerView.content, thumbnailUrl)
+    : "";
+  
+  // Process markdown content
+  const markdownContent = readerView.markdown 
+    ? deduplicateMarkdownImages(readerView.markdown, thumbnailUrl)
+    : "";
+
+  return { htmlContent, markdownContent };
 }

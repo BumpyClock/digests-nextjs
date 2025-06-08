@@ -20,7 +20,7 @@ export function ReaderViewModal({
   isOpen,
   onClose,
 }: ReaderViewModalProps) {
-  const { readerView, loading, cleanedContent } = useReaderView(feedItem, isOpen);
+  const { readerView, loading, cleanedContent, cleanedMarkdown } = useReaderView(feedItem, isOpen);
   const { scrollTop, isBottomVisible, handleScroll, hasScrolled } = useScrollShadow();
   
   const parallaxOffset = useMemo(() => {
@@ -53,6 +53,7 @@ export function ReaderViewModal({
               readerView={readerView}
               loading={loading}
               cleanedContent={cleanedContent}
+              cleanedMarkdown={cleanedMarkdown}
               layout="modal"
               parallaxOffset={parallaxOffset}
             />

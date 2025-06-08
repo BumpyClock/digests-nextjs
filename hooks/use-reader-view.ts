@@ -8,6 +8,7 @@ export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
   const [readerView, setReaderView] = useState<ReaderViewResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [cleanedContent, setCleanedContent] = useState("");
+  const [cleanedMarkdown, setCleanedMarkdown] = useState("");
   const { toast } = useToast();
 
   // Reset state when feedItem changes
@@ -15,6 +16,7 @@ export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
     if (!feedItem) {
       setReaderView(null);
       setCleanedContent("");
+      setCleanedMarkdown("");
       return;
     }
   }, [feedItem]);
@@ -22,9 +24,12 @@ export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
   // Process content when readerView changes
   useEffect(() => {
     if (readerView) {
-      setCleanedContent(processArticleContent(readerView));
+      const { htmlContent, markdownContent } = processArticleContent(readerView);
+      setCleanedContent(htmlContent);
+      setCleanedMarkdown(markdownContent);
     } else {
       setCleanedContent("");
+      setCleanedMarkdown("");
     }
   }, [readerView]);
 
@@ -61,5 +66,5 @@ export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
     loadReaderView();
   }, [feedItem, toast, isOpen]);
 
-  return { readerView, loading, cleanedContent };
+  return { readerView, loading, cleanedContent, cleanedMarkdown };
 } 

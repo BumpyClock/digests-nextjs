@@ -1,4 +1,5 @@
 import { normalizeUrl as baseNormalizeUrl } from "@/utils/url";
+import { deduplicateHtmlImages } from "@/utils/imageDeduplicator";
 
 // Add a size-limited LRU cache implementation
 class LRUCache<K, V> {
@@ -147,19 +148,16 @@ export const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string):
     return documentCache.get(cacheKey)!.body.innerHTML;
   }
   
+  // First, apply enhanced image deduplication
+  const deduplicatedContent = deduplicateHtmlImages(htmlContent, thumbnailUrl);
+  
   const parser = new DOMParser();
-  const doc = parser.parseFromString(htmlContent, 'text/html');
+  const doc = parser.parseFromString(deduplicatedContent, 'text/html');
   const images = Array.from(doc.querySelectorAll('img'));
-  const imageMap = new Map<string, HTMLElement>();
 
   images.forEach((img) => {
     const src = img.getAttribute('src');
     if (!src) {
-      img.parentElement?.removeChild(img);
-      return;
-    }
-
-    if (isThumbnailImage(src, thumbnailUrl)) {
       img.parentElement?.removeChild(img);
       return;
     }
@@ -194,14 +192,8 @@ export const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string):
         )
       });
 
-      // Handle duplicate images
-      const baseUrl = src.split('?')[0];
-      if (imageMap.has(baseUrl)) {
-        img.parentElement?.removeChild(img);
-      } else {
-        img.parentNode?.replaceChild(wrapper, img);
-        imageMap.set(baseUrl, wrapper);
-      }
+      // Replace img with next-image wrapper
+      img.parentNode?.replaceChild(wrapper, img);
     } catch (error) {
       console.warn(`Invalid image URL: ${src}`, error);
       img.parentElement?.removeChild(img);
