@@ -11,6 +11,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { FeedItem } from "@/types"
 import { useFeedsQuery, useReaderViewQuery } from "@/hooks/queries"
+import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
@@ -178,9 +179,9 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
 
         <div className="prose prose-sm sm:prose dark:prose-invert w-full md:max-w-4xl">
           {readerViewQuery.data ? (
-            <div dangerouslySetInnerHTML={{ __html: readerViewQuery.data.content }} />
+            <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(readerViewQuery.data.content) }} />
           ) : (
-            <div dangerouslySetInnerHTML={{ __html: article.content || article.description }} />
+            <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(article.content || article.description || '') }} />
           )}
         </div>
       </div>

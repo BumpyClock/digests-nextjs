@@ -11,6 +11,7 @@ import { PodcastMetadata } from "../PodcastMetadata"
 import { PodcastPlayButton } from "../shared/PodcastPlayButton"
 import Image from "next/image"
 import { getImageProps } from "@/utils/image-config"
+import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 
 interface PodcastDetailsModalProps {
   isOpen: boolean
@@ -158,7 +159,7 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast }: PodcastDetails
             <div 
               className="prose prose-sm dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{ 
-                __html: podcast.content || podcast.description 
+                __html: sanitizeReaderContent(podcast.content || podcast.description || '') 
               }} 
             />
           </div>

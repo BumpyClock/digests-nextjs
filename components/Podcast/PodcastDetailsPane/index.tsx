@@ -10,6 +10,7 @@ import { cleanupTextContent } from "@/utils/htmlUtils";
 import { PodcastArtwork } from "../PodcastArtwork";
 import { PodcastMetadata } from "../PodcastMetadata";
 import { PodcastPlayButton } from "../shared/PodcastPlayButton";
+import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
 
 interface PodcastDetailsPaneProps {
   feedItem: FeedItem | null;
@@ -93,7 +94,7 @@ export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
             <div 
               className="prose prose-sm dark:prose-invert max-w-none"
               dangerouslySetInnerHTML={{ 
-                __html: feedItem.content || feedItem.description 
+                __html: sanitizeReaderContent(feedItem.content || feedItem.description || '') 
               }} 
             />
           </div>
