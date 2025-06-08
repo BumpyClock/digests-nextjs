@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useAudioActions } from "@/hooks/useFeedSelectors"
 import Image from "next/image"
 import type { FeedItem } from "@/types/feed"
+import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 
 export default function PodcastPage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
@@ -180,7 +181,7 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
             <div className="space-y-4">
               <h2 className="text-xl font-bold">Episode Description</h2>
               <div className="prose prose-sm dark:prose-invert">
-                <div dangerouslySetInnerHTML={{ __html: podcast.content || podcast.description }} />
+                <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(podcast.content || podcast.description || '') }} />
               </div>
             </div>
           </div>

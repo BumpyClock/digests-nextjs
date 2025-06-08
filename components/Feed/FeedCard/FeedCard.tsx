@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useRef, useCallback, memo, useEffect, useMemo } from "react";
+import { useState, useRef, useCallback, memo, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -21,15 +21,13 @@ import { useTheme } from "next-themes";
 import { workerService } from "@/services/worker-service";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsItemRead, useIsInReadLater, useReadActions, useReadLaterActions } from "@/hooks/useFeedSelectors";
-import { useRenderCount } from "@/store/middleware/performanceMiddleware";
 import { cleanupTextContent } from "@/utils/htmlUtils";
 import { Ambilight } from "@/components/ui/ambilight";
 import { PodcastPlayButton } from "@/components/Podcast/shared/PodcastPlayButton";
 import { isPodcast } from "@/types/podcast";
 import { getImageKitUrl, IMAGE_PRESETS, canUseImageKit } from "@/utils/imagekit";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
-import { springConfig } from "@/utils/animation-config";
 dayjs.extend(relativeTime);
 
 interface FeedCardProps {
@@ -164,9 +162,6 @@ function useCardShadow(id: string, color: { r: number; g: number; b: number }) {
 export const FeedCard = memo(function FeedCard({
   feed: feedItem,
 }: FeedCardProps) {
-  // Track render count in development (always call hook to avoid conditional calling)
-  const renderCountEnabled = process.env.NODE_ENV === 'development';
-  useRenderCount(renderCountEnabled ? `FeedCard-${feedItem.id}` : '');
   const [isReaderViewOpen, setIsReaderViewOpen] = useState(false);
   const [isPodcastDetailsOpen, setIsPodcastDetailsOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -179,76 +174,33 @@ export const FeedCard = memo(function FeedCard({
     feedItem.id,
     feedItem.thumbnailColor || { r: 0, g: 0, b: 0 }
   );
-  const [isAnimating, setIsAnimating] = useState(false);
-  const animationTimeoutRef = useRef<NodeJS.Timeout>(null);
-  const transitionDuration = 100; // Reduced for snappier animation
   const [imageLoading, setImageLoading] = useState(true);
   const isRead = useIsItemRead(feedItem.id);
   const { markAsRead } = useReadActions();
   
   // Animation context
-  const { activeItemId, setActiveItemId, animationEnabled } = useFeedAnimation();
-  const isActive = activeItemId === feedItem.id;
+  const { animationEnabled } = useFeedAnimation();
 
   /**
    * Handles the click event on the card.
-   *
-   * @param {React.MouseEvent<HTMLDivElement>} e - The click event.
    */
   const handleCardClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    e.preventDefault();
-  }, []);
-
-  const handleMouseDown = useCallback(() => {
-    if (!isAnimating) {
-      setIsPressed(true);
-
-    }
-  }, [isAnimating]);
-
-  const handleMouseUp = useCallback((e: React.MouseEvent) => {
-    if (isPressed) {
-      setIsPressed(false);
-      setIsAnimating(true);
-
-      // Check if the click was on a share or bookmark button
-      const target = e.target as HTMLElement;
-      const isShareOrBookmarkButton = target.closest('button')?.querySelector('.h-4.w-4');
+    // Check if the click was on a share or bookmark button
+    const target = e.target as HTMLElement;
+    const isShareOrBookmarkButton = target.closest('button');
+    
+    if (!isShareOrBookmarkButton) {
+      // Mark as read after modal opens to prevent item from disappearing
+      markAsRead(feedItem.id);
       
-      if (!isShareOrBookmarkButton) {
-        setTimeout(() => {
-          markAsRead(feedItem.id);
-        }, 0);
-
-        // Set active item for animation
-        if (animationEnabled) {
-          setActiveItemId(feedItem.id);
-        }
-
-        const timeout = setTimeout(() => {
-          if (isPodcast(feedItem)) {
-            setIsPodcastDetailsOpen(true);
-          } else {
-            setIsReaderViewOpen(true);
-          }
-          setIsAnimating(false);
-        }, transitionDuration);
-
-        animationTimeoutRef.current = timeout;
+      // Open appropriate modal
+      if (isPodcast(feedItem)) {
+        setIsPodcastDetailsOpen(true);
       } else {
-        setIsAnimating(false);
+        setIsReaderViewOpen(true);
       }
     }
-  }, [feedItem, isPressed, markAsRead, animationEnabled, setActiveItemId]);
-
-  useEffect(() => {
-    return () => {
-      const timeout = animationTimeoutRef.current;
-      if (timeout) {
-        clearTimeout(timeout);
-      }
-    };
-  }, []);
+  }, [feedItem, markAsRead]);
 
 
 
@@ -281,66 +233,36 @@ export const FeedCard = memo(function FeedCard({
     return restShadow;
   };
 
-  // Generate the FeedCard thumbnail URL that's already been loaded
-  const feedCardThumbnailUrl = useMemo(() => {
-    if (showPlaceholder) {
-      return isPodcast(feedItem) ? "/placeholder-podcast.svg" : "/placeholder-rss.svg";
-    }
-    if (canUseImageKit(feedItem.thumbnail)) {
-      return getImageKitUrl(feedItem.thumbnail, IMAGE_PRESETS.feedCardThumbnail);
-    }
-    return feedItem.thumbnail;
-  }, [feedItem, showPlaceholder]);
 
-  // Track if card is ready to be visible (prevents slide animations)
-  const [isReadyToShow, setIsReadyToShow] = useState(false);
-  
-  useEffect(() => {
-    // Small delay to ensure card is positioned by Masonic before showing
-    const timer = setTimeout(() => {
-      setIsReadyToShow(true);
-    }, 50);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Always enable layoutIds when animations are enabled for connected animations
-  const shouldEnableLayoutId = animationEnabled;
 
   return (
     <>
       <motion.div
-        layoutId={shouldEnableLayoutId ? `card-${feedItem.id}` : undefined}
-        whileHover={animationEnabled && isReadyToShow ? { y: -4 } : undefined}
-        whileTap={animationEnabled && isReadyToShow ? { scale: 0.98 } : undefined}
-        transition={shouldEnableLayoutId ? springConfig.controlled : undefined}
-        initial={animationEnabled ? { opacity: 0, y: 50 } : undefined}
-        animate={animationEnabled ? { opacity: isReadyToShow ? 1 : 0, y: isReadyToShow ? 0 : 50 } : undefined}
-        data-motion="card"
+        whileHover={animationEnabled ? { y: -4 } : undefined}
+        whileTap={animationEnabled ? { scale: 0.98 } : undefined}
+        initial={animationEnabled ? { opacity: 0, y: 20 } : undefined}
+        animate={animationEnabled ? { opacity: 1, y: 0 } : undefined}
+        transition={{ duration: 0.2 }}
       >
         <Card
           ref={cardRef}
           style={
             {
               boxShadow: getShadowStyle(),
-              transition: shouldEnableLayoutId ? undefined : "opacity 200ms ease-out, box-shadow 100ms ease-out, transform 100ms ease-out",
-              transform: isPressed && !animationEnabled ? "translateY(2px)" : "none",
+              transition: "opacity 200ms ease-out, box-shadow 100ms ease-out, transform 100ms ease-out",
+              transform: isPressed ? "translateY(2px)" : "none",
               opacity: isRead ? 0.8 : 1,
             } as React.CSSProperties
           }
-          className={`card w-full bg-card overflow-hidden cursor-pointer rounded-[40px] relative group ${isRead ? "read-item" : ""} ${isReadyToShow ? "ready" : ""
-            }`}
+          className={`card w-full bg-card overflow-hidden cursor-pointer rounded-[40px] relative group ${isRead ? "read-item" : ""}`}
           onClick={handleCardClick}
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
           onMouseLeave={() => {
             setIsHovered(false);
             setIsPressed(false);
-            setIsAnimating(false);
-            if (animationTimeoutRef.current) {
-              clearTimeout(animationTimeoutRef.current);
-            }
           }}
           onMouseEnter={() => setIsHovered(true)}
+          onMouseDown={() => setIsPressed(true)}
+          onMouseUp={() => setIsPressed(false)}
         >
         {/* <div
           id={`feed-card-bg-${feedItem.id}`}
@@ -361,23 +283,16 @@ export const FeedCard = memo(function FeedCard({
         >
           {/* Card Thumbnail image*/}
           {((!imageError && feedItem.thumbnail && isValidUrl(feedItem.thumbnail)) || showPlaceholder) && (
-            <motion.div 
-              className="relative w-full p-2"
-              layoutId={shouldEnableLayoutId ? `thumbnail-container-${feedItem.id}` : undefined}
-              initial={false}
-              animate={false}
-              data-motion="thumbnail-container"
-            >
+            <div className="relative w-full p-2">
               <Ambilight
-  className="relative w-full aspect-video rounded-[32px] overflow-hidden"
-  parentHovered={isHovered}
-  opacity={{ rest: 0, hover: 0.7 }}
->
+                className="relative w-full aspect-video rounded-[32px] overflow-hidden"
+                parentHovered={isHovered}
+                opacity={{ rest: 0, hover: 0.7 }}
+              >
                 {imageLoading && (
                   <Skeleton className="absolute inset-0 z-10 rounded-[32px]" />
                 )}
-                <motion.img
-                  layoutId={shouldEnableLayoutId ? `thumbnail-${feedItem.id}` : undefined}
+                <img
                   src={showPlaceholder 
                     ? (isPodcast(feedItem) ? "/placeholder-podcast.svg" : "/placeholder-rss.svg") 
                     : (canUseImageKit(feedItem.thumbnail) 
@@ -387,20 +302,16 @@ export const FeedCard = memo(function FeedCard({
                   alt={feedItem.title}
                   width={400}
                   height={300}
-                  className={`w-full h-full object-cover rounded-[32px] ${shouldEnableLayoutId ? '' : (isReadyToShow ? 'group-hover:scale-[1.05] transition-all duration-150' : '')} ${
+                  className={`w-full h-full object-cover rounded-[32px] group-hover:scale-[1.05] transition-all duration-150 ${
                     imageLoading ? "opacity-0" : "opacity-100"
                   }`}
                   onError={handleImageError}
                   onLoad={() => setImageLoading(false)}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
                   loading="lazy"
-                  transition={shouldEnableLayoutId ? { layout: springConfig.stiff } : undefined}
-                  initial={false}
-                  animate={false}
-                  data-motion="thumbnail"
                 />
               </Ambilight>
-            </motion.div>
+            </div>
           )}
 
           <CardContent className="p-4">
@@ -409,96 +320,44 @@ export const FeedCard = memo(function FeedCard({
                 id={`feed-card-header-${feedItem.id}`}
                 className="flex flex-wrap items-center justify-between gap-2 font-regular"
               >
-                <motion.div 
-                  className="flex space-between gap-2 align-center items-center"
-                  layoutId={shouldEnableLayoutId ? `metadata-${feedItem.id}` : undefined}
-                  initial={false}
-                  animate={false}
-                  data-motion="metadata"
-                >
+                <div className="flex space-between gap-2 align-center items-center">
                   {(!faviconError && feedItem.favicon && isValidUrl(feedItem.favicon)) ? (
-                    <motion.img
-                      layoutId={shouldEnableLayoutId ? `favicon-${feedItem.id}` : undefined}
+                    <img
                       src={feedItem.favicon}
                       alt={`${cleanupTextContent(feedItem.siteTitle)} favicon`}
                       className="w-6 h-6 bg-white rounded-[4px] "
                       onError={handleFaviconError}
                       width={24}
                       height={24}
-                      initial={false}
-                      animate={false}
-                      data-motion="favicon"
                     />
                   ) : (
-                    <motion.div 
-                      className="w-6 h-6 bg-muted rounded-[4px] flex items-center justify-center text-xs font-medium"
-                      layoutId={shouldEnableLayoutId ? `favicon-${feedItem.id}` : undefined}
-                      initial={false}
-                      animate={false}
-                      data-motion="favicon"
-                    >
+                    <div className="w-6 h-6 bg-muted rounded-[4px] flex items-center justify-center text-xs font-medium">
                       {cleanupTextContent(feedItem.siteTitle).charAt(0).toUpperCase()}
-                    </motion.div>
+                    </div>
                   )}
-                  <motion.div 
-                    className="text-xs  line-clamp-1 font-regular"
-                    layoutId={shouldEnableLayoutId ? `site-title-${feedItem.id}` : undefined}
-                    initial={false}
-                    animate={false}
-                    data-motion="site-title"
-                  >
+                  <div className="text-xs  line-clamp-1 font-regular">
                     {cleanupTextContent(feedItem.siteTitle)}
-                  </motion.div>
-                </motion.div>
+                  </div>
+                </div>
                 <div className="text-xs text-muted-foreground w-fit font-medium">
                   {formatDate(feedItem.published)}
                 </div>
               </div>
-              <motion.h3 
-                className="font-medium"
-                layoutId={shouldEnableLayoutId ? `title-${feedItem.id}` : undefined}
-                initial={false}
-                animate={false}
-                data-motion="title"
-              >
+              <h3 className="font-medium">
                 {cleanupTextContent(feedItem.title)}
-              </motion.h3>
-              <AnimatePresence>
-                {!isActive && (
-                  <>
-                    {feedItem.author && (
-                      <motion.div 
-                        className="text-sm text-muted-foreground"
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        By {cleanupTextContent(feedItem.author)}
-                      </motion.div>
-                    )}
-                    <motion.p 
-                      className="text-sm text-muted-foreground line-clamp-3"
-                      exit={{ opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      {cleanupTextContent(feedItem.description)}
-                    </motion.p>
-                  </>
-                )}
-              </AnimatePresence>
+              </h3>
+              {feedItem.author && (
+                <div className="text-sm text-muted-foreground">
+                  By {cleanupTextContent(feedItem.author)}
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground line-clamp-3">
+                {cleanupTextContent(feedItem.description)}
+              </p>
             </div>
           </CardContent>
 
-          <AnimatePresence>
-            {!isActive && animationEnabled && (
-              <motion.div
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <CardFooter feedItem={feedItem} />
-              </motion.div>
-            )}
-            {!animationEnabled && <CardFooter feedItem={feedItem} />}
-          </AnimatePresence>
+          <CardFooter feedItem={feedItem} />
         </div>
         </Card>
       </motion.div>
@@ -507,9 +366,6 @@ export const FeedCard = memo(function FeedCard({
           isOpen={isPodcastDetailsOpen}
           onClose={() => {
             setIsPodcastDetailsOpen(false)
-            if (animationEnabled) {
-              setActiveItemId(null)
-            }
           }}
           podcast={feedItem}
         />
@@ -518,12 +374,8 @@ export const FeedCard = memo(function FeedCard({
           isOpen={isReaderViewOpen}
           onClose={() => {
             setIsReaderViewOpen(false)
-            if (animationEnabled) {
-              setActiveItemId(null)
-            }
           }}
           feedItem={feedItem}
-          initialThumbnailSrc={feedCardThumbnailUrl}
         />
       )}
     </>

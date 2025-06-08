@@ -13,14 +13,12 @@ interface ReaderViewModalProps {
   isOpen: boolean;
   onClose: () => void;
   feedItem: FeedItem;
-  initialThumbnailSrc?: string;
 }
 
 export function ReaderViewModal({
   feedItem,
   isOpen,
   onClose,
-  initialThumbnailSrc,
 }: ReaderViewModalProps) {
   const { readerView, loading, cleanedContent } = useReaderView(feedItem, isOpen);
   const { scrollTop, isBottomVisible, handleScroll, hasScrolled } = useScrollShadow();
@@ -40,7 +38,6 @@ export function ReaderViewModal({
       onClose={onClose}
       title={readerView?.title || "Loading..."}
       className=""
-      itemId={feedItem.id}
     >
       <div className="relative h-full overflow-hidden">
         <ScrollShadow visible={hasScrolled} position="top" />
@@ -58,7 +55,6 @@ export function ReaderViewModal({
               cleanedContent={cleanedContent}
               layout="modal"
               parallaxOffset={parallaxOffset}
-              initialThumbnailSrc={initialThumbnailSrc}
             />
           </div>
         </ScrollArea>

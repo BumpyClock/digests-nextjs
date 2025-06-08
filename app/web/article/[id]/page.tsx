@@ -5,53 +5,36 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Bookmark, Share2, ExternalLink } from "lucide-react"
-import { getFeedItemsAction, toggleFavoriteAction } from "@/app/actions"
+import { toggleFavoriteAction } from "@/app/actions"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
-import { fetchReaderView} from "@/lib/rss"
-import { type ReaderViewResponse } from "@/types/api"
 import Image from "next/image"
 import { FeedItem } from "@/types"
+import { useFeedsQuery, useReaderViewQuery } from "@/hooks/queries"
+import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
   const [article, setArticle] = useState<FeedItem | null>(null)
-  const [readerView, setReaderView] = useState<ReaderViewResponse | null>(null)
-  const [loading, setLoading] = useState(true)
   const [isBookmarked, setIsBookmarked] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  
+  // Use React Query to get feeds data
+  const feedsQuery = useFeedsQuery()
+  
+  // Find the article from feeds data
+  const foundArticle = feedsQuery.data?.items?.find((item: FeedItem) => item.id === params.id && item.type === "article")
+  
+  // Use React Query to get reader view data
+  const readerViewQuery = useReaderViewQuery(foundArticle?.link || "")
 
   useEffect(() => {
-    async function loadArticle() {
-      setLoading(true)
-
-      const { success, items } = await getFeedItemsAction()
-
-      if (success && items) {
-        const foundArticle = items.find((item: FeedItem) => item.id === params.id && item.type === "article")
-
-        if (foundArticle) {
-          setArticle(foundArticle)
-          setIsBookmarked(foundArticle.favorite || false)
-
-          // Fetch reader view
-          try {
-            const readerViewData = await fetchReaderView([foundArticle.link])
-            if (readerViewData.length > 0 && readerViewData[0].status === "ok") {
-              setReaderView(readerViewData[0])
-            }
-          } catch (error) {
-            console.error("Error fetching reader view:", error)
-          }
-        }
-      }
-
-      setLoading(false)
+    if (foundArticle) {
+      setArticle(foundArticle)
+      setIsBookmarked(foundArticle.favorite || false)
     }
-
-    loadArticle()
-  }, [params.id])
+  }, [foundArticle])
 
   const handleBookmark = async () => {
     if (!article) return
@@ -88,7 +71,7 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
     })
   }
 
-  if (loading) {
+  if (feedsQuery.isLoading || readerViewQuery.isLoading) {
     return (
       <div className="container max-w-3xl py-8">
         <div className="mb-6">
@@ -142,12 +125,12 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <h1 className="text-3xl font-bold mb-4">{readerView?.title || article.title}</h1>
+        <h1 className="text-3xl font-bold mb-4">{readerViewQuery.data?.title || article.title}</h1>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2">
-            {readerView?.favicon && (
+            {readerViewQuery.data?.favicon && (
               <Image 
-                src={readerView.favicon || "/placeholder-rss.svg"} 
+                src={readerViewQuery.data.favicon || "/placeholder-rss.svg"} 
                 alt="Site favicon" 
                 width={24}
                 height={24}
@@ -155,7 +138,7 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
               />
             )}
             <div>
-              <p className="font-medium">{readerView?.siteName || article.link}</p>
+              <p className="font-medium">{readerViewQuery.data?.siteName || article.link}</p>
               <p className="text-sm text-muted-foreground">
                 {new Date(article.published).toLocaleDateString(undefined, {
                   year: "numeric",
@@ -183,11 +166,11 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
           </div>
         </div>
 
-        {readerView?.image && (
+        {readerViewQuery.data?.image && (
           <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-6">
             <Image
-              src={readerView.image || "/placeholder-rss.svg"}
-              alt={readerView.title}
+              src={readerViewQuery.data.image || "/placeholder-rss.svg"}
+              alt={readerViewQuery.data.title}
               fill
               className="object-cover"
             />
@@ -195,10 +178,10 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
         )}
 
         <div className="prose prose-sm sm:prose dark:prose-invert w-full md:max-w-4xl">
-          {readerView ? (
-            <div dangerouslySetInnerHTML={{ __html: readerView.content }} />
+          {readerViewQuery.data ? (
+            <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(readerViewQuery.data.content) }} />
           ) : (
-            <div dangerouslySetInnerHTML={{ __html: article.content || article.description }} />
+            <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(article.content || article.description || '') }} />
           )}
         </div>
       </div>
