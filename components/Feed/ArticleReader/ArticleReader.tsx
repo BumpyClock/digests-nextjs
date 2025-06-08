@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useEffect, useMemo, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { FeedItem, ReaderViewResponse } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
