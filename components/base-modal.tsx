@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Logger } from "@/utils/logger"
 import { Dialog } from "@/components/ui/dialog"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
@@ -28,17 +28,59 @@ interface BaseModalProps {
  */
 export function BaseModal({ isOpen, onClose, title, children, className }: BaseModalProps) {
   const isMobile = useIsMobile()
+  // Store the initial mobile state when modal opens to prevent resize issues
+  const [initialIsMobile, setInitialIsMobile] = useState<boolean | null>(null)
+  const isResizing = useRef(false)
   
   useEffect(() => {
     if (isOpen) {
       Logger.debug(`[BaseModal] title: ${title}`)
+      // Lock the mobile state when modal opens
+      if (initialIsMobile === null) {
+        setInitialIsMobile(isMobile)
+      }
+    } else {
+      // Reset when modal closes
+      setInitialIsMobile(null)
     }
-  }, [isOpen, title])
+  }, [isOpen, title, isMobile, initialIsMobile])
+
+  // Use the locked mobile state to prevent modal from closing on resize
+  const effectiveIsMobile = initialIsMobile !== null ? initialIsMobile : isMobile
+
+  // Custom handler for dialog open change that ignores resize events
+  const handleOpenChange = (open: boolean) => {
+    // Only close if explicitly requested (not due to resize)
+    if (!open && !isResizing.current) {
+      onClose()
+    }
+  }
+
+  // Track window resize events
+  useEffect(() => {
+    if (!isOpen) return
+
+    let resizeTimer: NodeJS.Timeout
+
+    const handleResize = () => {
+      isResizing.current = true
+      clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(() => {
+        isResizing.current = false
+      }, 200) // Debounce resize flag
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      clearTimeout(resizeTimer)
+    }
+  }, [isOpen])
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <Dialog open={isOpen} onOpenChange={onClose}>
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
           <DialogPrimitive.Portal>
             {/* Custom backdrop with blur and opacity */}
             <DialogPrimitive.Overlay asChild>
@@ -54,27 +96,27 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
             {/* Modal content */}
             <DialogPrimitive.Content asChild>
               <motion.div
-                className={isMobile 
+                className={effectiveIsMobile 
                   ? "fixed z-50 w-full h-full left-0 top-0 overflow-hidden"
                   : "fixed z-50 w-full max-w-[1050px] h-[90vh] left-1/2 top-1/2 mx-4 overflow-hidden"
                 }
                 initial={{ 
                   opacity: 0, 
                   scale: 0.9,
-                  x: isMobile ? 0 : "-50%",
-                  y: isMobile ? "100%" : "-50%"
+                  x: effectiveIsMobile ? 0 : "-50%",
+                  y: effectiveIsMobile ? "100%" : "-50%"
                 }}
                 animate={{ 
                   opacity: 1, 
                   scale: 1,
-                  x: isMobile ? 0 : "-50%",
-                  y: isMobile ? 0 : "-50%"
+                  x: effectiveIsMobile ? 0 : "-50%",
+                  y: effectiveIsMobile ? 0 : "-50%"
                 }}
                 exit={{ 
                   opacity: 0, 
                   scale: 0.9,
-                  x: isMobile ? 0 : "-50%",
-                  y: isMobile ? "100%" : "-50%"
+                  x: effectiveIsMobile ? 0 : "-50%",
+                  y: effectiveIsMobile ? "100%" : "-50%"
                 }}
                 transition={{ 
                   duration: 0.25, 
@@ -82,7 +124,7 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
                 }}
               >
                 <div className={`relative w-full h-full bg-background shadow-2xl overflow-hidden ${
-                  isMobile ? "rounded-none" : "rounded-[32px]"
+                  effectiveIsMobile ? "rounded-none" : "rounded-[32px]"
                 } ${className || ""}`}>
                   {/* Invisible title for accessibility */}
                   <DialogPrimitive.Title className="sr-only">
