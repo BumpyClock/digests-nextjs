@@ -46,6 +46,13 @@ export const useFeedsQuery = () => {
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchInterval: 30 * 60 * 1000, // 30 minutes background refresh
     refetchIntervalInBackground: true,
+    
+    // Sync fresh data back to Zustand store
+    onSuccess: (data) => {
+      const store = useFeedStore.getState()
+      store.setFeeds(data.feeds)
+      store.setFeedItems(data.items)
+    }
   })
 }
 
@@ -63,7 +70,7 @@ export const useAddFeedMutation = () => {
     },
     onSuccess: (data) => {
       // Update the feeds query cache optimistically
-      queryClient.setQueryData(feedsKeys.lists(), (old: any) => {
+      const updatedData = queryClient.setQueryData(feedsKeys.lists(), (old: any) => {
         if (!old) return { feeds: data.feeds, items: data.items }
         
         // Deduplicate feeds and items
@@ -79,7 +86,12 @@ export const useAddFeedMutation = () => {
         }
       })
       
-      // React Query cache is now the single source of truth
+      // Sync updated data back to Zustand store
+      if (updatedData) {
+        const store = useFeedStore.getState()
+        store.setFeeds(updatedData.feeds)
+        store.setFeedItems(updatedData.items)
+      }
     },
     onError: (error) => {
       console.error('Failed to add feed:', error)
@@ -104,7 +116,7 @@ export const useRemoveFeedMutation = () => {
       const previousFeeds = queryClient.getQueryData(feedsKeys.lists())
       
       // Optimistically update to remove the feed
-      queryClient.setQueryData(feedsKeys.lists(), (old: any) => {
+      const updatedData = queryClient.setQueryData(feedsKeys.lists(), (old: any) => {
         if (!old) return old
         
         return {
@@ -113,7 +125,12 @@ export const useRemoveFeedMutation = () => {
         }
       })
       
-      // React Query cache handles the removal
+      // Sync updated data back to Zustand store
+      if (updatedData) {
+        const store = useFeedStore.getState()
+        store.setFeeds(updatedData.feeds)
+        store.setFeedItems(updatedData.items)
+      }
       
       return { previousFeeds }
     },
@@ -159,7 +176,10 @@ export const useRefreshFeedsMutation = () => {
       // Update cache with fresh data
       queryClient.setQueryData(feedsKeys.lists(), data)
       
-      // Background sync will automatically detect this update via subscription
+      // Sync fresh data back to Zustand store
+      const store = useFeedStore.getState()
+      store.setFeeds(data.feeds)
+      store.setFeedItems(data.items)
     },
     onError: (error) => {
       console.error('Failed to refresh feeds:', error)
@@ -211,7 +231,7 @@ export const useBatchAddFeedsMutation = () => {
     },
     onSuccess: (data) => {
       // Update the feeds query cache
-      queryClient.setQueryData(feedsKeys.lists(), (old: any) => {
+      const updatedData = queryClient.setQueryData(feedsKeys.lists(), (old: any) => {
         if (!old) return { feeds: data.feeds, items: data.items }
         
         // Deduplicate feeds and items
@@ -227,7 +247,12 @@ export const useBatchAddFeedsMutation = () => {
         }
       })
       
-      // React Query cache handles all data - no sync needed
+      // Sync updated data back to Zustand store
+      if (updatedData) {
+        const store = useFeedStore.getState()
+        store.setFeeds(updatedData.feeds)
+        store.setFeedItems(updatedData.items)
+      }
     },
     onError: (error) => {
       console.error('Failed to batch add feeds:', error)

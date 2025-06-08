@@ -17,7 +17,7 @@ export const createFeedSlice: StateCreator<any, [], [], FeedSlice> = (set, get) 
 
   // Remove feed from local cache (used by React Query mutations for immediate UI updates)
   removeFeedFromCache: (feedUrl: string) => {
-    const { feeds, feedItems, readItems } = get();
+    const { feeds, feedItems, readItems, setFeedItems, sortFeedItemsByDate } = get();
     
     // Get all item IDs associated with this feed
     const feedItemIds = feedItems
@@ -28,10 +28,17 @@ export const createFeedSlice: StateCreator<any, [], [], FeedSlice> = (set, get) 
     const newReadItems = readItems instanceof Set ? new Set(readItems) : new Set();
     feedItemIds.forEach((id: string) => newReadItems.delete(id));
     
+    // Filter out items from the removed feed and ensure consistent sorting
+    const filteredItems = feedItems.filter((item: FeedItem) => item.feedUrl !== feedUrl);
+    const sortedItems = sortFeedItemsByDate(filteredItems);
+    
+    // Update feeds and items using slice actions
     set({
       feeds: feeds.filter((f: Feed) => f.feedUrl !== feedUrl),
-      feedItems: feedItems.filter((item: FeedItem) => item.feedUrl !== feedUrl),
       readItems: newReadItems
     });
+    
+    // Use setFeedItems action for consistent state management
+    setFeedItems(sortedItems);
   },
 });

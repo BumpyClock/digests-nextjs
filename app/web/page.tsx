@@ -81,6 +81,7 @@ function WebPageContent() {
   const existingFeeds = useFeedStore(state => state.feeds);
   const loading = feedsQuery.isLoading || (!initialized && existingFeeds.length > 0 && feedItems.length === 0);
   const refreshing = refreshMutation.isPending;
+  const isLoading = loading || refreshing;
 
   /**
    * Simple initialization - React Query handles all data fetching
@@ -269,8 +270,8 @@ function WebPageContent() {
     return filteredItems.filter((i) => i?.type === "podcast");
   }, [filteredItems]);
 
-  // For tab counts, use current reactive unread items to show accurate counts
-  const currentUnreadArticleItems = useMemo(() => {
+  // Reusable filtering function for unread items by type
+  const filterUnreadItemsByType = useCallback((itemType: "article" | "podcast") => {
     if (!currentUnreadItems || !Array.isArray(currentUnreadItems)) return [];
     return currentUnreadItems.filter((item) => {
       if (!item?.id) return false;
@@ -280,23 +281,18 @@ function WebPageContent() {
         if (!(item.title?.toLowerCase().includes(searchLower) || 
               item.description?.toLowerCase().includes(searchLower))) return false;
       }
-      return item?.type === "article";
+      return item?.type === itemType;
     });
   }, [currentUnreadItems, feedUrlDecoded, appliedSearchQuery]);
 
+  // For tab counts, use current reactive unread items to show accurate counts
+  const currentUnreadArticleItems = useMemo(() => {
+    return filterUnreadItemsByType("article");
+  }, [filterUnreadItemsByType]);
+
   const currentUnreadPodcastItems = useMemo(() => {
-    if (!currentUnreadItems || !Array.isArray(currentUnreadItems)) return [];
-    return currentUnreadItems.filter((item) => {
-      if (!item?.id) return false;
-      if (feedUrlDecoded && normalizeUrl(item.feedUrl) !== feedUrlDecoded) return false;
-      if (appliedSearchQuery) {
-        const searchLower = appliedSearchQuery.toLowerCase();
-        if (!(item.title?.toLowerCase().includes(searchLower) || 
-              item.description?.toLowerCase().includes(searchLower))) return false;
-      }
-      return item?.type === "podcast";
-    });
-  }, [currentUnreadItems, feedUrlDecoded, appliedSearchQuery]);
+    return filterUnreadItemsByType("podcast");
+  }, [filterUnreadItemsByType]);
 
   const readLaterItems = useMemo(() => {
     return getReadLaterItems();
@@ -309,8 +305,6 @@ function WebPageContent() {
   const handleTabChange = useCallback((value: string) => {
     setSelectedTab(value);
   }, []);
-
-  const isLoading = loading || (!initialized && existingFeeds.length > 0 && feedItems.length === 0) || refreshing;
 
   return (
     <div className="container pt-6 max-w-[1600px] mx-auto max-h-screen">

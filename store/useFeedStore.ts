@@ -11,7 +11,6 @@ import { createReadStatusSlice } from "./slices/readStatusSlice"
 import { createMetadataSlice } from "./slices/metadataSlice"
 import { createAudioSlice, type AudioSlice } from "./slices/audioSlice"
 import { withPerformanceMonitoring } from "./middleware/performanceMiddleware"
-import { workerService } from "@/services/worker-service"
 
 /**
  * The Zustand store shape optimized for React Query integration
@@ -28,7 +27,6 @@ import { workerService } from "@/services/worker-service"
  * @method setFeedItems - Sets the feed items in the store
  * @method setHydrated - Sets the hydration state
  * @method sortFeedItemsByDate - Sorts feed items by published date
- * @method syncFeedsFromQuery - Syncs data from React Query
  * @method removeFeedFromCache - Removes a feed from local cache
  * @method setInitialized - Sets the initialized state
  * @method markAsRead - Marks a specific feed item as read
@@ -139,15 +137,6 @@ export const useFeedStore = create<FeedState>()(
               console.warn('readLaterItems is not a Set after rehydration, setting manually');
               store.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems : []);
             }
-            
-            // Initialize worker service after hydration
-            const idleCallback =
-              typeof window !== "undefined" && window.requestIdleCallback
-                ? window.requestIdleCallback
-                : (cb: () => void) => setTimeout(cb, 0);
-            idleCallback(() => {
-              workerService.initialize();
-            });
           } catch (error) {
             console.error('Error during store rehydration:', error);
             state.readItems = new Set();
@@ -225,15 +214,6 @@ export const useFeedStore = create<FeedState>()(
               console.warn('readLaterItems is not a Set after rehydration, setting manually');
               store.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems : []);
             }
-            
-            // Initialize worker service after hydration
-            const idleCallback =
-              typeof window !== "undefined" && window.requestIdleCallback
-                ? window.requestIdleCallback
-                : (cb: () => void) => setTimeout(cb, 0);
-            idleCallback(() => {
-              workerService.initialize();
-            });
           } catch (error) {
             console.error('Error during store rehydration:', error);
             state.readItems = new Set();
