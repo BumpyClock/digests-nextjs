@@ -16,6 +16,9 @@ import { ProgressiveImage } from "@/components/ui/progressive-image";
 import { canUseImageKit } from "@/utils/imagekit";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
 import { motion, AnimatePresence } from "motion/react";
+import { MDXRemote } from "next-mdx-remote/rsc";
+import { getMDXComponents } from "@/mdx-components";
+import remarkGfm from "remark-gfm";
 
 export const ArticleImage = memo(
   ({
@@ -133,16 +136,26 @@ export const SiteFavicon = memo(
 SiteFavicon.displayName = "SiteFavicon";
 
 // Memoized reading time component
-export const ReadingTime = memo(({ content }: { content?: string }) => {
+export const ReadingTime = memo(({ content, markdown }: { content?: string; markdown?: string }) => {
   const readingTimeText = useMemo(() => {
-    if (!content) return "Reading time N/A";
-    const text = content.replace(/<[^>]*>/g, "");
-    const wordCount = text.split(/\s+/).filter(Boolean).length;
+    // Prefer markdown for word count calculation
+    const textToAnalyze = markdown || content;
+    if (!textToAnalyze) return "Reading time N/A";
+    
+    // Remove HTML tags and markdown formatting for accurate word count
+    const cleanText = textToAnalyze
+      .replace(/<[^>]*>/g, "") // Remove HTML tags
+      .replace(/[#*_`~\[\]()]/g, "") // Remove common markdown characters
+      .replace(/!\[.*?\]\(.*?\)/g, "") // Remove markdown images
+      .replace(/\[.*?\]\(.*?\)/g, "") // Remove markdown links
+      .trim();
+    
+    const wordCount = cleanText.split(/\s+/).filter(Boolean).length;
     const readingTimeMinutes = Math.round(wordCount / 225);
     return readingTimeMinutes < 1
       ? "Less than a minute read"
       : `${readingTimeMinutes} minute read`;
-  }, [content]);
+  }, [content, markdown]);
 
   return (
     <div className="text-sm text-muted-foreground mb-1">
@@ -397,7 +410,7 @@ export const ArticleHeader = memo(
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3, delay: 0.2 }}
                 >
-                  <ReadingTime content={readerView?.content} />
+                  <ReadingTime content={readerView?.content} markdown={readerView?.markdown} />
                 </motion.div>
               )}
             </div>
@@ -505,7 +518,7 @@ export const ArticleHeader = memo(
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.3, delay: 0.2 }}
                 >
-                  <ReadingTime content={readerView?.content} />
+                  <ReadingTime content={readerView?.content} markdown={readerView?.markdown} />
                 </motion.div>
               )}
             </>
@@ -519,40 +532,86 @@ ArticleHeader.displayName = "ArticleHeader";
 
 // Article content component
 export const ArticleContent = memo(
-  ({ content, className, loading = false }: { content: string; className?: string; loading?: boolean }) => {
-    useEffect(() => {
-      if (loading) return;
-      
-      const replaceNextImages = () => {
-        const nextImages = document.querySelectorAll("next-image");
-        nextImages.forEach((element) => {
-          const src = element.getAttribute("src") || "";
-          const alt = element.getAttribute("alt") || "";
-          const isSmall = element.hasAttribute("small");
-          const className = element.getAttribute("class") || "";
-
-          const img = document.createElement("img");
-          const imgWrapper = document.createElement("div");
-
-          imgWrapper.className = isSmall
-            ? "relative inline-block"
-            : "relative aspect-video";
-
-          img.src = src;
-          img.alt = alt;
-          img.className = `${className} ${
-            isSmall ? "object-cover" : "object-contain"
-          }`;
-          img.style.width = "100%";
-          img.style.height = "auto";
-
-          imgWrapper.appendChild(img);
-          element.parentNode?.replaceChild(imgWrapper, element);
-        });
-      };
-
-      replaceNextImages();
-    }, [content, loading]);
+  ({ 
+    content, 
+    markdown, 
+    className, 
+    loading = false 
+  }: { 
+    content: string; 
+    markdown?: string; 
+    className?: string; 
+    loading?: boolean;
+  }) => {
+    // Custom MDX components with enhanced styling for reader view
+    const components = useMemo(() => getMDXComponents({
+      h1: ({ children }) => (
+        <h1 className="text-3xl font-bold mt-8 mb-6 leading-tight">{children}</h1>
+      ),
+      h2: ({ children }) => (
+        <h2 className="text-2xl font-semibold mt-8 mb-4 leading-tight">{children}</h2>
+      ),
+      h3: ({ children }) => (
+        <h3 className="text-xl font-semibold mt-6 mb-3 leading-tight">{children}</h3>
+      ),
+      h4: ({ children }) => (
+        <h4 className="text-lg font-semibold mt-4 mb-2">{children}</h4>
+      ),
+      p: ({ children }) => (
+        <p className="my-4 leading-relaxed text-foreground/90">{children}</p>
+      ),
+      img: ({ src, alt = '', ...props }) => {
+        if (!src) return null;
+        return (
+          <div className="my-8 rounded-lg overflow-hidden">
+            <Image 
+              src={src} 
+              alt={alt} 
+              width={800} 
+              height={600} 
+              className="w-full h-auto object-cover"
+              style={{ aspectRatio: '16/10' }}
+              {...props} 
+            />
+          </div>
+        );
+      },
+      blockquote: ({ children }) => (
+        <blockquote className="border-l-4 border-primary/30 pl-6 py-2 my-6 italic text-foreground/80 bg-muted/20 rounded-r-lg">
+          {children}
+        </blockquote>
+      ),
+      code: ({ children }) => (
+        <code className="bg-muted px-2 py-1 rounded text-sm font-mono text-primary">
+          {children}
+        </code>
+      ),
+      pre: ({ children }) => (
+        <pre className="bg-muted p-4 rounded-lg overflow-x-auto my-6 text-sm font-mono border">
+          {children}
+        </pre>
+      ),
+      ul: ({ children }) => (
+        <ul className="list-disc pl-6 my-4 space-y-2">{children}</ul>
+      ),
+      ol: ({ children }) => (
+        <ol className="list-decimal pl-6 my-4 space-y-2">{children}</ol>
+      ),
+      li: ({ children }) => (
+        <li className="leading-relaxed">{children}</li>
+      ),
+      a: ({ href, children, ...props }) => (
+        <a 
+          href={href} 
+          className="text-primary hover:text-primary/80 underline decoration-primary/30 hover:decoration-primary/60 transition-colors"
+          target={href?.startsWith('http') ? '_blank' : undefined}
+          rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+          {...props}
+        >
+          {children}
+        </a>
+      ),
+    }), []);
 
     if (loading) {
       return (
@@ -599,6 +658,9 @@ export const ArticleContent = memo(
       );
     }
 
+    // Prefer markdown if available, fallback to HTML content
+    const shouldUseMarkdown = markdown && markdown.trim() !== '';
+
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -607,8 +669,21 @@ export const ArticleContent = memo(
         className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-foreground px-6 md:px-8 lg:px-12 ${
           className || "w-full md:max-w-4xl"
         }`}
-        dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(content) }}
-      />
+      >
+        {shouldUseMarkdown ? (
+          <MDXRemote 
+            source={markdown} 
+            components={components}
+            options={{
+              mdxOptions: {
+                remarkPlugins: [remarkGfm],
+              },
+            }}
+          />
+        ) : (
+          <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(content) }} />
+        )}
+      </motion.div>
     );
   }
 );

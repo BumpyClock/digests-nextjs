@@ -20,6 +20,8 @@ export interface ReaderViewResponse {
   image: string
   favicon: string
   textContent: string
+  markdown: string
+  error?: string
 }
 
 export interface FetchFeedsRequest {
