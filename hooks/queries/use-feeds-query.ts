@@ -69,20 +69,27 @@ export const useAddFeedMutation = () => {
       return result
     },
     onSuccess: (data) => {
+      // Get existing feeds from Zustand store to ensure we don't lose data
+      const existingStore = useFeedStore.getState()
+      const existingFeeds = existingStore.feeds || []
+      const existingItems = existingStore.feedItems || []
+      
       // Update the feeds query cache optimistically
       const updatedData = queryClient.setQueryData(feedsKeys.lists(), (old: any) => {
-        if (!old) return { feeds: data.feeds, items: data.items }
+        // If no cache data, use existing store data as base
+        const baseFeeds = old?.feeds || existingFeeds
+        const baseItems = old?.items || existingItems
         
         // Deduplicate feeds and items
-        const existingFeedUrls = new Set(old.feeds.map((f: Feed) => f.feedUrl))
-        const existingItemIds = new Set(old.items.map((i: FeedItem) => i.id))
+        const existingFeedUrls = new Set(baseFeeds.map((f: Feed) => f.feedUrl))
+        const existingItemIds = new Set(baseItems.map((i: FeedItem) => i.id))
         
         const newFeeds = data.feeds.filter(f => !existingFeedUrls.has(f.feedUrl))
         const newItems = data.items.filter(i => !existingItemIds.has(i.id))
         
         return {
-          feeds: [...old.feeds, ...newFeeds],
-          items: [...old.items, ...newItems]
+          feeds: [...baseFeeds, ...newFeeds],
+          items: [...baseItems, ...newItems]
         }
       })
       
@@ -230,20 +237,27 @@ export const useBatchAddFeedsMutation = () => {
       }
     },
     onSuccess: (data) => {
+      // Get existing feeds from Zustand store to ensure we don't lose data
+      const existingStore = useFeedStore.getState()
+      const existingFeeds = existingStore.feeds || []
+      const existingItems = existingStore.feedItems || []
+      
       // Update the feeds query cache
       const updatedData = queryClient.setQueryData(feedsKeys.lists(), (old: any) => {
-        if (!old) return { feeds: data.feeds, items: data.items }
+        // If no cache data, use existing store data as base
+        const baseFeeds = old?.feeds || existingFeeds
+        const baseItems = old?.items || existingItems
         
         // Deduplicate feeds and items
-        const existingFeedUrls = new Set(old.feeds.map((f: Feed) => f.feedUrl))
-        const existingItemIds = new Set(old.items.map((i: FeedItem) => i.id))
+        const existingFeedUrls = new Set(baseFeeds.map((f: Feed) => f.feedUrl))
+        const existingItemIds = new Set(baseItems.map((i: FeedItem) => i.id))
         
         const newFeeds = data.feeds.filter(f => !existingFeedUrls.has(f.feedUrl))
         const newItems = data.items.filter(i => !existingItemIds.has(i.id))
         
         return {
-          feeds: [...old.feeds, ...newFeeds],
-          items: [...old.items, ...newItems]
+          feeds: [...baseFeeds, ...newFeeds],
+          items: [...baseItems, ...newItems]
         }
       })
       

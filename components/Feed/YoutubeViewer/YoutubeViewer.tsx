@@ -8,9 +8,10 @@ import { Share2, ExternalLink, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFeedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { extractYouTubeVideoId, createYouTubeEmbedUrl } from "@/utils/youtube";
 import { ArticleHeader } from "@/components/Feed/ArticleReader/ArticleReader";
+import { Ambilight } from "@/components/ui/ambilight";
 
 interface YouTubeViewerProps {
   feedItem: FeedItem;
@@ -91,9 +92,80 @@ export const YouTubeViewer = memo(function YouTubeViewer({
   return (
     <div className={`${containerPadding} ${className}`}>
       <article>
-        {/* YouTube Video Header - reuse ArticleHeader but with YouTube-specific actions */}
         <div className={`w-full ${isModal ? "md:max-w-6xl" : "md:max-w-4xl"} m-auto`}>
-          {/* Site info and metadata */}
+          {/* YouTube Video Embed - takes the spot of the thumbnail */}
+          <div className="mb-6">
+            <div className={`overflow-hidden relative ${
+              isModal
+                ? "rounded-[24px] max-h-[450px]"
+                : "rounded-lg mt-4"
+            }`}>
+              {loading ? (
+                <Skeleton className={`w-full ${
+                  isModal ? "h-[450px]" : "h-[300px] md:h-[350px]"
+                }`} />
+              ) : embedUrl ? (
+                <>
+                  {/* Skeleton placeholder - positioned behind iframe */}
+                  <AnimatePresence>
+                    {!videoLoaded && (
+                      <motion.div
+                        initial={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="absolute inset-0 z-10"
+                      >
+                        <Skeleton className="w-full h-full" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Actual video with Ambilight - always in position */}
+                  <Ambilight
+                    className="w-full h-full"
+                    isActive={true}
+                    opacity={{ rest: 0.5, hover: 0.7 }}
+                  >
+                    <motion.iframe
+                      src={embedUrl}
+                      title={feedItem.title}
+                      className={`w-full ${
+                        isModal ? "h-[450px]" : "h-[300px] md:h-[350px]"
+                      } ${isModal ? "drop-shadow-lg" : ""}`}
+                      style={{
+                        ...(parallaxOffset !== undefined
+                          ? {
+                              transform: `translateY(${parallaxOffset}px)`,
+                            }
+                          : {}),
+                      }}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      loading={isModal ? "eager" : "lazy"}
+                      onLoad={() => setVideoLoaded(true)}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: videoLoaded ? 1 : 0 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </Ambilight>
+                </>
+              ) : (
+                <div className="bg-muted rounded-lg p-8 text-center">
+                  <p className="text-muted-foreground">
+                    Unable to load YouTube video. Please try opening it directly.
+                  </p>
+                  <Button className="mt-4" asChild>
+                    <a href={feedItem.link} target="_blank" rel="noopener noreferrer">
+                      Open on YouTube
+                    </a>
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Site info and metadata - below video like in ArticleReader */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
             <div className="flex items-center gap-2 text-fluid-sm text-muted-foreground flex-1 min-w-0">
               {loading ? (
@@ -181,52 +253,6 @@ export const YouTubeViewer = memo(function YouTubeViewer({
             >
               {feedItem.title}
             </motion.h1>
-          )}
-
-          {/* YouTube Video Embed */}
-          {loading ? (
-            <Skeleton className={`w-full rounded-lg mb-6 ${
-              isModal ? "h-[500px]" : "h-[400px]"
-            }`} />
-          ) : embedUrl ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-              className="relative mb-6"
-            >
-              {!videoLoaded && (
-                <Skeleton className={`absolute inset-0 z-10 rounded-lg ${
-                  isModal ? "h-[500px]" : "h-[400px]"
-                }`} />
-              )}
-              <iframe
-                src={embedUrl}
-                title={feedItem.title}
-                className={`youtube-viewer ${
-                  isModal ? "h-[500px]" : "h-[400px]"
-                } ${videoLoaded ? "opacity-100" : "opacity-0"}`}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                loading="lazy"
-                onLoad={() => setVideoLoaded(true)}
-                style={{
-                  transition: "opacity 0.3s ease-in-out",
-                }}
-              />
-            </motion.div>
-          ) : (
-            <div className="bg-muted rounded-lg p-8 text-center mb-6">
-              <p className="text-muted-foreground">
-                Unable to load YouTube video. Please try opening it directly.
-              </p>
-              <Button className="mt-4" asChild>
-                <a href={feedItem.link} target="_blank" rel="noopener noreferrer">
-                  Open on YouTube
-                </a>
-              </Button>
-            </div>
           )}
 
           {/* Video Description */}
