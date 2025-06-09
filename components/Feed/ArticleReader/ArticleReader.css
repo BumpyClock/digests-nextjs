@@ -129,6 +129,17 @@
   aspect-ratio: 16/9;
 }
 
+/* YouTube viewer specific styling */
+.youtube-viewer iframe {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  margin: 0;
+  display: block;
+  aspect-ratio: 16/9;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
 /* Article container */
 .reader-view-article-content {
   position: relative;

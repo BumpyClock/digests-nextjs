@@ -14,7 +14,7 @@ export const AddFeedForm = memo(function AddFeedForm() {
       <CardHeader>
         <CardTitle>Add New Feed</CardTitle>
         <CardDescription>
-          Enter the URL of an RSS feed or podcast to add it to your subscriptions
+          Enter the URL of an RSS feed, podcast, or YouTube channel to add it to your subscriptions
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -24,7 +24,7 @@ export const AddFeedForm = memo(function AddFeedForm() {
             <Input
               id="feed-url"
               name="feed-url"
-              placeholder="https://example.com/feed.xml"
+              placeholder="https://example.com/feed.xml or https://youtube.com/@username"
               required
             />
           </div>

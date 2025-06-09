@@ -8,6 +8,8 @@ import {
   ArticleHeader,
   ArticleContent,
 } from "@/components/Feed/ArticleReader/ArticleReader";
+import { YouTubeViewer } from "@/components/Feed/YoutubeViewer/YoutubeViewer";
+import { isYouTubeFeedItem } from "@/utils/youtube";
 
 interface ReaderContentProps {
   feedItem: FeedItem;
@@ -34,6 +36,22 @@ export const ReaderContent = memo(function ReaderContent({
 }: ReaderContentProps) {
   const isMobile = useIsMobile();
   const isCompact = layout === "compact" || (isMobile && layout === "standard");
+
+  // Check if this is a YouTube feed item
+  const isYouTubeItem = isYouTubeFeedItem(feedItem);
+
+  // For YouTube items, use the YouTube viewer instead of reader view
+  if (isYouTubeItem) {
+    return (
+      <YouTubeViewer
+        feedItem={feedItem}
+        layout={layout}
+        parallaxOffset={parallaxOffset}
+        className={className}
+        loading={loading}
+      />
+    );
+  }
 
   if (!readerView && !loading) {
     return (
