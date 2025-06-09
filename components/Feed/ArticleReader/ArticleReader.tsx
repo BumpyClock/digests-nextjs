@@ -22,6 +22,43 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 
+// YouTube helper functions
+const isYouTubeEmbedUrl = (url: string): boolean => {
+  return url.includes('youtube.com/embed/') || url.includes('youtu.be/');
+};
+
+const extractYouTubeVideoId = (url: string): string | null => {
+  try {
+    const urlObj = new URL(url);
+    
+    // Handle youtube.com/embed/VIDEO_ID format
+    if (urlObj.hostname === 'www.youtube.com' || urlObj.hostname === 'youtube.com') {
+      const embedMatch = urlObj.pathname.match(/^\/embed\/([a-zA-Z0-9_-]+)/);
+      if (embedMatch) {
+        return embedMatch[1];
+      }
+      
+      // Handle youtube.com/watch?v=VIDEO_ID format
+      const watchMatch = urlObj.searchParams.get('v');
+      if (watchMatch) {
+        return watchMatch;
+      }
+    }
+    
+    // Handle youtu.be/VIDEO_ID format
+    if (urlObj.hostname === 'youtu.be') {
+      const shortMatch = urlObj.pathname.match(/^\/([a-zA-Z0-9_-]+)/);
+      if (shortMatch) {
+        return shortMatch[1];
+      }
+    }
+    
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 export const ArticleImage = memo(
   ({
     src,
@@ -677,17 +714,40 @@ export const ArticleContent = memo(
       li: ({ children }: { children: React.ReactNode }) => (
         <li className="leading-relaxed">{children}</li>
       ),
-      a: ({ href, children, ...props }: { href?: string; children: React.ReactNode; [key: string]: unknown }) => (
-        <a 
-          href={href} 
-          className="text-primary hover:text-primary/80 underline decoration-primary/30 hover:decoration-primary/60 transition-colors"
-          target={href?.startsWith('http') ? '_blank' : undefined}
-          rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
-          {...props}
-        >
-          {children}
-        </a>
-      ),
+      a: ({ href, children, ...props }: { href?: string; children?: React.ReactNode; [key: string]: unknown }) => {
+        // Check if this is a YouTube embed link
+        if (href && isYouTubeEmbedUrl(href)) {
+          const videoId = extractYouTubeVideoId(href);
+          if (videoId) {
+            // Return the iframe directly - the nesting warning can be safely ignored
+            // as this provides better user experience than showing just a link
+            return (
+              <iframe
+                src={`https://www.youtube.com/embed/${videoId}`}
+                title="YouTube video player"
+                className="w-full aspect-video rounded-lg my-8 block"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                loading="lazy"
+                style={{ display: 'block', margin: '2rem auto' }}
+              />
+            );
+          }
+        }
+        
+        return (
+          <a 
+            href={href} 
+            className="text-primary hover:text-primary/80 underline decoration-primary/30 hover:decoration-primary/60 transition-colors"
+            target={href?.startsWith('http') ? '_blank' : undefined}
+            rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+            {...props}
+          >
+            {children}
+          </a>
+        );
+      },
     }), []);
 
     if (loading) {

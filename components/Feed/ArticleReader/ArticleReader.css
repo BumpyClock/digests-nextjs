@@ -118,7 +118,8 @@
 
 /* Embedded content */
 .reader-view-article-content iframe,
-.reader-view-page-content iframe {
+.reader-view-page-content iframe,
+.reader-view-article iframe {
   width: 100%;
   max-height: 450px;
   height: 100%;
@@ -127,6 +128,13 @@
   margin: 12px auto;
   display: block;
   aspect-ratio: 16/9;
+}
+
+/* YouTube embed specific styling */
+.reader-view-article iframe[src*="youtube.com/embed"] {
+  min-height: 315px;
+  max-height: 500px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Article container */
