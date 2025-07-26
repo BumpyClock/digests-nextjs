@@ -88,6 +88,7 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@heroui/shared-utils",
+      "@tailwindcss/oxide",
       "@vercel/speed-insights",
       "sharp",
       "unrs-resolver"
