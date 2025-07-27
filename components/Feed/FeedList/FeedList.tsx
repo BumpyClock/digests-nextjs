@@ -178,4 +178,4 @@ export function FeedList({
       </ScrollArea>
     </div>
   );
-} 
+});

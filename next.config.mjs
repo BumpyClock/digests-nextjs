@@ -32,6 +32,50 @@ const nextConfig = {
   experimental: {
     reactCompiler: true,
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "img-src 'self' data: https: http: blob:",
+              "font-src 'self' https://fonts.gstatic.com",
+              "connect-src 'self' https: http: wss: ws:",
+              "media-src 'self' blob:",
+              "object-src 'none'",
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-src 'self' https://vercel.live",
+              "manifest-src 'self'",
+              "worker-src 'self' blob:",
+            ].join('; ')
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'geolocation=(), camera=(), microphone=(), payment=(), usb=(), magnetometer=(), accelerometer=(), gyroscope=()',
+          },
+        ],
+      },
+    ];
+  },
   webpack: (config, { isServer }) => {
     config.module.rules.push({
       test: /\.lottie$/,

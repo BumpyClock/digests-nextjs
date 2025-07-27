@@ -1,6 +1,7 @@
 // This file configures the initialization of Sentry on the client.
 // The config you add here will be used whenever a users loads a page in their browser.
 import * as Sentry from "@sentry/nextjs";
+import { replayIntegration } from "@sentry/react";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -20,18 +21,17 @@ Sentry.init({
     return event;
   },
 
+  // For v9, replay sample rates are configured at the top level
+  replaysSessionSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+  replaysOnErrorSampleRate: 1.0,
+
   integrations: [
     // Automatically instrument your app to capture errors and performance data
-    // TODO: Fix Sentry replay integration types for v9
-    // Sentry.replayIntegration({
-    //   // Capture 10% of all sessions in production
-    //   replaysOnErrorSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
-    //   // Capture 100% of sessions with an error
-    //   errorSampleRate: 1.0,
-    //   // Mask all text content, but keep media playback
-    //   maskAllText: true,
-    //   blockAllMedia: false,
-    // }),
+    replayIntegration({
+      // Mask all text content, but keep media playback
+      maskAllText: true,
+      blockAllMedia: false,
+    }),
   ],
 
   // Environment

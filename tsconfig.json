@@ -36,6 +36,10 @@
     ".next/types/**/*.ts"
 , "tailwind.config.js"  ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "check-sentry-*.ts",
+    "test-sentry-*.ts",
+    "scripts/**/*",
+    "lib/persistence/examples/**/*"
   ]
 }

@@ -4,6 +4,20 @@
 
 export * from './feed'
 export * from './api'
+// Export everything except ApiError from api-client
+export {
+  type ApiClient,
+  type RequestConfig,
+  type RetryConfig,
+  type CircuitBreakerConfig,
+  CircuitState,
+  type CircuitBreakerState,
+  type RequestTracker,
+  isApiError,
+  isRetryableError,
+  // Rename ApiError to avoid conflict
+  type ApiError as ApiClientError
+} from './api-client'
 export * from './storage'
 export * from './article'
 export * from './common'

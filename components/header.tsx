@@ -8,10 +8,13 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu, Settings, Home, Rss, Headphones, BookMarked } from "lucide-react"
 import logo192 from "@/public/logo192.png"
 import Image from "next/image"
+import { AuthButton } from "@/components/auth/AuthButton"
+import { isFeatureEnabled } from "@/lib/feature-flags"
 
 export function Header() {
   const pathname = usePathname()
   const isApp = pathname?.startsWith("/web")
+  const isAuthEnabled = isFeatureEnabled('USE_REACT_QUERY_AUTH')
 
   return (
     <header className=" sticky top-0 z-50 w-full max-w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 px-4">
@@ -51,6 +54,13 @@ export function Header() {
             )}
           </nav>
           <div className="flex items-center space-x-2">
+            {isAuthEnabled && isApp && (
+              <AuthButton 
+                variant="popover" 
+                showUserName={true}
+                className="hidden md:flex"
+              />
+            )}
             <ModeToggle />
             <Sheet>
               <SheetTrigger asChild>

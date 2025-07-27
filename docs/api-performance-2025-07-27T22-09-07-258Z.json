@@ -1,0 +1,89 @@
+{
+  "timestamp": "2025-07-27T22:09:07.259Z",
+  "environment": {
+    "apiBase": "http://localhost:3000/api",
+    "nodeVersion": "v24.4.1",
+    "platform": "win32"
+  },
+  "metrics": {
+    "apiLatency": {
+      "Single Feed Fetch": {
+        "avg": "154.28",
+        "p50": "159.18",
+        "p95": "201.23",
+        "p99": "201.23",
+        "min": "100.03",
+        "max": "201.23"
+      },
+      "Multiple Feeds Fetch": {
+        "avg": "124.31",
+        "p50": "152.64",
+        "p95": "210.84",
+        "p99": "210.84",
+        "min": "61.32",
+        "max": "210.84"
+      },
+      "Reader View Fetch": {
+        "avg": "127.18",
+        "p50": "147.61",
+        "p95": "185.88",
+        "p99": "185.88",
+        "min": "55.73",
+        "max": "185.88"
+      }
+    },
+    "retryMetrics": {
+      "Single Feed Fetch": {
+        "totalRequests": 10,
+        "successfulRequests": 10,
+        "failedRequests": 0,
+        "retriedRequests": 1,
+        "retryRate": "10.0%",
+        "failureRate": "0.0%"
+      },
+      "Multiple Feeds Fetch": {
+        "totalRequests": 10,
+        "successfulRequests": 10,
+        "failedRequests": 0,
+        "retriedRequests": 2,
+        "retryRate": "20.0%",
+        "failureRate": "0.0%"
+      }
+    },
+    "errorRates": {}
+  },
+  "scenarios": [
+    {
+      "name": "Single Feed Fetch",
+      "url": "http://localhost:3000/api/parse",
+      "method": "POST",
+      "body": {
+        "urls": [
+          "https://example.com/feed.xml"
+        ]
+      }
+    },
+    {
+      "name": "Multiple Feeds Fetch",
+      "url": "http://localhost:3000/api/parse",
+      "method": "POST",
+      "body": {
+        "urls": [
+          "https://example.com/feed1.xml",
+          "https://example.com/feed2.xml",
+          "https://example.com/feed3.xml"
+        ]
+      }
+    },
+    {
+      "name": "Reader View Fetch",
+      "url": "http://localhost:3000/api/getreaderview",
+      "method": "POST",
+      "body": {
+        "urls": [
+          "https://example.com/article"
+        ]
+      }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 import type { Config } from 'jest';
-import nextJest from 'next/jest';
+import nextJest from 'next/jest.js';
 
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
@@ -44,6 +44,9 @@ const customJestConfig: Config = {
     '!**/coverage/**',
     '!**/jest.config.ts',
     '!**/jest.setup.ts',
+    '!**/examples/**',
+    '!**/*.example.ts',
+    '!**/*.example.tsx',
   ],
   
   // Test match patterns
@@ -66,6 +69,11 @@ const customJestConfig: Config = {
   
   // Ignore patterns
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
+  
+  // Transform ignore patterns - allow transforming specific node_modules
+  transformIgnorePatterns: [
+    'node_modules/(?!(react-markdown|remark-gfm|rehype-raw|rehype-sanitize|unist-util-visit|hast-util-.*|mdast-util-.*|micromark.*|decode-named-character-reference|character-entities|property-information|hast-util-whitespace|space-separated-tokens|comma-separated-tokens|vfile.*|unified|bail|is-plain-obj|trough|remark.*|rehype.*|parse5|hastscript|web-namespaces|zwitch|html-void-elements)/)',
+  ],
   
   // Watch plugins
   watchPlugins: [

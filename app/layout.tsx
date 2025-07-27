@@ -13,6 +13,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { AmbilightFilterDefs } from "@/components/ui/AmbilightFilterDefs";
 import { FeedAnimationProvider } from "@/contexts/FeedAnimationContext";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { AuthProvider } from "@/components/providers/auth-provider";
 import ErrorBoundary from "@/components/error-boundary";
 
 
@@ -54,8 +55,9 @@ export default function RootLayout({
       </head>
       <body className={notoSans.className}>
         <QueryProvider>
-          <ThemeProvider>
-            <FeedAnimationProvider>
+          <AuthProvider>
+            <ThemeProvider>
+              <FeedAnimationProvider>
               <WorkerInitializer />
               <AmbilightFilterDefs
                 saturation={1}
@@ -76,6 +78,7 @@ export default function RootLayout({
               <Toaster />
             </FeedAnimationProvider>
           </ThemeProvider>
+          </AuthProvider>
         </QueryProvider>
       </body>
     </html>
