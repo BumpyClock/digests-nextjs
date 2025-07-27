@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { workerService } from '@/services/worker-service'
+import { apiService } from '@/services/api-service'
 import type { ReaderViewResponse } from '@/types'
 
 // Query keys for reader view
@@ -13,11 +13,8 @@ export const useReaderViewQuery = (url: string) => {
   return useQuery({
     queryKey: readerViewKeys.byUrl(url),
     queryFn: async (): Promise<ReaderViewResponse> => {
-      const result = await workerService.fetchReaderView(url)
-      if (!result.success) {
-        throw new Error(result.message || 'Failed to fetch reader view')
-      }
-      return result.data[0] // Single article
+      const result = await apiService.fetchReaderView(url)
+      return result // Already returns single article
     },
     enabled: !!url, // Only run when URL is provided
     staleTime: 60 * 60 * 1000, // 1 hour - articles don't change often

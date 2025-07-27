@@ -1,13 +1,24 @@
-declare namespace JSX {
+/**
+ * Type definitions for Microsoft Store Badge custom element
+ */
+
+declare global {
+  namespace JSX {
     interface IntrinsicElements {
-      'ms-store-badge': {
-        productid: string;
-        productname: string;
-        'window-mode'?: 'direct' | 'popup';
-        theme?: 'light' | 'dark' | 'auto';
-        size?: 'small' | 'medium' | 'large';
-        language?: string;
-        animation?: 'on' | 'off';
-      }
+      'ms-store-badge': React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement> & {
+          productid?: string
+          productname?: string
+          'window-mode'?: 'full' | 'mini' | 'direct'
+          theme?: 'auto' | 'light' | 'dark'
+          language?: string
+          animation?: 'on' | 'off'
+          size?: 'small' | 'medium' | 'large'
+        },
+        HTMLElement
+      >
     }
   }
+}
+
+export {}

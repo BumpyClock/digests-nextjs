@@ -250,17 +250,18 @@ export class StorageService {
       const feedsResult = await this.getFeeds()
       
       if (!feedsResult.success) {
-        return feedsResult
+        return { success: false, error: feedsResult.error }
       }
       
-      const feeds = feedsResult.data
+      const feeds = feedsResult.data || []
       
       // Check if feed already exists
       const exists = feeds.some(f => f.feedUrl === feed.feedUrl)
       
       if (!exists) {
         feeds.push(feed)
-        return this.saveFeeds(feeds)
+        const saveResult = await this.saveFeeds(feeds)
+        return saveResult
       }
       
       return { success: true }
@@ -282,10 +283,10 @@ export class StorageService {
       const feedsResult = await this.getFeeds()
       
       if (!feedsResult.success) {
-        return feedsResult
+        return { success: false, error: feedsResult.error }
       }
       
-      const feeds = feedsResult.data.filter(f => f.feedUrl !== feedUrl)
+      const feeds = (feedsResult.data || []).filter(f => f.feedUrl !== feedUrl)
       
       // Save updated feeds
       const saveResult = await this.saveFeeds(feeds)
@@ -298,10 +299,10 @@ export class StorageService {
       const itemsResult = await this.getFeedItems()
       
       if (!itemsResult.success) {
-        return itemsResult
+        return { success: false, error: itemsResult.error }
       }
       
-      const items = itemsResult.data.filter(item => item.feedUrl !== feedUrl)
+      const items = (itemsResult.data || []).filter(item => item.feedUrl !== feedUrl)
       
       return this.saveFeedItems(items)
     } catch (error) {

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useApiConfigStore } from "@/store/useApiConfigStore"
 import { DEFAULT_API_CONFIG } from "@/lib/config"
-import { workerService } from "@/services/worker-service"
+import { apiService } from "@/services/api-service"
 import { AlertCircle, CheckCircle } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -77,7 +77,7 @@ export function ApiSettingsTab() {
     }
 
     setApiUrl(inputUrl);
-    workerService.updateApiUrl(inputUrl);
+    apiService.updateApiUrl(inputUrl);
     setConnectionStatus({
       success: true,
       message: "API endpoint saved successfully."
@@ -88,7 +88,7 @@ export function ApiSettingsTab() {
   const handleResetToDefault = () => {
     resetToDefault();
     setInputUrl(DEFAULT_API_CONFIG.baseUrl);
-    workerService.updateApiUrl(DEFAULT_API_CONFIG.baseUrl);
+    apiService.updateApiUrl(DEFAULT_API_CONFIG.baseUrl);
     setConnectionStatus({
       success: true,
       message: "Reset to default API endpoint."

@@ -18,7 +18,7 @@ import type { FeedItem } from "@/types";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useTheme } from "next-themes";
-import { workerService } from "@/services/worker-service";
+import { generateCardShadows } from "@/utils/shadow";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsItemRead, useIsInReadLater, useReadActions, useReadLaterActions } from "@/hooks/useFeedSelectors";
 import { cleanupTextContent } from "@/utils/htmlUtils";
@@ -140,15 +140,10 @@ function useCardShadow(id: string, color: { r: number; g: number; b: number }) {
   });
 
   useEffect(() => {
-    workerService
-      .generateShadows(id, color, isDarkMode)
-      .then((newShadows) => {
-        setShadows(newShadows);
-      })
-      .catch((error) => {
-        console.error("Error generating shadows:", error);
-      });
-  }, [id, color, isDarkMode]);
+    // Direct call to generateCardShadows - no worker overhead
+    const newShadows = generateCardShadows(color, isDarkMode);
+    setShadows(newShadows);
+  }, [color, isDarkMode]); // id is not needed for shadow generation
 
   return shadows;
 }

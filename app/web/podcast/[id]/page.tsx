@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Bookmark, Share2 } from "lucide-react"
-import { fetchFeedsAction, toggleFavoriteAction } from "@/app/actions"
+import { toggleFavoriteAction } from "@/app/actions"
 import { useToast } from "@/hooks/use-toast"
 import { useAudioActions } from "@/hooks/useFeedSelectors"
+import { useFeedStore } from "@/store/useFeedStore"
 import Image from "next/image"
 import type { FeedItem } from "@/types/feed"
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
@@ -25,9 +26,10 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
     async function loadPodcast() {
       setLoading(true)
 
-      const { success, items } = await fetchFeedsAction()
-
-      if (success && items) {
+      // Get items from the store instead of fetching
+      const items = useFeedStore.getState().feedItems
+      
+      if (items && items.length > 0) {
         const foundPodcast = items.find((item: FeedItem) => item.id === params.id && item.type === "podcast")
 
         if (foundPodcast) {

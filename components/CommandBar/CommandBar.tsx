@@ -149,7 +149,7 @@ const SuggestionsSection = React.memo(({
   markAllAsRead 
 }: {
   setOpen: (open: boolean) => void;
-  router: import('next/navigation').AppRouterInstance;
+  router: ReturnType<typeof useRouter>;
   setTheme: (theme: string) => void;
   handleRefresh: () => void;
   markAllAsRead: () => void;
@@ -403,7 +403,6 @@ export function CommandBar({
           isOpen={isModalOpen}
           onClose={() => setModalOpen(false)}
           feedItem={selectedArticle}
-          initialPosition={{ x: 0, y: 0, width: 600, height: 400 }}
         />
       )}
     </>

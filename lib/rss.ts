@@ -7,6 +7,9 @@ import type {
 import { getApiUrl } from '@/lib/config'
 import { Logger } from '@/utils/logger'
 
+// Re-export types for external usage
+export type { Feed, FeedItem, FetchFeedsResponse, ReaderViewResponse }
+
 export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
   try {
     Logger.debug(`Fetching feeds for URLs: ${urls.length}`)

@@ -18,7 +18,7 @@ import { ProgressiveImage } from "@/components/ui/progressive-image";
 import { canUseImageKit } from "@/utils/imagekit";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
 import { motion, AnimatePresence } from "motion/react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 
@@ -605,32 +605,32 @@ export const ArticleContent = memo(
     loading?: boolean;
   }) => {
     // Custom components for react-markdown with enhanced styling for reader view
-    const components = useMemo(() => ({
-      h1: ({ children }: { children: React.ReactNode }) => (
+    const components = useMemo<Components>(() => ({
+      h1: ({ children }: { children?: React.ReactNode }) => (
         <h1 className="text-fluid-3xl font-bold mt-8 mb-6 leading-fluid-tight">{children}</h1>
       ),
-      h2: ({ children }: { children: React.ReactNode }) => (
+      h2: ({ children }: { children?: React.ReactNode }) => (
         <h2 className="text-fluid-2xl font-semibold mt-8 mb-4 leading-fluid-tight">{children}</h2>
       ),
-      h3: ({ children }: { children: React.ReactNode }) => (
+      h3: ({ children }: { children?: React.ReactNode }) => (
         <h3 className="text-fluid-xl font-semibold mt-6 mb-3 leading-fluid-tight">{children}</h3>
       ),
-      h4: ({ children }: { children: React.ReactNode }) => (
+      h4: ({ children }: { children?: React.ReactNode }) => (
         <h4 className="text-fluid-lg font-semibold mt-4 mb-2 leading-fluid-normal">{children}</h4>
       ),
-      p: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => {
+      p: ({ children }: { children?: React.ReactNode }) => {
         // Check if children contains images and handle differently
         const hasImages = React.Children.toArray(children).some(
           child => React.isValidElement(child) && child.type === 'img'
         );
         
         if (hasImages) {
-          return <div className="my-4 text-foreground/90" {...props}>{children}</div>;
+          return <div className="my-4 text-foreground/90">{children}</div>;
         }
         
-        return <p className="my-4 text-foreground/90" {...props}>{children}</p>;
+        return <p className="my-4 text-foreground/90">{children}</p>;
       },
-      img: ({ src, alt = '', ...props }: { src?: string; alt?: string; [key: string]: unknown }) => {
+      img: ({ src, alt = '' }) => {
         if (!src) return null;
         // Use a regular img tag to avoid Next.js Image component div wrapper issues
         return (
@@ -639,51 +639,49 @@ export const ArticleContent = memo(
             alt={alt}
             className="w-full h-auto object-cover rounded-lg my-8 max-w-full block"
             loading="lazy"
-            {...props}
           />
         );
       },
-      blockquote: ({ children }: { children: React.ReactNode }) => (
+      blockquote: ({ children }: { children?: React.ReactNode }) => (
         <blockquote className="border-l-4 border-primary/30 pl-6 py-2 my-6 italic text-foreground/80 bg-muted/20 rounded-r-lg">
           {children}
         </blockquote>
       ),
-      code: ({ children, className, ...props }: { children: React.ReactNode; className?: string; [key: string]: unknown }) => {
+      code: ({ children, className }: { children?: React.ReactNode; className?: string }) => {
         const isInline = !className || !className.includes('language-');
         if (isInline) {
           return (
-            <code className="bg-muted px-2 py-1 rounded text-fluid-sm font-mono text-primary" {...props}>
+            <code className="bg-muted px-2 py-1 rounded text-fluid-sm font-mono text-primary">
               {children}
             </code>
           );
         }
         return (
-          <code className={className} {...props}>
+          <code className={className}>
             {children}
           </code>
         );
       },
-      pre: ({ children }: { children: React.ReactNode }) => (
+      pre: ({ children }: { children?: React.ReactNode }) => (
         <pre className="bg-muted p-4 rounded-lg overflow-x-auto my-6 text-sm font-mono border">
           {children}
         </pre>
       ),
-      ul: ({ children }: { children: React.ReactNode }) => (
+      ul: ({ children }: { children?: React.ReactNode }) => (
         <ul className="list-disc pl-6 my-4 space-y-2">{children}</ul>
       ),
-      ol: ({ children }: { children: React.ReactNode }) => (
+      ol: ({ children }: { children?: React.ReactNode }) => (
         <ol className="list-decimal pl-6 my-4 space-y-2">{children}</ol>
       ),
-      li: ({ children }: { children: React.ReactNode }) => (
+      li: ({ children }: { children?: React.ReactNode }) => (
         <li className="leading-relaxed">{children}</li>
       ),
-      a: ({ href, children, ...props }: { href?: string; children: React.ReactNode; [key: string]: unknown }) => (
+      a: ({ href, children }) => (
         <a 
           href={href} 
           className="text-primary hover:text-primary/80 underline decoration-primary/30 hover:decoration-primary/60 transition-colors"
           target={href?.startsWith('http') ? '_blank' : undefined}
           rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
-          {...props}
         >
           {children}
         </a>

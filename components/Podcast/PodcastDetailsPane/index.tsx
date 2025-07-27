@@ -74,7 +74,7 @@ export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
               
               <PodcastMetadata
                 published={feedItem.published}
-                duration={feedItem.duration || feedItem.enclosures?.[0]?.length}
+                duration={feedItem.duration || (feedItem.enclosures?.[0]?.length ? parseInt(feedItem.enclosures[0].length) : undefined)}
                 author={feedItem.author ? cleanupTextContent(feedItem.author) : undefined}
                 variant="compact"
                 className="mb-4"

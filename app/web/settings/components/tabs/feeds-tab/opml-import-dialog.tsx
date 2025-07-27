@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
-import { workerService } from "@/services/worker-service"
+import { apiService } from "@/services/api-service"
 import type { Feed, FeedItem as ApiFeedItem } from "@/types"
 import Image from "next/image"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -77,30 +77,10 @@ export function OPMLImportDialog({
         // Get all feed URLs
         const feedUrls = initialFeeds.map(feed => feed.url)
         
-        // Initialize worker if not already
-        workerService.initialize()
+        // Direct API call - no worker overhead
+        const result = await apiService.fetchFeeds(feedUrls)
 
-        // Create a promise that resolves when we get the FEEDS_RESULT
-        const result = await new Promise<{ 
-          success: boolean; 
-          feeds: Feed[]; 
-          items: ApiFeedItem[];
-          message?: string;
-        }>(resolve => {
-          // Register one-time handler for response
-          const unsubscribe = workerService.onMessage('FEEDS_RESULT', (response) => {
-            unsubscribe()
-            resolve(response)
-          })
-          
-          // Send message to worker
-          workerService.postMessage({
-            type: 'FETCH_FEEDS',
-            payload: { urls: feedUrls }
-          })
-        })
-
-        if (result.success) {
+        if (result.feeds.length > 0) {
           // Map the fetched feeds back to our feed items
           const updatedFeeds = initialFeeds.map(feed => {
             const fetchedFeed = result.feeds.find(f => f.feedUrl === feed.url)
@@ -115,10 +95,10 @@ export function OPMLImportDialog({
           })
           setFeeds(updatedFeeds)
         } else {
-          // If the entire request failed, mark all feeds as errored
+          // If no feeds were returned, mark all feeds as errored
           const updatedFeeds = initialFeeds.map(feed => ({
             ...feed,
-            error: result.message || "Failed to fetch feeds"
+            error: "Failed to fetch feeds"
           }))
           setFeeds(updatedFeeds)
         }

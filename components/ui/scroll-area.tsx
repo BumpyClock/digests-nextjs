@@ -19,7 +19,7 @@ export interface ScrollAreaProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   scrollableNodeRef?: React.Ref<HTMLDivElement>
 }
 
-const ScrollArea = React.forwardRef<SimpleBar, ScrollAreaProps>(
+const ScrollArea = React.forwardRef<typeof SimpleBar, ScrollAreaProps>(
   ({ 
     className, 
     children, 
@@ -31,6 +31,8 @@ const ScrollArea = React.forwardRef<SimpleBar, ScrollAreaProps>(
     style,
     ...props 
   }, ref) => {
+    // Extract ref from props to avoid conflicts
+    const { ref: _, ...restProps } = props as any;
     // Different configurations for different variants
     const variantStyles = {
       default: "",
@@ -58,7 +60,7 @@ const ScrollArea = React.forwardRef<SimpleBar, ScrollAreaProps>(
           ref: scrollableNodeRef,
           onScroll: onScroll 
         }}
-        {...props}
+        {...restProps}
       >
         <div className="w-full">
           {children}
@@ -71,7 +73,7 @@ ScrollArea.displayName = "ScrollArea"
 
 // Export a hook to access SimpleBar instance methods
 export const useScrollAreaRef = () => {
-  return React.useRef<SimpleBar>(null)
+  return React.useRef<typeof SimpleBar>(null)
 }
 
 export { ScrollArea }

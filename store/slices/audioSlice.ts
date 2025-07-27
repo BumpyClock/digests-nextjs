@@ -146,7 +146,7 @@ export const createAudioSlice: StateCreator<any, [], [], AudioSlice> = (set, get
     },
 
     toggleMinimize: () => {
-      set((state) => ({ isMinimized: !state.isMinimized }))
+      set((state: AudioSlice) => ({ isMinimized: !state.isMinimized }))
     },
 
     setShowMiniPlayer: (show) => {

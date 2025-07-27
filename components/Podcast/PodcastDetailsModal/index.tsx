@@ -53,7 +53,6 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast }: PodcastDetails
       isOpen={isOpen}
       onClose={onClose}
       title={podcast.title}
-      itemId={podcast.id}
     >
       <ScrollArea 
         variant="modal"
@@ -102,7 +101,7 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast }: PodcastDetails
               {/* Metadata */}
               <PodcastMetadata
                 published={podcast.published}
-                duration={podcast.duration || podcast.enclosures?.[0]?.length}
+                duration={podcast.duration || (podcast.enclosures?.[0]?.length ? parseInt(podcast.enclosures[0].length) : undefined)}
                 author={podcast.author ? cleanupTextContent(podcast.author) : undefined}
                 variant="compact"
                 className="mb-6"

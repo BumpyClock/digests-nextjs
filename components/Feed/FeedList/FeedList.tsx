@@ -4,7 +4,7 @@ import { memo, useCallback, useMemo, useRef, useEffect, useState } from "react";
 import { FeedItem } from "@/types";
 import Image from "next/image";
 import { Heart } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, useScrollAreaRef } from "@/components/ui/scroll-area";
 import { useIsItemRead } from "@/hooks/useFeedSelectors";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -95,7 +95,7 @@ export function FeedList({
   onItemSelect,
   savedScrollPosition = 0,
 }: FeedListProps) {
-  const scrollbarsRef = useRef<HTMLDivElement>(null);
+  const scrollbarsRef = useScrollAreaRef();
   const scrollableNodeRef = useRef<HTMLDivElement>(null);
   const [currentScrollTop, setCurrentScrollTop] = useState(0);
 

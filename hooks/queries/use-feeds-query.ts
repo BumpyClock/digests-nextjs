@@ -1,7 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { workerService } from '@/services/worker-service'
+import { apiService } from '@/services/api-service'
 import { useFeedStore } from '@/store/useFeedStore'
 import type { Feed, FeedItem } from '@/types'
+import { useEffect } from 'react'
+
+// Query data type
+interface FeedsQueryData {
+  feeds: Feed[]
+  items: FeedItem[]
+}
 
 // Query Keys Factory
 export const feedsKeys = {
@@ -18,7 +25,7 @@ export const useFeedsQuery = () => {
   const queryClient = useQueryClient()
   const existingFeeds = useFeedStore(state => state.feeds)
   
-  return useQuery({
+  const query = useQuery({
     queryKey: feedsKeys.lists(),
     queryFn: async () => {
       // Get existing feeds from Zustand to refresh them
@@ -29,31 +36,32 @@ export const useFeedsQuery = () => {
         return { feeds: [], items: [] }
       }
       
-      const result = await workerService.refreshFeeds(feedUrls)
-      if (result.success) {
-        // Sort items by date (newest first)
-        const sortedItems = result.items.sort((a, b) => {
-          const dateA = new Date(a.published || a.pubDate || 0).getTime()
-          const dateB = new Date(b.published || b.pubDate || 0).getTime()
-          return dateB - dateA // Newest first
-        })
-        return { feeds: result.feeds, items: sortedItems }
-      }
-      throw new Error(result.message || 'Failed to fetch feeds')
+      const result = await apiService.refreshFeeds(feedUrls)
+      // Sort items by date (newest first)
+      const sortedItems = result.items.sort((a, b) => {
+        const dateA = new Date(a.published || a.pubDate || 0).getTime()
+        const dateB = new Date(b.published || b.pubDate || 0).getTime()
+        return dateB - dateA // Newest first
+      })
+      return { feeds: result.feeds, items: sortedItems }
     },
     enabled: existingFeeds.length > 0, // Auto-enable when there are feeds to fetch
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     refetchInterval: 30 * 60 * 1000, // 30 minutes background refresh
     refetchIntervalInBackground: true,
-    
-    // Sync fresh data back to Zustand store
-    onSuccess: (data) => {
-      const store = useFeedStore.getState()
-      store.setFeeds(data.feeds)
-      store.setFeedItems(data.items)
-    }
   })
+
+  // Sync fresh data back to Zustand store using useEffect
+  useEffect(() => {
+    if (query.isSuccess && query.data) {
+      const store = useFeedStore.getState()
+      store.setFeeds(query.data.feeds)
+      store.setFeedItems(query.data.items)
+    }
+  }, [query.isSuccess, query.data])
+
+  return query
 }
 
 // Add single feed mutation
@@ -62,16 +70,13 @@ export const useAddFeedMutation = () => {
   
   return useMutation({
     mutationFn: async (url: string) => {
-      const result = await workerService.fetchFeeds(url)
-      if (!result.success) {
-        throw new Error(result.message || 'Failed to add feed')
-      }
+      const result = await apiService.fetchFeeds([url])
       return result
     },
     onSuccess: (data) => {
       // Update the feeds query cache optimistically
-      const updatedData = queryClient.setQueryData(feedsKeys.lists(), (old: any) => {
-        if (!old) return { feeds: data.feeds, items: data.items }
+      const updatedData = queryClient.setQueryData<FeedsQueryData>(feedsKeys.lists(), (old) => {
+        if (!old) return { feeds: data.feeds || [], items: data.items || [] }
         
         // Deduplicate feeds and items
         const existingFeedUrls = new Set(old.feeds.map((f: Feed) => f.feedUrl))
@@ -116,7 +121,7 @@ export const useRemoveFeedMutation = () => {
       const previousFeeds = queryClient.getQueryData(feedsKeys.lists())
       
       // Optimistically update to remove the feed
-      const updatedData = queryClient.setQueryData(feedsKeys.lists(), (old: any) => {
+      const updatedData = queryClient.setQueryData<FeedsQueryData>(feedsKeys.lists(), (old) => {
         if (!old) return old
         
         return {
@@ -160,17 +165,14 @@ export const useRefreshFeedsMutation = () => {
         return { feeds: [], items: [] }
       }
       
-      const result = await workerService.refreshFeeds(feedUrls)
-      if (result.success) {
-        // Sort items by date (newest first)
-        const sortedItems = result.items.sort((a, b) => {
-          const dateA = new Date(a.published || a.pubDate || 0).getTime()
-          const dateB = new Date(b.published || b.pubDate || 0).getTime()
-          return dateB - dateA // Newest first
-        })
-        return { feeds: result.feeds, items: sortedItems }
-      }
-      throw new Error(result.message || 'Failed to refresh feeds')
+      const result = await apiService.refreshFeeds(feedUrls)
+      // Sort items by date (newest first)
+      const sortedItems = result.items.sort((a, b) => {
+        const dateA = new Date(a.published || a.pubDate || 0).getTime()
+        const dateB = new Date(b.published || b.pubDate || 0).getTime()
+        return dateB - dateA // Newest first
+      })
+      return { feeds: result.feeds, items: sortedItems }
     },
     onSuccess: (data) => {
       // Update cache with fresh data
@@ -205,15 +207,10 @@ export const useBatchAddFeedsMutation = () => {
       // Process URLs one by one to avoid worker race conditions
       for (const url of urls) {
         try {
-          const result = await workerService.fetchFeeds(url)
-          if (result.success) {
-            allFeeds.push(...result.feeds)
-            allItems.push(...result.items)
-            successfulCount++
-          } else {
-            failedUrls.push(url)
-            failedCount++
-          }
+          const result = await apiService.fetchFeeds([url])
+          allFeeds.push(...result.feeds)
+          allItems.push(...result.items)
+          successfulCount++
         } catch (error) {
           console.error(`Failed to fetch feed ${url}:`, error)
           failedUrls.push(url)
@@ -231,7 +228,7 @@ export const useBatchAddFeedsMutation = () => {
     },
     onSuccess: (data) => {
       // Update the feeds query cache
-      const updatedData = queryClient.setQueryData(feedsKeys.lists(), (old: any) => {
+      const updatedData = queryClient.setQueryData<FeedsQueryData>(feedsKeys.lists(), (old) => {
         if (!old) return { feeds: data.feeds, items: data.items }
         
         // Deduplicate feeds and items

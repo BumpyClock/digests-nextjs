@@ -10,6 +10,7 @@ export interface FeedItem {
     link: string
     author: string
     published: string
+    pubDate?: string  // Added for backward compatibility
     content: string
     created: string
     content_encoded: string
