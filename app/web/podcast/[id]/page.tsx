@@ -24,13 +24,14 @@ export default function PodcastPage(props: {
   const { toast } = useToast();
   const { playAudio } = useAudioActions();
 
+  const feedStore = useFeedStore();
+
   useEffect(() => {
     async function loadPodcast() {
       setLoading(true);
 
       // Get items from the store instead of fetching
-      const store = useFeedStore();
-      const items = store.feedItems;
+      const items = feedStore.feedItems;
 
       if (items && items.length > 0) {
         const foundPodcast = items.find(

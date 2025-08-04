@@ -7,8 +7,8 @@ import { useReaderView } from "@/hooks/use-reader-view";
 
 interface ArticleReaderProps {
   item: FeedItem;
-  initialContent?: any;
-  onFetchComplete?: (content: any) => void;
+  initialContent?: string | null;
+  onFetchComplete?: (content: string | null) => void;
 }
 
 export function ArticleReader({

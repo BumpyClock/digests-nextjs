@@ -250,11 +250,11 @@ export const FeedItem = memo(function FeedItem({
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete Feed</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete "
+                      Are you sure you want to delete &quot;
                       {cleanupTextContent(
                         currentFeed.feedTitle || currentFeed.siteTitle,
                       )}
-                      "? This action cannot be undone and will remove all
+                      &quot;? This action cannot be undone and will remove all
                       associated articles.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
