@@ -7,8 +7,8 @@
  */
 export class AppError extends Error {
   constructor(message: string) {
-    super(message)
-    this.name = 'AppError'
+    super(message);
+    this.name = "AppError";
   }
 }
 
@@ -24,10 +24,10 @@ export class APIError extends AppError {
   constructor(
     message: string,
     public statusCode?: number,
-    public body?: unknown
+    public body?: unknown,
   ) {
-    super(message)
-    this.name = 'APIError'
+    super(message);
+    this.name = "APIError";
   }
 }
 
@@ -36,8 +36,8 @@ export class APIError extends AppError {
  */
 export class NetworkError extends APIError {
   constructor(message: string) {
-    super(message)
-    this.name = 'NetworkError'
+    super(message);
+    this.name = "NetworkError";
   }
 }
 
@@ -45,9 +45,9 @@ export class NetworkError extends APIError {
  * Timeout errors
  */
 export class TimeoutError extends APIError {
-  constructor(message: string = 'Request timed out') {
-    super(message)
-    this.name = 'TimeoutError'
+  constructor(message: string = "Request timed out") {
+    super(message);
+    this.name = "TimeoutError";
   }
 }
 
@@ -58,10 +58,10 @@ export class ValidationError extends AppError {
   constructor(
     message: string,
     public field?: string,
-    public value?: unknown
+    public value?: unknown,
   ) {
-    super(message)
-    this.name = 'ValidationError'
+    super(message);
+    this.name = "ValidationError";
   }
 }
 
@@ -70,7 +70,7 @@ export class ValidationError extends AppError {
  */
 export class StorageError extends AppError {
   constructor(message: string) {
-    super(message)
-    this.name = 'StorageError'
+    super(message);
+    this.name = "StorageError";
   }
-} 
+}

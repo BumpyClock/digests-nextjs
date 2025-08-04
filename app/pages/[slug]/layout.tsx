@@ -1,7 +1,9 @@
-import { getMdxMetadata } from '@/utils/mdx-utils';
-import { Metadata } from 'next';
+import { getMdxMetadata } from "@/utils/mdx-utils";
+import { Metadata } from "next";
 
-export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+export async function generateMetadata(props: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const params = await props.params;
   const metadata = getMdxMetadata(params.slug);
   return {
@@ -10,10 +12,6 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
   };
 }
 
-export default function Layout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   return children;
-} 
+}

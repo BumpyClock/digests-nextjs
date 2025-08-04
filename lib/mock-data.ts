@@ -14,7 +14,8 @@ export const mockFeeds = [
   {
     id: "feed-2",
     title: "10 Essential Productivity Tools for Remote Workers",
-    description: "A curated list of the best tools to boost your productivity while working from home.",
+    description:
+      "A curated list of the best tools to boost your productivity while working from home.",
     source: "ProductivityWeekly",
     date: "Yesterday",
     type: "article",
@@ -25,7 +26,8 @@ export const mockFeeds = [
   {
     id: "feed-3",
     title: "The Science of Sleep: How to Optimize Your Rest",
-    description: "New research reveals the best practices for getting quality sleep and improving your overall health.",
+    description:
+      "New research reveals the best practices for getting quality sleep and improving your overall health.",
     source: "HealthInsider",
     date: "2 days ago",
     type: "article",
@@ -100,7 +102,8 @@ export const mockFeeds = [
   {
     id: "feed-9",
     title: "Entrepreneurship Uncovered: Startup Success Stories",
-    description: "Interviews with founders who built successful companies and the lessons they learned along the way.",
+    description:
+      "Interviews with founders who built successful companies and the lessons they learned along the way.",
     source: "StartupDaily",
     date: "2 weeks ago",
     type: "podcast",
@@ -110,5 +113,4 @@ export const mockFeeds = [
     duration: "55 min",
     favorite: false,
   },
-]
-
+];

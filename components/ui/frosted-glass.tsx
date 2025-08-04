@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode } from "react";
 
 interface FrostedGlassProps {
   children: ReactNode;
@@ -12,27 +12,29 @@ interface FrostedGlassProps {
 
 const FrostedGlass: React.FC<FrostedGlassProps> = ({
   children,
-  className = '',
-  blurAmount = '24',
+  className = "",
+  blurAmount = "24",
   rounded = 24,
   bgOpacity = 10,
-  bgColor = 'white',
-  id = '',
+  bgColor = "white",
+  id = "",
 }) => {
   // Generate unique ID for SVG mask
-  const maskId = id ? `frosted-glass-mask-${id}` : `frosted-glass-mask-${Math.random().toString(36).substring(2, 11)}`;
+  const maskId = id
+    ? `frosted-glass-mask-${id}`
+    : `frosted-glass-mask-${Math.random().toString(36).substring(2, 11)}`;
 
   // Map blurAmount to Tailwind blur classes
   const blurClass = `backdrop-blur-${blurAmount}`;
-  
+
   // Create background opacity class
   const bgOpacityClass = `bg-opacity-${bgOpacity}`;
-  
+
   // Handle bgColor class properly
-  const bgColorClass = bgColor.startsWith('bg-') ? bgColor : `bg-${bgColor}`;
+  const bgColorClass = bgColor.startsWith("bg-") ? bgColor : `bg-${bgColor}`;
 
   return (
-    <div className={`relative ${className} rounded-[${rounded}px]`} >
+    <div className={`relative ${className} rounded-[${rounded}px]`}>
       {/* Extended container to allow for blur to consider neighboring pixels */}
       <div className="absolute -inset-16">
         {/* Backdrop element with blur filter */}
@@ -65,9 +67,7 @@ const FrostedGlass: React.FC<FrostedGlassProps> = ({
       </div>
 
       {/* Content inside the frosted glass */}
-      <div className="relative z-10">
-        {children}
-      </div>
+      <div className="relative z-10">{children}</div>
     </div>
   );
 };

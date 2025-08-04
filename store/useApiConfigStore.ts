@@ -1,66 +1,63 @@
-// store/useApiConfigStore.ts
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import localforage from "localforage";
-import { APIConfig, DEFAULT_API_CONFIG } from "@/lib/config";
+/**
+ * API Configuration Store - Simplified to use centralized config
+ * Provides backward compatibility with the original Zustand-based interface
+ */
 
-interface ApiConfigState {
+import {
+  getApiConfig as getCentralizedApiConfig,
+  setApiConfig,
+  resetApiConfig,
+  APIConfig,
+} from "@/lib/config";
+import { isValidApiUrl } from "@/utils/security";
+
+// Enhanced API config store interface for backward compatibility
+interface ApiConfigStore {
   config: APIConfig;
+  baseUrl: string;
   setApiUrl: (url: string) => void;
+  setBaseUrl: (url: string) => void;
   resetToDefault: () => void;
   isValidUrl: (url: string) => boolean;
 }
 
-export const useApiConfigStore = create<ApiConfigState>()(
-  persist(
-    (set, get) => ({
-      // Initial state
-      config: DEFAULT_API_CONFIG,
+// Backward compatibility getter - delegates to centralized config
+export const getApiConfig = (): APIConfig => {
+  return getCentralizedApiConfig();
+};
 
-      // Set a custom API URL
-      setApiUrl: (url: string) => {
-        // Normalize the URL - ensure it ends with a slash
-        let normalizedUrl = url.trim();
-        if (!normalizedUrl.endsWith('/')) {
-          normalizedUrl += '/';
-        }
-        
-        // Ensure it has the correct protocol
-        if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
-          normalizedUrl = `https://${normalizedUrl}`;
-        }
-        
-        set({
-          config: {
-            baseUrl: normalizedUrl,
-            isCustom: normalizedUrl !== DEFAULT_API_CONFIG.baseUrl
-          }
-        });
-      },
+// Enhanced stub store for backward compatibility
+export const useApiConfigStore = (): ApiConfigStore => {
+  const config = getCentralizedApiConfig();
 
-      // Reset to the default API URL
-      resetToDefault: () => {
-        set({ config: DEFAULT_API_CONFIG });
-      },
-
-      // Check if a URL is valid
-      isValidUrl: (url: string) => {
-        try {
-          new URL(url.startsWith('http') ? url : `https://${url}`);
-          return true;
-        } catch (error) {
-          return false;
-        }
+  return {
+    config,
+    baseUrl: config.baseUrl,
+    setApiUrl: (url: string) => {
+      if (isValidApiUrl(url)) {
+        setApiConfig(url);
+      } else {
+        console.warn("Invalid API URL provided:", url);
       }
-    }),
-    {
-      name: "digests-api-config",
-      storage: createJSONStorage(() => localforage),
-    }
-  )
-);
+    },
+    setBaseUrl: (url: string) => {
+      if (isValidApiUrl(url)) {
+        setApiConfig(url);
+      } else {
+        console.warn("Invalid base URL provided:", url);
+      }
+    },
+    resetToDefault: () => {
+      resetApiConfig();
+    },
+    isValidUrl: isValidApiUrl,
+  };
+};
 
-// Update the getApiConfig function to use the store
-export function getApiConfig(): APIConfig {
-  return useApiConfigStore.getState().config;
-}
+// Add getState method for compatibility
+const getStateMethod = () => {
+  const store = useApiConfigStore();
+  return store;
+};
+
+useApiConfigStore.getState = getStateMethod;

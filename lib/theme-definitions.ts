@@ -11,44 +11,44 @@ export interface CoreColors {
   // Base colors
   background: string;
   foreground: string;
-  
+
   // Card colors
   card: string;
   cardForeground: string;
-  
+
   // Popover colors
   popover: string;
   popoverForeground: string;
-  
+
   // Primary colors
   primary: string;
   primaryForeground: string;
-  
+
   // Secondary colors
   secondary: string;
   secondaryForeground: string;
-  
+
   // Muted colors
   muted: string;
   mutedForeground: string;
-  
+
   // Accent colors
   accent: string;
   accentForeground: string;
-  
+
   // Destructive colors
   destructive: string;
   destructiveForeground: string;
-  
+
   // Border, input, and ring colors
   border: string;
   input: string;
   ring: string;
-  
+
   // Additional colors
   blockquoteBackground: string;
   brandPrimary: string;
-  
+
   // Color palette
   redPrimary: string;
   redSecondary: string;
@@ -88,44 +88,44 @@ const flexokiLight: ThemeDefinition = {
     // Base colors
     background: "hsl(48 100% 97%)",
     foreground: "hsl(0 3% 6%)",
-    
+
     // Card colors
     card: "hsl(48 100% 97%)",
     cardForeground: "hsl(0 3% 6%)",
-    
+
     // Popover colors
     popover: "hsl(48 100% 97%)",
     popoverForeground: "hsl(0 3% 6%)",
-    
+
     // Primary colors
     primary: "hsl(0 3% 6%)",
     primaryForeground: "hsl(48 100% 97%)",
-    
+
     // Secondary colors
     secondary: "hsl(51 33% 92%)",
     secondaryForeground: "hsl(0 3% 6%)",
-    
+
     // Muted colors
     muted: "hsl(51 33% 92%)",
     mutedForeground: "hsl(50 3% 30%)",
-    
+
     // Accent colors
     accent: "hsl(51 33% 92%)",
     accentForeground: "hsl(0 3% 6%)",
-    
+
     // Destructive colors
     destructive: "hsl(3 62% 42%)",
     destructiveForeground: "hsl(48 100% 97%)",
-    
+
     // Border, input, and ring colors
     border: "hsl(51 21% 88%)",
     input: "hsl(51 21% 88%)",
     ring: "hsl(55 10% 79%)",
-    
+
     // Additional colors
     blockquoteBackground: "hsl(51 33% 92%)",
     brandPrimary: "hsl(185 45% 47%)",
-    
+
     // Color palette
     redPrimary: "hsl(3 62% 42%)",
     redSecondary: "hsl(5 61% 54%)",
@@ -157,44 +157,44 @@ const flexokiDark: ThemeDefinition = {
     // Base colors
     background: "hsl(0 3% 6%)",
     foreground: "hsl(55 10% 100%)",
-    
+
     // Card colors
     card: "hsl(0 3% 6%)",
     cardForeground: "hsl(55 10% 100%)",
-    
+
     // Popover colors
     popover: "hsl(0 3% 6%)",
     popoverForeground: "hsl(55 10% 79%)",
-    
+
     // Primary colors
     primary: "hsl(55 10% 79%)",
     primaryForeground: "hsl(0 3% 6%)",
-    
+
     // Secondary colors
     secondary: "hsl(30 4% 11%)",
     secondaryForeground: "hsl(55 10% 79%)",
-    
+
     // Muted colors
     muted: "hsl(30 4% 11%)",
     mutedForeground: "hsl(43 3% 85%)",
-    
+
     // Accent colors
     accent: "hsl(30 4% 11%)",
     accentForeground: "hsl(55 10% 79%)",
-    
+
     // Destructive colors
     destructive: "hsl(5 61% 54%)",
     destructiveForeground: "hsl(0 3% 6%)",
-    
+
     // Border, input, and ring colors
     border: "hsl(30 3% 15%)",
     input: "hsl(30 3% 15%)",
     ring: "hsl(30 3% 24%)",
-    
+
     // Additional colors
     blockquoteBackground: "hsl(30 4% 11%)",
     brandPrimary: "hsl(185 45% 47%)",
-    
+
     // Color palette
     redPrimary: "hsl(5 61% 54%)",
     redSecondary: "hsl(3 62% 42%)",
@@ -225,44 +225,44 @@ const standardLight: ThemeDefinition = {
     // Base colors
     background: "hsl(0 0% 100%)",
     foreground: "hsl(222.2 84% 4.9%)",
-    
+
     // Card colors
     card: "hsl(0 0% 100%)",
     cardForeground: "hsl(222.2 84% 4.9%)",
-    
+
     // Popover colors
     popover: "hsl(0 0% 100%)",
     popoverForeground: "hsl(222.2 84% 4.9%)",
-    
+
     // Primary colors
     primary: "hsl(221.2 83.2% 53.3%)",
     primaryForeground: "hsl(210 40% 98%)",
-    
+
     // Secondary colors
     secondary: "hsl(210 40% 96.1%)",
     secondaryForeground: "hsl(222.2 47.4% 11.2%)",
-    
+
     // Muted colors
     muted: "hsl(210 40% 96.1%)",
     mutedForeground: "hsl(215.4 16.3% 46.9%)",
-    
+
     // Accent colors
     accent: "hsl(210 40% 96.1%)",
     accentForeground: "hsl(222.2 47.4% 11.2%)",
-    
+
     // Destructive colors
     destructive: "hsl(0 84.2% 60.2%)",
     destructiveForeground: "hsl(210 40% 98%)",
-    
+
     // Border, input, and ring colors
     border: "hsl(214.3 31.8% 91.4%)",
     input: "hsl(214.3 31.8% 91.4%)",
     ring: "hsl(221.2 83.2% 53.3%)",
-    
+
     // Additional colors
     blockquoteBackground: "hsl(210 40% 96.1%)",
     brandPrimary: "hsl(221.2 83.2% 53.3%)",
-    
+
     // Color palette
     redPrimary: "hsl(0 84.2% 60.2%)",
     redSecondary: "hsl(0 72.2% 50.6%)",
@@ -293,44 +293,44 @@ const standardDark: ThemeDefinition = {
     // Base colors
     background: "hsl(222.2 84% 4.9%)",
     foreground: "hsl(210 40% 98%)",
-    
+
     // Card colors
     card: "hsl(222.2 84% 4.9%)",
     cardForeground: "hsl(210 40% 98%)",
-    
+
     // Popover colors
     popover: "hsl(222.2 84% 4.9%)",
     popoverForeground: "hsl(210 40% 98%)",
-    
+
     // Primary colors
     primary: "hsl(217.2 91.2% 59.8%)",
     primaryForeground: "hsl(222.2 47.4% 11.2%)",
-    
+
     // Secondary colors
     secondary: "hsl(217.2 32.6% 17.5%)",
     secondaryForeground: "hsl(210 40% 98%)",
-    
+
     // Muted colors
     muted: "hsl(217.2 32.6% 17.5%)",
     mutedForeground: "hsl(215 20.2% 65.1%)",
-    
+
     // Accent colors
     accent: "hsl(217.2 32.6% 17.5%)",
     accentForeground: "hsl(210 40% 98%)",
-    
+
     // Destructive colors
     destructive: "hsl(0 62.8% 30.6%)",
     destructiveForeground: "hsl(210 40% 98%)",
-    
+
     // Border, input, and ring colors
     border: "hsl(217.2 32.6% 17.5%)",
     input: "hsl(217.2 32.6% 17.5%)",
     ring: "hsl(224.3 76.3% 48%)",
-    
+
     // Additional colors
     blockquoteBackground: "hsl(217.2 32.6% 17.5%)",
     brandPrimary: "hsl(217.2 91.2% 59.8%)",
-    
+
     // Color palette
     redPrimary: "hsl(0 72.2% 50.6%)",
     redSecondary: "hsl(0 62.8% 30.6%)",
@@ -361,44 +361,44 @@ const draculaLight: ThemeDefinition = {
     // Base colors
     background: "hsl(60 30% 96%)",
     foreground: "hsl(231 15% 18%)",
-    
+
     // Card colors
     card: "hsl(60 30% 96%)",
     cardForeground: "hsl(231 15% 18%)",
-    
+
     // Popover colors
     popover: "hsl(60 30% 96%)",
     popoverForeground: "hsl(231 15% 18%)",
-    
+
     // Primary colors
     primary: "hsl(326 100% 74%)",
     primaryForeground: "hsl(231 15% 18%)",
-    
+
     // Secondary colors
     secondary: "hsl(60 30% 92%)",
     secondaryForeground: "hsl(231 15% 18%)",
-    
+
     // Muted colors
     muted: "hsl(60 30% 92%)",
     mutedForeground: "hsl(231 15% 50%)",
-    
+
     // Accent colors
     accent: "hsl(60 30% 92%)",
     accentForeground: "hsl(231 15% 18%)",
-    
+
     // Destructive colors
     destructive: "hsl(0 100% 67%)",
     destructiveForeground: "hsl(60 30% 96%)",
-    
+
     // Border, input, and ring colors
     border: "hsl(60 30% 88%)",
     input: "hsl(60 30% 88%)",
     ring: "hsl(231 15% 50%)",
-    
+
     // Additional colors
     blockquoteBackground: "hsl(60 30% 92%)",
     brandPrimary: "hsl(326 100% 74%)",
-    
+
     // Color palette
     redPrimary: "hsl(0 100% 67%)",
     redSecondary: "hsl(0 100% 77%)",
@@ -429,44 +429,44 @@ const draculaDark: ThemeDefinition = {
     // Base colors
     background: "hsl(231 15% 18%)",
     foreground: "hsl(60 30% 96%)",
-    
+
     // Card colors
     card: "hsl(231 15% 18%)",
     cardForeground: "hsl(60 30% 96%)",
-    
+
     // Popover colors
     popover: "hsl(231 15% 18%)",
     popoverForeground: "hsl(60 30% 96%)",
-    
+
     // Primary colors
     primary: "hsl(326 100% 74%)",
     primaryForeground: "hsl(231 15% 18%)",
-    
+
     // Secondary colors
     secondary: "hsl(231 15% 26%)",
     secondaryForeground: "hsl(60 30% 96%)",
-    
+
     // Muted colors
     muted: "hsl(231 15% 26%)",
     mutedForeground: "hsl(60 30% 76%)",
-    
+
     // Accent colors
     accent: "hsl(231 15% 26%)",
     accentForeground: "hsl(60 30% 96%)",
-    
+
     // Destructive colors
     destructive: "hsl(0 100% 67%)",
     destructiveForeground: "hsl(60 30% 96%)",
-    
+
     // Border, input, and ring colors
     border: "hsl(231 15% 26%)",
     input: "hsl(231 15% 26%)",
     ring: "hsl(326 100% 74%)",
-    
+
     // Additional colors
     blockquoteBackground: "hsl(231 15% 26%)",
     brandPrimary: "hsl(326 100% 74%)",
-    
+
     // Color palette
     redPrimary: "hsl(0 100% 67%)",
     redSecondary: "hsl(0 100% 57%)",

@@ -5,6 +5,7 @@
 **ABSOLUTE RULE**: ALL operations MUST be concurrent/parallel in a single message:
 
 ### 🔴 MANDATORY CONCURRENT PATTERNS:
+
 1. **TodoWrite**: ALWAYS batch ALL todos in ONE call (5-10+ todos minimum)
 2. **Task tool**: ALWAYS spawn ALL agents in ONE message with full instructions
 3. **File operations**: ALWAYS batch ALL reads/writes/edits in ONE message
@@ -14,6 +15,7 @@
 ### ⚡ GOLDEN RULE: "1 MESSAGE = ALL RELATED OPERATIONS"
 
 **Examples of CORRECT concurrent execution:**
+
 ```javascript
 // ✅ CORRECT: Everything in ONE message
 [Single Message]:
@@ -31,6 +33,7 @@
 ```
 
 **Examples of WRONG sequential execution:**
+
 ```javascript
 // ❌ WRONG: Multiple messages (NEVER DO THIS)
 Message 1: TodoWrite { todos: [single todo] }
@@ -45,6 +48,7 @@ Message 6: Bash("npm install")
 ### 🎯 CONCURRENT EXECUTION CHECKLIST:
 
 Before sending ANY message, ask yourself:
+
 - ✅ Are ALL related TodoWrite operations batched together?
 - ✅ Are ALL Task spawning operations in ONE message?
 - ✅ Are ALL file operations (Read/Write/Edit) batched together?
@@ -54,6 +58,7 @@ Before sending ANY message, ask yourself:
 If ANY answer is "No", you MUST combine operations into a single message!
 
 ## Project Overview
+
 This project uses the SPARC (Specification, Pseudocode, Architecture, Refinement, Completion) methodology for systematic Test-Driven Development with AI assistance through Claude-Flow orchestration.
 
 **🚀 Batchtools Optimization Enabled**: This configuration includes optimized prompts and parallel processing capabilities for improved performance and efficiency.
@@ -61,16 +66,17 @@ This project uses the SPARC (Specification, Pseudocode, Architecture, Refinement
 # Project Overview - Digests Web Site
 
 Digests is a RSS reader and podcast aggregator that allows users to subscribe to RSS feeds and podcasts, and receive daily digests of new content. The web application is built using Next.js, and TypeScript. We use Zustand for client state management, and React Query for server state management. The application is designed to be fast, responsive, and easy to use.
+
 # Sentry Integration
-Sentry is integrated into the Next.js application to monitor and report errors, performance issues, and logs. The integration is configured to capture both client-side and server-side errors, as well as logs from the application. 
+
+Sentry is integrated into the Next.js application to monitor and report errors, performance issues, and logs. The integration is configured to capture both client-side and server-side errors, as well as logs from the application.
 
 Sentry documentation is saved in `docs/sentry-rules.md` and should be followed for all Sentry-related code changes. Online documentation can be found at https://docs.sentry.io/platforms/javascript/guides/nextjs/
 
 # Digests API
+
 The API for Digests is available at https://api.digests.app. The documentation is available at https://api.digests.app/docs
 
 # Testing
+
 Testing plan is saved in docs/tests/testing-plan.md. when running tests, ensure that the output of all tests is saved in .claude/logs/tests/{todaysDate}/{timestamp}-test-output.md. This will allow for easy retrieval and analysis of test results.
-
-
-

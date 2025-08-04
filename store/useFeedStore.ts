@@ -1,243 +1,299 @@
-// store/useFeedStore.ts
-import { create } from "zustand"
-import { persist, createJSONStorage } from "zustand/middleware"
-import localforage from "localforage"
-import { useState, useEffect } from "react"
-
-import type { Feed, FeedItem } from "@/types"
-import { createFeedSlice } from "./slices/feedSlice"
-import { createItemsSlice } from "./slices/itemsSlice"
-import { createReadStatusSlice } from "./slices/readStatusSlice"
-import { createMetadataSlice } from "./slices/metadataSlice"
-import { createAudioSlice, type AudioSlice } from "./slices/audioSlice"
-import { withPerformanceMonitoring } from "./middleware/performanceMiddleware"
-
 /**
- * The Zustand store shape optimized for React Query integration
- * Server state is now handled by React Query, this only manages client state
- * @typedef {Object} FeedState
- * @property {Feed[]} feeds - List of feeds (synced from React Query)
- * @property {FeedItem[]} feedItems - List of feed items (synced from React Query)
- * @property {boolean} initialized - Initialization state
- * @property {boolean} hydrated - Hydration state
- * @property {Set<string>} readItems - Track read item IDs
- * @property {string | null} activeFeed - Track active feed URL
- * @property {Set<string>} readLaterItems - Track read later item IDs
- * @method setFeeds - Sets the feeds in the store
- * @method setFeedItems - Sets the feed items in the store
- * @method setHydrated - Sets the hydration state
- * @method sortFeedItemsByDate - Sorts feed items by published date
- * @method removeFeedFromCache - Removes a feed from local cache
- * @method setInitialized - Sets the initialized state
- * @method markAsRead - Marks a specific feed item as read
- * @method getUnreadItems - Gets all unread feed items
- * @method markAllAsRead - Marks all feed items as read
- * @method setActiveFeed - Sets the active feed URL
- * @method addToReadLater - Adds an item to read later
- * @method removeFromReadLater - Removes an item from read later
- * @method isInReadLater - Checks if an item is in read later
- * @method getReadLaterItems - Gets all items in the read later list
+ * MIGRATION NOTICE: This Zustand store has been replaced with React Query
+ *
+ * This is a stub file to maintain compatibility during the migration.
+ * All feed state management is now handled by React Query hooks.
  */
-interface FeedState extends AudioSlice {
-  // From slices
-  feeds: Feed[]
-  feedItems: FeedItem[]
-  initialized: boolean
-  hydrated: boolean
-  readItems: Set<string>
-  activeFeed: string | null
-  readLaterItems: Set<string>
 
-  // Setters
-  setFeeds: (feeds: Feed[]) => void
-  setFeedItems: (items: FeedItem[]) => void
-  setHydrated: (state: boolean) => void
-  setActiveFeed: (feedUrl: string | null) => void
-  setInitialized: (value: boolean) => void
+import type { Feed, FeedItem } from "@/types";
+import type { AudioInfo } from "@/components/AudioPlayer/types";
 
-  // Client-side actions (server actions moved to React Query)
-  sortFeedItemsByDate: (items: FeedItem[]) => FeedItem[]
-  removeFeedFromCache: (feedUrl: string) => void
-  markAsRead: (itemId: string) => void
-  getUnreadItems: () => FeedItem[]
-  markAllAsRead: () => void
-  addToReadLater: (itemId: string) => void
-  removeFromReadLater: (itemId: string) => void
-  isInReadLater: (itemId: string) => boolean
-  getReadLaterItems: () => FeedItem[]
+// Legacy feed store interface with all required properties
+interface FeedStore {
+  // Core feed data
+  feeds: Feed[];
+  feedItems: FeedItem[];
+  items: FeedItem[]; // Alias for feedItems
+  setFeeds: (feeds: Feed[]) => void;
+  setFeedItems: (items: FeedItem[]) => void;
+  removeFeedFromCache: (feedUrl: string) => void;
+
+  // Store state management
+  setState: (partial: Partial<FeedStore>) => void;
+  initialized: boolean;
+  hydrated: boolean;
+  isLoading: boolean;
+  error: Error | null;
+  setHydrated: (hydrated: boolean) => void;
+  setInitialized: (initialized: boolean) => void;
+  setIsLoading: (loading: boolean) => void;
+  setError: (error: Error | null) => void;
+
+  // Feed management
+  activeFeed: Feed | null;
+  setActiveFeed: (feed: Feed | null) => void;
+  sortFeedItemsByDate: (items: FeedItem[]) => FeedItem[];
+
+  // Read status management
+  readItems: Set<string>;
+  readLaterItems: Set<string>;
+  markAsRead: (itemId: string) => void;
+  markAllAsRead: (feedUrl?: string) => void;
+  getUnreadItems: (feedUrl?: string) => FeedItem[];
+  addToReadLater: (itemId: string) => void;
+  removeFromReadLater: (itemId: string) => void;
+  isInReadLater: (itemId: string) => boolean;
+  getReadLaterItems: () => FeedItem[];
+
+  // Audio player state
+  currentAudio: AudioInfo | null;
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+  volume: number;
+  isMuted: boolean;
+  isMinimized: boolean;
+  currentTrack: AudioInfo | null;
+  playlist: AudioInfo[];
+  playbackRate: number;
+
+  // Audio player actions
+  togglePlayPause: () => void;
+  seek: (time: number) => void;
+  setVolume: (volume: number) => void;
+  toggleMute: () => void;
+  setShowMiniPlayer: (show: boolean) => void;
+  setIsMuted: (muted: boolean) => void;
+  setIsMinimized: (minimized: boolean) => void;
+  setCurrentTrack: (track: AudioInfo | null) => void;
+  setIsPlaying: (playing: boolean) => void;
+  setCurrentTime: (time: number) => void;
+  setDuration: (duration: number) => void;
+  setPlaylist: (playlist: AudioInfo[]) => void;
+  setPlaybackRate: (rate: number) => void;
+  play: () => void;
+  pause: () => void;
+  stop: () => void;
+  next: () => void;
+  previous: () => void;
+  addToPlaylist: (track: AudioInfo) => void;
+  removeFromPlaylist: (trackId: string) => void;
 }
 
-// Add hydration flag at top of file
-let hydrated = false
-
-export const useFeedStore = create<FeedState>()(
-  process.env.NODE_ENV === 'development' 
-    ? withPerformanceMonitoring(
-        persist(
-          (set, get, api) => ({
-      // Combine all slices
-      ...createFeedSlice(set, get, api),
-      ...createItemsSlice(set, get, api),
-      ...createReadStatusSlice(set, get, api),
-      ...createMetadataSlice(set, get, api),
-      ...createAudioSlice(set, get, api),
-
-      // Server state is now handled by React Query
-    }),
-    {
-      name: "digests-feed-store",
-      version: 2,
-      storage: createJSONStorage(() => localforage),
-      partialize: (state) => ({
-        feeds: state.feeds,
-        feedItems: state.feedItems,
-        initialized: state.initialized,
-        readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
-        activeFeed: state.activeFeed,
-        readLaterItems: Array.isArray(state.readLaterItems) ? state.readLaterItems : Array.from(state.readLaterItems || []),
-        // Audio state
-        volume: state.volume,
-        isMuted: state.isMuted,
-        isMinimized: state.isMinimized,
-      }),
-      onRehydrateStorage: () => (state) => {
-        if (state && typeof window !== 'undefined') {
-          try {
-            // Initialize readItems as Set
-            if (!state.readItems) {
-              state.readItems = new Set();
-            } else if (Array.isArray(state.readItems)) {
-              state.readItems = new Set(state.readItems);
-            } else {
-              console.warn('Invalid readItems format, resetting to empty Set');
-              state.readItems = new Set();
-            }
-            
-            // Initialize readLaterItems as Set
-            if (!state.readLaterItems) {
-              state.readLaterItems = new Set();
-            } else if (Array.isArray(state.readLaterItems)) {
-              state.readLaterItems = new Set(state.readLaterItems);
-            } else {
-              console.warn('Invalid readLaterItems format, resetting to empty Set');
-              state.readLaterItems = new Set();
-            }
-            
-            hydrated = true;
-            useFeedStore.getState().setHydrated(true);
-            
-            // Ensure the Set conversion actually worked
-            const store = useFeedStore.getState();
-            if (!(store.readItems instanceof Set)) {
-              console.warn('readItems is not a Set after rehydration, setting manually');
-              store.readItems = new Set(Array.isArray(state.readItems) ? state.readItems : []);
-            }
-            
-            if (!(store.readLaterItems instanceof Set)) {
-              console.warn('readLaterItems is not a Set after rehydration, setting manually');
-              store.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems : []);
-            }
-          } catch (error) {
-            console.error('Error during store rehydration:', error);
-            state.readItems = new Set();
-            state.readLaterItems = new Set();
-            useFeedStore.getState().readItems = new Set();
-            useFeedStore.getState().readLaterItems = new Set();
-          }
-        }
-      },
-    }
-  ),
-  'FeedStore'
-)
-: persist(
-    (set, get, api) => ({
-      // Combine all slices
-      ...createFeedSlice(set, get, api),
-      ...createItemsSlice(set, get, api),
-      ...createReadStatusSlice(set, get, api),
-      ...createMetadataSlice(set, get, api),
-      ...createAudioSlice(set, get, api),
-
-      // Server state is now handled by React Query
-    }),
-    {
-      name: "digests-feed-store",
-      version: 2,
-      storage: createJSONStorage(() => localforage),
-      partialize: (state) => ({
-        feeds: state.feeds,
-        feedItems: state.feedItems,
-        initialized: state.initialized,
-        readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
-        activeFeed: state.activeFeed,
-        readLaterItems: Array.isArray(state.readLaterItems) ? state.readLaterItems : Array.from(state.readLaterItems || []),
-        // Audio state
-        volume: state.volume,
-        isMuted: state.isMuted,
-        isMinimized: state.isMinimized,
-      }),
-      onRehydrateStorage: () => (state) => {
-        if (state && typeof window !== 'undefined') {
-          try {
-            // Initialize readItems as Set
-            if (!state.readItems) {
-              state.readItems = new Set();
-            } else if (Array.isArray(state.readItems)) {
-              state.readItems = new Set(state.readItems);
-            } else {
-              console.warn('Invalid readItems format, resetting to empty Set');
-              state.readItems = new Set();
-            }
-            
-            // Initialize readLaterItems as Set
-            if (!state.readLaterItems) {
-              state.readLaterItems = new Set();
-            } else if (Array.isArray(state.readLaterItems)) {
-              state.readLaterItems = new Set(state.readLaterItems);
-            } else {
-              console.warn('Invalid readLaterItems format, resetting to empty Set');
-              state.readLaterItems = new Set();
-            }
-            
-            hydrated = true;
-            useFeedStore.getState().setHydrated(true);
-            
-            // Ensure the Set conversion actually worked
-            const store = useFeedStore.getState();
-            if (!(store.readItems instanceof Set)) {
-              console.warn('readItems is not a Set after rehydration, setting manually');
-              store.readItems = new Set(Array.isArray(state.readItems) ? state.readItems : []);
-            }
-            
-            if (!(store.readLaterItems instanceof Set)) {
-              console.warn('readLaterItems is not a Set after rehydration, setting manually');
-              store.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems : []);
-            }
-          } catch (error) {
-            console.error('Error during store rehydration:', error);
-            state.readItems = new Set();
-            state.readLaterItems = new Set();
-            useFeedStore.getState().readItems = new Set();
-            useFeedStore.getState().readLaterItems = new Set();
-          }
-        }
-      },
-    }
-  )
-)
-
-// Helper function for using the store with hydration
-export const useHydratedStore = <T>(selector: (state: FeedState) => T): T => {
-  const [hydrationDone, setHydrationDone] = useState(false);
-  
-  useEffect(() => {
-    if (hydrated) {
-      setHydrationDone(true);
-    }
-  }, []);
-
-  const value = useFeedStore(selector);
-  
-  return hydrationDone ? value : (Array.isArray(value) ? [] as T : undefined as T);
+// Create store data that persists across calls
+let storeData: Partial<FeedStore> = {
+  feeds: [],
+  feedItems: [],
+  initialized: true,
+  hydrated: true,
+  isLoading: false,
+  error: null,
+  readItems: new Set<string>(),
+  activeFeed: null,
+  readLaterItems: new Set<string>(),
+  // Audio state
+  volume: 1,
+  isMuted: false,
+  isMinimized: false,
+  currentTrack: null,
+  isPlaying: false,
+  currentTime: 0,
+  duration: 0,
+  playlist: [],
+  playbackRate: 1,
+  currentAudio: null,
 };
+
+// Simple stub store for backward compatibility
+export const useFeedStore = (): FeedStore => {
+  const sortFeedItemsByDate = (items: FeedItem[]) => {
+    return items.sort((a, b) => {
+      const dateA = new Date(a.published || 0).getTime();
+      const dateB = new Date(b.published || 0).getTime();
+      return dateB - dateA; // Newest first
+    });
+  };
+
+  return {
+    // Core feed data
+    feeds: storeData.feeds || [],
+    feedItems: storeData.feedItems || [],
+    items: storeData.feedItems || [], // Alias for feedItems
+    setFeeds: (feeds: Feed[]) => {
+      storeData.feeds = feeds;
+      console.warn(
+        "Legacy Zustand feed store called - migrate to React Query hooks",
+      );
+    },
+    setFeedItems: (items: FeedItem[]) => {
+      storeData.feedItems = items;
+      console.warn(
+        "Legacy Zustand feed store called - migrate to React Query hooks",
+      );
+    },
+    removeFeedFromCache: (feedUrl: string) => {
+      storeData.feeds = (storeData.feeds || []).filter(
+        (f) => f.feedUrl !== feedUrl,
+      );
+      storeData.feedItems = (storeData.feedItems || []).filter(
+        (i) => i.feedUrl !== feedUrl,
+      );
+      console.warn(
+        "Legacy Zustand feed store called - migrate to React Query hooks",
+      );
+    },
+
+    // Store state management
+    setState: (partial: Partial<FeedStore>) => {
+      Object.assign(storeData, partial);
+    },
+    initialized: storeData.initialized || true,
+    hydrated: storeData.hydrated || true,
+    isLoading: storeData.isLoading || false,
+    error: storeData.error || null,
+    setHydrated: (hydrated: boolean) => {
+      storeData.hydrated = hydrated;
+    },
+    setInitialized: (initialized: boolean) => {
+      storeData.initialized = initialized;
+    },
+    setIsLoading: (loading: boolean) => {
+      storeData.isLoading = loading;
+    },
+    setError: (error: Error | null) => {
+      storeData.error = error;
+    },
+
+    // Feed management
+    activeFeed: storeData.activeFeed || null,
+    setActiveFeed: (feed: Feed | null) => {
+      storeData.activeFeed = feed;
+    },
+    sortFeedItemsByDate,
+
+    // Read status management
+    readItems: storeData.readItems || new Set<string>(),
+    readLaterItems: storeData.readLaterItems || new Set<string>(),
+    markAsRead: (itemId: string) => {
+      if (!storeData.readItems) storeData.readItems = new Set();
+      storeData.readItems.add(itemId);
+    },
+    markAllAsRead: (feedUrl?: string) => {
+      if (!storeData.readItems) storeData.readItems = new Set();
+      const items = feedUrl
+        ? (storeData.feedItems || []).filter((i) => i.feedUrl === feedUrl)
+        : storeData.feedItems || [];
+      items.forEach((item) => storeData.readItems!.add(item.id));
+    },
+    getUnreadItems: (feedUrl?: string) => {
+      const items = feedUrl
+        ? (storeData.feedItems || []).filter((i) => i.feedUrl === feedUrl)
+        : storeData.feedItems || [];
+      return items.filter((item) => !storeData.readItems?.has(item.id));
+    },
+    addToReadLater: (itemId: string) => {
+      if (!storeData.readLaterItems) storeData.readLaterItems = new Set();
+      storeData.readLaterItems.add(itemId);
+    },
+    removeFromReadLater: (itemId: string) => {
+      if (!storeData.readLaterItems) storeData.readLaterItems = new Set();
+      storeData.readLaterItems.delete(itemId);
+    },
+    isInReadLater: (itemId: string) => {
+      return storeData.readLaterItems?.has(itemId) || false;
+    },
+    getReadLaterItems: () => {
+      if (!storeData.readLaterItems) return [];
+      return (storeData.feedItems || []).filter((item) =>
+        storeData.readLaterItems!.has(item.id),
+      );
+    },
+
+    // Audio player state
+    currentAudio: storeData.currentAudio || null,
+    isPlaying: storeData.isPlaying || false,
+    currentTime: storeData.currentTime || 0,
+    duration: storeData.duration || 0,
+    volume: storeData.volume || 1,
+    isMuted: storeData.isMuted || false,
+    isMinimized: storeData.isMinimized || false,
+    currentTrack: storeData.currentTrack || null,
+    playlist: storeData.playlist || [],
+    playbackRate: storeData.playbackRate || 1,
+
+    // Audio player actions
+    togglePlayPause: () => {
+      storeData.isPlaying = !storeData.isPlaying;
+    },
+    seek: (time: number) => {
+      storeData.currentTime = time;
+    },
+    setVolume: (volume: number) => {
+      storeData.volume = volume;
+      storeData.isMuted = volume === 0;
+    },
+    toggleMute: () => {
+      storeData.isMuted = !storeData.isMuted;
+    },
+    setShowMiniPlayer: (show: boolean) => {
+      // This is handled by the audio player hook now
+    },
+    setIsMuted: (muted: boolean) => {
+      storeData.isMuted = muted;
+    },
+    setIsMinimized: (minimized: boolean) => {
+      storeData.isMinimized = minimized;
+    },
+    setCurrentTrack: (track: AudioInfo | null) => {
+      storeData.currentTrack = track;
+      storeData.currentAudio = track;
+    },
+    setIsPlaying: (playing: boolean) => {
+      storeData.isPlaying = playing;
+    },
+    setCurrentTime: (time: number) => {
+      storeData.currentTime = time;
+    },
+    setDuration: (duration: number) => {
+      storeData.duration = duration;
+    },
+    setPlaylist: (playlist: AudioInfo[]) => {
+      storeData.playlist = playlist;
+    },
+    setPlaybackRate: (rate: number) => {
+      storeData.playbackRate = rate;
+    },
+    play: () => {
+      storeData.isPlaying = true;
+    },
+    pause: () => {
+      storeData.isPlaying = false;
+    },
+    stop: () => {
+      storeData.isPlaying = false;
+      storeData.currentTime = 0;
+    },
+    next: () => {
+      // Implement playlist navigation if needed
+    },
+    previous: () => {
+      // Implement playlist navigation if needed
+    },
+    addToPlaylist: (track: AudioInfo) => {
+      if (!storeData.playlist) storeData.playlist = [];
+      storeData.playlist.push(track);
+    },
+    removeFromPlaylist: (trackId: string) => {
+      if (!storeData.playlist) storeData.playlist = [];
+      storeData.playlist = storeData.playlist.filter((t) => t.id !== trackId);
+    },
+  };
+};
+
+// Add getState method for compatibility
+const getStateMethod = () => {
+  const store = useFeedStore();
+  return store;
+};
+
+useFeedStore.getState = getStateMethod;

@@ -3,6 +3,7 @@
 The API service has been enhanced with robust retry logic, request cancellation, deduplication, circuit breaker pattern, and integrated security features. This guide explains how to use these new features with real-world examples from the Sprint 2 implementation.
 
 ## Table of Contents
+
 - [Basic Usage](#basic-usage)
 - [Security Integration](#security-integration)
 - [Type-Safe Responses](#type-safe-responses)
@@ -19,19 +20,19 @@ The API service has been enhanced with robust retry logic, request cancellation,
 The API service exposes a unified `request` method that handles all HTTP operations:
 
 ```typescript
-import { apiService } from '@/services/api-service';
+import { apiService } from "@/services/api-service";
 
 // Basic GET request
 const data = await apiService.request({
-  url: '/api/feeds',
-  method: 'GET'
+  url: "/api/feeds",
+  method: "GET",
 });
 
 // POST request with body
 const result = await apiService.request({
-  url: '/api/feeds',
-  method: 'POST',
-  body: { urls: ['https://example.com/feed.xml'] }
+  url: "/api/feeds",
+  method: "POST",
+  body: { urls: ["https://example.com/feed.xml"] },
 });
 ```
 
@@ -47,13 +48,13 @@ All API URLs are automatically validated to prevent security issues:
 // This will throw an error if the URL is invalid or uses a blocked protocol
 const data = await apiService.request({
   url: 'javascript:alert("XSS")', // Will be rejected
-  method: 'GET'
+  method: "GET",
 });
 
 // Valid URLs pass through normally
 const feeds = await apiService.request({
-  url: 'https://api.example.com/feeds',
-  method: 'GET'
+  url: "https://api.example.com/feeds",
+  method: "GET",
 });
 ```
 
@@ -63,10 +64,10 @@ The API service uses SHA-256 hashing for cache keys to prevent collisions:
 
 ```typescript
 // Long URLs are automatically hashed for safe caching
-const longUrl = 'https://api.example.com/feeds?' + 'x'.repeat(1000);
+const longUrl = "https://api.example.com/feeds?" + "x".repeat(1000);
 const data = await apiService.request({
   url: longUrl,
-  method: 'GET'
+  method: "GET",
 }); // Cache key will be a SHA-256 hash
 ```
 
@@ -75,19 +76,19 @@ const data = await apiService.request({
 When adding feeds, URLs are validated for security:
 
 ```typescript
-import { validateFeedUrls } from '@/utils/security';
+import { validateFeedUrls } from "@/utils/security";
 
 // Batch validation
 const urls = [
-  'https://example.com/feed.xml',
-  'http://localhost/feed', // Will be rejected
-  'https://192.168.1.1/feed', // Will be rejected
-  'javascript:void(0)' // Will be rejected
+  "https://example.com/feed.xml",
+  "http://localhost/feed", // Will be rejected
+  "https://192.168.1.1/feed", // Will be rejected
+  "javascript:void(0)", // Will be rejected
 ];
 
 const { valid, invalid } = validateFeedUrls(urls);
-console.log('Valid feeds:', valid); // Only ['https://example.com/feed.xml']
-console.log('Rejected:', invalid); // The rest
+console.log("Valid feeds:", valid); // Only ['https://example.com/feed.xml']
+console.log("Rejected:", invalid); // The rest
 ```
 
 ## Type-Safe Responses
@@ -97,58 +98,58 @@ The API service integrates with the type guard system for runtime validation:
 ### Basic Type Validation
 
 ```typescript
-import { isFeed, isApiResponse } from '@/utils/type-guards';
+import { isFeed, isApiResponse } from "@/utils/type-guards";
 
 // Type-safe feed fetching
 const response = await apiService.request({
-  url: '/api/feeds/123',
-  method: 'GET'
+  url: "/api/feeds/123",
+  method: "GET",
 });
 
 // Validate response structure
 if (isApiResponse(response, isFeed)) {
   // response.data is now typed as Feed
-  console.log('Feed title:', response.data.feedTitle);
+  console.log("Feed title:", response.data.feedTitle);
 } else {
-  throw new Error('Invalid response format');
+  throw new Error("Invalid response format");
 }
 ```
 
 ### Safe Parsing Pattern
 
 ```typescript
-import { safeParse, isFeedItem } from '@/utils/type-guards';
+import { safeParse, isFeedItem } from "@/utils/type-guards";
 
 // Handle potentially invalid data safely
 const response = await apiService.request({
-  url: '/api/feed-items',
-  method: 'GET'
+  url: "/api/feed-items",
+  method: "GET",
 });
 
-const result = safeParse(response.data, isFeedItem, 'FeedItem');
+const result = safeParse(response.data, isFeedItem, "FeedItem");
 if (result.success) {
   // result.data is typed as FeedItem
   processFeedItem(result.data);
 } else {
   // Handle validation error gracefully
-  console.error('Validation failed:', result.error.message);
+  console.error("Validation failed:", result.error.message);
 }
 ```
 
 ### Array Validation
 
 ```typescript
-import { isArrayOf, isFeed } from '@/utils/type-guards';
+import { isArrayOf, isFeed } from "@/utils/type-guards";
 
 // Validate array responses
 const response = await apiService.request({
-  url: '/api/feeds',
-  method: 'GET'
+  url: "/api/feeds",
+  method: "GET",
 });
 
 if (isArrayOf(response.data, isFeed)) {
   // response.data is typed as Feed[]
-  response.data.forEach(feed => {
+  response.data.forEach((feed) => {
     console.log(feed.feedTitle);
   });
 }
@@ -163,8 +164,8 @@ By default, requests will retry 3 times with exponential backoff:
 ```typescript
 // Uses default retry config
 const data = await apiService.request({
-  url: '/api/feeds',
-  method: 'GET'
+  url: "/api/feeds",
+  method: "GET",
 }); // Will retry up to 3 times on failure
 ```
 
@@ -172,15 +173,15 @@ const data = await apiService.request({
 
 ```typescript
 const data = await apiService.request({
-  url: '/api/feeds',
-  method: 'GET',
+  url: "/api/feeds",
+  method: "GET",
   retry: {
-    attempts: 5,              // Number of retry attempts
-    backoff: 'exponential',   // 'exponential' or 'linear'
-    maxDelay: 60000,         // Maximum delay between retries (60s)
-    initialDelay: 500,       // Initial delay (500ms)
-    factor: 2                // Exponential factor (delay doubles each time)
-  }
+    attempts: 5, // Number of retry attempts
+    backoff: "exponential", // 'exponential' or 'linear'
+    maxDelay: 60000, // Maximum delay between retries (60s)
+    initialDelay: 500, // Initial delay (500ms)
+    factor: 2, // Exponential factor (delay doubles each time)
+  },
 });
 ```
 
@@ -190,14 +191,14 @@ For consistent delays between retries:
 
 ```typescript
 const data = await apiService.request({
-  url: '/api/feeds',
-  method: 'GET',
+  url: "/api/feeds",
+  method: "GET",
   retry: {
     attempts: 3,
-    backoff: 'linear',
+    backoff: "linear",
     maxDelay: 10000,
-    initialDelay: 1000  // Will wait 1s between each retry
-  }
+    initialDelay: 1000, // Will wait 1s between each retry
+  },
 });
 ```
 
@@ -207,17 +208,17 @@ Control which errors trigger retries:
 
 ```typescript
 const data = await apiService.request({
-  url: '/api/feeds',
-  method: 'GET',
+  url: "/api/feeds",
+  method: "GET",
   retry: {
     attempts: 3,
-    backoff: 'exponential',
+    backoff: "exponential",
     maxDelay: 30000,
     retryCondition: (error) => {
       // Only retry on specific status codes
       return error.status === 503 || error.status === 502;
-    }
-  }
+    },
+  },
 });
 ```
 
@@ -230,9 +231,9 @@ const controller = new AbortController();
 
 // Start request
 const requestPromise = apiService.request({
-  url: '/api/feeds',
-  method: 'GET',
-  signal: controller.signal
+  url: "/api/feeds",
+  method: "GET",
+  signal: controller.signal,
 });
 
 // Cancel after 5 seconds
@@ -241,8 +242,8 @@ setTimeout(() => controller.abort(), 5000);
 try {
   const data = await requestPromise;
 } catch (error) {
-  if (error.code === 'ABORTED') {
-    console.log('Request was cancelled');
+  if (error.code === "ABORTED") {
+    console.log("Request was cancelled");
   }
 }
 ```
@@ -252,13 +253,13 @@ try {
 ```typescript
 // Start request with custom ID
 const requestPromise = apiService.request({
-  url: '/api/feeds',
-  method: 'GET',
-  requestId: 'fetch-feeds-123'
+  url: "/api/feeds",
+  method: "GET",
+  requestId: "fetch-feeds-123",
 });
 
 // Cancel by ID from anywhere
-apiService.cancel('fetch-feeds-123');
+apiService.cancel("fetch-feeds-123");
 ```
 
 ### Cancel All Requests
@@ -275,25 +276,29 @@ Identical concurrent requests are automatically deduplicated:
 ```typescript
 // These three requests will result in only one API call
 const promise1 = apiService.request({
-  url: '/api/feeds',
-  method: 'POST',
-  body: { urls: ['https://example.com'] }
+  url: "/api/feeds",
+  method: "POST",
+  body: { urls: ["https://example.com"] },
 });
 
 const promise2 = apiService.request({
-  url: '/api/feeds',
-  method: 'POST',
-  body: { urls: ['https://example.com'] }
+  url: "/api/feeds",
+  method: "POST",
+  body: { urls: ["https://example.com"] },
 });
 
 const promise3 = apiService.request({
-  url: '/api/feeds',
-  method: 'POST',
-  body: { urls: ['https://example.com'] }
+  url: "/api/feeds",
+  method: "POST",
+  body: { urls: ["https://example.com"] },
 });
 
 // All promises resolve with the same result
-const [result1, result2, result3] = await Promise.all([promise1, promise2, promise3]);
+const [result1, result2, result3] = await Promise.all([
+  promise1,
+  promise2,
+  promise3,
+]);
 ```
 
 ## Circuit Breaker
@@ -309,6 +314,7 @@ The circuit breaker automatically opens after repeated failures to prevent casca
 ### Configuration
 
 The circuit breaker uses these defaults:
+
 - Failure threshold: 5 consecutive failures
 - Reset timeout: 60 seconds
 - Tracks failures per endpoint
@@ -319,7 +325,7 @@ The circuit breaker uses these defaults:
 // After 5 failures to /api/feeds, the circuit opens
 for (let i = 0; i < 5; i++) {
   try {
-    await apiService.request({ url: '/api/feeds', method: 'GET' });
+    await apiService.request({ url: "/api/feeds", method: "GET" });
   } catch (error) {
     console.log(`Attempt ${i + 1} failed`);
   }
@@ -327,10 +333,10 @@ for (let i = 0; i < 5; i++) {
 
 // 6th request fails immediately with CIRCUIT_BREAKER_OPEN
 try {
-  await apiService.request({ url: '/api/feeds', method: 'GET' });
+  await apiService.request({ url: "/api/feeds", method: "GET" });
 } catch (error) {
-  if (error.code === 'CIRCUIT_BREAKER_OPEN') {
-    console.log('Circuit breaker is open');
+  if (error.code === "CIRCUIT_BREAKER_OPEN") {
+    console.log("Circuit breaker is open");
   }
 }
 
@@ -346,11 +352,11 @@ All errors include enhanced information:
 
 ```typescript
 interface ApiError {
-  code: string;           // Error code (e.g., 'NETWORK_ERROR', 'TIMEOUT')
-  message: string;        // Human-readable message
-  status?: number;        // HTTP status code if applicable
-  attempts?: number;      // Number of attempts made
-  originalError?: Error;  // Original error if wrapped
+  code: string; // Error code (e.g., 'NETWORK_ERROR', 'TIMEOUT')
+  message: string; // Human-readable message
+  status?: number; // HTTP status code if applicable
+  attempts?: number; // Number of attempts made
+  originalError?: Error; // Original error if wrapped
 }
 ```
 
@@ -368,24 +374,24 @@ interface ApiError {
 ```typescript
 try {
   const data = await apiService.request({
-    url: '/api/feeds',
-    method: 'GET',
-    timeout: 5000
+    url: "/api/feeds",
+    method: "GET",
+    timeout: 5000,
   });
 } catch (error) {
   if (isApiError(error)) {
     switch (error.code) {
-      case 'TIMEOUT':
-        console.log('Request timed out after', error.attempts, 'attempts');
+      case "TIMEOUT":
+        console.log("Request timed out after", error.attempts, "attempts");
         break;
-      case 'NETWORK_ERROR':
-        console.log('Network error:', error.message);
+      case "NETWORK_ERROR":
+        console.log("Network error:", error.message);
         break;
-      case 'HTTP_ERROR':
-        console.log('HTTP error:', error.status);
+      case "HTTP_ERROR":
+        console.log("HTTP error:", error.status);
         break;
-      case 'CIRCUIT_BREAKER_OPEN':
-        console.log('Service temporarily unavailable');
+      case "CIRCUIT_BREAKER_OPEN":
+        console.log("Service temporarily unavailable");
         break;
     }
   }
@@ -397,21 +403,23 @@ try {
 ### From Direct fetch() Calls
 
 Before:
+
 ```typescript
-const response = await fetch('/api/feeds', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ urls })
+const response = await fetch("/api/feeds", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ urls }),
 });
 const data = await response.json();
 ```
 
 After:
+
 ```typescript
 const data = await apiService.request({
-  url: '/api/feeds',
-  method: 'POST',
-  body: { urls }
+  url: "/api/feeds",
+  method: "POST",
+  body: { urls },
 });
 ```
 
@@ -422,8 +430,10 @@ The existing helper methods still work and now benefit from retry logic:
 ```typescript
 // These methods now use the enhanced request method internally
 const feeds = await apiService.feeds.getAll();
-const feedItems = await apiService.feeds.refresh('feed-id');
-const readerView = await apiService.fetchReaderView('https://example.com/article');
+const feedItems = await apiService.feeds.refresh("feed-id");
+const readerView = await apiService.fetchReaderView(
+  "https://example.com/article",
+);
 ```
 
 ### Adding Timeout
@@ -431,33 +441,36 @@ const readerView = await apiService.fetchReaderView('https://example.com/article
 ```typescript
 // Add timeout to any request
 const data = await apiService.request({
-  url: '/api/feeds',
-  method: 'GET',
-  timeout: 10000  // 10 second timeout
+  url: "/api/feeds",
+  method: "GET",
+  timeout: 10000, // 10 second timeout
 });
 ```
 
 ### Handling Component Unmount
 
 ```typescript
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 function MyComponent() {
   useEffect(() => {
     const controller = new AbortController();
-    
-    apiService.request({
-      url: '/api/feeds',
-      method: 'GET',
-      signal: controller.signal
-    }).then(data => {
-      // Handle data
-    }).catch(error => {
-      if (error.code !== 'ABORTED') {
-        // Handle real errors
-      }
-    });
-    
+
+    apiService
+      .request({
+        url: "/api/feeds",
+        method: "GET",
+        signal: controller.signal,
+      })
+      .then((data) => {
+        // Handle data
+      })
+      .catch((error) => {
+        if (error.code !== "ABORTED") {
+          // Handle real errors
+        }
+      });
+
     // Cleanup: cancel request on unmount
     return () => controller.abort();
   }, []);
@@ -484,18 +497,18 @@ function MyComponent() {
 All methods are fully typed with TypeScript:
 
 ```typescript
-import type { RequestConfig, ApiError } from '@/types';
+import type { RequestConfig, ApiError } from "@/types";
 
 // Type-safe request configuration
 const config: RequestConfig = {
-  url: '/api/feeds',
-  method: 'POST',
-  body: { urls: ['https://example.com'] },
+  url: "/api/feeds",
+  method: "POST",
+  body: { urls: ["https://example.com"] },
   retry: {
     attempts: 5,
-    backoff: 'exponential',
-    maxDelay: 60000
-  }
+    backoff: "exponential",
+    maxDelay: 60000,
+  },
 };
 
 // Type-safe error handling

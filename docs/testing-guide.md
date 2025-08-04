@@ -65,16 +65,16 @@ describe('MyComponent', () => {
   it('renders correctly', async () => {
     const user = createUser();
     const mockData = createMockFeedItems(3);
-    
+
     render(<MyComponent items={mockData} />);
-    
+
     // Assert content is rendered
     expect(screen.getByText('Expected Text')).toBeInTheDocument();
-    
+
     // Simulate user interaction
     const button = screen.getByRole('button');
     await user.click(button);
-    
+
     // Assert behavior
     expect(screen.getByText('Updated Text')).toBeInTheDocument();
   });
@@ -91,9 +91,9 @@ describe('API Integration', () => {
   it('handles API errors gracefully', async () => {
     // Mock API response
     mockFetch({}, { ok: false, status: 500 });
-    
+
     render(<MyFeature />);
-    
+
     await waitFor(() => {
       expect(screen.getByRole('alert')).toHaveTextContent('Error message');
     });
@@ -108,7 +108,7 @@ describe('API Integration', () => {
 The custom render function includes all necessary providers:
 
 ```typescript
-import { render } from '@/test-utils/render';
+import { render } from "@/test-utils/render";
 
 // Automatically wraps component with:
 // - QueryClientProvider
@@ -127,14 +127,14 @@ import {
   createMockArticle,
   createMockFeeds,
   createMockFeedItems,
-} from '@/test-utils/factories';
+} from "@/test-utils/factories";
 
 // Single item
-const feed = createMockFeed({ title: 'Custom Title' });
+const feed = createMockFeed({ title: "Custom Title" });
 
 // Multiple items
 const feeds = createMockFeeds(5);
-const items = createMockFeedItems(10, 'feed-id');
+const items = createMockFeedItems(10, "feed-id");
 ```
 
 ### Test Helpers
@@ -143,12 +143,12 @@ Common helper functions:
 
 ```typescript
 import {
-  createUser,              // Create user event instance
-  waitForLoadingToFinish,  // Wait for loading states
-  mockLocalStorage,        // Mock localStorage
-  mockFetch,              // Mock fetch responses
-  checkAccessibility,     // Basic a11y checks
-} from '@/test-utils/helpers';
+  createUser, // Create user event instance
+  waitForLoadingToFinish, // Wait for loading states
+  mockLocalStorage, // Mock localStorage
+  mockFetch, // Mock fetch responses
+  checkAccessibility, // Basic a11y checks
+} from "@/test-utils/helpers";
 ```
 
 ## Mock Service Worker (MSW)
@@ -156,16 +156,18 @@ import {
 MSW is set up but currently commented out. To enable:
 
 1. Uncomment the import in `jest.setup.ts`:
+
    ```typescript
-   import './test-utils/msw/server';
+   import "./test-utils/msw/server";
    ```
 
 2. Use in tests:
+
    ```typescript
-   import { server } from '@/test-utils/msw/server';
-   import { errorHandlers } from '@/test-utils/msw/handlers';
-   
-   it('handles errors', () => {
+   import { server } from "@/test-utils/msw/server";
+   import { errorHandlers } from "@/test-utils/msw/handlers";
+
+   it("handles errors", () => {
      server.use(errorHandlers.feeds);
      // ... test error handling
    });
@@ -197,7 +199,7 @@ it('shows loading state', () => {
 it('displays error message', async () => {
   mockFetch({}, { ok: false });
   render(<Component />);
-  
+
   await waitFor(() => {
     expect(screen.getByRole('alert')).toHaveTextContent('Error');
   });
@@ -210,12 +212,12 @@ it('displays error message', async () => {
 it('submits form data', async () => {
   const user = createUser();
   const onSubmit = jest.fn();
-  
+
   render(<Form onSubmit={onSubmit} />);
-  
+
   await user.type(screen.getByLabelText('Name'), 'John Doe');
   await user.click(screen.getByRole('button', { name: 'Submit' }));
-  
+
   expect(onSubmit).toHaveBeenCalledWith({ name: 'John Doe' });
 });
 ```
@@ -236,6 +238,7 @@ pnpm test:coverage
 ```
 
 Coverage goals:
+
 - Statements: 80%
 - Branches: 75%
 - Functions: 80%

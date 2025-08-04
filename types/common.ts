@@ -7,29 +7,29 @@
  * @template T The type of data returned in the response
  */
 export interface ApiResponse<T> {
-  success: boolean
-  data?: T
-  message?: string
-  error?: ApiError
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: ApiError;
 }
 
 /**
  * Standard API error structure
  */
 export interface ApiError {
-  code: string
-  message: string
-  details?: unknown
-  statusCode?: number
+  code: string;
+  message: string;
+  details?: unknown;
+  statusCode?: number;
 }
 
 /**
  * Pagination parameters
  */
 export interface PaginationParams {
-  page: number
-  limit: number
-  total?: number
+  page: number;
+  limit: number;
+  total?: number;
 }
 
 /**
@@ -37,13 +37,13 @@ export interface PaginationParams {
  * @template T The type of items in the paginated response
  */
 export interface PaginatedResponse<T> {
-  items: T[]
+  items: T[];
   pagination: {
-    page: number
-    limit: number
-    total: number
-    totalPages: number
-    hasNext: boolean
-    hasPrevious: boolean
-  }
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrevious: boolean;
+  };
 }

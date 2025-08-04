@@ -8,54 +8,57 @@ export const IMAGE_SIZES = {
   thumbnail: {
     width: 400,
     height: undefined, // Let height be auto
-    sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+    sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px",
   },
-  
+
   // Hero size for detail views
   hero: {
     width: 550,
     height: undefined, // Let height be auto
-    sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 550px"
+    sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 550px",
   },
-  
+
   // For small icons/favicons
   icon: {
     width: 48,
     height: 48,
-    sizes: "48px"
-  }
-} as const
+    sizes: "48px",
+  },
+} as const;
 
 // Shared loading strategy
 export const IMAGE_LOADING = {
   // For images visible on initial load
   eager: {
     loading: "eager" as const,
-    priority: true
+    priority: true,
   },
-  
+
   // For images below the fold
   lazy: {
     loading: "lazy" as const,
-    priority: false
-  }
-} as const
+    priority: false,
+  },
+} as const;
 
 // Helper to get consistent image props
-export function getImageProps(type: keyof typeof IMAGE_SIZES, loading: keyof typeof IMAGE_LOADING = "lazy") {
-  const size = IMAGE_SIZES[type]
-  const loadingStrategy = IMAGE_LOADING[loading]
-  
+export function getImageProps(
+  type: keyof typeof IMAGE_SIZES,
+  loading: keyof typeof IMAGE_LOADING = "lazy",
+) {
+  const size = IMAGE_SIZES[type];
+  const loadingStrategy = IMAGE_LOADING[loading];
+
   // Build props object, only including height if defined
   const props: any = {
     width: size.width,
     sizes: size.sizes,
-    ...loadingStrategy
-  }
-  
+    ...loadingStrategy,
+  };
+
   if (size.height !== undefined) {
-    props.height = size.height
+    props.height = size.height;
   }
-  
-  return props
+
+  return props;
 }

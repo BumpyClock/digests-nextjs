@@ -12,14 +12,15 @@ Sentry.init({
   debug: false,
 
   // Environment
-  environment: process.env.NEXT_PUBLIC_ENV || process.env.NODE_ENV || "development",
+  environment:
+    process.env.NEXT_PUBLIC_ENV || process.env.NODE_ENV || "development",
 
   // Filter edge function errors
   beforeSend(event) {
     // Add edge-specific context
     if (event.contexts) {
       event.contexts.runtime = {
-        name: 'edge',
+        name: "edge",
         version: process.env.EDGE_RUNTIME_VERSION,
       };
     }

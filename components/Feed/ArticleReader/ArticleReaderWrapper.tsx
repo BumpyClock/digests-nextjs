@@ -11,8 +11,18 @@ interface ArticleReaderProps {
   onFetchComplete?: (content: any) => void;
 }
 
-export function ArticleReader({ item, initialContent, onFetchComplete }: ArticleReaderProps) {
-  const { readerView, loading, cleanedContent, cleanedMarkdown, extractedAuthor } = useReaderView(item);
+export function ArticleReader({
+  item,
+  initialContent,
+  onFetchComplete,
+}: ArticleReaderProps) {
+  const {
+    readerView,
+    loading,
+    cleanedContent,
+    cleanedMarkdown,
+    extractedAuthor,
+  } = useReaderView(item);
 
   React.useEffect(() => {
     if (readerView && onFetchComplete) {
@@ -33,11 +43,15 @@ export function ArticleReader({ item, initialContent, onFetchComplete }: Article
   return (
     <ReaderContent
       feedItem={item}
-      readerView={initialContent && readerView ? { 
-        ...readerView,
-        title: initialContent.title || readerView.title,
-        content: initialContent.content || readerView.content,
-      } : readerView}
+      readerView={
+        initialContent && readerView
+          ? {
+              ...readerView,
+              title: initialContent.title || readerView.title,
+              content: initialContent.content || readerView.content,
+            }
+          : readerView
+      }
       loading={loading}
       cleanedContent={initialContent?.content || cleanedContent}
       cleanedMarkdown={cleanedMarkdown}

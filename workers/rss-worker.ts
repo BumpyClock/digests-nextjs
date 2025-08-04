@@ -1,7 +1,7 @@
 // workers/rss-worker.ts
-import type { Feed, FeedItem, ReaderViewResponse } from '../types';
-import { DEFAULT_API_CONFIG } from '../lib/config';
-import { Logger } from '@/utils/logger';
+import type { Feed, FeedItem, ReaderViewResponse } from "../types";
+import { DEFAULT_API_CONFIG } from "../lib/config";
+import { Logger } from "@/utils/logger";
 
 // Default cache TTL from environment (fallback to 30 minutes)
 const DEFAULT_CACHE_TTL = (() => {
@@ -11,17 +11,31 @@ const DEFAULT_CACHE_TTL = (() => {
 
 // Message types to organize communication
 type WorkerMessage =
-  | { type: 'FETCH_FEEDS'; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: 'FETCH_READER_VIEW'; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: 'REFRESH_FEEDS'; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: 'CHECK_UPDATES'; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: 'SET_API_URL'; payload: { url: string } }
-  | { type: 'SET_CACHE_TTL'; payload: { ttl: number } };
+  | { type: "FETCH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string } }
+  | {
+      type: "FETCH_READER_VIEW";
+      payload: { urls: string[]; apiBaseUrl?: string };
+    }
+  | { type: "REFRESH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: "CHECK_UPDATES"; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: "SET_API_URL"; payload: { url: string } }
+  | { type: "SET_CACHE_TTL"; payload: { ttl: number } };
 
-type WorkerResponse = 
-  | { type: 'FEEDS_RESULT'; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
-  | { type: 'READER_VIEW_RESULT'; success: boolean; data: ReaderViewResponse[]; message?: string }
-  | { type: 'ERROR'; message: string };
+type WorkerResponse =
+  | {
+      type: "FEEDS_RESULT";
+      success: boolean;
+      feeds: Feed[];
+      items: FeedItem[];
+      message?: string;
+    }
+  | {
+      type: "READER_VIEW_RESULT";
+      success: boolean;
+      data: ReaderViewResponse[];
+      message?: string;
+    }
+  | { type: "ERROR"; message: string };
 
 // Cache implementation for the worker
 class WorkerCache {
@@ -43,17 +57,16 @@ class WorkerCache {
   get<T>(key: string): T | null {
     const item = this.cache.get(key);
     if (!item) return null;
-    
+
     // Check if cache is still valid
     if (Date.now() - item.timestamp > this.ttl) {
       Logger.debug(`[Worker] Cache expired for key: ${key}`);
       this.cache.delete(key);
       return null;
-    }
-    else {
+    } else {
       Logger.debug(`[Worker] Cache hit for key: ${key}`);
     }
-    
+
     return item.data as T;
   }
 
@@ -75,21 +88,26 @@ let apiBaseUrl = DEFAULT_API_CONFIG.baseUrl;
  *
  * @throws {Error} If the API response is invalid or the HTTP request fails.
  */
-async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
+async function fetchFeeds(
+  urls: string[],
+  customApiUrl?: string,
+): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
   const currentApiUrl = customApiUrl || apiBaseUrl;
   try {
     // Generate cache key
-    const cacheKey = `feeds:${urls.sort().join(',')}`;
-    
+    const cacheKey = `feeds:${urls.sort().join(",")}`;
+
     // Check cache first
-    const cached = workerCache.get<{ feeds: Feed[]; items: FeedItem[] }>(cacheKey);
+    const cached = workerCache.get<{ feeds: Feed[]; items: FeedItem[] }>(
+      cacheKey,
+    );
     if (cached) {
-      Logger.debug('[Worker] Using cached feeds');
+      Logger.debug("[Worker] Using cached feeds");
       return cached;
     }
 
     Logger.debug(`[Worker] Fetching feeds for URLs: ${urls.length}`);
-    
+
     const response = await fetch(`${currentApiUrl}/parse`, {
       method: "POST",
       headers: {
@@ -108,52 +126,92 @@ async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feed
       throw new Error("Invalid response from API");
     }
 
-    const feeds: Feed[] = data.feeds.map((feed: Feed) => ({
-      type: feed.type,
-      guid: feed.guid,
-      status: feed.status,
-      siteTitle: feed.siteTitle,
-      feedTitle: feed.feedTitle,
-      feedUrl: feed.feedUrl,
-      description: feed.description,
-      link: feed.link,
-      lastUpdated: feed.lastUpdated,
-      lastRefreshed: feed.lastRefreshed,
-      published: feed.published,
-      author: feed.author,
-      language: feed.language,
-      favicon: feed.favicon,
-      categories: feed.categories,
-      items: Array.isArray(feed.items) ? feed.items.map((item: FeedItem) => ({
-        type: item.type,
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        link: item.link,
-        author: item.author,
-        published: item.published,
-        content: item.content,
-        created: item.created,
-        content_encoded: item.content_encoded,
-        categories: item.categories,
-        enclosures: item.enclosures,
-        thumbnail: item.thumbnail,
-        thumbnailColor: item.thumbnailColor,
-        thumbnailColorComputed: item.thumbnailColorComputed,
-        siteTitle: feed.siteTitle,
-        feedTitle: feed.feedTitle,
-        feedUrl: feed.feedUrl,
-        favicon: feed.favicon,
-        favorite: false,
-      })) : [],
-    }));
+    // Transform API response to internal format
+    const feeds: Feed[] = data.feeds.map((apiFeed: any) => {
+      // Extract site info from URL
+      const extractSiteName = (url: string) => {
+        try {
+          return new URL(url).hostname.replace("www.", "");
+        } catch {
+          return "Unknown Site";
+        }
+      };
 
-    const items: FeedItem[] = feeds.flatMap(feed => feed.items || []);
-    
+      // Transform author object to string
+      const transformAuthor = (author: any) => {
+        if (!author) return null;
+        if (typeof author === "string") return author;
+        return author.name || author.email || null;
+      };
+
+      // Transform categories
+      const transformCategories = (categories: any) => {
+        if (Array.isArray(categories)) return categories;
+        if (typeof categories === "string") {
+          return categories.includes(",")
+            ? categories.split(",").map((c) => c.trim())
+            : [categories];
+        }
+        return [];
+      };
+
+      const siteName = extractSiteName(apiFeed.feedUrl);
+
+      return {
+        type: "feed",
+        guid: apiFeed.id || `feed-${Date.now()}`, // API uses 'id', we use 'guid'
+        status: "active",
+        siteTitle: siteName,
+        siteName: siteName,
+        feedTitle: apiFeed.description || siteName,
+        feedUrl: apiFeed.feedUrl,
+        description: apiFeed.description || "",
+        link: apiFeed.feedUrl,
+        lastUpdated: new Date().toISOString(),
+        lastRefreshed: new Date().toISOString(),
+        published: new Date().toISOString(),
+        author: transformAuthor(apiFeed.author),
+        language: "en", // Default language
+        favicon: apiFeed.favicon || "",
+        categories: transformCategories(apiFeed.categories),
+        items: Array.isArray(apiFeed.items)
+          ? apiFeed.items.map((apiItem: any) => ({
+              type: "article",
+              id: apiItem.id,
+              title: apiItem.title || apiItem.description || "Untitled",
+              description: apiItem.description || "",
+              link: apiItem.link || apiItem.id,
+              author: apiItem.author || "",
+              published: apiItem.created || new Date().toISOString(),
+              content: apiItem.content || "",
+              created: apiItem.created || new Date().toISOString(),
+              content_encoded: apiItem.content_encoded || "",
+              categories: Array.isArray(apiItem.categories)
+                ? apiItem.categories
+                : [],
+              enclosures: Array.isArray(apiItem.enclosures)
+                ? apiItem.enclosures
+                : [],
+              thumbnail: apiItem.thumbnail || "",
+              thumbnailColor: apiItem.thumbnailColor || "#ffffff",
+              thumbnailColorComputed: apiItem.thumbnailColorComputed || false,
+              siteTitle: siteName,
+              siteName: siteName,
+              feedTitle: apiFeed.description || siteName,
+              feedUrl: apiFeed.feedUrl,
+              favicon: apiFeed.favicon || "",
+              favorite: false,
+            }))
+          : [],
+      };
+    });
+
+    const items: FeedItem[] = feeds.flatMap((feed) => feed.items || []);
+
     // Cache the result
     const result = { feeds, items };
     workerCache.set(cacheKey, result);
-    
+
     return result;
   } catch (error) {
     console.error("[Worker] Error fetching feeds:", error);
@@ -170,21 +228,24 @@ async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feed
  *
  * @throws {Error} If the API response is not successful or returns invalid data.
  */
-async function fetchReaderView(urls: string[], customApiUrl?: string): Promise<ReaderViewResponse[]> {
+async function fetchReaderView(
+  urls: string[],
+  customApiUrl?: string,
+): Promise<ReaderViewResponse[]> {
   const currentApiUrl = customApiUrl || apiBaseUrl;
   try {
     // Generate cache key
     const cacheKey = `reader:${urls[0]}`;
-    
+
     // Check cache first
     const cached = workerCache.get<ReaderViewResponse[]>(cacheKey);
     if (cached) {
-      Logger.debug('[Worker] Using cached reader view');
+      Logger.debug("[Worker] Using cached reader view");
       return cached;
     }
 
     Logger.debug("[Worker] Fetching reader view for URLs:", urls);
-    
+
     const response = await fetch(`${currentApiUrl}/getreaderview`, {
       method: "POST",
       headers: {
@@ -202,10 +263,10 @@ async function fetchReaderView(urls: string[], customApiUrl?: string): Promise<R
     if (!Array.isArray(data)) {
       throw new Error("Invalid response from API");
     }
-    
+
     // Cache the result
     workerCache.set(cacheKey, data);
-    
+
     return data as ReaderViewResponse[];
   } catch (error) {
     console.error("[Worker] Error fetching reader view:", error);
@@ -214,12 +275,12 @@ async function fetchReaderView(urls: string[], customApiUrl?: string): Promise<R
 }
 
 // Message handler
-self.addEventListener('message', async (event) => {
+self.addEventListener("message", async (event) => {
   const message = event.data as WorkerMessage;
-  
+
   try {
     switch (message.type) {
-      case 'SET_API_URL': {
+      case "SET_API_URL": {
         const { url } = message.payload;
         apiBaseUrl = url;
         Logger.debug(`[Worker] API URL set to ${apiBaseUrl}`);
@@ -228,7 +289,7 @@ self.addEventListener('message', async (event) => {
         break;
       }
 
-      case 'SET_CACHE_TTL': {
+      case "SET_CACHE_TTL": {
         const { ttl } = message.payload;
         workerCache.setTTL(ttl);
         Logger.debug(`[Worker] Cache TTL set to ${ttl}ms`);
@@ -236,72 +297,79 @@ self.addEventListener('message', async (event) => {
         workerCache.clear();
         break;
       }
-        
-      case 'FETCH_FEEDS': {
+
+      case "FETCH_FEEDS": {
         const { urls, apiBaseUrl: customApiUrl } = message.payload;
         try {
           const { feeds, items } = await fetchFeeds(urls, customApiUrl);
           self.postMessage({
-            type: 'FEEDS_RESULT',
+            type: "FEEDS_RESULT",
             success: true,
             feeds,
             items,
           } as WorkerResponse);
         } catch (error) {
           self.postMessage({
-            type: 'FEEDS_RESULT',
+            type: "FEEDS_RESULT",
             success: false,
             feeds: [],
             items: [],
-            message: error instanceof Error ? error.message : 'Failed to fetch feeds'
+            message:
+              error instanceof Error ? error.message : "Failed to fetch feeds",
           } as WorkerResponse);
         }
         break;
       }
-      
-      case 'REFRESH_FEEDS': {
+
+      case "REFRESH_FEEDS": {
         const { urls, apiBaseUrl: customApiUrl } = message.payload;
         try {
           const { feeds, items } = await fetchFeeds(urls, customApiUrl);
           self.postMessage({
-            type: 'FEEDS_RESULT',
+            type: "FEEDS_RESULT",
             success: true,
             feeds,
             items,
           } as WorkerResponse);
         } catch (error) {
           self.postMessage({
-            type: 'FEEDS_RESULT',
+            type: "FEEDS_RESULT",
             success: false,
             feeds: [],
             items: [],
-            message: error instanceof Error ? error.message : 'Failed to refresh feeds'
+            message:
+              error instanceof Error
+                ? error.message
+                : "Failed to refresh feeds",
           } as WorkerResponse);
         }
         break;
       }
-      
-      case 'FETCH_READER_VIEW': {
+
+      case "FETCH_READER_VIEW": {
         const { urls, apiBaseUrl: customApiUrl } = message.payload;
         try {
           const data = await fetchReaderView(urls, customApiUrl);
           self.postMessage({
-            type: 'READER_VIEW_RESULT',
+            type: "READER_VIEW_RESULT",
             success: true,
             data,
           } as WorkerResponse);
         } catch (error) {
           self.postMessage({
-            type: 'READER_VIEW_RESULT',
+            type: "READER_VIEW_RESULT",
             success: false,
             data: [],
-            message: error instanceof Error ? error.message : 'Failed to fetch reader view'
+            message:
+              error instanceof Error
+                ? error.message
+                : "Failed to fetch reader view",
           } as WorkerResponse);
         }
         break;
       }
-      
-      case 'CHECK_UPDATES': {
+
+      case "CHECK_UPDATES": {
         const { urls, apiBaseUrl: customApiUrl } = message.payload;
         try {
           Logger.debug("[Worker] Checking for updates");
@@ -309,7 +377,7 @@ self.addEventListener('message', async (event) => {
           workerCache.clear();
           const { feeds, items } = await fetchFeeds(urls, customApiUrl);
           self.postMessage({
-            type: 'FEEDS_RESULT',
+            type: "FEEDS_RESULT",
             success: true,
             feeds,
             items,
@@ -317,37 +385,41 @@ self.addEventListener('message', async (event) => {
         } catch (error) {
           console.error("[Worker] Error checking for updates:", error);
           self.postMessage({
-            type: 'FEEDS_RESULT',
+            type: "FEEDS_RESULT",
             success: false,
             feeds: [],
             items: [],
-            message: error instanceof Error ? error.message : 'Failed to check for updates'
+            message:
+              error instanceof Error
+                ? error.message
+                : "Failed to check for updates",
           } as WorkerResponse);
         }
         break;
       }
-      
+
       default:
         self.postMessage({
-          type: 'ERROR',
-          message: `Unknown message type: ${(message as any).type}`
+          type: "ERROR",
+          message: `Unknown message type: ${(message as any).type}`,
         } as WorkerResponse);
     }
   } catch (error) {
     self.postMessage({
-      type: 'ERROR',
-      message: error instanceof Error ? error.message : 'Unknown error in worker'
+      type: "ERROR",
+      message:
+        error instanceof Error ? error.message : "Unknown error in worker",
     } as WorkerResponse);
   }
 });
 
-self.addEventListener('unhandledrejection', (event) => {
-  console.error('[Worker] Unhandled promise rejection:', event.reason);
+self.addEventListener("unhandledrejection", (event) => {
+  console.error("[Worker] Unhandled promise rejection:", event.reason);
   self.postMessage({
-    type: 'ERROR',
-    message: `Unhandled error in worker: ${event.reason?.message || 'Unknown error'}`
+    type: "ERROR",
+    message: `Unhandled error in worker: ${event.reason?.message || "Unknown error"}`,
   } as WorkerResponse);
 });
 
 // Log worker startup
-Logger.debug('[Feed Worker] RSS worker initialized');
+Logger.debug("[Feed Worker] RSS worker initialized");

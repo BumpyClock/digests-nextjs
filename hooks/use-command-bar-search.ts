@@ -1,11 +1,14 @@
-import { useMemo, useCallback } from 'react';
-import { FeedItem, Feed } from '@/types';
-import { useDebounce } from 'use-debounce';
+import { useMemo, useCallback } from "react";
+import { FeedItem, Feed } from "@/types";
+import { useDebounce } from "use-debounce";
 
 /**
  * Helper: combine relevant FeedItem fields & see if they match `query`.
  */
-function itemMatchesSearch(item: FeedItem, query: string): { match: boolean; score: number } {
+function itemMatchesSearch(
+  item: FeedItem,
+  query: string,
+): { match: boolean; score: number } {
   const search = query.toLowerCase();
 
   // Combine relevant fields into one string
@@ -19,19 +22,25 @@ function itemMatchesSearch(item: FeedItem, query: string): { match: boolean; sco
     .filter(Boolean) // remove null/undefined
     .join(" "); // combine with a space
 
-  const fullMatch = combined.toLowerCase().includes(` ${search} `) || combined.toLowerCase().startsWith(search) || combined.toLowerCase().endsWith(search);
+  const fullMatch =
+    combined.toLowerCase().includes(` ${search} `) ||
+    combined.toLowerCase().startsWith(search) ||
+    combined.toLowerCase().endsWith(search);
   const partialMatch = combined.toLowerCase().includes(search);
 
   return {
     match: fullMatch || partialMatch,
-    score: fullMatch ? 2 : (partialMatch ? 1 : 0) // Full match gets higher score
+    score: fullMatch ? 2 : partialMatch ? 1 : 0, // Full match gets higher score
   };
 }
 
 /**
  * Helper: combine relevant Feed fields & see if they match `query`.
  */
-function feedMatchesSearch(feed: Feed, query: string): { match: boolean; score: number } {
+function feedMatchesSearch(
+  feed: Feed,
+  query: string,
+): { match: boolean; score: number } {
   const search = query.toLowerCase();
 
   // Combine relevant feed fields
@@ -45,15 +54,17 @@ function feedMatchesSearch(feed: Feed, query: string): { match: boolean; score: 
     .filter(Boolean)
     .join(" ");
 
-  const fullMatch = combined.toLowerCase().includes(` ${search} `) || combined.toLowerCase().startsWith(search) || combined.toLowerCase().endsWith(search);
+  const fullMatch =
+    combined.toLowerCase().includes(` ${search} `) ||
+    combined.toLowerCase().startsWith(search) ||
+    combined.toLowerCase().endsWith(search);
   const partialMatch = combined.toLowerCase().includes(search);
 
   return {
     match: fullMatch || partialMatch,
-    score: fullMatch ? 2 : (partialMatch ? 1 : 0) // Full match gets higher score
+    score: fullMatch ? 2 : partialMatch ? 1 : 0, // Full match gets higher score
   };
 }
-
 
 export function useCommandBarSearch(
   searchValue: string,
@@ -61,9 +72,8 @@ export function useCommandBarSearch(
   feeds: Feed[],
   onSeeAllMatches: () => void,
   handleClose: () => void,
-  onSearchValueChange: (value: string) => void
+  onSearchValueChange: (value: string) => void,
 ) {
-
   const debouncedValue = useDebounce(searchValue, 300);
 
   const uniqueFeedSources = useMemo(() => {
@@ -90,9 +100,9 @@ export function useCommandBarSearch(
     }
     const searchLower = searchValue.toLowerCase();
     const filtered = feeds
-      .map(feed => ({ feed, ...feedMatchesSearch(feed, searchLower) }))
+      .map((feed) => ({ feed, ...feedMatchesSearch(feed, searchLower) }))
       .filter(({ match }) => match)
-      .sort((a, b) => b.score - a.score); 
+      .sort((a, b) => b.score - a.score);
 
     return filtered.map(({ feed }) => feed); // Return only feeds
   }, [uniqueFeedSources, searchValue]);
@@ -103,12 +113,12 @@ export function useCommandBarSearch(
     }
     const searchLower = searchValue.toLowerCase();
     const filtered = feedItems
-      .map(item => ({ item, ...itemMatchesSearch(item, searchLower) }))
+      .map((item) => ({ item, ...itemMatchesSearch(item, searchLower) }))
       .filter(({ match }) => match)
       .sort((a, b) => b.score - a.score);
-    
-    const filteredItems = filtered.map(({ item }) => item); 
-    return filteredItems; 
+
+    const filteredItems = filtered.map(({ item }) => item);
+    return filteredItems;
   }, [feedItems, searchValue]);
 
   const totalMatchCount = useMemo(() => {
@@ -118,30 +128,32 @@ export function useCommandBarSearch(
       (item) =>
         (item.title && item.title.toLowerCase().includes(searchLower)) ||
         (item.description &&
-          item.description.toLowerCase().includes(searchLower))
+          item.description.toLowerCase().includes(searchLower)),
     ).length;
   }, [feedItems, searchValue]);
-
-
 
   const handleSeeAllMatches = useCallback(() => {
     onSeeAllMatches();
     handleClose();
   }, [onSeeAllMatches, handleClose]);
 
-  const handleFeedSelect = useCallback((feedUrl: string) => {
-    
-    onSearchValueChange(""); 
-    
-    
-    handleClose();
-    return feedUrl;
-  }, [onSearchValueChange, handleClose]);
+  const handleFeedSelect = useCallback(
+    (feedUrl: string) => {
+      onSearchValueChange("");
 
-  const handleArticleSelect = useCallback((title: string) => {
-    onSearchValueChange(title);
-    handleClose();
-  }, [onSearchValueChange, handleClose]);
+      handleClose();
+      return feedUrl;
+    },
+    [onSearchValueChange, handleClose],
+  );
+
+  const handleArticleSelect = useCallback(
+    (title: string) => {
+      onSearchValueChange(title);
+      handleClose();
+    },
+    [onSearchValueChange, handleClose],
+  );
 
   return {
     debouncedValue,
@@ -150,6 +162,6 @@ export function useCommandBarSearch(
     totalMatchCount,
     handleSeeAllMatches,
     handleFeedSelect,
-    handleArticleSelect
+    handleArticleSelect,
   };
 }

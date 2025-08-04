@@ -1,47 +1,51 @@
-// ABOUTME: Feature flag configuration for progressive feature rollout
-// ABOUTME: Controls which features are enabled in the application
+// ABOUTME: Application configuration - React Query is the permanent state management system
+// ABOUTME: All features are permanently enabled - auth has been removed
 
 /**
- * Central feature flag configuration
- * These flags allow for safe, progressive rollout of new features
+ * Application features - all permanently enabled
+ * React Query migration is complete and committed
  */
 export const FEATURES = {
   /**
-   * Enable React Query based authentication
-   * When true, auth state is managed via React Query instead of Zustand
-   * Includes offline support and token persistence
+   * React Query based feed management - PERMANENTLY ENABLED
+   * Feed state is managed via React Query with caching and background sync
    */
-  USE_REACT_QUERY_AUTH: process.env.NEXT_PUBLIC_RQ_AUTH === 'true',
-  
+  USE_REACT_QUERY_FEEDS: true,
+
   /**
-   * Enable React Query based feed management
-   * When true, feed state is managed via React Query instead of Zustand
-   * Phase 2 of the state migration
+   * Debug logging for React Query operations - PERMANENTLY ENABLED
    */
-  USE_REACT_QUERY_FEEDS: process.env.NEXT_PUBLIC_RQ_FEEDS === 'true',
-  
+  DEBUG_REACT_QUERY: true,
+
   /**
-   * Enable debug logging for React Query operations
+   * Offline support - DISABLED during migration
    */
-  DEBUG_REACT_QUERY: process.env.NEXT_PUBLIC_DEBUG_RQ === 'true',
-} as const
+  ENABLE_OFFLINE_SUPPORT: false,
+
+  /**
+   * Background sync - DISABLED during migration
+   */
+  ENABLE_BACKGROUND_SYNC: false,
+} as const;
 
 /**
  * Type-safe feature flag names
+ * @deprecated - All features are permanently enabled
  */
-export type FeatureFlagName = keyof typeof FEATURES
+export type FeatureFlagName = keyof typeof FEATURES;
 
 /**
  * Check if a feature is enabled
+ * @deprecated - All features are permanently enabled, always returns true
  */
 export function isFeatureEnabled(flag: FeatureFlagName): boolean {
-  return FEATURES[flag] === true
+  return true; // All features permanently enabled
 }
 
 /**
- * Get all enabled features (for debugging)
+ * Get all enabled features
+ * @deprecated - All features are permanently enabled
  */
 export function getEnabledFeatures(): FeatureFlagName[] {
-  return (Object.keys(FEATURES) as FeatureFlagName[])
-    .filter(flag => FEATURES[flag])
+  return Object.keys(FEATURES) as FeatureFlagName[];
 }

@@ -20,16 +20,27 @@ export function ReaderViewModal({
   isOpen,
   onClose,
 }: ReaderViewModalProps) {
-  const { readerView, loading, cleanedContent, cleanedMarkdown, extractedAuthor } = useReaderView(feedItem, isOpen);
-  const { scrollTop, isBottomVisible, handleScroll, hasScrolled } = useScrollShadow();
-  
+  const {
+    readerView,
+    loading,
+    cleanedContent,
+    cleanedMarkdown,
+    extractedAuthor,
+  } = useReaderView(feedItem, isOpen);
+  const { scrollTop, isBottomVisible, handleScroll, hasScrolled } =
+    useScrollShadow();
+
   const parallaxOffset = useMemo(() => {
     return Math.min(scrollTop * 0.2, 50);
   }, [scrollTop]);
 
   const handleScrollEvent = (e: Event) => {
     const target = e.target as HTMLDivElement;
-    handleScroll({ scrollTop: target.scrollTop, scrollHeight: target.scrollHeight, clientHeight: target.clientHeight });
+    handleScroll({
+      scrollTop: target.scrollTop,
+      scrollHeight: target.scrollHeight,
+      clientHeight: target.clientHeight,
+    });
   };
 
   return (
@@ -41,12 +52,12 @@ export function ReaderViewModal({
     >
       <div className="relative h-full overflow-hidden">
         <ScrollShadow visible={hasScrolled} position="top" />
-        
-        <ScrollArea 
+
+        <ScrollArea
           variant="modal"
           className="h-full"
           onScroll={handleScrollEvent}
-        > 
+        >
           <div className="mx-auto pb-20">
             <ReaderContent
               feedItem={feedItem}

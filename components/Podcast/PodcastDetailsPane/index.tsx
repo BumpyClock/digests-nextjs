@@ -18,14 +18,14 @@ interface PodcastDetailsPaneProps {
 
 export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
   const { markAsRead } = useFeedStore();
-  
+
   // Mark as read after viewing
   useEffect(() => {
     if (feedItem) {
       const timer = setTimeout(() => {
         markAsRead(feedItem.id);
       }, 2000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [feedItem, markAsRead]);
@@ -34,14 +34,13 @@ export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
     return <EmptyState />;
   }
 
-
   return (
     <div className="h-full border rounded-md overflow-hidden bg-card">
-      <ScrollArea 
-        className="h-full w-full"
-      >
+      <ScrollArea className="h-full w-full">
         <div className="p-6">
-          <div className={`flex flex-col gap-6 mb-6 ${feedItem.thumbnail ? 'lg:flex-row' : ''}`}>
+          <div
+            className={`flex flex-col gap-6 mb-6 ${feedItem.thumbnail ? "lg:flex-row" : ""}`}
+          >
             {/* Podcast Artwork */}
             {feedItem.thumbnail && (
               <div className="relative w-full lg:w-1/3">
@@ -54,11 +53,13 @@ export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
                 />
               </div>
             )}
-            
+
             {/* Podcast Info */}
             <div className={feedItem.thumbnail ? "flex-1" : "w-full"}>
-              <h1 className="text-2xl font-bold mb-4">{cleanupTextContent(feedItem.title)}</h1>
-              
+              <h1 className="text-2xl font-bold mb-4">
+                {cleanupTextContent(feedItem.title)}
+              </h1>
+
               <div className="flex items-center mb-4">
                 {feedItem.favicon && (
                   <Image
@@ -69,17 +70,28 @@ export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
                     className="rounded mr-2"
                   />
                 )}
-                <p className="font-medium">{cleanupTextContent(feedItem.siteTitle)}</p>
+                <p className="font-medium">
+                  {cleanupTextContent(feedItem.siteTitle)}
+                </p>
               </div>
-              
+
               <PodcastMetadata
                 published={feedItem.published}
-                duration={feedItem.duration || (feedItem.enclosures?.[0]?.length ? parseInt(feedItem.enclosures[0].length) : undefined)}
-                author={feedItem.author ? cleanupTextContent(feedItem.author) : undefined}
+                duration={
+                  feedItem.duration ||
+                  (feedItem.enclosures?.[0]?.length
+                    ? parseInt(feedItem.enclosures[0].length)
+                    : undefined)
+                }
+                author={
+                  feedItem.author
+                    ? cleanupTextContent(feedItem.author)
+                    : undefined
+                }
                 variant="compact"
                 className="mb-4"
               />
-              
+
               <PodcastPlayButton
                 podcast={feedItem}
                 size="lg"
@@ -87,15 +99,17 @@ export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
               />
             </div>
           </div>
-          
+
           {/* Episode Description */}
           <div className="space-y-4">
             <h2 className="text-xl font-bold">Episode Description</h2>
-            <div 
+            <div
               className="prose prose-sm dark:prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ 
-                __html: sanitizeReaderContent(feedItem.content || feedItem.description || '') 
-              }} 
+              dangerouslySetInnerHTML={{
+                __html: sanitizeReaderContent(
+                  feedItem.content || feedItem.description || "",
+                ),
+              }}
             />
           </div>
         </div>

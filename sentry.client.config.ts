@@ -15,7 +15,7 @@ Sentry.init({
   // Enable automatic error tracking
   beforeSend(event, hint) {
     // Filter out specific errors if needed
-    if (event.exception?.values?.[0]?.type === 'ChunkLoadError') {
+    if (event.exception?.values?.[0]?.type === "ChunkLoadError") {
       return null;
     }
     return event;
@@ -35,12 +35,13 @@ Sentry.init({
   ],
 
   // Environment
-  environment: process.env.NEXT_PUBLIC_ENV || process.env.NODE_ENV || "development",
+  environment:
+    process.env.NEXT_PUBLIC_ENV || process.env.NODE_ENV || "development",
 
   // User context
   beforeBreadcrumb(breadcrumb) {
     // Filter out certain breadcrumbs if needed
-    if (breadcrumb.category === 'console' && breadcrumb.level === 'debug') {
+    if (breadcrumb.category === "console" && breadcrumb.level === "debug") {
       return null;
     }
     return breadcrumb;

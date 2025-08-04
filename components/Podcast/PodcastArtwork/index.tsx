@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Image from "next/image"
-import { Ambilight } from "@/components/ui/ambilight"
-import { cn } from "@/lib/utils"
-import { getImageProps } from "@/utils/image-config"
-import { ProgressiveImage } from "@/components/ui/progressive-image"
+import { useState } from "react";
+import Image from "next/image";
+import { Ambilight } from "@/components/ui/ambilight";
+import { cn } from "@/lib/utils";
+import { getImageProps } from "@/utils/image-config";
+import { ProgressiveImage } from "@/components/ui/progressive-image";
 
 interface PodcastArtworkProps {
-  src?: string
-  alt: string
-  size?: "sm" | "md" | "lg" | "xl"
-  showAmbilight?: boolean
-  className?: string
-  parentHovered?: boolean
-  ambilightOpacity?: { rest: number; hover: number }
-  priority?: boolean
-  progressive?: boolean
+  src?: string;
+  alt: string;
+  size?: "sm" | "md" | "lg" | "xl";
+  showAmbilight?: boolean;
+  className?: string;
+  parentHovered?: boolean;
+  ambilightOpacity?: { rest: number; hover: number };
+  priority?: boolean;
+  progressive?: boolean;
 }
 
 const sizeClasses = {
@@ -24,7 +24,7 @@ const sizeClasses = {
   md: "w-20 h-20",
   lg: "w-32 h-32",
   xl: "w-48 h-48 md:w-64 md:h-64",
-}
+};
 
 export function PodcastArtwork({
   src,
@@ -37,30 +37,32 @@ export function PodcastArtwork({
   priority = false,
   progressive = false,
 }: PodcastArtworkProps) {
-  const [imageError, setImageError] = useState(false)
-  const [imageLoading, setImageLoading] = useState(true)
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
 
   const isValidUrl = (url: string | undefined): boolean => {
-    if (!url) return false
+    if (!url) return false;
     try {
-      new URL(url)
-      return true
+      new URL(url);
+      return true;
     } catch {
-      return false
+      return false;
     }
-  }
+  };
 
-  const shouldShowImage = !imageError && src && isValidUrl(src)
-  const imageSrc = shouldShowImage ? src : "/placeholder-podcast.svg"
+  const shouldShowImage = !imageError && src && isValidUrl(src);
+  const imageSrc = shouldShowImage ? src : "/placeholder-podcast.svg";
 
   // Use consistent sizing with FeedCard for better caching
-  const isLargeSize = size === "xl" || size === "lg" || size === "md"
+  const isLargeSize = size === "xl" || size === "lg" || size === "md";
   const imageProps = isLargeSize
     ? getImageProps("thumbnail", priority ? "eager" : "lazy")
-    : getImageProps("icon", priority ? "eager" : "lazy")
+    : getImageProps("icon", priority ? "eager" : "lazy");
 
   const imageComponent = (
-    <div className={cn("relative overflow-hidden", sizeClasses[size], className)}>
+    <div
+      className={cn("relative overflow-hidden", sizeClasses[size], className)}
+    >
       {progressive && isLargeSize ? (
         <ProgressiveImage
           src={imageSrc}
@@ -76,7 +78,7 @@ export function PodcastArtwork({
           height={imageProps.height}
           className={cn(
             "w-full h-full object-cover transition-opacity duration-300",
-            imageLoading ? "opacity-0" : "opacity-100"
+            imageLoading ? "opacity-0" : "opacity-100",
           )}
           sizes={imageProps.sizes}
           onError={() => setImageError(true)}
@@ -86,7 +88,7 @@ export function PodcastArtwork({
         />
       )}
     </div>
-  )
+  );
 
   if (showAmbilight && shouldShowImage) {
     return (
@@ -97,8 +99,8 @@ export function PodcastArtwork({
       >
         {imageComponent}
       </Ambilight>
-    )
+    );
   }
 
-  return imageComponent
+  return imageComponent;
 }

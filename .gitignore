@@ -43,4 +43,5 @@ next-env.d.ts
 **/.claude/settings.local.json
 .claude/
 .env
-.claude/tasks/tasks.md
+.claude/tasks/**
+.claude/sprints/*

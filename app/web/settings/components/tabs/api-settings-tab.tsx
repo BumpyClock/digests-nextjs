@@ -1,35 +1,45 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useApiConfigStore } from "@/store/useApiConfigStore"
-import { DEFAULT_API_CONFIG } from "@/lib/config"
-import { apiService } from "@/services/api-service"
-import { AlertCircle, CheckCircle } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useApiConfig } from "@/hooks/useApiConfig";
+import { DEFAULT_API_CONFIG } from "@/lib/config";
+import { apiService } from "@/services/api-service";
+import { AlertCircle, CheckCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function ApiSettingsTab() {
-  const { config, setApiUrl, resetToDefault, isValidUrl } = useApiConfigStore();
+  const { config, setApiUrl, resetToDefault, isValidUrl, isLoaded } =
+    useApiConfig();
   const [inputUrl, setInputUrl] = useState(config.baseUrl);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<
-    { success: boolean; message: string } | null
-  >(null);
+  const [connectionStatus, setConnectionStatus] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
 
-  // Initialize input field when component mounts
+  // Initialize input field when config is loaded
   useEffect(() => {
-    setInputUrl(config.baseUrl);
-  }, [config.baseUrl]);
+    if (isLoaded) {
+      setInputUrl(config.baseUrl);
+    }
+  }, [config.baseUrl, isLoaded]);
 
   // Test connection function
   const testConnection = async () => {
     if (!isValidUrl(inputUrl)) {
       setConnectionStatus({
         success: false,
-        message: "Invalid URL format. Please enter a valid URL."
+        message: "Invalid URL format. Please enter a valid URL.",
       });
       return;
     }
@@ -40,26 +50,28 @@ export function ApiSettingsTab() {
     try {
       // Use the parse endpoint with a known valid RSS feed to test connection
       const response = await fetch(`${inputUrl}/parse`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ urls: ['https://www.theverge.com/rss/index.xml'] })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          urls: ["https://www.theverge.com/rss/index.xml"],
+        }),
       });
 
       if (response.ok) {
         setConnectionStatus({
           success: true,
-          message: "Connection successful! API endpoint is reachable."
+          message: "Connection successful! API endpoint is reachable.",
         });
       } else {
         setConnectionStatus({
           success: false,
-          message: `Connection failed with status: ${response.status}`
+          message: `Connection failed with status: ${response.status}`,
         });
       }
     } catch (error) {
       setConnectionStatus({
         success: false,
-        message: `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Connection failed: ${error instanceof Error ? error.message : "Unknown error"}`,
       });
     } finally {
       setIsTestingConnection(false);
@@ -71,7 +83,7 @@ export function ApiSettingsTab() {
     if (!isValidUrl(inputUrl)) {
       setConnectionStatus({
         success: false,
-        message: "Invalid URL format. Please enter a valid URL."
+        message: "Invalid URL format. Please enter a valid URL.",
       });
       return;
     }
@@ -80,7 +92,7 @@ export function ApiSettingsTab() {
     apiService.updateApiUrl(inputUrl);
     setConnectionStatus({
       success: true,
-      message: "API endpoint saved successfully."
+      message: "API endpoint saved successfully.",
     });
   };
 
@@ -91,7 +103,7 @@ export function ApiSettingsTab() {
     apiService.updateApiUrl(DEFAULT_API_CONFIG.baseUrl);
     setConnectionStatus({
       success: true,
-      message: "Reset to default API endpoint."
+      message: "Reset to default API endpoint.",
     });
   };
 
@@ -124,12 +136,15 @@ export function ApiSettingsTab() {
               </Button>
             </div>
             <p className="text-sm text-muted-foreground">
-              The base URL of the API endpoint (default: {DEFAULT_API_CONFIG.baseUrl})
+              The base URL of the API endpoint (default:{" "}
+              {DEFAULT_API_CONFIG.baseUrl})
             </p>
           </div>
 
           {connectionStatus && (
-            <Alert variant={connectionStatus.success ? "default" : "destructive"}>
+            <Alert
+              variant={connectionStatus.success ? "default" : "destructive"}
+            >
               {connectionStatus.success ? (
                 <CheckCircle className="h-4 w-4" />
               ) : (
@@ -138,9 +153,7 @@ export function ApiSettingsTab() {
               <AlertTitle>
                 {connectionStatus.success ? "Success" : "Error"}
               </AlertTitle>
-              <AlertDescription>
-                {connectionStatus.message}
-              </AlertDescription>
+              <AlertDescription>{connectionStatus.message}</AlertDescription>
             </Alert>
           )}
         </div>
@@ -153,10 +166,7 @@ export function ApiSettingsTab() {
           >
             Reset to Default
           </Button>
-          <Button
-            onClick={saveApiUrl}
-            disabled={inputUrl === config.baseUrl}
-          >
+          <Button onClick={saveApiUrl} disabled={inputUrl === config.baseUrl}>
             Save Changes
           </Button>
         </div>
@@ -166,7 +176,8 @@ export function ApiSettingsTab() {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Custom API Endpoint</AlertTitle>
             <AlertDescription>
-              You are using a custom API endpoint. Make sure it&apos;s compatible with the Digests API.
+              You are using a custom API endpoint. Make sure it&apos;s
+              compatible with the Digests API.
             </AlertDescription>
           </Alert>
         )}

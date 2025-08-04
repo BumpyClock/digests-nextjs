@@ -12,13 +12,14 @@ Sentry.init({
   debug: false,
 
   // Environment
-  environment: process.env.NEXT_PUBLIC_ENV || process.env.NODE_ENV || "development",
+  environment:
+    process.env.NEXT_PUBLIC_ENV || process.env.NODE_ENV || "development",
 
   // Integrations
   integrations: [
     // Automatically capture unhandled promise rejections
     Sentry.captureConsoleIntegration({
-      levels: ['error', 'warn'],
+      levels: ["error", "warn"],
     }),
   ],
 
@@ -28,7 +29,7 @@ Sentry.init({
   // Filter transactions
   beforeSendTransaction(transaction) {
     // Don't send transactions for health checks
-    if (transaction.transaction?.includes('/api/health')) {
+    if (transaction.transaction?.includes("/api/health")) {
       return null;
     }
     return transaction;

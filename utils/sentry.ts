@@ -1,4 +1,4 @@
-import * as Sentry from '@sentry/nextjs';
+import * as Sentry from "@sentry/nextjs";
 
 export interface UserContext {
   id?: string;
@@ -34,8 +34,8 @@ export function setSentryContext(key: string, context: Record<string, any>) {
 export function addSentryBreadcrumb(
   message: string,
   category: string,
-  level: Sentry.SeverityLevel = 'info',
-  data?: Record<string, any>
+  level: Sentry.SeverityLevel = "info",
+  data?: Record<string, any>,
 ) {
   Sentry.addBreadcrumb({
     message,
@@ -51,12 +51,12 @@ export function addSentryBreadcrumb(
  */
 export function captureMessage(
   message: string,
-  level: Sentry.SeverityLevel = 'info',
-  context?: Record<string, any>
+  level: Sentry.SeverityLevel = "info",
+  context?: Record<string, any>,
 ) {
   if (context) {
     Sentry.withScope((scope) => {
-      scope.setContext('additional', context);
+      scope.setContext("additional", context);
       Sentry.captureMessage(message, level);
     });
   } else {
@@ -70,12 +70,12 @@ export function captureMessage(
 export function captureException(
   error: Error,
   context?: Record<string, any>,
-  level: Sentry.SeverityLevel = 'error'
+  level: Sentry.SeverityLevel = "error",
 ) {
   Sentry.withScope((scope) => {
     scope.setLevel(level);
     if (context) {
-      scope.setContext('additional', context);
+      scope.setContext("additional", context);
     }
     Sentry.captureException(error);
   });
@@ -87,9 +87,9 @@ export function captureException(
 export function trackEvent(
   eventName: string,
   category: string,
-  data?: Record<string, any>
+  data?: Record<string, any>,
 ) {
-  addSentryBreadcrumb(`Event: ${eventName}`, category, 'info', data);
+  addSentryBreadcrumb(`Event: ${eventName}`, category, "info", data);
 }
 
 /**
@@ -98,27 +98,27 @@ export function trackEvent(
 export async function monitorAsyncOperation<T>(
   operationName: string,
   operation: () => Promise<T>,
-  context?: Record<string, any>
+  context?: Record<string, any>,
 ): Promise<T> {
   return await Sentry.startSpan(
     {
       name: operationName,
-      op: 'custom',
+      op: "custom",
     },
     async (span) => {
       try {
         const result = await operation();
-        span.setStatus({ code: 1, message: 'ok' });
+        span.setStatus({ code: 1, message: "ok" });
         return result;
       } catch (error) {
-        span.setStatus({ code: 2, message: 'internal_error' });
+        span.setStatus({ code: 2, message: "internal_error" });
         captureException(error as Error, {
           operation: operationName,
           ...context,
         });
         throw error;
       }
-    }
+    },
   );
 }
 
@@ -127,7 +127,7 @@ export async function monitorAsyncOperation<T>(
  */
 export function withErrorBoundary<T extends (...args: any[]) => any>(
   fn: T,
-  context?: Record<string, any>
+  context?: Record<string, any>,
 ): T {
   return ((...args: Parameters<T>) => {
     try {

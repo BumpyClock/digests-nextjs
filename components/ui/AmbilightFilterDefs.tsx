@@ -37,7 +37,7 @@ export function AmbilightFilterDefs({
         >
           {/* Copy the source for the glow */}
           <feOffset in="SourceGraphic" result="source-copy" />
-          
+
           {/* Saturate the glow colors */}
           <feColorMatrix
             in="source-copy"

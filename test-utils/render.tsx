@@ -1,10 +1,10 @@
-import React, { ReactElement } from 'react';
-import { render, RenderOptions } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from 'next-themes';
+import React, { ReactElement } from "react";
+import { render, RenderOptions } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "next-themes";
 
 // Create a custom render function that includes all providers
-interface CustomRenderOptions extends Omit<RenderOptions, 'queries'> {
+interface CustomRenderOptions extends Omit<RenderOptions, "queries"> {
   // Add any additional provider props here
   initialTheme?: string;
 }
@@ -28,11 +28,11 @@ export function createTestQueryClient() {
 }
 
 // All the providers for the app
-export function AllTheProviders({ 
+export function AllTheProviders({
   children,
   queryClient = createTestQueryClient(),
-  theme = 'light'
-}: { 
+  theme = "light",
+}: {
   children: React.ReactNode;
   queryClient?: QueryClient;
   theme?: string;
@@ -51,24 +51,19 @@ export function AllTheProviders({
   );
 }
 
-const customRender = (
-  ui: ReactElement,
-  options?: CustomRenderOptions
-) => {
-  const { initialTheme = 'light', ...renderOptions } = options || {};
-  
+const customRender = (ui: ReactElement, options?: CustomRenderOptions) => {
+  const { initialTheme = "light", ...renderOptions } = options || {};
+
   return render(ui, {
     wrapper: ({ children }) => (
-      <AllTheProviders theme={initialTheme}>
-        {children}
-      </AllTheProviders>
+      <AllTheProviders theme={initialTheme}>{children}</AllTheProviders>
     ),
     ...renderOptions,
   });
 };
 
 // re-export everything
-export * from '@testing-library/react';
+export * from "@testing-library/react";
 
 // override render method
 export { customRender as render };

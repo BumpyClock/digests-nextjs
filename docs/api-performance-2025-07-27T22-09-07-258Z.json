@@ -58,9 +58,7 @@
       "url": "http://localhost:3000/api/parse",
       "method": "POST",
       "body": {
-        "urls": [
-          "https://example.com/feed.xml"
-        ]
+        "urls": ["https://example.com/feed.xml"]
       }
     },
     {
@@ -80,9 +78,7 @@
       "url": "http://localhost:3000/api/getreaderview",
       "method": "POST",
       "body": {
-        "urls": [
-          "https://example.com/article"
-        ]
+        "urls": ["https://example.com/article"]
       }
     }
   ]

@@ -4,142 +4,155 @@
  * Enhanced with retry logic, request cancellation, deduplication, and circuit breaker
  */
 
-import crypto from 'crypto'
-import type { 
-  Feed, 
-  FeedItem, 
+import { generateUUID, createHash } from "@/utils/uuid";
+import type {
+  Feed,
+  FeedItem,
   ReaderViewResponse,
   FetchFeedsResponse,
   ApiClient,
   RequestConfig,
   ApiClientError as ApiError,
   RequestTracker,
-  CircuitBreakerState
-} from '@/types'
-import { getApiConfig } from '@/store/useApiConfigStore'
-import { Logger } from '@/utils/logger'
-import { 
-  isFeed, 
-  isFeedItem, 
+  CircuitBreakerState,
+} from "@/types";
+import { getApiConfig } from "@/hooks/useApiConfig";
+import { Logger } from "@/utils/logger";
+import {
+  isFeed,
+  isFeedItem,
   isApiResponse,
   isArrayOf,
   validateType,
-  safeParse
-} from '@/utils/type-guards'
-import { 
+  safeParse,
+} from "@/utils/type-guards";
+import {
   isValidUrl,
-  isValidApiUrl, 
-  isValidFeedUrl, 
+  isValidApiUrl,
+  isValidFeedUrl,
   generateSecureCacheKey,
   validateFeedUrls,
-  SECURITY_CONFIG 
-} from '@/utils/security'
+  SECURITY_CONFIG,
+} from "@/utils/security";
 
 // Cache implementation for API responses
 class ApiCache {
-  private cache = new Map<string, { data: any; timestamp: number }>()
-  private ttl: number
+  private cache = new Map<string, { data: any; timestamp: number }>();
+  private ttl: number;
 
   constructor(ttl: number = 30 * 60 * 1000) {
-    this.ttl = ttl
+    this.ttl = ttl;
   }
 
   setTTL(ttl: number): void {
-    this.ttl = ttl
+    this.ttl = ttl;
   }
 
   async set(key: string, data: any): Promise<void> {
-    const secureKey = await generateSecureCacheKey(key)
-    this.cache.set(secureKey, { data, timestamp: Date.now() })
+    const secureKey = await generateSecureCacheKey(key);
+    this.cache.set(secureKey, { data, timestamp: Date.now() });
   }
 
   async get<T>(key: string): Promise<T | null> {
-    const secureKey = await generateSecureCacheKey(key)
-    const item = this.cache.get(secureKey)
-    if (!item) return null
-    
+    const secureKey = await generateSecureCacheKey(key);
+    const item = this.cache.get(secureKey);
+    if (!item) return null;
+
     // Check if cache is still valid
     if (Date.now() - item.timestamp > this.ttl) {
-      Logger.debug(`[ApiService] Cache expired for key: ${key}`)
-      this.cache.delete(secureKey)
-      return null
+      Logger.debug(`[ApiService] Cache expired for key: ${key}`);
+      this.cache.delete(secureKey);
+      return null;
     }
-    
-    Logger.debug(`[ApiService] Cache hit for key: ${key}`)
-    return item.data as T
+
+    Logger.debug(`[ApiService] Cache hit for key: ${key}`);
+    return item.data as T;
   }
 
   clear(): void {
-    this.cache.clear()
+    this.cache.clear();
   }
 
   async delete(key: string): Promise<void> {
-    const secureKey = await generateSecureCacheKey(key)
-    this.cache.delete(secureKey)
+    const secureKey = await generateSecureCacheKey(key);
+    this.cache.delete(secureKey);
   }
 }
 
 // DTOs for API operations
 export interface CreateFeedDto {
-  url: string
+  url: string;
+}
+
+export interface CreateBatchDto {
+  urls: string[];
 }
 
 export interface UpdateFeedDto {
-  feedTitle?: string
-  categories?: string
+  feedTitle?: string;
+  categories?: string[];
+}
+
+export interface BatchCreateResponse {
+  feeds: Feed[];
+  items: FeedItem[];
+  successfulCount: number;
+  failedCount: number;
+  failedUrls: string[];
+  errors: { url: string; error: string }[];
 }
 
 // Circuit state enum
 enum CircuitState {
-  CLOSED = 'CLOSED',
-  OPEN = 'OPEN',
-  HALF_OPEN = 'HALF_OPEN'
+  CLOSED = "CLOSED",
+  OPEN = "OPEN",
+  HALF_OPEN = "HALF_OPEN",
 }
 
 // Default configurations
-const DEFAULT_RETRY_CONFIG: NonNullable<RequestConfig['retry']> = {
+const DEFAULT_RETRY_CONFIG: NonNullable<RequestConfig["retry"]> = {
   attempts: 3,
-  backoff: 'exponential',
+  backoff: "exponential",
   maxDelay: 30000, // 30 seconds
   initialDelay: 1000, // 1 second
-  factor: 2
+  factor: 2,
 };
 
 const DEFAULT_CIRCUIT_BREAKER_CONFIG = {
   failureThreshold: 5,
   resetTimeout: 60000, // 1 minute
-  halfOpenRequests: 3
+  halfOpenRequests: 3,
 };
 
 // Helper type guard for API errors
 function isApiErrorType(error: unknown): error is ApiError {
-  return error instanceof Error && 'code' in error;
+  return error instanceof Error && "code" in error;
 }
 
 // Helper function to check if error is retryable
 function isRetryableError(error: ApiError): boolean {
   // Network errors and 5xx errors are typically retryable
-  if (error.code === 'NETWORK_ERROR' || error.code === 'TIMEOUT') {
+  if (error.code === "NETWORK_ERROR" || error.code === "TIMEOUT") {
     return true;
   }
-  
+
   if (error.status) {
     // 5xx errors (server errors) are retryable
     if (error.status >= 500 && error.status < 600) {
       return true;
     }
-    
+
     // 429 (Too Many Requests) is retryable after delay
     if (error.status === 429) {
       return true;
     }
-    
+
     // 408 (Request Timeout) is retryable
     if (error.status === 408) {
       return true;
     }
   }
-  
+
   return false;
 }
 
@@ -148,7 +161,7 @@ function createApiError(
   message: string,
   code: string,
   status?: number,
-  originalError?: Error
+  originalError?: Error,
 ): ApiError {
   const error = new Error(message) as ApiError;
   error.code = code;
@@ -160,14 +173,14 @@ function createApiError(
 // Helper function to calculate delay for exponential backoff
 function calculateBackoffDelay(
   attempt: number,
-  config: NonNullable<RequestConfig['retry']>
+  config: NonNullable<RequestConfig["retry"]>,
 ): number {
   const { backoff, initialDelay = 1000, factor = 2, maxDelay } = config;
-  
-  if (backoff === 'linear') {
+
+  if (backoff === "linear") {
     return Math.min(initialDelay, maxDelay);
   }
-  
+
   // Exponential backoff
   const delay = initialDelay * Math.pow(factor, attempt - 1);
   return Math.min(delay, maxDelay);
@@ -176,26 +189,37 @@ function calculateBackoffDelay(
 // Helper to create request key for deduplication
 function createRequestKey(config: RequestConfig): string {
   const { url, method, body } = config;
-  const bodyStr = body ? JSON.stringify(body) : '';
-  return crypto.createHash('sha256')
-    .update(`${method}:${url}:${bodyStr}`)
-    .digest('hex');
+  const bodyStr = body ? JSON.stringify(body) : "";
+  return createHash(`${method}:${url}:${bodyStr}`);
 }
 
 // Main API Service class
 class ApiService implements ApiClient {
-  private cache: ApiCache
-  private baseUrl: string = ''
-  private requestTrackers = new Map<string, RequestTracker>()
-  private circuitBreakers = new Map<string, CircuitBreakerState>()
+  private cache: ApiCache;
+  private baseUrl: string = "";
+  private requestTrackers = new Map<string, RequestTracker>();
+  private circuitBreakers = new Map<string, CircuitBreakerState>();
+
+  /**
+   * Updates API configuration
+   */
+  updateApiConfig(config: any): void {
+    if (config.baseUrl) {
+      this.updateApiUrl(config.baseUrl);
+    }
+    if (config.cacheTtl) {
+      this.updateCacheTtl(config.cacheTtl);
+    }
+  }
 
   constructor() {
-    const ttl = Number(process.env.NEXT_PUBLIC_WORKER_CACHE_TTL) || 30 * 60 * 1000
-    this.cache = new ApiCache(ttl)
-    
+    const ttl =
+      Number(process.env.NEXT_PUBLIC_WORKER_CACHE_TTL) || 30 * 60 * 1000;
+    this.cache = new ApiCache(ttl);
+
     // Initialize with current API config
-    const config = getApiConfig()
-    this.baseUrl = config.baseUrl
+    const config = getApiConfig();
+    this.baseUrl = config.baseUrl;
   }
 
   /**
@@ -204,25 +228,25 @@ class ApiService implements ApiClient {
   updateApiUrl(url: string): void {
     // Validate the URL using security utility
     if (!isValidApiUrl(url)) {
-      throw new Error('Invalid API URL')
+      throw new Error("Invalid API URL");
     }
-    
+
     if (url.length > SECURITY_CONFIG.MAX_URL_LENGTH) {
-      throw new Error('API URL exceeds maximum length')
+      throw new Error("API URL exceeds maximum length");
     }
-    
-    this.baseUrl = url
+
+    this.baseUrl = url;
     // Clear cache when API URL changes
-    this.cache.clear()
-    Logger.debug(`[ApiService] API URL updated to ${url}`)
+    this.cache.clear();
+    Logger.debug(`[ApiService] API URL updated to ${url}`);
   }
 
   /**
    * Updates cache TTL
    */
   updateCacheTtl(ttl: number): void {
-    this.cache.setTTL(ttl)
-    Logger.debug(`[ApiService] Cache TTL updated to ${ttl}ms`)
+    this.cache.setTTL(ttl);
+    Logger.debug(`[ApiService] Cache TTL updated to ${ttl}ms`);
   }
 
   /**
@@ -245,7 +269,7 @@ class ApiService implements ApiClient {
       tracker.controller.abort();
     });
     this.requestTrackers.clear();
-    Logger.debug('[ApiService] Cancelled all pending requests');
+    Logger.debug("[ApiService] Cancelled all pending requests");
   }
 
   /**
@@ -264,10 +288,7 @@ class ApiService implements ApiClient {
         breaker.failures = 0;
         Logger.debug(`[ApiService] Circuit breaker half-open for ${endpoint}`);
       } else {
-        throw createApiError(
-          'Circuit breaker is open',
-          'CIRCUIT_BREAKER_OPEN'
-        );
+        throw createApiError("Circuit breaker is open", "CIRCUIT_BREAKER_OPEN");
       }
     }
   }
@@ -294,7 +315,7 @@ class ApiService implements ApiClient {
     if (!breaker) {
       breaker = {
         state: CircuitState.CLOSED,
-        failures: 0
+        failures: 0,
       };
       this.circuitBreakers.set(endpoint, breaker);
     }
@@ -304,7 +325,8 @@ class ApiService implements ApiClient {
 
     if (breaker.failures >= DEFAULT_CIRCUIT_BREAKER_CONFIG.failureThreshold) {
       breaker.state = CircuitState.OPEN;
-      breaker.nextAttemptTime = Date.now() + DEFAULT_CIRCUIT_BREAKER_CONFIG.resetTimeout;
+      breaker.nextAttemptTime =
+        Date.now() + DEFAULT_CIRCUIT_BREAKER_CONFIG.resetTimeout;
       Logger.warn(`[ApiService] Circuit breaker opened for ${endpoint}`);
     }
   }
@@ -313,24 +335,25 @@ class ApiService implements ApiClient {
    * Enhanced request method with retry, cancellation, and circuit breaker
    */
   async request<T>(config: RequestConfig): Promise<T> {
-    const { 
-      url, 
-      method, 
-      body, 
-      headers = {}, 
+    const {
+      url,
+      method,
+      body,
+      headers = {},
       retry = DEFAULT_RETRY_CONFIG,
       timeout,
       signal,
-      requestId = crypto.randomUUID()
+      requestId = generateUUID(),
     } = config;
 
     // Check for duplicate in-flight requests
     const requestKey = createRequestKey(config);
-    const existingTracker = Array.from(this.requestTrackers.values())
-      .find(tracker => createRequestKey(tracker.config) === requestKey);
-    
+    const existingTracker = Array.from(this.requestTrackers.values()).find(
+      (tracker) => createRequestKey(tracker.config) === requestKey,
+    );
+
     if (existingTracker) {
-      Logger.debug('[ApiService] Returning existing request promise');
+      Logger.debug("[ApiService] Returning existing request promise");
       return existingTracker.promise as Promise<T>;
     }
 
@@ -349,14 +372,14 @@ class ApiService implements ApiClient {
       config,
       retry,
       combinedSignal,
-      endpoint
+      endpoint,
     );
 
     const tracker: RequestTracker = {
       promise: requestPromise,
       controller,
       timestamp: Date.now(),
-      config
+      config,
     };
 
     this.requestTrackers.set(requestId, tracker);
@@ -374,9 +397,9 @@ class ApiService implements ApiClient {
    */
   private async executeRequestWithRetry<T>(
     config: RequestConfig,
-    retryConfig: NonNullable<RequestConfig['retry']>,
+    retryConfig: NonNullable<RequestConfig["retry"]>,
     signal: AbortSignal,
-    endpoint: string
+    endpoint: string,
   ): Promise<T> {
     const { url, method, body, headers = {}, timeout } = config;
     const fullUrl = `${this.baseUrl}${url}`;
@@ -387,57 +410,82 @@ class ApiService implements ApiClient {
       let timeoutId: NodeJS.Timeout | undefined;
       let handleAbort: (() => void) | undefined;
       const abortController = new AbortController();
-      
+
       try {
         // Combine signals if needed
         if (signal.aborted) {
-          throw createApiError('Request aborted', 'ABORTED');
+          throw createApiError("Request aborted", "ABORTED");
         }
-        
+
         // Set up abort listener for original signal
         handleAbort = () => abortController.abort();
-        signal.addEventListener('abort', handleAbort);
-        
+        signal.addEventListener("abort", handleAbort);
+
         if (timeout) {
           timeoutId = setTimeout(() => {
             abortController.abort();
           }, timeout);
         }
 
-        const response = await fetch(fullUrl, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-            ...headers
-          },
-          body: body ? JSON.stringify(body) : undefined,
-          signal: abortController.signal
-        });
+        let response: Response;
+        try {
+          response = await fetch(fullUrl, {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+              ...headers,
+            },
+            body: body ? JSON.stringify(body) : undefined,
+            signal: abortController.signal,
+          });
+        } catch (fetchError) {
+          // Handle fetch failures that return no response object
+          throw createApiError(
+            fetchError instanceof Error
+              ? fetchError.message
+              : "Network request failed",
+            "NETWORK_ERROR",
+            undefined,
+            fetchError instanceof Error
+              ? fetchError
+              : new Error(String(fetchError)),
+          );
+        }
 
         if (timeoutId) clearTimeout(timeoutId);
-        signal.removeEventListener('abort', handleAbort);
+        signal.removeEventListener("abort", handleAbort);
 
-        if (!response.ok) {
+        // Bulletproof check for response object and ok property
+        if (!response || typeof response.ok !== "boolean" || !response.ok) {
+          const status = response?.status || 0;
           const error = createApiError(
-            `HTTP error! status: ${response.status}`,
-            'HTTP_ERROR',
-            response.status
+            `HTTP error! status: ${status}`,
+            "HTTP_ERROR",
+            status,
           );
           error.attempts = attempt;
           throw error;
         }
 
-        const data = await response.json();
+        const data = await response.json().catch((jsonError) => {
+          // Handle JSON parsing errors
+          throw createApiError(
+            "Invalid JSON response",
+            "PARSE_ERROR",
+            response.status,
+            jsonError,
+          );
+        });
         this.onRequestSuccess(endpoint);
         return data as T;
       } catch (error) {
         // Clean up event listener
         if (timeoutId) clearTimeout(timeoutId);
-        if (handleAbort) signal.removeEventListener('abort', handleAbort);
-        
+        if (handleAbort) signal.removeEventListener("abort", handleAbort);
+
         // Handle abort
         if (signal.aborted) {
-          throw createApiError('Request aborted', 'ABORTED');
+          throw createApiError("Request aborted", "ABORTED");
         }
 
         // Create or enhance error
@@ -445,18 +493,18 @@ class ApiService implements ApiClient {
         if (isApiErrorType(error)) {
           apiError = error;
         } else if (error instanceof Error) {
-          if (error.name === 'AbortError' || abortController.signal.aborted) {
-            apiError = createApiError('Request timeout', 'TIMEOUT');
+          if (error.name === "AbortError" || abortController.signal.aborted) {
+            apiError = createApiError("Request timeout", "TIMEOUT");
           } else {
             apiError = createApiError(
               error.message,
-              'NETWORK_ERROR',
+              "NETWORK_ERROR",
               undefined,
-              error
+              error,
             );
           }
         } else {
-          apiError = createApiError('Unknown error', 'UNKNOWN');
+          apiError = createApiError("Unknown error", "UNKNOWN");
         }
 
         apiError.attempts = attempt;
@@ -475,24 +523,45 @@ class ApiService implements ApiClient {
         // Calculate delay and wait
         const delay = calculateBackoffDelay(attempt, retryConfig);
         Logger.debug(
-          `[ApiService] Retrying request (attempt ${attempt + 1}/${retryConfig.attempts}) after ${delay}ms`
+          `[ApiService] Retrying request (attempt ${attempt + 1}/${retryConfig.attempts}) after ${delay}ms`,
         );
-        
-        await new Promise(resolve => setTimeout(resolve, delay));
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
-    throw lastError || createApiError('Max retries exceeded', 'MAX_RETRIES');
+    throw lastError || createApiError("Max retries exceeded", "MAX_RETRIES");
   }
 
   /**
    * Makes a POST request to the API (legacy method, now uses request internally)
    */
-  private async post<T>(endpoint: string, body: any): Promise<T> {
+  async post<T>(endpoint: string, body: any): Promise<T> {
     return this.request<T>({
       url: endpoint,
-      method: 'POST',
-      body
+      method: "POST",
+      body,
+    });
+  }
+
+  /**
+   * Makes a GET request to the API
+   */
+  async get<T>(endpoint: string): Promise<T> {
+    return this.request<T>({
+      url: endpoint,
+      method: "GET",
+    });
+  }
+
+  /**
+   * Makes a PATCH request to the API
+   */
+  async patch<T>(endpoint: string, body: any): Promise<T> {
+    return this.request<T>({
+      url: endpoint,
+      method: "PATCH",
+      body,
     });
   }
 
@@ -504,8 +573,8 @@ class ApiService implements ApiClient {
     getAll: async (): Promise<Feed[]> => {
       // For getAll, we'll use the existing feeds from the store
       // This method would typically be used for initial load
-      const { feeds } = await this.fetchFeeds([])
-      return feeds
+      const { feeds } = await this.fetchFeeds([]);
+      return feeds;
     },
 
     /**
@@ -513,32 +582,100 @@ class ApiService implements ApiClient {
      */
     getById: async (id: string): Promise<Feed> => {
       // Check cache first
-      const cacheKey = await generateSecureCacheKey(`feed:${id}`)
-      const cached = await this.cache.get<Feed>(cacheKey)
-      if (cached) return cached
+      const cacheKey = await generateSecureCacheKey(`feed:${id}`);
+      const cached = await this.cache.get<Feed>(cacheKey);
+      if (cached) return cached;
 
       // In the current implementation, feeds are fetched in bulk
       // So we'll get all feeds and find the one we need
-      const feeds = await this.feeds.getAll()
-      const feed = feeds.find(f => f.guid === id)
-      
+      const feeds = await this.feeds.getAll();
+      const feed = feeds.find((f) => f.guid === id);
+
       if (!feed) {
-        throw new Error(`Feed with id ${id} not found`)
+        throw new Error(`Feed with id ${id} not found`);
       }
 
-      await this.cache.set(cacheKey, feed)
-      return feed
+      await this.cache.set(cacheKey, feed);
+      return feed;
     },
 
     /**
      * Create/add a new feed
      */
     create: async (feedDto: CreateFeedDto): Promise<Feed> => {
-      const result = await this.fetchFeeds([feedDto.url])
+      const result = await this.fetchFeeds([feedDto.url]);
       if (result.feeds.length === 0) {
-        throw new Error('Failed to add feed')
+        throw new Error("Failed to add feed");
       }
-      return result.feeds[0]
+      return result.feeds[0];
+    },
+
+    /**
+     * Create/add multiple feeds in a single batch request
+     */
+    createBatch: async (
+      batchDto: CreateBatchDto,
+    ): Promise<BatchCreateResponse> => {
+      Logger.debug(
+        `[ApiService] Creating batch of ${batchDto.urls.length} feeds`,
+      );
+
+      const results: BatchCreateResponse = {
+        feeds: [],
+        items: [],
+        successfulCount: 0,
+        failedCount: 0,
+        failedUrls: [],
+        errors: [],
+      };
+
+      if (batchDto.urls.length === 0) {
+        return results;
+      }
+
+      try {
+        // Use the existing fetchFeeds method which calls /parse with batch URLs
+        const batchResult = await this.fetchFeeds(batchDto.urls);
+
+        // All URLs that successfully returned feeds
+        const successfulUrls = new Set(batchResult.feeds.map((f) => f.feedUrl));
+
+        results.feeds = batchResult.feeds;
+        results.items = batchResult.items;
+        results.successfulCount = batchResult.feeds.length;
+
+        // Identify failed URLs (those that didn't return a feed)
+        results.failedUrls = batchDto.urls.filter(
+          (url) => !successfulUrls.has(url),
+        );
+        results.failedCount = results.failedUrls.length;
+
+        // Create error entries for failed URLs
+        results.errors = results.failedUrls.map((url) => ({
+          url,
+          error: "Feed could not be parsed or fetched",
+        }));
+
+        Logger.debug(
+          `[ApiService] Batch create completed: ${results.successfulCount} successful, ${results.failedCount} failed`,
+        );
+
+        return results;
+      } catch (error) {
+        Logger.error("[ApiService] Batch create failed:", error);
+
+        // If the entire batch fails, mark all URLs as failed
+        results.failedUrls = [...batchDto.urls];
+        results.failedCount = batchDto.urls.length;
+        results.errors = batchDto.urls.map((url) => ({
+          url,
+          error:
+            error instanceof Error ? error.message : "Unknown error occurred",
+        }));
+
+        // Don't throw - return partial results with error information
+        return results;
+      }
     },
 
     /**
@@ -547,7 +684,7 @@ class ApiService implements ApiClient {
     update: async (id: string, feedDto: UpdateFeedDto): Promise<Feed> => {
       // Current API doesn't support feed updates
       // This would need to be implemented on the backend
-      throw new Error('Feed update not implemented')
+      throw new Error("Feed update not implemented");
     },
 
     /**
@@ -556,9 +693,9 @@ class ApiService implements ApiClient {
     delete: async (id: string): Promise<void> => {
       // Current implementation handles this client-side
       // Just clear relevant cache entries
-      const cacheKey = await generateSecureCacheKey(`feed:${id}`)
-      await this.cache.delete(cacheKey)
-      return Promise.resolve()
+      const cacheKey = await generateSecureCacheKey(`feed:${id}`);
+      await this.cache.delete(cacheKey);
+      return Promise.resolve();
     },
 
     /**
@@ -566,11 +703,11 @@ class ApiService implements ApiClient {
      */
     refresh: async (id: string): Promise<FeedItem[]> => {
       // Find the feed URL for this ID
-      const feed = await this.feeds.getById(id)
-      const result = await this.refreshFeeds([feed.feedUrl])
-      return result.items.filter(item => item.feedUrl === feed.feedUrl)
-    }
-  }
+      const feed = await this.feeds.getById(id);
+      const result = await this.refreshFeeds([feed.feedUrl]);
+      return result.items.filter((item) => item.feedUrl === feed.feedUrl);
+    },
+  };
 
   // Article operations
   articles = {
@@ -578,9 +715,9 @@ class ApiService implements ApiClient {
      * Get articles by feed ID
      */
     getByFeed: async (feedId: string): Promise<FeedItem[]> => {
-      const feed = await this.feeds.getById(feedId)
-      const result = await this.fetchFeeds([feed.feedUrl])
-      return result.items
+      const feed = await this.feeds.getById(feedId);
+      const result = await this.fetchFeeds([feed.feedUrl]);
+      return result.items;
     },
 
     /**
@@ -588,7 +725,7 @@ class ApiService implements ApiClient {
      */
     markAsRead: async (id: string): Promise<void> => {
       // Current implementation handles this client-side
-      return Promise.resolve()
+      return Promise.resolve();
     },
 
     /**
@@ -596,62 +733,78 @@ class ApiService implements ApiClient {
      */
     markAsUnread: async (id: string): Promise<void> => {
       // Current implementation handles this client-side
-      return Promise.resolve()
-    }
-  }
+      return Promise.resolve();
+    },
+  };
 
   /**
    * Fetches feeds from the API (direct replacement for worker method)
    */
-  async fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
+  async fetchFeeds(
+    urls: string[],
+  ): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
     try {
       // Validate feed URLs
-      const { valid: validUrls, invalid } = validateFeedUrls(urls)
+      const { valid: validUrls, invalid } = validateFeedUrls(urls);
       if (invalid.length > 0) {
-        Logger.warn(`[ApiService] Skipping invalid feed URLs: ${invalid.join(', ')}`)
-      }
-      
-      if (validUrls.length === 0) {
-        return { feeds: [], items: [] }
-      }
-      
-      // Generate secure cache key
-      const sortedUrls = validUrls.sort().join(',')
-      const cacheKey = await generateSecureCacheKey(`feeds:${sortedUrls}`)
-      
-      // Check cache first
-      const cached = await this.cache.get<{ feeds: Feed[]; items: FeedItem[] }>(cacheKey)
-      if (cached) {
-        return cached
+        Logger.warn(
+          `[ApiService] Skipping invalid feed URLs: ${invalid.join(", ")}`,
+        );
       }
 
-      Logger.debug(`[ApiService] Fetching feeds for URLs: ${validUrls.length}`)
-      
-      const data = await this.post<FetchFeedsResponse>('/parse', { urls: validUrls })
+      if (validUrls.length === 0) {
+        return { feeds: [], items: [] };
+      }
+
+      // Generate secure cache key
+      const sortedUrls = validUrls.sort().join(",");
+      const cacheKey = await generateSecureCacheKey(`feeds:${sortedUrls}`);
+
+      // Check cache first
+      const cached = await this.cache.get<{ feeds: Feed[]; items: FeedItem[] }>(
+        cacheKey,
+      );
+      if (cached) {
+        return cached;
+      }
+
+      Logger.debug(`[ApiService] Fetching feeds for URLs: ${validUrls.length}`);
+
+      const data = await this.post<FetchFeedsResponse>("/parse", {
+        urls: validUrls,
+      });
 
       // Validate response structure
       if (!data || !Array.isArray(data.feeds)) {
-        throw new Error('Invalid response from API')
+        throw new Error("Invalid response from API");
       }
-      
-      // Validate each feed with type guards
-      const validatedFeeds = data.feeds.filter(feed => {
-        const result = safeParse(feed, isFeed, 'Feed')
-        if (!result.success) {
-          Logger.warn(`[ApiService] Invalid feed data:`, result.error)
-          return false
+
+      // Validate basic feed structure (skip strict type validation for now to prevent blocking)
+      const validatedFeeds = data.feeds.filter((feed: any) => {
+        if (!feed || typeof feed !== "object") {
+          Logger.warn(`[ApiService] Invalid feed data: not an object`);
+          return false;
         }
-        return true
-      })
+        if (!feed.guid || !feed.feedUrl) {
+          Logger.warn(
+            `[ApiService] Invalid feed data: missing required fields`,
+          );
+          return false;
+        }
+        return true;
+      });
 
       // Process feeds with proper typing
-      const feeds: Feed[] = data.feeds.map((feed: Feed) => ({
+      const feeds: Feed[] = data.feeds.map((feed: any) => ({
         type: feed.type,
+        id: feed.id || feed.guid, // Support both id and guid
         guid: feed.guid,
         status: feed.status,
         siteTitle: feed.siteTitle,
-        feedTitle: feed.feedTitle,
+        siteName: feed.siteName,
+        feedTitle: feed.feedTitle || feed.title,
         feedUrl: feed.feedUrl,
+        url: feed.url || feed.feedUrl, // Support both url and feedUrl
         description: feed.description,
         link: feed.link,
         lastUpdated: feed.lastUpdated,
@@ -661,64 +814,92 @@ class ApiService implements ApiClient {
         language: feed.language,
         favicon: feed.favicon,
         categories: feed.categories,
-        items: Array.isArray(feed.items) ? feed.items.map((item: FeedItem) => ({
-          type: item.type,
-          id: item.id,
-          title: item.title,
-          description: item.description,
-          link: item.link,
-          author: item.author,
-          published: item.published,
-          content: item.content,
-          created: item.created,
-          content_encoded: item.content_encoded,
-          categories: item.categories,
-          enclosures: item.enclosures,
-          thumbnail: item.thumbnail,
-          thumbnailColor: item.thumbnailColor,
-          thumbnailColorComputed: item.thumbnailColorComputed,
-          siteTitle: feed.siteTitle,
-          feedTitle: feed.feedTitle,
-          feedUrl: feed.feedUrl,
-          favicon: feed.favicon,
-          favorite: false,
-        })) : [],
-      }))
+        category: feed.category,
+        items: Array.isArray(feed.items)
+          ? feed.items.map((item: any) => ({
+              type: item.type,
+              id: item.id,
+              title: item.title,
+              description: item.description,
+              link: item.link,
+              url: item.url || item.link, // Support both url and link
+              author: item.author,
+              published: item.published,
+              content: item.content,
+              created: item.created,
+              content_encoded: item.content_encoded,
+              content_html: item.content_html,
+              categories: Array.isArray(item.categories)
+                ? item.categories
+                : item.categories
+                  ? [item.categories]
+                  : [], // Ensure array format
+              category: item.category,
+              feed_id: item.feed_id || feed.guid,
+              attachments: item.attachments || [],
+              enclosures: item.enclosures,
+              thumbnail: item.thumbnail,
+              thumbnailColor:
+                typeof item.thumbnailColor === "string"
+                  ? item.thumbnailColor
+                  : item.thumbnailColor || { r: 0, g: 0, b: 0 },
+              thumbnailColorComputed: item.thumbnailColorComputed || "#000000", // Ensure string hex color
+              siteTitle: feed.siteTitle,
+              siteName: feed.siteName,
+              feedTitle: feed.feedTitle,
+              feedUrl: feed.feedUrl,
+              favicon: feed.favicon,
+              favorite: Boolean(item.favorite),
+              duration: item.duration,
+              itunesEpisode: item.itunesEpisode,
+              itunesSeason: item.itunesSeason,
+              feedImage: item.feedImage,
+            }))
+          : [],
+      }));
 
-      const items: FeedItem[] = feeds.flatMap(feed => feed.items || [])
-      
+      const items: FeedItem[] = feeds.flatMap((feed) => feed.items || []);
+
       // Cache the result
-      const result = { feeds, items }
-      await this.cache.set(cacheKey, result)
-      
-      return result
+      const result = { feeds, items };
+      await this.cache.set(cacheKey, result);
+
+      return result;
     } catch (error) {
-      Logger.error('[ApiService] Error fetching feeds:', error instanceof Error ? error : new Error(String(error)))
-      throw error
+      Logger.error(
+        "[ApiService] Error fetching feeds:",
+        error instanceof Error ? error : new Error(String(error)),
+      );
+      throw error;
     }
   }
 
   /**
    * Refreshes feeds (bypasses cache)
    */
-  async refreshFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
+  async refreshFeeds(
+    urls: string[],
+  ): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
     try {
       // Validate URLs first
-      const { valid: validUrls } = validateFeedUrls(urls)
+      const { valid: validUrls } = validateFeedUrls(urls);
       if (validUrls.length === 0) {
-        return { feeds: [], items: [] }
+        return { feeds: [], items: [] };
       }
-      
+
       // Clear cache for refresh - use same secure hashing as fetchFeeds
-      const sortedUrls = validUrls.sort().join(',')
-      const cacheKey = await generateSecureCacheKey(`feeds:${sortedUrls}`)
-      await this.cache.delete(cacheKey)
-      
+      const sortedUrls = validUrls.sort().join(",");
+      const cacheKey = await generateSecureCacheKey(`feeds:${sortedUrls}`);
+      await this.cache.delete(cacheKey);
+
       // Fetch fresh data
-      return await this.fetchFeeds(urls)
+      return await this.fetchFeeds(urls);
     } catch (error) {
-      Logger.error('[ApiService] Error refreshing feeds:', error instanceof Error ? error : new Error(String(error)))
-      throw error
+      Logger.error(
+        "[ApiService] Error refreshing feeds:",
+        error instanceof Error ? error : new Error(String(error)),
+      );
+      throw error;
     }
   }
 
@@ -729,45 +910,50 @@ class ApiService implements ApiClient {
     try {
       // Validate URL first
       if (!isValidUrl(url)) {
-        throw new Error('Invalid URL for reader view')
-      }
-      
-      // Generate secure cache key
-      const cacheKey = await generateSecureCacheKey(`reader:${url}`)
-      
-      // Check cache first
-      const cached = await this.cache.get<ReaderViewResponse[]>(cacheKey)
-      if (cached && cached.length > 0) {
-        return cached[0]
+        throw new Error("Invalid URL for reader view");
       }
 
-      Logger.debug('[ApiService] Fetching reader view for URL:', url)
-      
-      const data = await this.post<ReaderViewResponse[]>('/getreaderview', { urls: [url] })
+      // Generate secure cache key
+      const cacheKey = await generateSecureCacheKey(`reader:${url}`);
+
+      // Check cache first
+      const cached = await this.cache.get<ReaderViewResponse[]>(cacheKey);
+      if (cached && cached.length > 0) {
+        return cached[0];
+      }
+
+      Logger.debug("[ApiService] Fetching reader view for URL:", url);
+
+      const data = await this.post<ReaderViewResponse[]>("/getreaderview", {
+        urls: [url],
+      });
 
       if (!Array.isArray(data) || data.length === 0) {
-        throw new Error('Invalid response from API')
+        throw new Error("Invalid response from API");
       }
-      
+
       // Validate response (assuming we have an isArticle type guard)
       // For now, we'll do basic validation
-      if (!data[0] || typeof data[0] !== 'object') {
-        throw new Error('Invalid reader view response structure')
+      if (!data[0] || typeof data[0] !== "object") {
+        throw new Error("Invalid reader view response structure");
       }
-      
+
       // Cache the result
-      await this.cache.set(cacheKey, data)
-      
-      return data[0]
+      await this.cache.set(cacheKey, data);
+
+      return data[0];
     } catch (error) {
-      Logger.error('[ApiService] Error fetching reader view:', error instanceof Error ? error : new Error(String(error)))
-      throw error
+      Logger.error(
+        "[ApiService] Error fetching reader view:",
+        error instanceof Error ? error : new Error(String(error)),
+      );
+      throw error;
     }
   }
 }
 
 // Export singleton instance
-export const apiService = new ApiService()
+export const apiService = new ApiService();
 
 // Export types for convenience
-export type { Feed, FeedItem, ReaderViewResponse }
+export type { Feed, FeedItem, ReaderViewResponse };

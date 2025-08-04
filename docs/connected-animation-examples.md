@@ -30,7 +30,7 @@ export function FeedAnimationProvider({
 
   // Check for reduced motion preference
   const animationEnabled = !window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
+    "(prefers-reduced-motion: reduce)",
   ).matches;
 
   return (

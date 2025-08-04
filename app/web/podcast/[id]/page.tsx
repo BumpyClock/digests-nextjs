@@ -1,56 +1,61 @@
-"use client"
+"use client";
 
 import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, Bookmark, Share2 } from "lucide-react"
-import { toggleFavoriteAction } from "@/app/actions"
-import { useToast } from "@/hooks/use-toast"
-import { useAudioActions } from "@/hooks/useFeedSelectors"
-import { useFeedStore } from "@/store/useFeedStore"
-import Image from "next/image"
-import type { FeedItem } from "@/types/feed"
-import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Bookmark, Share2 } from "lucide-react";
+import { toggleFavoriteAction } from "@/app/actions";
+import { useToast } from "@/hooks/use-toast";
+import { useAudioActions } from "@/hooks/useFeedActions";
+import { useFeeds } from "@/hooks/queries/use-feeds";
+import { useFeedStore } from "@/store/useFeedStore";
+import Image from "next/image";
+import type { FeedItem } from "@/types/feed";
+import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
 
-export default function PodcastPage(props: { params: Promise<{ id: string }> }) {
+export default function PodcastPage(props: {
+  params: Promise<{ id: string }>;
+}) {
   const params = use(props.params);
-  const [podcast, setPodcast] = useState<FeedItem | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [isBookmarked, setIsBookmarked] = useState(false)
-  const router = useRouter()
-  const { toast } = useToast()
-  const { playAudio } = useAudioActions()
+  const [podcast, setPodcast] = useState<FeedItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+  const { playAudio } = useAudioActions();
 
   useEffect(() => {
     async function loadPodcast() {
-      setLoading(true)
+      setLoading(true);
 
       // Get items from the store instead of fetching
-      const items = useFeedStore.getState().feedItems
-      
+      const items = useFeedStore().feedItems;
+
       if (items && items.length > 0) {
-        const foundPodcast = items.find((item: FeedItem) => item.id === params.id && item.type === "podcast")
+        const foundPodcast = items.find(
+          (item: FeedItem) => item.id === params.id && item.type === "podcast",
+        );
 
         if (foundPodcast) {
-          setPodcast(foundPodcast)
-          setIsBookmarked(foundPodcast.favorite || false)
+          setPodcast(foundPodcast);
+          setIsBookmarked(foundPodcast.favorite || false);
         }
       }
 
-      setLoading(false)
+      setLoading(false);
     }
 
-    loadPodcast()
-  }, [params.id])
+    loadPodcast();
+  }, [params.id]);
 
   const handleBookmark = async () => {
-    if (!podcast) return
+    if (!podcast) return;
 
     // Optimistic update
-    setIsBookmarked(!isBookmarked)
+    setIsBookmarked(!isBookmarked);
 
-    const result = await toggleFavoriteAction(podcast.id)
+    const result = await toggleFavoriteAction(podcast.id);
 
     if (result.success) {
       toast({
@@ -58,26 +63,27 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
         description: isBookmarked
           ? "This podcast has been removed from your bookmarks."
           : "This podcast has been added to your bookmarks.",
-      })
+      });
     } else {
       // Revert optimistic update if failed
-      setIsBookmarked(isBookmarked)
+      setIsBookmarked(isBookmarked);
 
       toast({
         title: "Error",
         description: result.message || "Failed to update bookmark status",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleShare = () => {
     // In a real app, this would use the Web Share API
     toast({
       title: "Share link copied",
-      description: "The link to this podcast has been copied to your clipboard.",
-    })
-  }
+      description:
+        "The link to this podcast has been copied to your clipboard.",
+    });
+  };
 
   const handlePlay = () => {
     if (podcast) {
@@ -87,9 +93,9 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
         source: podcast.link,
         audioUrl: podcast.link || "https://example.com/podcast.mp3",
         image: podcast.thumbnail,
-      })
+      });
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -115,7 +121,7 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (!podcast) {
@@ -128,18 +134,24 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
         <div className="flex flex-col items-center justify-center py-12">
           <h2 className="text-2xl font-bold mb-2">Podcast not found</h2>
           <p className="text-muted-foreground mb-6">
-            The podcast you&apos;re looking for doesn&apos;t exist or has been removed.
+            The podcast you&apos;re looking for doesn&apos;t exist or has been
+            removed.
           </p>
           <Button onClick={() => router.push("/app")}>Return to feeds</Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="container max-w-3xl py-8">
       <div className="mb-6">
-        <Button variant="ghost" size="sm" onClick={() => router.back()} className="mb-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.back()}
+          className="mb-4"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
@@ -172,7 +184,9 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
             <div className="flex space-x-2 mb-6">
               <Button onClick={handlePlay}>Play Episode</Button>
               <Button variant="outline" onClick={handleBookmark}>
-                <Bookmark className={`mr-2 h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
+                <Bookmark
+                  className={`mr-2 h-4 w-4 ${isBookmarked ? "fill-current" : ""}`}
+                />
                 {isBookmarked ? "Saved" : "Save"}
               </Button>
               <Button variant="outline" onClick={handleShare}>
@@ -183,13 +197,18 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
             <div className="space-y-4">
               <h2 className="text-xl font-bold">Episode Description</h2>
               <div className="prose prose-sm dark:prose-invert">
-                <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(podcast.content || podcast.description || '') }} />
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeReaderContent(
+                      podcast.content || podcast.description || "",
+                    ),
+                  }}
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }
-

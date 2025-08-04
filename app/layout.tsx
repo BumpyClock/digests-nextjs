@@ -8,14 +8,12 @@ import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { WorkerInitializer } from "@/components/worker-init";
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react";
 import { AmbilightFilterDefs } from "@/components/ui/AmbilightFilterDefs";
 import { FeedAnimationProvider } from "@/contexts/FeedAnimationContext";
 import { QueryProvider } from "@/components/providers/query-provider";
-import { AuthProvider } from "@/components/providers/auth-provider";
 import ErrorBoundary from "@/components/error-boundary";
-
 
 const notoSans = Noto_Sans({ subsets: ["latin"] });
 
@@ -55,15 +53,10 @@ export default function RootLayout({
       </head>
       <body className={notoSans.className}>
         <QueryProvider>
-          <AuthProvider>
-            <ThemeProvider>
-              <FeedAnimationProvider>
+          <ThemeProvider>
+            <FeedAnimationProvider>
               <WorkerInitializer />
-              <AmbilightFilterDefs
-                saturation={1}
-                spread={2}
-                blur={8}
-              />
+              <AmbilightFilterDefs saturation={1} spread={2} blur={8} />
               <ErrorBoundary>
                 <div className="flex min-h-screen flex-col">
                   <Header />
@@ -78,7 +71,6 @@ export default function RootLayout({
               <Toaster />
             </FeedAnimationProvider>
           </ThemeProvider>
-          </AuthProvider>
         </QueryProvider>
       </body>
     </html>

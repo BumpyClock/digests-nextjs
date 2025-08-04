@@ -1,11 +1,18 @@
 "use client";
 
-import { memo, useCallback, useMemo, useRef, useEffect, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useMemo,
+  useRef,
+  useEffect,
+  useState,
+} from "react";
 import { FeedItem } from "@/types";
 import Image from "next/image";
 import { Heart } from "lucide-react";
 import { ScrollArea, useScrollAreaRef } from "@/components/ui/scroll-area";
-import { useIsItemRead } from "@/hooks/useFeedSelectors";
+import { useIsItemRead } from "@/hooks/useFeedActions";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { cleanupTextContent } from "@/utils/htmlUtils";
@@ -78,10 +85,14 @@ const FeedListItem = memo(function FeedListItem({
             {cleanupTextContent(item.siteTitle)}
           </span>
         </div>
-        <h3 className="font-semibold text-sm line-clamp-2 mb-1">{cleanupTextContent(item.title)}</h3>
+        <h3 className="font-semibold text-sm line-clamp-2 mb-1">
+          {cleanupTextContent(item.title)}
+        </h3>
         <div className="flex justify-between items-center text-xs text-muted-foreground">
           <span>{formattedDate}</span>
-          {item.favorite && <Heart className="h-3 w-3 fill-red-500 text-red-500" />}
+          {item.favorite && (
+            <Heart className="h-3 w-3 fill-red-500 text-red-500" />
+          )}
         </div>
       </div>
     </div>
@@ -111,12 +122,11 @@ export function FeedList({
     setCurrentScrollTop(target.scrollTop);
   }, []);
 
-
   const handleItemSelect = useCallback(
     (item: FeedItem) => {
       onItemSelect(item, currentScrollTop);
     },
-    [onItemSelect, currentScrollTop]
+    [onItemSelect, currentScrollTop],
   );
 
   const renderSkeletons = useCallback(() => {
@@ -140,10 +150,7 @@ export function FeedList({
   if (isLoading) {
     return (
       <div className="border rounded-md overflow-hidden h-full">
-        <ScrollArea 
-          variant="list"
-          className="h-full"
-        >
+        <ScrollArea variant="list" className="h-full">
           {renderSkeletons()}
         </ScrollArea>
       </div>
@@ -160,7 +167,7 @@ export function FeedList({
 
   return (
     <div className="border rounded-md overflow-hidden h-full">
-      <ScrollArea 
+      <ScrollArea
         ref={scrollbarsRef}
         variant="list"
         className="h-full"
@@ -178,4 +185,6 @@ export function FeedList({
       </ScrollArea>
     </div>
   );
-});
+}
+
+FeedList.displayName = "FeedList";
