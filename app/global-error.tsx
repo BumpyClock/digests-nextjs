@@ -1,7 +1,6 @@
 "use client";
 
 import * as Sentry from "@sentry/nextjs";
-import NextError from "next/error";
 import { useEffect } from "react";
 
 export default function GlobalError({
@@ -24,8 +23,8 @@ export default function GlobalError({
               Something went wrong!
             </h1>
             <p className="text-muted-foreground mb-6">
-              We're sorry for the inconvenience. The error has been reported and
-              we'll look into it.
+              We&apos;re sorry for the inconvenience. The error has been reported and
+              we&apos;ll look into it.
             </p>
             <div className="space-y-4">
               <button

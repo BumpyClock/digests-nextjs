@@ -130,7 +130,7 @@ export default function Home() {
                   src="https://get.microsoft.com/badge/ms-store-badge.bundled.js"
                   async
                 ></script>
-                {/* @ts-ignore - Microsoft Store Badge custom element */}
+                {/* @ts-expect-error - Microsoft Store Badge custom element */}
                 <ms-store-badge
                   productid="9p8m0cvk7fqq"
                   productname="Digests - RSS & Podcasts"

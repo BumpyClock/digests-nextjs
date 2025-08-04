@@ -8,7 +8,6 @@ import { ArrowLeft, Bookmark, Share2 } from "lucide-react";
 import { toggleFavoriteAction } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { useAudioActions } from "@/hooks/useFeedActions";
-import { useFeeds } from "@/hooks/queries/use-feeds";
 import { useFeedStore } from "@/store/useFeedStore";
 import Image from "next/image";
 import type { FeedItem } from "@/types/feed";
@@ -30,7 +29,8 @@ export default function PodcastPage(props: {
       setLoading(true);
 
       // Get items from the store instead of fetching
-      const items = useFeedStore().feedItems;
+      const store = useFeedStore();
+      const items = store.feedItems;
 
       if (items && items.length > 0) {
         const foundPodcast = items.find(
