@@ -32,8 +32,8 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
         <div className="space-y-2">
           <h2 className="text-2xl font-semibold">Oops! Something went wrong</h2>
           <p className="text-muted-foreground">
-            We encountered an error while processing your request. Don't worry,
-            we've been notified.
+            We encountered an error while processing your request. Don&apos;t worry,
+            we&apos;ve been notified.
           </p>
         </div>
 

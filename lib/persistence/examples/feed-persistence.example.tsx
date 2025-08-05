@@ -97,8 +97,10 @@ export const useFeedsQuery = () => {
 /**
  * Example: Accessing persisted data directly (for offline mode)
  */
-async function getPersistedFeeds(): Promise<Feed[]> {
-  const queryClient = useQueryClient();
+// This is an example function - not meant to be called directly
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getPersistedFeeds(queryClient?: any): Promise<Feed[]> {
+  // const queryClient = useQueryClient(); // Moved to parameter
 
   // Try to get from React Query cache first
   const cached = queryClient.getQueryData<FeedsQueryData>(feedsKeys.lists());
