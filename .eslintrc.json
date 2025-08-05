@@ -5,6 +5,10 @@
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",
-    "**/*.spec.tsx"
+    "**/*.spec.tsx",
+    "**/__mocks__/**",
+    "**/test-utils/**",
+    "**/*.mock.ts",
+    "**/*.mock.tsx"
   ]
 }

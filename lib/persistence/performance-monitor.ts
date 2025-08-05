@@ -244,9 +244,9 @@ export function createMonitoredAdapter(
       return monitor.monitorOperation("read", () => adapter.get<T>(key));
     },
 
-    async set<T>(key: string, value: T, ttl?: number): Promise<void> {
+    async set<T>(key: string, value: T, _ttl?: number): Promise<void> {
       return monitor.monitorOperation("write", () =>
-        adapter.set(key, value, ttl),
+        adapter.set(key, value, _ttl),
       );
     },
 

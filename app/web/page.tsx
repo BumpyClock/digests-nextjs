@@ -74,10 +74,10 @@ function WebPageContent() {
 
   // Simple local state for UI management
   const [initialized, setInitialized] = useState(false);
-  const [activeFeed, setActiveFeed] = useState<string | null>(null);
+  const [, setActiveFeed] = useState<string | null>(null);
 
   // React Query is now the single source of truth for server state
-  const feedItems = feedsQuery.data?.items || [];
+  const feedItems = useMemo(() => feedsQuery.data?.items || [], [feedsQuery.data?.items]);
   const loading =
     feedsQuery.isLoading || (!initialized && feedItems.length === 0);
   const refreshing = refreshMutation.isPending;

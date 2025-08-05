@@ -43,18 +43,6 @@ const batchAddSchema = z.object({
   urlsText: z.string().min(1, "At least one URL is required"),
 });
 
-const batchProcessSchema = z.object({
-  urlsText: z
-    .array(z.string())
-    .min(1, "At least one URL is required")
-    .refine((urls) => urls.every((url) => isValidUrl(url)), {
-      message: "All URLs must be valid",
-    })
-    .refine((urls) => urls.every((url) => isValidFeedUrl(url)), {
-      message: "All URLs must be valid RSS or Atom feeds",
-    }),
-});
-
 type AddFeedFormData = z.infer<typeof addFeedSchema>;
 type BatchAddFormData = z.infer<typeof batchAddSchema>;
 

@@ -36,7 +36,7 @@ const ScrollArea = React.forwardRef<typeof SimpleBar, ScrollAreaProps>(
     ref,
   ) => {
     // Extract ref from props to avoid conflicts
-    const { ref: _, ...restProps } = props as Record<string, unknown>;
+    const { ref: _unusedRef, ...restProps } = props as Record<string, unknown>;
     // Different configurations for different variants
     const variantStyles = {
       default: "",

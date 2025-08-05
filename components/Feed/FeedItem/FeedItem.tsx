@@ -70,7 +70,7 @@ export const FeedItem = memo(function FeedItem({
   // React Query hooks
   const deleteFeedMutation = useDeleteFeed();
   const refreshFeedMutation = useRefreshFeed();
-  const updateFeedMutation = useUpdateFeed();
+  // const updateFeedMutation = useUpdateFeed();
   const { data: feedData, isLoading: isFeedLoading } = useFeed(feed.guid, {
     staleTime: 10 * 60 * 1000, // 10 minutes
   });

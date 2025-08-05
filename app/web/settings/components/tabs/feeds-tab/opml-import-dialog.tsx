@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { apiService } from "@/services/api-service";
-import type { Feed, FeedItem as ApiFeedItem } from "@/types";
+import type { Feed } from "@/types";
 import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
 

@@ -22,7 +22,7 @@ export interface FeatureFlags {
 }
 
 // Legacy getter function
-export const getFeatureFlag = (flag: keyof FeatureFlags): boolean => {
+export const getFeatureFlag = (_flag: keyof FeatureFlags): boolean => {
   // Import FEATURES from config to avoid undefined reference
   // Import FEATURES from config to avoid undefined reference
   return false; // Simplified for build compatibility
