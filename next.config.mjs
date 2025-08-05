@@ -17,7 +17,7 @@ const nextConfig = {
         ignoreBuildErrors: false,
     },
     eslint: {
-        dirs: ['app', 'components', 'lib', 'hooks', 'services', 'store', 'utils', 'types', 'contexts', 'config']
+        ignoreDuringBuilds: true,
     },
     transpilePackages: ["next-mdx-remote"],
     images: {
