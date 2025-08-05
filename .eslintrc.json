@@ -1,14 +1,16 @@
 {
   "extends": ["next/core-web-vitals", "next/typescript"],
   "ignorePatterns": [
-    "**/__tests__/**",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "**/*.spec.ts",
-    "**/*.spec.tsx",
-    "**/__mocks__/**",
-    "**/test-utils/**",
-    "**/*.mock.ts",
-    "**/*.mock.tsx"
+    "**/__tests__/**/*",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/__mocks__/**/*",
+    "**/test-utils/**/*",
+    "**/*.mock.*",
+    "**/coverage/**/*",
+    "**/.next/**/*",
+    "**/node_modules/**/*",
+    "**/dist/**/*",
+    "**/build/**/*"
   ]
 }
