@@ -19,17 +19,10 @@ import type {
 import { getApiConfig } from "@/hooks/useApiConfig";
 import { Logger } from "@/utils/logger";
 import {
-  isFeed,
-  isFeedItem,
-  isApiResponse,
-  isArrayOf,
-  validateType,
-  safeParse,
 } from "@/utils/type-guards";
 import {
   isValidUrl,
   isValidApiUrl,
-  isValidFeedUrl,
   generateSecureCacheKey,
   validateFeedUrls,
   SECURITY_CONFIG,
@@ -37,7 +30,7 @@ import {
 
 // Cache implementation for API responses
 class ApiCache {
-  private cache = new Map<string, { data: any; timestamp: number }>();
+  private cache = new Map<string, { data: unknown; timestamp: number }>();
   private ttl: number;
 
   constructor(ttl: number = 30 * 60 * 1000) {
@@ -48,7 +41,7 @@ class ApiCache {
     this.ttl = ttl;
   }
 
-  async set(key: string, data: any): Promise<void> {
+  async set(key: string, data: unknown): Promise<void> {
     const secureKey = await generateSecureCacheKey(key);
     this.cache.set(secureKey, { data, timestamp: Date.now() });
   }

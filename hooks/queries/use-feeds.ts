@@ -14,10 +14,9 @@ import {
 } from "@/services/api-service";
 // Zustand store removed - React Query is permanent
 import type { Feed, FeedItem } from "@/types";
-import { useEffect, useCallback } from "react";
+import { useCallback } from "react";
 // Feature flags removed - React Query is permanently enabled
 import { Logger } from "@/utils/logger";
-import { FEATURES } from "@/lib/feature-flags";
 
 // Query data types
 export interface FeedsQueryData {

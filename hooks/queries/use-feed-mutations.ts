@@ -10,7 +10,6 @@ import {
   apiService,
   CreateFeedDto,
   UpdateFeedDto,
-  CreateBatchDto,
   BatchCreateResponse,
 } from "@/services/api-service";
 // Legacy imports removed - React Query is permanent state management
@@ -32,7 +31,7 @@ export type FeedMutationType =
 
 export interface FeedMutationOperation {
   type: FeedMutationType;
-  data: any;
+  data: unknown;
   timestamp: number;
   id: string;
 }
