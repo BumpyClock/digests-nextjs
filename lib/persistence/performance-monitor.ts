@@ -262,7 +262,7 @@ export function createMonitoredAdapter(
       return monitor.monitorOperation("read", () => adapter.getMany<T>(keys));
     },
 
-    async setMany<T>(items: Map<string, T>, ttl?: number): Promise<void> {
+    async setMany<T>(items: Map<string, T>, _ttl?: number): Promise<void> {
       monitor.recordBatchedWrite(items.size);
       return monitor.monitorOperation("write", () => adapter.setMany(items));
     },

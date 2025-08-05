@@ -6,8 +6,6 @@
 import type {
   PersistenceAdapter,
   StorageInfo,
-  PersistenceError,
-  PersistenceErrorType,
 } from "@/types/persistence";
 import { Logger } from "@/utils/logger";
 
@@ -320,7 +318,7 @@ export class IndexedDBAdapter implements PersistenceAdapter {
             count: countRequest.result,
             oldestEntry: undefined, // TODO: Implement if needed
           });
-        } catch (error) {
+        } catch {
           // Fallback if storage API not available
           resolve({
             used: 0,

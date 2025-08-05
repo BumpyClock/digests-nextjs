@@ -16,6 +16,9 @@ const nextConfig = {
     typescript: {
         ignoreBuildErrors: false,
     },
+    eslint: {
+        dirs: ['app', 'components', 'lib', 'hooks', 'services', 'store', 'utils', 'types', 'contexts', 'config']
+    },
     transpilePackages: ["next-mdx-remote"],
     images: {
         remotePatterns: [
