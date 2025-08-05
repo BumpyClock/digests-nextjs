@@ -121,7 +121,8 @@
       "@tailwindcss/oxide",
       "@vercel/speed-insights",
       "sharp",
-      "unrs-resolver"
+      "unrs-resolver",
+      "msw"
     ]
   },
   "packageManager": "pnpm@10.14.0"
