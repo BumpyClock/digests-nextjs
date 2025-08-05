@@ -12,8 +12,7 @@ interface FeedItem {
 export function useOPML() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const feedsQuery = useFeedsQuery();
-  const feedsFromQuery = feedsQuery.data?.feeds || [];
-  const feeds = useMemo(() => feedsFromQuery, [feedsFromQuery]);
+  const feeds = useMemo(() => feedsQuery.data?.feeds || [], [feedsQuery.data?.feeds]);
   const batchAddFeedsMutation = useBatchAddFeedsMutation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [detectedFeeds, setDetectedFeeds] = useState<FeedItem[]>([]);

@@ -44,7 +44,6 @@ const batchAddSchema = z.object({
 });
 
 type AddFeedFormData = z.infer<typeof addFeedSchema>;
-type BatchAddFormData = z.infer<typeof batchAddSchema>;
 
 interface AddFeedFormProps {
   onSuccess?: () => void;
