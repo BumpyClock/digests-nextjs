@@ -4,8 +4,8 @@ export const normalizeFeedUrl = (url: string | null): string => {
     // First decode to handle any encoded URLs
     const decoded = decodeURIComponent(url);
     return decoded
-      // Remove protocol
-      .replace(/^https?:\/\//, '')
+      // Remove protocol (case-insensitive)
+      .replace(/^https?:\/\//i, '')
       // Remove trailing slashes
       .replace(/\/+$/, '')
       // Normalize multiple slashes
@@ -14,4 +14,4 @@ export const normalizeFeedUrl = (url: string | null): string => {
     console.warn('Error normalizing URL:', error);
     return url.replace(/\/+$/, '');
   }
-}; 
+};

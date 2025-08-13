@@ -5,7 +5,7 @@ const modules = [
 ];
 try {
   execSync(`rm -rf compiled-tests && mkdir compiled-tests`);
-  execSync(`npx tsc ${modules.join(' ')} --module commonjs --target es2017 --outDir compiled-tests`, { stdio: 'inherit' });
+  execSync(`npx tsc ${modules.join(' ')} --module commonjs --target es2017 --skipLibCheck --outDir compiled-tests`, { stdio: 'inherit' });
 } catch (e) {
   console.error('Failed to compile test modules', e);
   process.exit(1);
