@@ -3,7 +3,7 @@
  * Integrates the persistence adapter with React Query for offline support
  */
 
-import { QueryClient, Query, hashKey } from "@tanstack/react-query";
+import { QueryClient, hashKey } from "@tanstack/react-query";
 import { Logger } from "@/utils/logger";
 import type {
   PersistenceAdapter,
@@ -29,8 +29,8 @@ export function createQueryPersister(
     batchingInterval = 100,
     persistedQueries = [],
     excludedQueries = [],
-    serialize = JSON.stringify,
-    deserialize = JSON.parse,
+    serialize: _serialize = JSON.stringify,
+    deserialize: _deserialize = JSON.parse,
   } = config;
 
   // Throttle map to prevent excessive writes
@@ -368,7 +368,7 @@ export async function createSecurePersisterWithKey(
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
-  async function encrypt(data: string): Promise<ArrayBuffer> {
+  async function _encrypt(data: string): Promise<ArrayBuffer> {
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const encrypted = await crypto.subtle.encrypt(
       { name: "AES-GCM", iv },
@@ -384,7 +384,7 @@ export async function createSecurePersisterWithKey(
     return combined.buffer;
   }
 
-  async function decrypt(data: ArrayBuffer): Promise<string> {
+  async function _decrypt(data: ArrayBuffer): Promise<string> {
     const combined = new Uint8Array(data);
     const iv = combined.slice(0, 12);
     const encrypted = combined.slice(12);

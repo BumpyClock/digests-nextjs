@@ -6,7 +6,7 @@ import { Logger } from "@/utils/logger";
 interface ErrorHandlingOptions {
   showToast?: boolean;
   fallbackMessage?: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   onError?: (error: Error) => void;
 }
 

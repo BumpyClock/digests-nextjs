@@ -377,7 +377,7 @@ export function safeParse<T>(
 /**
  * Type guard for Reader View responses
  */
-export function isReaderView(value: unknown): value is any {
+export function isReaderView(value: unknown): value is { url: string; title?: string; content?: string; [key: string]: unknown } {
   if (!isObject(value)) return false;
 
   const reader = value as Record<string, unknown>;

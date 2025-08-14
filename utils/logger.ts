@@ -8,21 +8,21 @@ const isDevelopment = () => {
 };
 
 export class Logger {
-  static debug(message: string, ...args: any[]) {
+  static debug(message: string, ...args: unknown[]) {
     if (isDevelopment()) {
       console.debug(`[DEBUG] ${message}`, ...args);
     }
   }
 
-  static info(message: string, ...args: any[]) {
+  static info(message: string, ...args: unknown[]) {
     console.info(`[INFO] ${message}`, ...args);
   }
 
-  static warn(message: string, ...args: any[]) {
+  static warn(message: string, ...args: unknown[]) {
     console.warn(`[WARN] ${message}`, ...args);
   }
 
-  static error(message: string, error?: Error | unknown, ...args: any[]) {
+  static error(message: string, error?: Error | unknown, ...args: unknown[]) {
     // Handle unknown error types by converting them to Error
     const errorToLog =
       error instanceof Error

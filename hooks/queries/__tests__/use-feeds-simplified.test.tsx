@@ -1,7 +1,7 @@
 // ABOUTME: Simplified unit tests for useFeeds React Query hook
 // ABOUTME: Tests basic functionality without complex feature flag issues
 
-import { renderHook, waitFor, act } from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode } from "react";
 
@@ -155,7 +155,7 @@ const mockItems: FeedItem[] = [
 ];
 
 // Test wrapper component
-const createWrapper = (initialData?: any) => {
+const createWrapper = (initialData?: FeedsQueryData) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -172,9 +172,11 @@ const createWrapper = (initialData?: any) => {
     queryClient.setQueryData(feedsKeys.lists(), initialData);
   }
 
-  return ({ children }: { children: ReactNode }) => (
+  const TestWrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
+  TestWrapper.displayName = 'TestWrapper';
+  return TestWrapper;
 };
 
 describe("useFeeds (Simplified)", () => {

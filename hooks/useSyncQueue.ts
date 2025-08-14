@@ -17,7 +17,7 @@
 export interface FeedSyncOperation {
   id: string;
   type: "create" | "update" | "delete" | "ADD_FEED"; // Added legacy ADD_FEED type
-  data: any;
+  data: unknown;
   timestamp: number;
   priority?: "low" | "medium" | "high";
 }
@@ -38,14 +38,14 @@ export interface SyncQueueStatus {
 }
 
 // Temporary stub to prevent build errors during migration
-export const useSyncQueue = (options?: SyncQueueOptions) => {
+export const useSyncQueue = (_options?: SyncQueueOptions) => {
   return {
-    addToQueue: (operation: FeedSyncOperation) => {},
+    addToQueue: (_operation: FeedSyncOperation) => {},
     processQueue: () => Promise.resolve(),
     clearQueue: () => {},
     queueSize: 0,
     isProcessing: false,
-    queue: [] as Array<{ mutationKey: [string, any] }>,
+    queue: [] as Array<{ mutationKey: [string, unknown] }>,
     queueStatus: {
       pending: 0,
       succeeded: 0,

@@ -46,7 +46,6 @@ import {
 import {
   useDeleteFeed,
   useRefreshFeed,
-  useUpdateFeed,
 } from "@/hooks/queries/use-feed-mutations";
 import { useFeed } from "@/hooks/queries/use-feed";
 import { FEATURES } from "@/config/feature-flags";

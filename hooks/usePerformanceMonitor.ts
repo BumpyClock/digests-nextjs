@@ -52,8 +52,8 @@ export function usePerformanceMonitor(enabled = true) {
 
   // Get memory usage if available
   const getMemoryUsage = useCallback(() => {
-    if ("memory" in performance && (performance as any).memory) {
-      const memory = (performance as any).memory;
+    if ("memory" in performance && (performance as Performance & { memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory) {
+      const memory = (performance as Performance & { memory: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
       return {
         usedJSHeapSize: memory.usedJSHeapSize,
         totalJSHeapSize: memory.totalJSHeapSize,
@@ -123,7 +123,7 @@ export function usePerformanceMonitor(enabled = true) {
     }
 
     return sample;
-  }, [getMemoryUsage, getCacheMetrics, getPersistenceMetrics]);
+  }, [getMemoryUsage, getCacheMetrics, getPersistenceMetrics, checkForAlerts]);
 
   // Check for performance alerts
   const checkForAlerts = useCallback((sample: PerformanceSample) => {
@@ -241,7 +241,7 @@ export function usePerformanceMonitor(enabled = true) {
       process.env.NODE_ENV === "development" &&
       typeof window !== "undefined"
     ) {
-      (window as any).__PERFORMANCE_MONITOR__ = {
+      (window as Window & { __PERFORMANCE_MONITOR__?: unknown }).__PERFORMANCE_MONITOR__ = {
         getSummary: getPerformanceSummary,
         export: exportMetrics,
         samples: samplesRef,

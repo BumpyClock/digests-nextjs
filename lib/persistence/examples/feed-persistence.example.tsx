@@ -83,7 +83,7 @@ export const useFeedsQuery = () => {
     networkMode: "offlineFirst",
 
     // ✅ New: Retry configuration for poor connectivity
-    retry: (failureCount, error) => {
+    retry: (failureCount, _error) => {
       if (!navigator.onLine) return false; // Don't retry when offline
       return failureCount < 3;
     },
@@ -98,8 +98,7 @@ export const useFeedsQuery = () => {
  * Example: Accessing persisted data directly (for offline mode)
  */
 // This is an example function - not meant to be called directly
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function getPersistedFeeds(queryClient?: any): Promise<Feed[]> {
+async function getPersistedFeeds(queryClient?: QueryClient): Promise<Feed[]> {
   // const queryClient = useQueryClient(); // Moved to parameter
 
   // Try to get from React Query cache first
@@ -178,7 +177,7 @@ export const useReadStatus = () => {
   // ✅ UI state stays in Zustand - no change needed
   // Note: useUIStore would need to be implemented or imported
   const readItems = new Set<string>(); // Mock implementation
-  const markAsRead = (id: string) => {}; // Mock implementation
+  const markAsRead = (_id: string) => {}; // Mock implementation
 
   return { readItems, markAsRead };
 };

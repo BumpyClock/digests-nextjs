@@ -144,7 +144,7 @@ function mergeReadItems(local: string[], remote: string[]): string[] {
 /**
  * Validate feed data structure
  */
-export function validateFeedData(data: any): data is PersistedFeedData {
+export function validateFeedData(data: unknown): data is PersistedFeedData {
   if (!data || typeof data !== "object") return false;
 
   const required = [
@@ -186,7 +186,7 @@ export function validateFeedData(data: any): data is PersistedFeedData {
  * Migrate data between versions
  */
 export function migrateData(
-  data: any,
+  data: unknown,
   fromVersion: number,
   toVersion: number,
 ): PersistedFeedData {
@@ -197,7 +197,7 @@ export function migrateData(
     toVersion,
   );
 
-  let migrated = { ...data };
+  const migrated = { ...data };
 
   // Migration v1 -> v2: Add metadata structure
   if (fromVersion < 2) {

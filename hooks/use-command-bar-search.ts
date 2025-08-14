@@ -105,7 +105,7 @@ export function useCommandBarSearch(
       .sort((a, b) => b.score - a.score);
 
     return filtered.map(({ feed }) => feed); // Return only feeds
-  }, [uniqueFeedSources, searchValue]);
+  }, [uniqueFeedSources, searchValue, feeds]);
 
   const filteredItems = useMemo(() => {
     if (!searchValue) {

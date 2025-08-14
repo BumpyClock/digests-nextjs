@@ -196,7 +196,7 @@ class ApiService implements ApiClient {
   /**
    * Updates API configuration
    */
-  updateApiConfig(config: any): void {
+  updateApiConfig(config: { baseUrl?: string; apiKey?: string; timeout?: number; [key: string]: unknown }): void {
     if (config.baseUrl) {
       this.updateApiUrl(config.baseUrl);
     }
@@ -258,7 +258,7 @@ class ApiService implements ApiClient {
    * Cancel all pending requests
    */
   cancelAll(): void {
-    this.requestTrackers.forEach((tracker, id) => {
+    this.requestTrackers.forEach((tracker, _id) => {
       tracker.controller.abort();
     });
     this.requestTrackers.clear();
@@ -330,12 +330,12 @@ class ApiService implements ApiClient {
   async request<T>(config: RequestConfig): Promise<T> {
     const {
       url,
-      method,
-      body,
-      headers = {},
+      method: _method,
+      body: _body,
+      headers: _headers = {},
       retry = DEFAULT_RETRY_CONFIG,
-      timeout,
-      signal,
+      timeout: _timeout,
+      signal: _signal,
       requestId = generateUUID(),
     } = config;
 
@@ -529,7 +529,7 @@ class ApiService implements ApiClient {
   /**
    * Makes a POST request to the API (legacy method, now uses request internally)
    */
-  async post<T>(endpoint: string, body: any): Promise<T> {
+  async post<T>(endpoint: string, body: unknown): Promise<T> {
     return this.request<T>({
       url: endpoint,
       method: "POST",
@@ -550,7 +550,7 @@ class ApiService implements ApiClient {
   /**
    * Makes a PATCH request to the API
    */
-  async patch<T>(endpoint: string, body: any): Promise<T> {
+  async patch<T>(endpoint: string, body: unknown): Promise<T> {
     return this.request<T>({
       url: endpoint,
       method: "PATCH",
@@ -674,7 +674,7 @@ class ApiService implements ApiClient {
     /**
      * Update feed (not implemented in current API)
      */
-    update: async (id: string, feedDto: UpdateFeedDto): Promise<Feed> => {
+    update: async (_id: string, _feedDto: UpdateFeedDto): Promise<Feed> => {
       // Current API doesn't support feed updates
       // This would need to be implemented on the backend
       throw new Error("Feed update not implemented");
@@ -773,7 +773,7 @@ class ApiService implements ApiClient {
       }
 
       // Validate basic feed structure (skip strict type validation for now to prevent blocking)
-      const validatedFeeds = data.feeds.filter((feed: any) => {
+      const validatedFeeds = data.feeds.filter((feed: unknown) => {
         if (!feed || typeof feed !== "object") {
           Logger.warn(`[ApiService] Invalid feed data: not an object`);
           return false;
@@ -788,7 +788,7 @@ class ApiService implements ApiClient {
       });
 
       // Process feeds with proper typing
-      const feeds: Feed[] = data.feeds.map((feed: any) => ({
+      const feeds: Feed[] = data.feeds.map((feed: Record<string, unknown>) => ({
         type: feed.type,
         id: feed.id || feed.guid, // Support both id and guid
         guid: feed.guid,
@@ -809,7 +809,7 @@ class ApiService implements ApiClient {
         categories: feed.categories,
         category: feed.category,
         items: Array.isArray(feed.items)
-          ? feed.items.map((item: any) => ({
+          ? feed.items.map((item: Record<string, unknown>) => ({
               type: item.type,
               id: item.id,
               title: item.title,

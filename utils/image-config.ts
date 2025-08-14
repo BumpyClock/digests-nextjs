@@ -50,7 +50,7 @@ export function getImageProps(
   const loadingStrategy = IMAGE_LOADING[loading];
 
   // Build props object, only including height if defined
-  const props: any = {
+  const props: { width: number; sizes: string; height?: number; [key: string]: unknown } = {
     width: size.width,
     sizes: size.sizes,
     ...loadingStrategy,

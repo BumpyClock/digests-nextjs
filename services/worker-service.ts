@@ -68,7 +68,7 @@ type WorkerResponse =
 class WorkerService {
   private rssWorker: Worker | null = null;
   private shadowWorker: Worker | null = null;
-  private messageHandlers: Map<string, Set<(data: any) => void>> = new Map();
+  private messageHandlers: Map<string, Set<(data: unknown) => void>> = new Map();
   private isInitialized = false;
   private fallbackMode = false;
   private cacheTtl = DEFAULT_CACHE_TTL;
@@ -171,13 +171,13 @@ class WorkerService {
       this.messageHandlers.set(type, new Set());
     }
 
-    this.messageHandlers.get(type)!.add(handler as any);
+    this.messageHandlers.get(type)!.add(handler as (data: unknown) => void);
 
     // Return unsubscribe function
     return () => {
       const handlers = this.messageHandlers.get(type);
       if (handlers) {
-        handlers.delete(handler as any);
+        handlers.delete(handler as (data: unknown) => void);
         if (handlers.size === 0) {
           this.messageHandlers.delete(type);
         }

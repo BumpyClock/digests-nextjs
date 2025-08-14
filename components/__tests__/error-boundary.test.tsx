@@ -28,13 +28,13 @@ const ThrowOnRender: React.FC = () => {
   throw new Error("Render error");
 };
 
-// Component that throws async error
-const ThrowAsyncError: React.FC<{ error: Error }> = ({ error }) => {
-  React.useEffect(() => {
-    throw error;
-  }, [error]);
-  return <div>Component rendered</div>;
-};
+// Component that throws async error - currently unused but kept for future tests
+// const ThrowAsyncError: React.FC<{ error: Error }> = ({ error }) => {
+//   React.useEffect(() => {
+//     throw error;
+//   }, [error]);
+//   return <div>Component rendered</div>;
+// };
 
 describe("ErrorBoundary", () => {
   const mockLogger = Logger as jest.Mocked<typeof Logger>;
@@ -128,7 +128,7 @@ describe("ErrorBoundary", () => {
   });
 
   it("should render custom fallback when provided", () => {
-    const customFallback = <div>Custom error message</div>;
+    // Define custom fallback component
 
     const CustomFallback = () => <div>Custom error message</div>;
 

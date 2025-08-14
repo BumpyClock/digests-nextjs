@@ -9,7 +9,7 @@
 import { useFeeds as useFeedsQuery } from "@/hooks/queries/use-feeds";
 import { useReadStatus } from "@/hooks/useReadStatus";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
-import type { Feed, FeedItem } from "@/types";
+import type { Feed } from "@/types";
 
 export function useFeeds(): Feed[] {
   const { data } = useFeedsQuery();

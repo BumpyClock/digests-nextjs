@@ -6,7 +6,7 @@
  * the need for Zustand while maintaining the same functionality.
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useFeeds } from "@/hooks/queries/use-feeds";
 import type { FeedItem } from "@/types";
 
@@ -19,7 +19,7 @@ export function useReadStatus() {
   const [isLoaded, setIsLoaded] = useState(false);
 
   const { data: feedsData } = useFeeds();
-  const feedItems = feedsData?.items || [];
+  const feedItems = useMemo(() => feedsData?.items || [], [feedsData?.items]);
 
   // Load read status from localStorage on mount
   useEffect(() => {

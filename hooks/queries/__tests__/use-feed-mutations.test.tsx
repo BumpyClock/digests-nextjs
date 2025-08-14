@@ -1,7 +1,7 @@
 // ABOUTME: Unit tests for feed mutation hooks with optimistic updates and error recovery
 // ABOUTME: Tests add, update, delete, and refresh mutations with offline sync support
 
-import { renderHook, waitFor, act } from "@testing-library/react";
+import { renderHook, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode } from "react";
 import type { Feed, FeedItem } from "@/types";
@@ -35,9 +35,7 @@ jest.mock("@/lib/feature-flags", () => ({
 // Import after mocking
 import {
   useAddFeed,
-  useUpdateFeed,
   useDeleteFeed,
-  useRefreshFeed,
   useRefreshAllFeeds,
   useBatchAddFeeds,
 } from "../use-feed-mutations";
@@ -67,8 +65,8 @@ const mockUseSyncQueue = useSyncQueue as jest.MockedFunction<
 const mockFeatures = FEATURES as jest.Mocked<typeof FEATURES>;
 
 // Override the actual apiService with our mocks
-(apiService as any).feeds = mockApiService.feeds;
-(apiService as any).refreshFeeds = mockApiService.refreshFeeds;
+(apiService as typeof apiService & { feeds: typeof mockApiService.feeds }).feeds = mockApiService.feeds;
+(apiService as typeof apiService & { refreshFeeds: typeof mockApiService.refreshFeeds }).refreshFeeds = mockApiService.refreshFeeds;
 
 // Test data
 const mockFeed: Feed = {
@@ -121,7 +119,7 @@ const mockSyncQueue = {
   clearQueue: jest.fn(),
   queueSize: 0,
   isProcessing: false,
-  queue: [] as Array<{ mutationKey: [string, any] }>,
+  queue: [] as Array<{ mutationKey: [string, unknown] }>,
   queueStatus: {
     total: 0,
     pending: 0,
@@ -151,9 +149,11 @@ const createWrapper = (initialData?: FeedsQueryData) => {
     queryClient.setQueryData(feedsKeys.lists(), initialData);
   }
 
-  return ({ children }: { children: ReactNode }) => (
+  const TestWrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
+  TestWrapper.displayName = 'TestWrapper';
+  return TestWrapper;
 };
 
 describe("Feed Mutations", () => {
@@ -226,7 +226,7 @@ describe("Feed Mutations", () => {
           await result.current.mutateAsync({
             url: "https://invalid.com/feed.xml",
           });
-        } catch (e) {
+        } catch {
           // Expected to throw
         }
       });
@@ -294,7 +294,7 @@ describe("Feed Mutations", () => {
       await act(async () => {
         try {
           await result.current.mutateAsync(mockFeed.feedUrl);
-        } catch (e) {
+        } catch {
           // Expected to throw
         }
       });

@@ -181,7 +181,7 @@ const mockFeedStore = {
 };
 
 // Test wrapper component
-const createWrapper = (initialData?: any) => {
+const createWrapper = (initialData?: FeedsQueryData) => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -199,9 +199,11 @@ const createWrapper = (initialData?: any) => {
     queryClient.setQueryData(feedsKeys.lists(), initialData);
   }
 
-  return ({ children }: { children: ReactNode }) => (
+  const TestWrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
+  TestWrapper.displayName = 'TestWrapper';
+  return TestWrapper;
 };
 
 describe("useFeeds", () => {
@@ -455,8 +457,8 @@ describe("useFeeds", () => {
 
     it("should handle malformed API responses", async () => {
       mockApiService.refreshFeeds.mockResolvedValue({
-        feeds: null as any,
-        items: undefined as any,
+        feeds: null as unknown,
+        items: undefined as unknown,
       });
 
       const wrapper = createWrapper();

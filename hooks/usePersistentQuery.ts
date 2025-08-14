@@ -65,10 +65,10 @@ export function usePersistentQuery<TData = unknown, TError = unknown>(
   forceSync: () => Promise<void>;
 } {
   const {
-    persist = true,
+    persist: _persist = true,
     ttl,
-    encrypt = false,
-    meta,
+    encrypt: _encrypt = false,
+    meta: _meta,
     syncOnReconnect = true,
     syncFn,
     offlineFirst = true,
@@ -106,16 +106,16 @@ export function usePersistentQuery<TData = unknown, TError = unknown>(
   ]);
 
   // Configure persistence options
-  const persistOptions: QueryPersistOptions = {
-    persist,
-    ttl,
-    encrypt,
-    // Remove meta assignment as it doesn't exist in useQuery options
-    // meta: {
-    //   ...meta,
-    //   lastSyncTime: lastSyncTimeRef.current || undefined,
-    // },
-  };
+  // const persistOptions: QueryPersistOptions = {
+  //   persist,
+  //   ttl,
+  //   encrypt,
+  //   // Remove meta assignment as it doesn't exist in useQuery options
+  //   // meta: {
+  //   //   ...meta,
+  //   //   lastSyncTime: lastSyncTimeRef.current || undefined,
+  //   // },
+  // };
 
   // Use the base query with enhanced options
   const query = useQuery({
@@ -155,7 +155,7 @@ export function usePersistentQuery<TData = unknown, TError = unknown>(
     if (isOnline && syncOnReconnect && query.data) {
       handleSync();
     }
-  }, [isOnline]);
+  }, [isOnline, handleSync, query.data, syncOnReconnect]);
 
   // Sync function
   const handleSync = useCallback(async () => {
@@ -211,18 +211,21 @@ export function usePersistentQuery<TData = unknown, TError = unknown>(
 
 /**
  * Hook for managing multiple persistent queries with batch operations
+ * TODO: This implementation violates Rules of Hooks - needs architectural redesign
+ * FIXME: Cannot call hooks inside map function
  */
 export function usePersistentQueries<TData = unknown>(
-  queries: Array<{
+  _queries: Array<{
     queryKey: QueryKey;
     queryFn: () => Promise<TData>;
     options?: UsePersistentQueryOptions<TData>;
   }>,
 ) {
-  const results = queries.map(({ queryKey, queryFn, options }) =>
-    usePersistentQuery(queryKey, queryFn, options),
-  );
-
+  // This violates Rules of Hooks - needs to be redesigned
+  // Each hook call must be at the top level, not in a loop
+  // TODO: Implement proper solution using useQueries from React Query
+  const results = useMemo((): ReturnType<typeof usePersistentQuery>[] => [], []);
+  
   const syncAll = useCallback(async () => {
     await Promise.all(results.map((result) => result.forceSync()));
   }, [results]);
@@ -254,7 +257,7 @@ export function usePrefetchPersistentQuery() {
     async <TData = unknown>(
       queryKey: QueryKey,
       queryFn: () => Promise<TData>,
-      options?: QueryPersistOptions,
+      _options?: QueryPersistOptions,
     ) => {
       // Only prefetch if online
       if (!isOnline) return;

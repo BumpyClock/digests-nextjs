@@ -1,7 +1,7 @@
 /**
  * Cross-platform UUID generator that works in both browser and Node.js environments
  */
-export function generateUUID(): string {
+export async function generateUUID(): Promise<string> {
   // Try browser crypto API first
   if (
     typeof window !== "undefined" &&
@@ -12,13 +12,13 @@ export function generateUUID(): string {
   }
 
   // Try Node.js crypto module
-  if (typeof require !== "undefined") {
+  if (typeof globalThis !== "undefined" && globalThis.crypto) {
     try {
-      const crypto = require("crypto");
+      const crypto = await import("crypto");
       if (crypto.randomUUID) {
         return crypto.randomUUID();
       }
-    } catch (e) {
+    } catch {
       // Fall through to manual implementation
     }
   }
@@ -34,15 +34,15 @@ export function generateUUID(): string {
 /**
  * Cross-platform hash function that works in both browser and Node.js environments
  */
-export function createHash(data: string): string {
+export async function createHash(data: string): Promise<string> {
   // Try Node.js crypto module first
-  if (typeof require !== "undefined") {
+  if (typeof globalThis !== "undefined" && globalThis.crypto) {
     try {
-      const crypto = require("crypto");
+      const crypto = await import("crypto");
       if (crypto.createHash) {
         return crypto.createHash("sha256").update(data).digest("hex");
       }
-    } catch (e) {
+    } catch {
       // Fall through to browser implementation
     }
   }

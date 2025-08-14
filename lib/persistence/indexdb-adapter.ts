@@ -228,7 +228,7 @@ export class IndexedDBAdapter implements PersistenceAdapter {
   async getMany<T>(keys: string[]): Promise<Map<string, T>> {
     await this.init();
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve, _reject) => {
       const results = new Map<string, T>();
       const transaction = this.db!.transaction([this.storeName], "readonly");
       const store = transaction.objectStore(this.storeName);

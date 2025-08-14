@@ -347,11 +347,11 @@ export class EncryptionUtils {
  * Encrypted persistence adapter wrapper
  */
 export class EncryptedPersistenceAdapter {
-  private adapter: any; // Using any to avoid circular dependency
+  private adapter: { get: (key: string) => Promise<unknown>; set: (key: string, value: unknown) => Promise<void>; delete: (key: string) => Promise<void> }; // Using interface to avoid circular dependency
   private key: CryptoKey;
   private config?: SecurePersistConfig;
 
-  constructor(adapter: any, key: CryptoKey, config?: SecurePersistConfig) {
+  constructor(adapter: { get: (key: string) => Promise<unknown>; set: (key: string, value: unknown) => Promise<void>; delete: (key: string) => Promise<void> }, key: CryptoKey, config?: SecurePersistConfig) {
     this.adapter = adapter;
     this.key = key;
     this.config = config;
@@ -470,7 +470,7 @@ export class EncryptedPersistenceAdapter {
  * Create an encrypted query persister
  */
 export async function createEncryptedPersister(
-  adapter: any,
+  adapter: { get: (key: string) => Promise<unknown>; set: (key: string, value: unknown) => Promise<void>; delete: (key: string) => Promise<void> },
   password?: string,
   config?: SecurePersistConfig,
 ) {

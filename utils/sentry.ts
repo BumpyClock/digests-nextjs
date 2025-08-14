@@ -24,7 +24,7 @@ export function setSentryUser(user: UserContext | null) {
 /**
  * Add custom context to Sentry
  */
-export function setSentryContext(key: string, context: Record<string, any>) {
+export function setSentryContext(key: string, context: Record<string, unknown>) {
   Sentry.setContext(key, context);
 }
 
@@ -35,7 +35,7 @@ export function addSentryBreadcrumb(
   message: string,
   category: string,
   level: Sentry.SeverityLevel = "info",
-  data?: Record<string, any>,
+  data?: Record<string, unknown>,
 ) {
   Sentry.addBreadcrumb({
     message,
@@ -52,7 +52,7 @@ export function addSentryBreadcrumb(
 export function captureMessage(
   message: string,
   level: Sentry.SeverityLevel = "info",
-  context?: Record<string, any>,
+  context?: Record<string, unknown>,
 ) {
   if (context) {
     Sentry.withScope((scope) => {
@@ -69,7 +69,7 @@ export function captureMessage(
  */
 export function captureException(
   error: Error,
-  context?: Record<string, any>,
+  context?: Record<string, unknown>,
   level: Sentry.SeverityLevel = "error",
 ) {
   Sentry.withScope((scope) => {
@@ -87,7 +87,7 @@ export function captureException(
 export function trackEvent(
   eventName: string,
   category: string,
-  data?: Record<string, any>,
+  data?: Record<string, unknown>,
 ) {
   addSentryBreadcrumb(`Event: ${eventName}`, category, "info", data);
 }
@@ -98,7 +98,7 @@ export function trackEvent(
 export async function monitorAsyncOperation<T>(
   operationName: string,
   operation: () => Promise<T>,
-  context?: Record<string, any>,
+  context?: Record<string, unknown>,
 ): Promise<T> {
   return await Sentry.startSpan(
     {
@@ -125,9 +125,9 @@ export async function monitorAsyncOperation<T>(
 /**
  * Create a wrapped version of a function that captures errors
  */
-export function withErrorBoundary<T extends (...args: any[]) => any>(
+export function withErrorBoundary<T extends (...args: unknown[]) => unknown>(
   fn: T,
-  context?: Record<string, any>,
+  context?: Record<string, unknown>,
 ): T {
   return ((...args: Parameters<T>) => {
     try {

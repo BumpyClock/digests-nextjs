@@ -71,7 +71,7 @@ export function AddFeedForm({ onSuccess, className }: AddFeedFormProps) {
     },
   });
 
-  const isFeatureEnabled = true; // React Query feeds permanently enabled
+  // React Query feeds permanently enabled - no feature flag check needed
 
   const handleSingleSubmit = useCallback(
     async (data: AddFeedFormData) => {

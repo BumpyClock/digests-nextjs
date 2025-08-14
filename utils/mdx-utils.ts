@@ -11,7 +11,7 @@ export interface MdxMetadata {
   title: string;
   description: string;
   content: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 /**
