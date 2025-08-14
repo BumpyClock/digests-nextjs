@@ -6,13 +6,13 @@ export interface ApiClient {
   request<T>(config: RequestConfig): Promise<T>;
   cancel(requestId: string): void;
   cancelAll(): void;
-  updateApiConfig(config: any): void; // Required method, not optional
+  updateApiConfig(config: Record<string, unknown>): void; // Required method, not optional
 }
 
 export interface RequestConfig {
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-  body?: any;
+  body?: unknown;
   headers?: Record<string, string>;
   retry?: RetryConfig;
   timeout?: number;
@@ -38,7 +38,10 @@ export interface ApiError extends Error {
 }
 
 // Add alias for backward compatibility
-export interface ApiClientError extends ApiError {}
+export interface ApiClientError extends ApiError {
+  // Inherits all properties from ApiError
+  context?: string; // Add specific property to avoid empty interface
+}
 
 export interface CircuitBreakerConfig {
   failureThreshold: number; // Number of failures before opening circuit
@@ -60,7 +63,7 @@ export interface CircuitBreakerState {
 }
 
 export interface RequestTracker {
-  promise: Promise<any>;
+  promise: Promise<unknown>;
   controller: AbortController;
   timestamp: number;
   config: RequestConfig;

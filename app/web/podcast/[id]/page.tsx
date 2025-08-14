@@ -48,7 +48,7 @@ export default function PodcastPage(props: {
     }
 
     loadPodcast();
-  }, [params.id]);
+  }, [params.id, feedStore.feedItems]);
 
   const handleBookmark = async () => {
     if (!podcast) return;

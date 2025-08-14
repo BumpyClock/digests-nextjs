@@ -73,8 +73,8 @@ describe("Type Guards", () => {
       ): value is { id: number; name: string } => {
         return (
           isObject(value) &&
-          typeof (value as any).id === "number" &&
-          typeof (value as any).name === "string"
+          typeof (value as Record<string, unknown>).id === "number" &&
+          typeof (value as Record<string, unknown>).name === "string"
         );
       };
 

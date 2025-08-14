@@ -18,7 +18,7 @@ import type { Feed, FeedItem } from "@/types";
 import { Logger } from "@/utils/logger";
 import { feedsKeys, type FeedsQueryData } from "./use-feeds";
 import { toast } from "@/hooks/use-toast";
-import { useSyncQueue } from "@/hooks/useSyncQueue";
+import { useSyncQueue, type SyncOperation } from "@/hooks/useSyncQueue";
 import { useFeedStore } from "@/store/useFeedStore";
 import { generateUUID } from "@/utils/uuid";
 
@@ -82,7 +82,7 @@ export const useAddFeed = (
           timestamp: Date.now(),
           id: generateUUID(),
         };
-        addToQueue(operation as any); // Cast to match useSyncQueue type
+        addToQueue(operation as SyncOperation); // Cast to match useSyncQueue type
       }
 
       // Use batch parsing even for single feeds for consistency
@@ -141,8 +141,8 @@ export const useAddFeed = (
 
       return { previousData };
     },
-    onSuccess: async (newFeed, variables, context) => {
-      const typedContext = context as FeedMutationContext;
+    onSuccess: async (newFeed, _variables, _context) => {
+      // Context is properly typed already
       Logger.debug("[useAddFeed] Successfully added feed:", newFeed.feedUrl);
 
       if (isFeatureEnabled) {
@@ -233,7 +233,7 @@ export const useUpdateFeed = (
           timestamp: Date.now(),
           id: generateUUID(),
         };
-        addToQueue(operation as any); // Cast to match useSyncQueue type
+        addToQueue(operation as SyncOperation); // Cast to match useSyncQueue type
       }
 
       // Note: Current API doesn't support updates, so we handle it client-side
@@ -322,7 +322,7 @@ export const useDeleteFeed = (
           timestamp: Date.now(),
           id: generateUUID(),
         };
-        addToQueue(operation as any); // Cast to match useSyncQueue type
+        addToQueue(operation as SyncOperation); // Cast to match useSyncQueue type
       }
 
       // Find the feed to get its ID
@@ -420,7 +420,7 @@ export const useRefreshFeed = (
           timestamp: Date.now(),
           id: generateUUID(),
         };
-        addToQueue(operation as any); // Cast to match useSyncQueue type
+        addToQueue(operation as SyncOperation); // Cast to match useSyncQueue type
       }
 
       const items = await apiService.feeds.refresh(feedId);

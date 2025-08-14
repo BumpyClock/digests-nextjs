@@ -10,7 +10,7 @@ import {
   usePersistentQueries,
   usePrefetchPersistentQuery,
 } from "../usePersistentQuery";
-import { IndexedDBAdapter } from "@/lib/persistence/indexdb-adapter";
+// Removed unused import IndexedDBAdapter
 
 // Mock the persistence module
 jest.mock("@/lib/persistence", () => ({
@@ -26,7 +26,7 @@ jest.mock("@/lib/persistence", () => ({
 const mockIndexedDB = {
   open: jest.fn(),
 };
-global.indexedDB = mockIndexedDB as any;
+global.indexedDB = mockIndexedDB as IDBFactory;
 
 describe("usePersistentQuery", () => {
   let queryClient: QueryClient;
@@ -94,7 +94,7 @@ describe("usePersistentQuery", () => {
   });
 
   it("should handle offline-first behavior", async () => {
-    const { useOfflineStatus } = require("@/lib/persistence");
+    const { useOfflineStatus } = await import("@/lib/persistence");
     useOfflineStatus.mockReturnValue({
       isOnline: false,
       lastSync: Date.now(),
@@ -123,7 +123,7 @@ describe("usePersistentQuery", () => {
   });
 
   it("should sync data when coming online", async () => {
-    const { useOfflineStatus } = require("@/lib/persistence");
+    const { useOfflineStatus } = await import("@/lib/persistence");
     const mockUpdateLastSync = jest.fn();
     const isOnlineRef = { current: false };
 
@@ -245,7 +245,7 @@ describe("usePersistentQuery", () => {
   });
 
   it("should throw error when forcing sync offline", async () => {
-    const { useOfflineStatus } = require("@/lib/persistence");
+    const { useOfflineStatus } = await import("@/lib/persistence");
     useOfflineStatus.mockReturnValue({
       isOnline: false,
       lastSync: Date.now(),
@@ -409,7 +409,7 @@ describe("usePrefetchPersistentQuery", () => {
   });
 
   it("should not prefetch when offline", async () => {
-    const { useOfflineStatus } = require("@/lib/persistence");
+    const { useOfflineStatus } = await import("@/lib/persistence");
     useOfflineStatus.mockReturnValue({
       isOnline: false,
       lastSync: Date.now(),

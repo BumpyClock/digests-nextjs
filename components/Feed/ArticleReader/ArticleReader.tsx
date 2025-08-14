@@ -663,6 +663,7 @@ export const ArticleContent = memo(
           if (!src) return null;
           // Use a regular img tag to avoid Next.js Image component div wrapper issues
           return (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={src}
               alt={alt}

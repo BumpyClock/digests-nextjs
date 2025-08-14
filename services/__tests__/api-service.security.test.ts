@@ -19,7 +19,7 @@ describe("ApiService Security Tests", () => {
       const expectedCacheKey = expectedHash;
 
       // We'll need to spy on the cache.get method to capture the cache key
-      const cacheGetSpy = jest.spyOn((apiService as any).cache, "get");
+      const cacheGetSpy = jest.spyOn((apiService as { cache: { get: jest.Mock } }).cache, "get");
 
       // Mock the fetch to prevent actual API calls
       global.fetch = jest.fn().mockResolvedValueOnce({
@@ -52,7 +52,7 @@ describe("ApiService Security Tests", () => {
         .digest("hex");
       const expectedCacheKey = expectedHash;
 
-      const cacheGetSpy = jest.spyOn((apiService as any).cache, "get");
+      const cacheGetSpy = jest.spyOn((apiService as { cache: { get: jest.Mock } }).cache, "get");
 
       global.fetch = jest.fn().mockResolvedValueOnce({
         ok: true,
@@ -81,7 +81,7 @@ describe("ApiService Security Tests", () => {
         .digest("hex");
       const expectedCacheKey = `feeds:${expectedHash}`;
 
-      const cacheGetSpy = jest.spyOn((apiService as any).cache, "get");
+      const cacheGetSpy = jest.spyOn((apiService as { cache: { get: jest.Mock } }).cache, "get");
       cacheGetSpy.mockClear(); // Clear any previous calls
 
       global.fetch = jest
@@ -130,7 +130,7 @@ describe("ApiService Security Tests", () => {
     });
 
     it("should clear cache when URL is updated", () => {
-      const cacheClearSpy = jest.spyOn((apiService as any).cache, "clear");
+      const cacheClearSpy = jest.spyOn((apiService as { cache: { clear: jest.Mock } }).cache, "clear");
 
       apiService.updateApiUrl("https://new-api.example.com");
 
@@ -149,7 +149,7 @@ describe("ApiService Security Tests", () => {
 
       testCases.forEach((url) => {
         expect(() => apiService.updateApiUrl(url)).not.toThrow();
-        expect((apiService as any).baseUrl).toBe(url);
+        expect((apiService as { baseUrl: string }).baseUrl).toBe(url);
       });
 
       // URLs with potentially dangerous content are still valid URLs
@@ -162,7 +162,7 @@ describe("ApiService Security Tests", () => {
       urlsWithSpecialChars.forEach((url) => {
         expect(() => apiService.updateApiUrl(url)).not.toThrow();
         // URLs are stored as provided - sanitization happens at render time
-        expect((apiService as any).baseUrl).toBe(url);
+        expect((apiService as { baseUrl: string }).baseUrl).toBe(url);
       });
     });
   });
@@ -176,7 +176,7 @@ describe("ApiService Security Tests", () => {
         .digest("hex");
       const expectedCacheKey = `reader:${expectedHash}`;
 
-      const cacheGetSpy = jest.spyOn((apiService as any).cache, "get");
+      const cacheGetSpy = jest.spyOn((apiService as { cache: { get: jest.Mock } }).cache, "get");
 
       global.fetch = jest.fn().mockResolvedValueOnce({
         ok: true,

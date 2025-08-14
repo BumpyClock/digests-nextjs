@@ -5,7 +5,7 @@ declare module "@testing-library/react" {
 declare module "@testing-library/user-event" {
   import { UserEvent } from "@testing-library/user-event/dist/types/setup/setup";
   const userEvent: {
-    setup(options?: any): UserEvent;
+    setup(options?: Record<string, unknown>): UserEvent;
   };
   export default userEvent;
 }

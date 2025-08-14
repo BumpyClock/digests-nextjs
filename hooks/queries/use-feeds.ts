@@ -25,10 +25,7 @@ export interface FeedsQueryData {
   lastFetched: number;
 }
 
-interface SingleFeedQueryData {
-  feed: Feed;
-  items: FeedItem[];
-}
+// Removed unused interface SingleFeedQueryData
 
 // Query Keys Factory
 export const feedsKeys = {
@@ -167,7 +164,7 @@ export const useAddFeed = () => {
 
       return { previousData };
     },
-    onSuccess: async (newFeed, variables, context) => {
+    onSuccess: async (newFeed, _variables, _context) => {
       Logger.debug("[useAddFeed] Successfully added feed:", newFeed.feedUrl);
 
       if (isFeatureEnabled) {

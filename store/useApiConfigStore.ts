@@ -54,10 +54,4 @@ export const useApiConfigStore = (): ApiConfigStore => {
   };
 };
 
-// Add getState method for compatibility
-const getStateMethod = () => {
-  const store = useApiConfigStore();
-  return store;
-};
-
-useApiConfigStore.getState = getStateMethod;
+// Note: getState method removed - use hook directly in components

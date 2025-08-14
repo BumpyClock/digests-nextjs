@@ -7,7 +7,7 @@ import React from "react";
 import { render, screen, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FeedGrid } from "../FeedGrid";
-import { Feed, FeedItem } from "@/types";
+import { FeedItem } from "@/types";
 
 // Mock all complex dependencies
 jest.mock("@/store/useFeedStore", () => ({
@@ -106,8 +106,8 @@ jest.mock("masonic", () => ({
     items,
     render,
   }: {
-    items: any[];
-    render: (props: { data: any }) => React.ReactNode;
+    items: unknown[];
+    render: (props: { data: unknown }) => React.ReactNode;
   }) => (
     <div
       data-testid="masonry"
@@ -140,7 +140,7 @@ jest.mock("lottie-react", () => ({
 
 jest.mock("motion/react", () => ({
   motion: {
-    div: ({ children, initial, animate, layout, ...props }: any) => (
+    div: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => (
       <div {...props}>{children}</div>
     ),
   },

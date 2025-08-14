@@ -34,20 +34,20 @@ describe("ApiService", () => {
     // Reset fetch mock
     mockFetch.mockReset();
     // Clear the cache by creating a new instance
-    (apiService as any).cache.clear();
+    (apiService as { cache: { clear: () => void } }).cache.clear();
   });
 
   describe("Configuration", () => {
     it("should initialize with correct base URL from config", () => {
-      expect((apiService as any).baseUrl).toBe("http://test-api.example.com");
+      expect((apiService as { baseUrl: string }).baseUrl).toBe("http://test-api.example.com");
     });
 
     it("should update API URL and clear cache", () => {
-      const clearSpy = jest.spyOn((apiService as any).cache, "clear");
+      const clearSpy = jest.spyOn((apiService as { cache: { clear: jest.Mock } }).cache, "clear");
 
       apiService.updateApiUrl("http://new-api.example.com");
 
-      expect((apiService as any).baseUrl).toBe("http://new-api.example.com");
+      expect((apiService as { baseUrl: string }).baseUrl).toBe("http://new-api.example.com");
       expect(clearSpy).toHaveBeenCalled();
       expect(Logger.debug).toHaveBeenCalledWith(
         "[ApiService] API URL updated to http://new-api.example.com",
@@ -55,7 +55,7 @@ describe("ApiService", () => {
     });
 
     it("should update cache TTL", () => {
-      const setTTLSpy = jest.spyOn((apiService as any).cache, "setTTL");
+      const setTTLSpy = jest.spyOn((apiService as { cache: { setTTL: jest.Mock } }).cache, "setTTL");
 
       apiService.updateCacheTtl(60000); // 1 minute
 
@@ -250,7 +250,7 @@ describe("ApiService", () => {
     ];
 
     it("should clear cache and fetch fresh data", async () => {
-      const deleteSpy = jest.spyOn((apiService as any).cache, "delete");
+      const deleteSpy = jest.spyOn((apiService as { cache: { delete: jest.Mock } }).cache, "delete");
 
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -398,7 +398,7 @@ describe("ApiService", () => {
     describe("getById", () => {
       it("should get feed by ID from cache if available", async () => {
         // Set up cache
-        (apiService as any).cache.set("feed:feed-1", mockFeed);
+        (apiService as { cache: { set: (key: string, value: unknown) => void } }).cache.set("feed:feed-1", mockFeed);
 
         const feed = await apiService.feeds.getById("feed-1");
         expect(feed).toEqual(mockFeed);
@@ -462,7 +462,7 @@ describe("ApiService", () => {
 
     describe("delete", () => {
       it("should delete feed from cache", async () => {
-        const deleteSpy = jest.spyOn((apiService as any).cache, "delete");
+        const deleteSpy = jest.spyOn((apiService as { cache: { delete: jest.Mock } }).cache, "delete");
 
         await apiService.feeds.delete("feed-1");
         expect(deleteSpy).toHaveBeenCalledWith("feed:feed-1");
@@ -472,7 +472,7 @@ describe("ApiService", () => {
     describe("refresh", () => {
       it("should refresh a specific feed", async () => {
         // First, set up the feed in cache
-        (apiService as any).cache.set("feed:feed-1", mockFeed);
+        (apiService as { cache: { set: (key: string, value: unknown) => void } }).cache.set("feed:feed-1", mockFeed);
 
         const mockItems: FeedItem[] = [
           {
@@ -564,7 +564,7 @@ describe("ApiService", () => {
         ];
 
         // Set up feed in cache
-        (apiService as any).cache.set("feed:feed-1", mockFeed);
+        (apiService as { cache: { set: (key: string, value: unknown) => void } }).cache.set("feed:feed-1", mockFeed);
 
         mockFetch.mockResolvedValueOnce({
           ok: true,
@@ -685,7 +685,7 @@ describe("ApiService Error Scenarios", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetch.mockReset();
-    (apiService as any).cache.clear();
+    (apiService as { cache: { clear: () => void } }).cache.clear();
   });
 
   it("should handle malformed JSON responses", async () => {
@@ -755,7 +755,7 @@ describe("ApiService Offline Behavior", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetch.mockReset();
-    (apiService as any).cache.clear();
+    (apiService as { cache: { clear: () => void } }).cache.clear();
   });
 
   it("should return cached data when offline", async () => {

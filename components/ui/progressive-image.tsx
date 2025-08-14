@@ -67,6 +67,7 @@ export function ProgressiveImage({
   }, [src, initialSrc, width, height, onLoad, onError]);
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       ref={imgRef}
       alt={alt}

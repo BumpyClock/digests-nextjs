@@ -31,7 +31,7 @@ jest.mock("dayjs", () => {
   const mockDayjs = jest.fn(() => ({
     fromNow: () => "just now",
     format: () => "2023-12-01",
-  })) as any;
+  })) as typeof dayjs;
   mockDayjs.extend = jest.fn();
   return mockDayjs;
 });
@@ -113,15 +113,7 @@ jest.mock("@/utils/formatDuration", () => ({
 jest.mock("motion/react", () => ({
   motion: {
     div: jest.fn(
-      ({
-        children,
-        whileHover,
-        whileTap,
-        initial,
-        animate,
-        transition,
-        ...props
-      }) => <div {...props}>{children}</div>,
+      ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => <div {...props}>{children}</div>,
     ),
   },
 }));
@@ -232,15 +224,15 @@ describe("FeedCard", () => {
   });
 
   describe("Podcast Support", () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       // Mock isPodcast to return true for podcast tests
-      const { isPodcast } = require("@/types/podcast");
+      const { isPodcast } = await import("@/types/podcast");
       isPodcast.mockReturnValue(true);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
       // Reset isPodcast mock
-      const { isPodcast } = require("@/types/podcast");
+      const { isPodcast } = await import("@/types/podcast");
       isPodcast.mockReturnValue(false);
     });
 
@@ -259,9 +251,9 @@ describe("FeedCard", () => {
   });
 
   describe("Interactions", () => {
-    it("should handle card click events", () => {
+    it("should handle card click events", async () => {
       const mockMarkAsRead = jest.fn();
-      const { useReadActions } = require("@/hooks/useFeedActions");
+      const { useReadActions } = await import("@/hooks/useFeedActions");
       useReadActions.mockReturnValue({
         markAsRead: mockMarkAsRead,
         markAsUnread: jest.fn(),
@@ -281,9 +273,9 @@ describe("FeedCard", () => {
       }
     });
 
-    it("should handle bookmark action", () => {
+    it("should handle bookmark action", async () => {
       const mockAddToReadLater = jest.fn();
-      const { useReadLaterActions } = require("@/hooks/useFeedActions");
+      const { useReadLaterActions } = await import("@/hooks/useFeedActions");
       useReadLaterActions.mockReturnValue({
         addToReadLater: mockAddToReadLater,
         removeFromReadLater: jest.fn(),
@@ -328,8 +320,8 @@ describe("FeedCard", () => {
   });
 
   describe("Visual States", () => {
-    it("should show read state with reduced opacity", () => {
-      const { useIsItemRead } = require("@/hooks/useFeedActions");
+    it("should show read state with reduced opacity", async () => {
+      const { useIsItemRead } = await import("@/hooks/useFeedActions");
       useIsItemRead.mockReturnValue(true);
 
       render(<FeedCard feed={mockItem} />);

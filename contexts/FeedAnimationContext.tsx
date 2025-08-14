@@ -41,7 +41,7 @@ export function FeedAnimationProvider({ children }: { children: ReactNode }) {
 
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [userPreference]);
+  }, [userPreference, isLoaded]);
 
   return (
     <FeedAnimationContext.Provider value={{ animationEnabled }}>

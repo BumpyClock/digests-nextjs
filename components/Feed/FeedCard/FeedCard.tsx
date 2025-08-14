@@ -316,6 +316,7 @@ export const FeedCard = memo(function FeedCard({
                   {imageLoading && (
                     <Skeleton className="absolute inset-0 z-10 rounded-[32px]" />
                   )}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={
                       showPlaceholder
@@ -354,6 +355,7 @@ export const FeedCard = memo(function FeedCard({
                     {!faviconError &&
                     feedItem.favicon &&
                     isValidUrl(feedItem.favicon) ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={feedItem.favicon}
                         alt={`${cleanupTextContent(getSiteName(feedItem))} favicon`}

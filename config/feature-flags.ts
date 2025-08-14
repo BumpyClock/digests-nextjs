@@ -38,7 +38,7 @@ export type FeatureFlagName = keyof typeof FEATURES;
  * Check if a feature is enabled
  * @deprecated - All features are permanently enabled, always returns true
  */
-export function isFeatureEnabled(flag: FeatureFlagName): boolean {
+export function isFeatureEnabled(_flag: FeatureFlagName): boolean {
   return true; // All features permanently enabled
 }
 

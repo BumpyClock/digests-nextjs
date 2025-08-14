@@ -34,7 +34,7 @@ describe("ApiService Retry Logic", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetch.mockReset();
-    (apiService as any).cache.clear();
+    (apiService as { cache: { clear: () => void } }).cache.clear();
   });
 
   describe("Exponential Backoff", () => {
@@ -711,7 +711,7 @@ describe("ApiService Performance", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetch.mockReset();
-    (apiService as any).cache.clear();
+    (apiService as { cache: { clear: () => void } }).cache.clear();
   });
 
   it("should handle high concurrency efficiently", async () => {

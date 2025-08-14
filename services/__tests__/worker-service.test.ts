@@ -11,7 +11,7 @@ class MockWorker {
   onmessage: ((event: MessageEvent) => void) | null = null;
   onerror: ((event: ErrorEvent) => void) | null = null;
 
-  postMessage(data: any) {
+  postMessage(data: { type?: string; url?: string; [key: string]: unknown }) {
     // Simulate async worker response
     setTimeout(() => {
       if (this.onmessage) {
@@ -54,7 +54,7 @@ class MockWorker {
 }
 
 // Mock Worker constructor
-(global as any).Worker = MockWorker;
+(global as { Worker: typeof MockWorker }).Worker = MockWorker;
 
 describe("WorkerService", () => {
   beforeEach(() => {
@@ -174,7 +174,7 @@ describe("WorkerService", () => {
       const results = await workerService.processFeedBatch(urls);
 
       expect(results).toHaveLength(3);
-      results.forEach((result: any) => {
+      results.forEach((result: { feeds: unknown; items: unknown; error?: unknown }) => {
         expect(result.feeds).toBeDefined();
         expect(result.items).toBeDefined();
       });
@@ -183,7 +183,7 @@ describe("WorkerService", () => {
     it("should handle partial failures", async () => {
       // Mock worker to fail on second URL
       const mockWorker = new MockWorker();
-      mockWorker.postMessage = jest.fn((data) => {
+      mockWorker.postMessage = jest.fn((data: { url?: string }) => {
         setTimeout(() => {
           if (data.url === "https://example.com/fail") {
             if (mockWorker.onerror) {
@@ -209,7 +209,7 @@ describe("WorkerService", () => {
         }, 10);
       });
 
-      (global as any).Worker = jest.fn(() => mockWorker);
+      (global as { Worker: jest.MockedFunction<() => MockWorker> }).Worker = jest.fn(() => mockWorker);
 
       const urls = [
         "https://example.com/feed1",
@@ -220,8 +220,8 @@ describe("WorkerService", () => {
       const results = await workerService.processFeedBatch(urls);
 
       // Should still return results for successful URLs
-      expect(results.filter((r: any) => r.error === undefined)).toHaveLength(2);
-      expect(results.filter((r: any) => r.error !== undefined)).toHaveLength(1);
+      expect(results.filter((r: { error?: unknown }) => r.error === undefined)).toHaveLength(2);
+      expect(results.filter((r: { error?: unknown }) => r.error !== undefined)).toHaveLength(1);
     });
   });
 
@@ -334,7 +334,7 @@ describe("WorkerService", () => {
       // Mock worker that never responds
       const slowWorker = new MockWorker();
       slowWorker.postMessage = jest.fn();
-      (global as any).Worker = jest.fn(() => slowWorker);
+      (global as { Worker: jest.MockedFunction<() => MockWorker> }).Worker = jest.fn(() => slowWorker);
 
       await expect(
         workerService.parseRSS("<rss></rss>", "https://example.com/slow", {
@@ -357,7 +357,7 @@ describe("WorkerService", () => {
         }, 10);
       });
 
-      (global as any).Worker = jest.fn(() => crashingWorker);
+      (global as { Worker: jest.MockedFunction<() => MockWorker> }).Worker = jest.fn(() => crashingWorker);
 
       await expect(
         workerService.parseRSS("<rss></rss>", "https://example.com/crash"),

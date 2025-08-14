@@ -1,5 +1,5 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@/test-utils/render";
+import { render, screen, waitFor } from "@/test-utils/render";
 import { FeedList } from "../FeedList";
 import { createMockFeedItems } from "@/test-utils/factories";
 import { createUser } from "@/test-utils/helpers";
@@ -15,7 +15,7 @@ jest.mock("@/hooks/useFeedSelectors", () => ({
 
 // Mock the ScrollArea component from Radix UI
 jest.mock("@/components/ui/scroll-area", () => ({
-  ScrollArea: ({ children, ...props }: any) => (
+  ScrollArea: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => (
     <div data-testid="scroll-area" {...props}>
       {children}
     </div>
@@ -141,7 +141,7 @@ describe("FeedList", () => {
     const mockItems = createMockFeedItems(10);
     const savedScrollPosition = 500;
 
-    const { rerender } = render(
+    render(
       <FeedList
         {...defaultProps}
         items={mockItems}
@@ -168,8 +168,8 @@ describe("FeedList", () => {
     expect(heartIcon).toBeInTheDocument();
   });
 
-  it("shows unread indicator for unread items", () => {
-    const { useIsItemRead } = require("@/hooks/useFeedSelectors");
+  it("shows unread indicator for unread items", async () => {
+    const { useIsItemRead } = await import("@/hooks/useFeedSelectors");
     useIsItemRead.mockReturnValue(false);
 
     const mockItems = createMockFeedItems(1);
@@ -181,8 +181,8 @@ describe("FeedList", () => {
     expect(itemElement).toHaveClass("font-semibold");
   });
 
-  it("does not show unread indicator for read items", () => {
-    const { useIsItemRead } = require("@/hooks/useFeedSelectors");
+  it("does not show unread indicator for read items", async () => {
+    const { useIsItemRead } = await import("@/hooks/useFeedSelectors");
     useIsItemRead.mockReturnValue(true);
 
     const mockItems = createMockFeedItems(1);

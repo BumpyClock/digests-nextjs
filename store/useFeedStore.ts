@@ -81,7 +81,7 @@ interface FeedStore {
 }
 
 // Create store data that persists across calls
-let storeData: Partial<FeedStore> = {
+const storeData: Partial<FeedStore> = {
   feeds: [],
   feedItems: [],
   initialized: true,
@@ -290,10 +290,4 @@ export const useFeedStore = (): FeedStore => {
   };
 };
 
-// Add getState method for compatibility
-const getStateMethod = () => {
-  const store = useFeedStore();
-  return store;
-};
-
-useFeedStore.getState = getStateMethod;
+// Note: getState method removed - use hook directly in components

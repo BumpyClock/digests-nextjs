@@ -17,7 +17,7 @@ interface CacheItem<T> {
  * In-memory cache with TTL support
  */
 export class MemoryCache {
-  private cache: Map<string, CacheItem<any>> = new Map();
+  private cache: Map<string, CacheItem<unknown>> = new Map();
   private readonly LOG_CONTEXT = "MemoryCache";
 
   /**

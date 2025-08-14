@@ -29,7 +29,7 @@ const mockCrypto = {
 
 // Mock TextEncoder for tests
 if (typeof TextEncoder === "undefined") {
-  (global as any).TextEncoder = class TextEncoder {
+  (global as { TextEncoder: typeof TextEncoder }).TextEncoder = class TextEncoder {
     encode(input: string): Uint8Array {
       const encoded = new Uint8Array(input.length);
       for (let i = 0; i < input.length; i++) {

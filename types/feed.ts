@@ -19,7 +19,7 @@ export interface FeedItem {
   category?: string; // Added missing property
   url?: string; // Added missing property
   feed_id?: string; // Added missing property
-  attachments?: any[]; // Added missing property
+  attachments?: unknown[]; // Added missing property
   enclosures: Enclosure[] | null;
   thumbnail: string;
   thumbnailColor: { r: number; g: number; b: number } | string; // Support both formats

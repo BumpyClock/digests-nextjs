@@ -4,7 +4,7 @@
  */
 
 import { IndexedDBAdapter } from "../indexdb-adapter";
-import type { PersistedQueryData } from "@/types/persistence";
+// import type { PersistedQueryData } from "@/types/persistence";
 
 // Mock IndexedDB for Node environment
 import "fake-indexeddb/auto";
@@ -354,7 +354,7 @@ describe("IndexedDBAdapter", () => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Trigger cleanup (normally happens on quota exceeded)
-      await (adapter as any).cleanup();
+      await (adapter as IndexedDBAdapter).cleanup();
 
       // Check that expired entries are gone
       expect(await adapter.get("expire1")).toBeNull();
@@ -372,7 +372,7 @@ describe("IndexedDBAdapter", () => {
       }
 
       // Remove oldest 20% (2 entries)
-      await (adapter as any).removeOldestEntries(0.2);
+      await (adapter as IndexedDBAdapter).removeOldestEntries(0.2);
 
       // First 2 should be gone
       expect(await adapter.get("old-0")).toBeNull();
