@@ -7,7 +7,13 @@ import { FeedGrid } from "@/components/Feed/FeedGrid/FeedGrid";
 import { FeedMasterDetail } from "@/components/Feed/FeedMasterDetail/FeedMasterDetail";
 import { FeedItem } from "@/types";
 
-import { CommandBar } from "@/components/CommandBar/CommandBar";
+import dynamic from "next/dynamic";
+
+// Dynamic import for CommandBar to reduce initial bundle size
+const CommandBar = dynamic(() => import("@/components/CommandBar/CommandBar").then(mod => ({ default: mod.CommandBar })), {
+  ssr: false,
+  loading: () => <div className="h-10 bg-secondary/20 animate-pulse rounded-md" />
+});
 import { RefreshButton } from "@/components/RefreshButton";
 import { useSearchParams } from "next/navigation";
 import { Logger } from "@/utils/logger";
@@ -16,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { LayoutGrid, Columns } from "lucide-react";
 import { FEED_REFRESHED_EVENT } from "@/components/Feed/FeedGrid/FeedGrid";
 import { normalizeUrl } from "@/utils/url";
+import ErrorBoundary from "@/components/error-boundary";
 
 // React Query imports - now the single source of truth for state
 import {
@@ -389,43 +396,53 @@ function WebPageContent() {
         </div>
 
         <TabsContent value="all" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent
-            items={filteredItems}
-            isLoading={isLoading}
-            viewMode={viewMode}
-          />
+          <ErrorBoundary>
+            <FeedTabContent
+              items={filteredItems}
+              isLoading={isLoading}
+              viewMode={viewMode}
+            />
+          </ErrorBoundary>
         </TabsContent>
 
         <TabsContent value="unread" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent
-            items={filteredUnreadItems}
-            isLoading={isLoading}
-            viewMode={viewMode}
-          />
+          <ErrorBoundary>
+            <FeedTabContent
+              items={filteredUnreadItems}
+              isLoading={isLoading}
+              viewMode={viewMode}
+            />
+          </ErrorBoundary>
         </TabsContent>
 
         <TabsContent value="articles" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent
-            items={articleItems}
-            isLoading={isLoading}
-            viewMode={viewMode}
-          />
+          <ErrorBoundary>
+            <FeedTabContent
+              items={articleItems}
+              isLoading={isLoading}
+              viewMode={viewMode}
+            />
+          </ErrorBoundary>
         </TabsContent>
 
         <TabsContent value="podcasts" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent
-            items={podcastItems}
-            isLoading={isLoading}
-            viewMode={viewMode}
-          />
+          <ErrorBoundary>
+            <FeedTabContent
+              items={podcastItems}
+              isLoading={isLoading}
+              viewMode={viewMode}
+            />
+          </ErrorBoundary>
         </TabsContent>
 
         <TabsContent value="readLater" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent
-            items={readLaterItems}
-            isLoading={isLoading}
-            viewMode={viewMode}
-          />
+          <ErrorBoundary>
+            <FeedTabContent
+              items={readLaterItems}
+              isLoading={isLoading}
+              viewMode={viewMode}
+            />
+          </ErrorBoundary>
         </TabsContent>
       </Tabs>
     </div>

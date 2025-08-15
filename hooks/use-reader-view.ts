@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { ReaderViewResponse, FeedItem } from "@/types";
 import { useToast } from "@/hooks/use-toast";
-import { workerService } from "@/services/worker-service";
+import { apiService } from "@/services/api-service";
 import { processArticleContent } from "@/components/Feed/ArticleReader/ArticleReader";
 
 export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
@@ -54,16 +54,12 @@ export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
       setLoading(true);
 
       try {
-        const result = await workerService.fetchReaderView(feedItemLink);
+        const result = await apiService.fetchReaderView(feedItemLink);
 
-        if (
-          result.success &&
-          result.data.length > 0 &&
-          result.data[0].status === "ok"
-        ) {
-          setReaderView(result.data[0]);
+        if (result && result.status === "ok") {
+          setReaderView(result);
         } else {
-          throw new Error(result.message || "Failed to load reader view");
+          throw new Error("Failed to load reader view");
         }
       } catch (error) {
         console.error("Error fetching reader view:", error);

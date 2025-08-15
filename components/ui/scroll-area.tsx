@@ -33,7 +33,7 @@ const ScrollArea = React.forwardRef<typeof SimpleBar, ScrollAreaProps>(
       style,
       ...props
     },
-    ref,
+    _ref,
   ) => {
     // Extract ref from props to avoid conflicts
     const { ref: _, ...restProps } = props as Record<string, unknown>;
@@ -52,7 +52,6 @@ const ScrollArea = React.forwardRef<typeof SimpleBar, ScrollAreaProps>(
 
     return (
       <SimpleBar
-        ref={ref}
         className={cn("relative w-full", variantStyles[variant], className)}
         style={mergedStyle}
         autoHide={autoHide}

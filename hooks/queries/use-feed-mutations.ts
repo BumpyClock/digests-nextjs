@@ -18,9 +18,8 @@ import type { Feed, FeedItem } from "@/types";
 import { Logger } from "@/utils/logger";
 import { feedsKeys, type FeedsQueryData } from "./use-feeds";
 import { toast } from "@/hooks/use-toast";
-import { useSyncQueue, type SyncOperation } from "@/hooks/useSyncQueue";
-import { useFeedStore } from "@/store/useFeedStore";
-import { generateUUID } from "@/utils/uuid";
+import { useSyncQueue, type FeedSyncOperation } from "@/hooks/useSyncQueue";
+import { generateUUIDSync } from "@/utils/uuid";
 
 // Mutation operation types for offline sync
 export type FeedMutationType =
@@ -80,9 +79,9 @@ export const useAddFeed = (
           type: "ADD_FEED",
           data: feedDto,
           timestamp: Date.now(),
-          id: generateUUID(),
+          id: generateUUIDSync(),
         };
-        addToQueue(operation as SyncOperation); // Cast to match useSyncQueue type
+        addToQueue(operation as FeedSyncOperation); // Cast to match useSyncQueue type
       }
 
       // Use batch parsing even for single feeds for consistency
@@ -172,14 +171,12 @@ export const useAddFeed = (
           description: `${newFeed.feedTitle || newFeed.siteTitle} has been added to your feeds.`,
         });
       } else {
-        // Sync with Zustand
-        const store = useFeedStore.getState();
+        // Legacy sync with Zustand stub - this is now handled by React Query
         try {
-          const result = await apiService.refreshFeeds([newFeed.feedUrl]);
-          store.setFeeds([...store.feeds, ...result.feeds]);
-          store.setFeedItems([...store.feedItems, ...result.items]);
+          // Feed sync is now handled by React Query invalidation
+          Logger.debug("[useAddFeed] Feed added successfully, React Query will handle sync");
         } catch (error) {
-          Logger.error("[useAddFeed] Failed to sync with Zustand:", error);
+          Logger.error("[useAddFeed] Failed to sync feed:", error);
         }
       }
     },
@@ -231,9 +228,9 @@ export const useUpdateFeed = (
           type: "UPDATE_FEED",
           data: { id, ...data },
           timestamp: Date.now(),
-          id: generateUUID(),
+          id: generateUUIDSync(),
         };
-        addToQueue(operation as SyncOperation); // Cast to match useSyncQueue type
+        addToQueue(operation as FeedSyncOperation); // Cast to match useSyncQueue type
       }
 
       // Note: Current API doesn't support updates, so we handle it client-side
@@ -320,9 +317,9 @@ export const useDeleteFeed = (
           type: "DELETE_FEED",
           data: { feedUrl },
           timestamp: Date.now(),
-          id: generateUUID(),
+          id: generateUUIDSync(),
         };
-        addToQueue(operation as SyncOperation); // Cast to match useSyncQueue type
+        addToQueue(operation as FeedSyncOperation); // Cast to match useSyncQueue type
       }
 
       // Find the feed to get its ID
@@ -363,9 +360,8 @@ export const useDeleteFeed = (
       Logger.debug("[useDeleteFeed] Successfully deleted feed:", feedUrl);
 
       if (!isFeatureEnabled) {
-        // Sync with Zustand
-        const store = useFeedStore.getState();
-        store.removeFeedFromCache(feedUrl);
+        // Legacy sync with Zustand stub - this is now handled by React Query
+        Logger.debug("Feed removed successfully, React Query will handle cache invalidation");
       }
 
       toast({
@@ -418,9 +414,9 @@ export const useRefreshFeed = (
           type: "REFRESH_FEED",
           data: { feedId },
           timestamp: Date.now(),
-          id: generateUUID(),
+          id: generateUUIDSync(),
         };
-        addToQueue(operation as SyncOperation); // Cast to match useSyncQueue type
+        addToQueue(operation as FeedSyncOperation); // Cast to match useSyncQueue type
       }
 
       const items = await apiService.feeds.refresh(feedId);
@@ -595,10 +591,8 @@ export const useBatchAddFeeds = (
           };
         });
       } else {
-        // Sync with Zustand
-        const store = useFeedStore.getState();
-        store.setFeeds([...store.feeds, ...data.feeds]);
-        store.setFeedItems([...store.feedItems, ...data.items]);
+        // Legacy sync with Zustand stub - this is now handled by React Query
+        Logger.debug("Feeds refreshed successfully, React Query will handle sync");
       }
 
       // Show detailed success/failure summary

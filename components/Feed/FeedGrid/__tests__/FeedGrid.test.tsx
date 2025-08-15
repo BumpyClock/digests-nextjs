@@ -133,10 +133,7 @@ jest.mock("@/hooks/use-window-size", () => ({
   useWindowSize: () => ({ width: 1200, height: 800 }),
 }));
 
-jest.mock("lottie-react", () => ({
-  __esModule: true,
-  default: () => <div data-testid="lottie-animation">Loading...</div>,
-}));
+// Lottie animation removed - now using CSS animation instead
 
 jest.mock("motion/react", () => ({
   motion: {
@@ -263,7 +260,7 @@ describe("FeedGrid", () => {
       // When isLoading is true, it should show the loading animation
       // The LoadingAnimation component waits for isMounted, so we need to wait for it
       await waitFor(() => {
-        expect(screen.getByTestId("lottie-animation")).toBeInTheDocument();
+        expect(screen.getByText("Loading feeds...")).toBeInTheDocument();
       });
     });
 
@@ -274,7 +271,7 @@ describe("FeedGrid", () => {
         </TestWrapper>,
       );
 
-      expect(screen.getByTestId("lottie-animation")).toBeInTheDocument();
+      expect(screen.getByText("Loading feeds...")).toBeInTheDocument();
     });
 
     it("should show loading animation during initial mount delay", () => {
@@ -286,7 +283,7 @@ describe("FeedGrid", () => {
       );
 
       // Should show loading initially
-      expect(screen.getByTestId("lottie-animation")).toBeInTheDocument();
+      expect(screen.getByText("Loading feeds...")).toBeInTheDocument();
 
       jest.useRealTimers();
     });
@@ -467,7 +464,7 @@ describe("FeedGrid", () => {
       );
 
       // Verify loading animation is shown for empty items
-      expect(screen.getByTestId("lottie-animation")).toBeInTheDocument();
+      expect(screen.getByText("Loading feeds...")).toBeInTheDocument();
     });
   });
 
@@ -510,7 +507,7 @@ describe("FeedGrid", () => {
       );
 
       // Component should be rendered (will show loading due to timing)
-      expect(screen.getByTestId("lottie-animation")).toBeInTheDocument();
+      expect(screen.getByText("Loading feeds...")).toBeInTheDocument();
     });
   });
 
@@ -580,7 +577,7 @@ describe("FeedGrid", () => {
       );
 
       // Should render the loading state initially
-      expect(screen.getByTestId("lottie-animation")).toBeInTheDocument();
+      expect(screen.getByText("Loading feeds...")).toBeInTheDocument();
     });
   });
 

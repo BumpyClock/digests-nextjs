@@ -147,6 +147,8 @@ function mergeReadItems(local: string[], remote: string[]): string[] {
 export function validateFeedData(data: unknown): data is PersistedFeedData {
   if (!data || typeof data !== "object") return false;
 
+  const dataObj = data as Record<string, unknown>;
+
   const required = [
     "feeds",
     "items",
@@ -155,7 +157,7 @@ export function validateFeedData(data: unknown): data is PersistedFeedData {
     "readItems",
     "metadata",
   ];
-  const hasRequired = required.every((key) => key in data);
+  const hasRequired = required.every((key) => key in dataObj);
 
   if (!hasRequired) {
     Logger.warn("[PersistenceHelpers] Missing required keys in feed data");
@@ -163,17 +165,17 @@ export function validateFeedData(data: unknown): data is PersistedFeedData {
   }
 
   if (
-    !Array.isArray(data.feeds) ||
-    !Array.isArray(data.items) ||
-    !Array.isArray(data.readItems)
+    !Array.isArray(dataObj.feeds) ||
+    !Array.isArray(dataObj.items) ||
+    !Array.isArray(dataObj.readItems)
   ) {
     Logger.warn("[PersistenceHelpers] Invalid array types in feed data");
     return false;
   }
 
   if (
-    typeof data.lastFetched !== "number" ||
-    typeof data.version !== "number"
+    typeof dataObj.lastFetched !== "number" ||
+    typeof dataObj.version !== "number"
   ) {
     Logger.warn("[PersistenceHelpers] Invalid number types in feed data");
     return false;
@@ -197,13 +199,14 @@ export function migrateData(
     toVersion,
   );
 
-  const migrated = { ...data };
+  const migrated = { ...(data as Record<string, unknown>) };
 
   // Migration v1 -> v2: Add metadata structure
   if (fromVersion < 2) {
+    const migratedData = migrated as Record<string, unknown>;
     migrated.metadata = {
-      totalFeeds: migrated.feeds?.length || 0,
-      totalItems: migrated.items?.length || 0,
+      totalFeeds: Array.isArray(migratedData.feeds) ? migratedData.feeds.length : 0,
+      totalItems: Array.isArray(migratedData.items) ? migratedData.items.length : 0,
       lastUpdated: new Date().toISOString(),
       syncStatus: "synced",
     };
@@ -221,7 +224,7 @@ export function migrateData(
   // Future migrations can be added here
 
   migrated.version = toVersion;
-  return migrated as PersistedFeedData;
+  return migrated as unknown as PersistedFeedData;
 }
 
 /**

@@ -1,6 +1,7 @@
 import createMDX from '@next/mdx';
 import remarkGfm from 'remark-gfm';
 import { withSentryConfig } from '@sentry/nextjs';
+import bundleAnalyzer from '@next/bundle-analyzer';
 
 const withMDX = createMDX({
   extension: /\.mdx?$/,
@@ -89,9 +90,9 @@ const nextConfig = {
     });
 
     // Generate source maps for Sentry
-    if (!isServer) {
-      config.devtool = 'source-map';
-    }
+    // if (!isServer) {
+    //   config.devtool = 'source-map';
+    // }
 
     return config;
   },
@@ -134,9 +135,14 @@ const sentryWebpackPluginOptions = {
   automaticVercelMonitors: true,
 };
 
-// Conditionally apply Sentry config in production
+// Configure bundle analyzer
+const withBundleAnalyzer = bundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+// Conditionally apply Sentry config in production and bundle analyzer
 const config = process.env.NODE_ENV === 'production' && process.env.SENTRY_AUTH_TOKEN
-  ? withSentryConfig(withMDX(nextConfig), sentryWebpackPluginOptions)
-  : withMDX(nextConfig);
+  ? withSentryConfig(withBundleAnalyzer(withMDX(nextConfig)), sentryWebpackPluginOptions)
+  : withBundleAnalyzer(withMDX(nextConfig));
 
 export default config;

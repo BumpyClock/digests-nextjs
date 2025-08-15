@@ -2,7 +2,13 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { FeedList } from "@/components/Feed/FeedList/FeedList";
-import { ReaderViewPane } from "@/components/Feed/ReaderViewPane/ReaderViewPane";
+import dynamic from "next/dynamic";
+
+// Dynamic imports for heavy reader components to reduce initial bundle
+const ReaderViewPane = dynamic(() => import("@/components/Feed/ReaderViewPane/ReaderViewPane").then(mod => ({ default: mod.ReaderViewPane })), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+});
 import {
   ResizableHandle,
   ResizablePanel,
@@ -12,7 +18,10 @@ import { FeedItem } from "@/types";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { PodcastDetailsPane } from "@/components/Podcast/PodcastDetailsPane";
+const PodcastDetailsPane = dynamic(() => import("@/components/Podcast/PodcastDetailsPane").then(mod => ({ default: mod.PodcastDetailsPane })), {
+  ssr: false,
+  loading: () => <div className="flex items-center justify-center h-full"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+});
 import { isPodcast } from "@/types/podcast";
 import "./FeedMasterDetail.css";
 

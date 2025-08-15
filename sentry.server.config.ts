@@ -22,6 +22,9 @@ Sentry.init({
       levels: ["error", "warn"],
     }),
   ],
+  
+  // Disable automatic instrumentation for unused packages
+  skipOpenTelemetrySetup: true,
 
   // Performance monitoring
   profilesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,

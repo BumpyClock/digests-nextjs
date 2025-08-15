@@ -6,7 +6,7 @@ import type {
 } from "@/types";
 import { getApiUrl } from "@/lib/config";
 import { Logger } from "@/utils/logger";
-import { generateUUID } from "@/utils/uuid";
+import { generateUUIDSync } from "@/utils/uuid";
 
 // Re-export types for external usage
 export type { Feed, FeedItem, FetchFeedsResponse, ReaderViewResponse };
@@ -40,7 +40,7 @@ export async function fetchFeeds(
     const feeds: Feed[] = data.feeds.map((feed: Feed) => ({
       type: feed.type,
       guid:
-        feed.guid || feed.link?.replace(/[^a-zA-Z0-9]/g, "") || generateUUID(),
+        feed.guid || feed.link?.replace(/[^a-zA-Z0-9]/g, "") || generateUUIDSync(),
       status: feed.status,
       siteTitle: feed.siteTitle,
       siteName: feed.siteName,
@@ -61,7 +61,7 @@ export async function fetchFeeds(
             id:
               item.id ||
               item.link?.replace(/[^a-zA-Z0-9]/g, "") ||
-              generateUUID(),
+              generateUUIDSync(),
             title: item.title,
             description: item.description,
             link: item.link,

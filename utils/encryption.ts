@@ -344,14 +344,27 @@ export class EncryptionUtils {
 }
 
 /**
+ * Simple interface for persistence adapter to avoid circular deps
+ */
+interface SimplePersistenceAdapter {
+  get<T>(key: string): Promise<T | null>;
+  set<T>(key: string, value: T, ttl?: number): Promise<void>;
+  delete(key: string): Promise<void>;
+  clear(): Promise<void>;
+  getMany<T>(keys: string[]): Promise<Map<string, T>>;
+  setMany<T>(entries: Map<string, T>): Promise<void>;
+  getStorageInfo(): Promise<{ used: number; quota: number; available: number; count: number }>;
+}
+
+/**
  * Encrypted persistence adapter wrapper
  */
 export class EncryptedPersistenceAdapter {
-  private adapter: { get: (key: string) => Promise<unknown>; set: (key: string, value: unknown) => Promise<void>; delete: (key: string) => Promise<void> }; // Using interface to avoid circular dependency
+  private adapter: SimplePersistenceAdapter;
   private key: CryptoKey;
   private config?: SecurePersistConfig;
 
-  constructor(adapter: { get: (key: string) => Promise<unknown>; set: (key: string, value: unknown) => Promise<void>; delete: (key: string) => Promise<void> }, key: CryptoKey, config?: SecurePersistConfig) {
+  constructor(adapter: SimplePersistenceAdapter, key: CryptoKey, config?: SecurePersistConfig) {
     this.adapter = adapter;
     this.key = key;
     this.config = config;
@@ -470,7 +483,7 @@ export class EncryptedPersistenceAdapter {
  * Create an encrypted query persister
  */
 export async function createEncryptedPersister(
-  adapter: { get: (key: string) => Promise<unknown>; set: (key: string, value: unknown) => Promise<void>; delete: (key: string) => Promise<void> },
+  adapter: SimplePersistenceAdapter,
   password?: string,
   config?: SecurePersistConfig,
 ) {

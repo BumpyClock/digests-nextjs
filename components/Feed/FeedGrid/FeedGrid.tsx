@@ -5,18 +5,7 @@ import { Masonry } from "masonic";
 import { FeedCard } from "@/components/Feed/FeedCard/FeedCard";
 import { useWindowSize } from "@/hooks/use-window-size";
 import { FeedItem } from "@/types";
-import dynamic from "next/dynamic";
-import loadingAnimation from "@/public/assets/animations/feed-loading.json";
 import { motion } from "motion/react";
-
-const Lottie = dynamic(() => import("lottie-react"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-64 h-64 flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-    </div>
-  ),
-});
 
 // Custom event for feed refresh
 export const FEED_REFRESHED_EVENT = "feed-refreshed";
@@ -28,7 +17,7 @@ interface FeedGridProps {
 }
 
 /**
- * Loading animation component displayed while data is being fetched.
+ * CSS-based loading animation (replaces 268KB Lottie animation for 4x smaller bundle)
  */
 const LoadingAnimation = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -37,10 +26,35 @@ const LoadingAnimation = () => {
     setIsMounted(true);
   }, []);
 
+  if (!isMounted) return null;
+
   return (
     <div className="flex items-center justify-center h-[50vh]">
-      <div className="w-64 h-64">
-        {isMounted && <Lottie animationData={loadingAnimation} loop={true} />}
+      <div className="relative w-64 h-64 flex items-center justify-center">
+        {/* Modern CSS loading animation - RSS feed theme */}
+        <div className="relative">
+          {/* Outer rotating ring */}
+          <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+          
+          {/* Inner pulsing dot */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="w-4 h-4 bg-primary rounded-full animate-pulse"></div>
+          </div>
+          
+          {/* RSS feed icon overlay */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="w-8 h-8 flex items-center justify-center">
+              <div className="text-primary/60 text-lg">📡</div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Loading text */}
+        <div className="absolute bottom-16 text-center">
+          <div className="text-sm text-muted-foreground animate-pulse">
+            Loading feeds...
+          </div>
+        </div>
       </div>
     </div>
   );

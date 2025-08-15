@@ -4,7 +4,7 @@
  * Enhanced with retry logic, request cancellation, deduplication, and circuit breaker
  */
 
-import { generateUUID, createHash } from "@/utils/uuid";
+import { generateUUIDSync, createHashSync } from "@/utils/uuid";
 import type {
   Feed,
   FeedItem,
@@ -18,6 +18,7 @@ import type {
 } from "@/types";
 import { getApiConfig } from "@/hooks/useApiConfig";
 import { Logger } from "@/utils/logger";
+import { SecureLogger } from "@/utils/secure-logging";
 import {
 } from "@/utils/type-guards";
 import {
@@ -183,7 +184,7 @@ function calculateBackoffDelay(
 function createRequestKey(config: RequestConfig): string {
   const { url, method, body } = config;
   const bodyStr = body ? JSON.stringify(body) : "";
-  return createHash(`${method}:${url}:${bodyStr}`);
+  return createHashSync(`${method}:${url}:${bodyStr}`);
 }
 
 // Main API Service class
@@ -196,7 +197,7 @@ class ApiService implements ApiClient {
   /**
    * Updates API configuration
    */
-  updateApiConfig(config: { baseUrl?: string; apiKey?: string; timeout?: number; [key: string]: unknown }): void {
+  updateApiConfig(config: { baseUrl?: string; apiKey?: string; timeout?: number; cacheTtl?: number; [key: string]: unknown }): void {
     if (config.baseUrl) {
       this.updateApiUrl(config.baseUrl);
     }
@@ -231,7 +232,7 @@ class ApiService implements ApiClient {
     this.baseUrl = url;
     // Clear cache when API URL changes
     this.cache.clear();
-    Logger.debug(`[ApiService] API URL updated to ${url}`);
+    SecureLogger.debug('[ApiService] API URL updated', { url });
   }
 
   /**
@@ -239,7 +240,7 @@ class ApiService implements ApiClient {
    */
   updateCacheTtl(ttl: number): void {
     this.cache.setTTL(ttl);
-    Logger.debug(`[ApiService] Cache TTL updated to ${ttl}ms`);
+    SecureLogger.debug('[ApiService] Cache TTL updated', { ttl });
   }
 
   /**
@@ -250,7 +251,7 @@ class ApiService implements ApiClient {
     if (tracker) {
       tracker.controller.abort();
       this.requestTrackers.delete(requestId);
-      Logger.debug(`[ApiService] Cancelled request: ${requestId}`);
+      SecureLogger.debug('[ApiService] Cancelled request', { requestId });
     }
   }
 
@@ -279,7 +280,7 @@ class ApiService implements ApiClient {
         // Move to half-open state
         breaker.state = CircuitState.HALF_OPEN;
         breaker.failures = 0;
-        Logger.debug(`[ApiService] Circuit breaker half-open for ${endpoint}`);
+        SecureLogger.debug('[ApiService] Circuit breaker half-open', { endpoint });
       } else {
         throw createApiError("Circuit breaker is open", "CIRCUIT_BREAKER_OPEN");
       }
@@ -296,7 +297,7 @@ class ApiService implements ApiClient {
       breaker.failures = 0;
       breaker.lastFailureTime = undefined;
       breaker.nextAttemptTime = undefined;
-      Logger.debug(`[ApiService] Circuit breaker closed for ${endpoint}`);
+      SecureLogger.debug('[ApiService] Circuit breaker closed', { endpoint });
     }
   }
 
@@ -336,7 +337,7 @@ class ApiService implements ApiClient {
       retry = DEFAULT_RETRY_CONFIG,
       timeout: _timeout,
       signal: _signal,
-      requestId = generateUUID(),
+      requestId = generateUUIDSync(),
     } = config;
 
     // Check for duplicate in-flight requests
@@ -716,7 +717,7 @@ class ApiService implements ApiClient {
     /**
      * Mark article as read (handled client-side)
      */
-    markAsRead: async (id: string): Promise<void> => {
+    markAsRead: async (_id: string): Promise<void> => {
       // Current implementation handles this client-side
       return Promise.resolve();
     },
@@ -724,7 +725,7 @@ class ApiService implements ApiClient {
     /**
      * Mark article as unread (handled client-side)
      */
-    markAsUnread: async (id: string): Promise<void> => {
+    markAsUnread: async (_id: string): Promise<void> => {
       // Current implementation handles this client-side
       return Promise.resolve();
     },
@@ -761,7 +762,7 @@ class ApiService implements ApiClient {
         return cached;
       }
 
-      Logger.debug(`[ApiService] Fetching feeds for URLs: ${validUrls.length}`);
+      SecureLogger.debug('[ApiService] Fetching feeds', { count: validUrls.length });
 
       const data = await this.post<FetchFeedsResponse>("/parse", {
         urls: validUrls,
@@ -773,12 +774,13 @@ class ApiService implements ApiClient {
       }
 
       // Validate basic feed structure (skip strict type validation for now to prevent blocking)
-      const validatedFeeds = data.feeds.filter((feed: unknown) => {
+      data.feeds.filter((feed: unknown) => {
         if (!feed || typeof feed !== "object") {
           Logger.warn(`[ApiService] Invalid feed data: not an object`);
           return false;
         }
-        if (!feed.guid || !feed.feedUrl) {
+        const feedObj = feed as Feed;
+        if (!feedObj.guid || !feedObj.feedUrl) {
           Logger.warn(
             `[ApiService] Invalid feed data: missing required fields`,
           );
@@ -788,65 +790,67 @@ class ApiService implements ApiClient {
       });
 
       // Process feeds with proper typing
-      const feeds: Feed[] = data.feeds.map((feed: Record<string, unknown>) => ({
-        type: feed.type,
-        id: feed.id || feed.guid, // Support both id and guid
-        guid: feed.guid,
-        status: feed.status,
-        siteTitle: feed.siteTitle,
-        siteName: feed.siteName,
-        feedTitle: feed.feedTitle || feed.title,
-        feedUrl: feed.feedUrl,
-        url: feed.url || feed.feedUrl, // Support both url and feedUrl
-        description: feed.description,
-        link: feed.link,
-        lastUpdated: feed.lastUpdated,
-        lastRefreshed: feed.lastRefreshed,
-        published: feed.published,
-        author: feed.author,
-        language: feed.language,
-        favicon: feed.favicon,
-        categories: feed.categories,
-        category: feed.category,
+      const feeds: Feed[] = (data.feeds as unknown as Record<string, unknown>[]).map((feed: Record<string, unknown>) => ({
+        type: String(feed.type || ''),
+        id: String(feed.id || feed.guid || ''), // Support both id and guid
+        guid: String(feed.guid || ''),
+        status: String(feed.status || ''),
+        siteTitle: String(feed.siteTitle || ''),
+        siteName: String(feed.siteName || ''),
+        feedTitle: String(feed.feedTitle || feed.title || ''),
+        feedUrl: String(feed.feedUrl || ''),
+        url: String(feed.url || feed.feedUrl || ''), // Support both url and feedUrl
+        description: String(feed.description || ''),
+        link: String(feed.link || ''),
+        lastUpdated: String(feed.lastUpdated || ''),
+        lastRefreshed: String(feed.lastRefreshed || ''),
+        published: String(feed.published || ''),
+        author: String(feed.author || ''),
+        language: String(feed.language || ''),
+        favicon: String(feed.favicon || ''),
+        categories: Array.isArray(feed.categories) ? feed.categories : [],
+        category: String(feed.category || ''),
         items: Array.isArray(feed.items)
           ? feed.items.map((item: Record<string, unknown>) => ({
-              type: item.type,
-              id: item.id,
-              title: item.title,
-              description: item.description,
-              link: item.link,
-              url: item.url || item.link, // Support both url and link
-              author: item.author,
-              published: item.published,
-              content: item.content,
-              created: item.created,
-              content_encoded: item.content_encoded,
-              content_html: item.content_html,
+              type: String(item.type || ''),
+              id: String(item.id || ''),
+              title: String(item.title || ''),
+              description: String(item.description || ''),
+              link: String(item.link || ''),
+              url: String(item.url || item.link || ''), // Support both url and link
+              author: String(item.author || ''),
+              published: String(item.published || ''),
+              content: String(item.content || ''),
+              created: String(item.created || ''),
+              content_encoded: String(item.content_encoded || ''),
+              content_html: String(item.content_html || ''),
               categories: Array.isArray(item.categories)
                 ? item.categories
                 : item.categories
-                  ? [item.categories]
+                  ? [String(item.categories)]
                   : [], // Ensure array format
-              category: item.category,
-              feed_id: item.feed_id || feed.guid,
-              attachments: item.attachments || [],
-              enclosures: item.enclosures,
-              thumbnail: item.thumbnail,
+              category: String(item.category || ''),
+              feed_id: String(item.feed_id || feed.guid || ''),
+              attachments: Array.isArray(item.attachments) ? item.attachments : [],
+              enclosures: Array.isArray(item.enclosures) ? item.enclosures : [],
+              thumbnail: String(item.thumbnail || ''),
               thumbnailColor:
                 typeof item.thumbnailColor === "string"
                   ? item.thumbnailColor
-                  : item.thumbnailColor || { r: 0, g: 0, b: 0 },
-              thumbnailColorComputed: item.thumbnailColorComputed || "#000000", // Ensure string hex color
-              siteTitle: feed.siteTitle,
-              siteName: feed.siteName,
-              feedTitle: feed.feedTitle,
-              feedUrl: feed.feedUrl,
-              favicon: feed.favicon,
+                  : (typeof item.thumbnailColor === "object" && item.thumbnailColor) 
+                    ? item.thumbnailColor as { r: number; g: number; b: number }
+                    : { r: 0, g: 0, b: 0 },
+              thumbnailColorComputed: String(item.thumbnailColorComputed || "#000000"), // Ensure string hex color
+              siteTitle: String(feed.siteTitle || ''),
+              siteName: String(feed.siteName || ''),
+              feedTitle: String(feed.feedTitle || ''),
+              feedUrl: String(feed.feedUrl || ''),
+              favicon: String(feed.favicon || ''),
               favorite: Boolean(item.favorite),
-              duration: item.duration,
-              itunesEpisode: item.itunesEpisode,
-              itunesSeason: item.itunesSeason,
-              feedImage: item.feedImage,
+              duration: item.duration ? Number(item.duration) : undefined,
+              itunesEpisode: item.itunesEpisode ? String(item.itunesEpisode) : undefined,
+              itunesSeason: item.itunesSeason ? String(item.itunesSeason) : undefined,
+              feedImage: String(item.feedImage || ''),
             }))
           : [],
       }));

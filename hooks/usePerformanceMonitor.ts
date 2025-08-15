@@ -90,41 +90,6 @@ export function usePerformanceMonitor(enabled = true) {
     };
   }, []);
 
-  // Collect performance sample
-  const collectSample = useCallback(() => {
-    const sample: PerformanceSample = {
-      timestamp: Date.now(),
-      memory: getMemoryUsage(),
-      cache: getCacheMetrics(),
-      persistence: getPersistenceMetrics(),
-    };
-
-    // Store sample
-    samplesRef.current.push(sample);
-
-    // Keep only last 100 samples
-    if (samplesRef.current.length > 100) {
-      samplesRef.current.shift();
-    }
-
-    // Check for alerts
-    checkForAlerts(sample);
-
-    // Log performance data
-    if (process.env.NODE_ENV === "development") {
-      console.log("[Performance Monitor]", {
-        memory: sample.memory
-          ? `${(sample.memory.usedJSHeapSize / 1024 / 1024).toFixed(1)}MB`
-          : "N/A",
-        queries: sample.cache.queryCount,
-        active: sample.cache.activeQueries,
-        stale: sample.cache.staleQueries,
-      });
-    }
-
-    return sample;
-  }, [getMemoryUsage, getCacheMetrics, getPersistenceMetrics, checkForAlerts]);
-
   // Check for performance alerts
   const checkForAlerts = useCallback((sample: PerformanceSample) => {
     const alerts: PerformanceAlert[] = [];
@@ -179,6 +144,41 @@ export function usePerformanceMonitor(enabled = true) {
       alertsRef.current = alertsRef.current.slice(-50);
     }
   }, []);
+
+  // Collect performance sample
+  const collectSample = useCallback(() => {
+    const sample: PerformanceSample = {
+      timestamp: Date.now(),
+      memory: getMemoryUsage(),
+      cache: getCacheMetrics(),
+      persistence: getPersistenceMetrics(),
+    };
+
+    // Store sample
+    samplesRef.current.push(sample);
+
+    // Keep only last 100 samples
+    if (samplesRef.current.length > 100) {
+      samplesRef.current.shift();
+    }
+
+    // Check for alerts
+    checkForAlerts(sample);
+
+    // Log performance data
+    if (process.env.NODE_ENV === "development") {
+      console.log("[Performance Monitor]", {
+        memory: sample.memory
+          ? `${(sample.memory.usedJSHeapSize / 1024 / 1024).toFixed(1)}MB`
+          : "N/A",
+        queries: sample.cache.queryCount,
+        active: sample.cache.activeQueries,
+        stale: sample.cache.staleQueries,
+      });
+    }
+
+    return sample;
+  }, [getMemoryUsage, getCacheMetrics, getPersistenceMetrics, checkForAlerts]);
 
   // Get performance summary
   const getPerformanceSummary = useCallback(() => {

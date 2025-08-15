@@ -63,3 +63,31 @@ export async function createHash(data: string): Promise<string> {
   }
   return Math.abs(hash).toString(16);
 }
+
+/**
+ * Synchronous UUID generator for cases where async is not possible
+ * Uses a simple but effective random UUID v4 generation
+ */
+export function generateUUIDSync(): string {
+  // Simple UUID v4 generation
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+/**
+ * Synchronous hash function for cases where async is not possible
+ * Simple but effective hash function for request deduplication
+ */
+export function createHashSync(data: string): string {
+  let hash = 0;
+  if (data.length === 0) return hash.toString(16);
+  for (let i = 0; i < data.length; i++) {
+    const char = data.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(16);
+}

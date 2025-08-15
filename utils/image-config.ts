@@ -41,7 +41,7 @@ export const IMAGE_LOADING = {
   },
 } as const;
 
-// Helper to get consistent image props
+// Helper to get consistent image props with proper TypeScript types
 export function getImageProps(
   type: keyof typeof IMAGE_SIZES,
   loading: keyof typeof IMAGE_LOADING = "lazy",
@@ -49,11 +49,18 @@ export function getImageProps(
   const size = IMAGE_SIZES[type];
   const loadingStrategy = IMAGE_LOADING[loading];
 
-  // Build props object, only including height if defined
-  const props: { width: number; sizes: string; height?: number; [key: string]: unknown } = {
+  // Build props object with proper types
+  const props: {
+    width: number;
+    sizes: string;
+    height?: number;
+    loading: "eager" | "lazy";
+    priority: boolean;
+  } = {
     width: size.width,
     sizes: size.sizes,
-    ...loadingStrategy,
+    loading: loadingStrategy.loading,
+    priority: loadingStrategy.priority,
   };
 
   if (size.height !== undefined) {

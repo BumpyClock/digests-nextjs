@@ -9,7 +9,7 @@ import {
   UseQueryResult,
   QueryKey,
 } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useMemo } from "react";
 // import { useOfflineStatus } from '@/lib/persistence' // TODO: Implement offline status hook
 
 // Temporary offline status stub
@@ -150,13 +150,6 @@ export function usePersistentQuery<TData = unknown, TError = unknown>(
     }
   }, [query.data, query.dataUpdatedAt, onRestore]);
 
-  // Handle sync on reconnect
-  useEffect(() => {
-    if (isOnline && syncOnReconnect && query.data) {
-      handleSync();
-    }
-  }, [isOnline, handleSync, query.data, syncOnReconnect]);
-
   // Sync function
   const handleSync = useCallback(async () => {
     if (!query.data || syncStatusRef.current === "syncing") return;
@@ -191,6 +184,13 @@ export function usePersistentQuery<TData = unknown, TError = unknown>(
       console.error("Sync failed:", error);
     }
   }, [query, queryFn, syncFn, onConflict, updateLastSync]);
+
+  // Handle sync on reconnect
+  useEffect(() => {
+    if (isOnline && syncOnReconnect && query.data) {
+      handleSync();
+    }
+  }, [isOnline, handleSync, query.data, syncOnReconnect]);
 
   // Force sync function
   const forceSync = useCallback(async () => {

@@ -129,6 +129,15 @@ export function FeedList({
     [onItemSelect, currentScrollTop],
   );
 
+  // Memoize the item selection handlers to prevent re-renders
+  const itemSelectHandlers = useMemo(() => {
+    const handlers = new Map<string, () => void>();
+    items.forEach((item) => {
+      handlers.set(item.id, () => handleItemSelect(item));
+    });
+    return handlers;
+  }, [items, handleItemSelect]);
+
   const renderSkeletons = useCallback(() => {
     return Array(10)
       .fill(0)
@@ -179,7 +188,7 @@ export function FeedList({
             key={item.id}
             item={item}
             isSelected={selectedItem?.id === item.id}
-            onSelect={() => handleItemSelect(item)}
+            onSelect={itemSelectHandlers.get(item.id)!}
           />
         ))}
       </ScrollArea>

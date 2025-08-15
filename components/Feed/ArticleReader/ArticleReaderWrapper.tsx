@@ -26,15 +26,9 @@ export function ArticleReader({
 
   React.useEffect(() => {
     if (readerView && onFetchComplete) {
-      onFetchComplete({
-        title: readerView.title,
-        content: readerView.content,
-        author: extractedAuthor?.name,
-        date: item.published,
-        url: readerView.url,
-      });
+      onFetchComplete(readerView.content || null);
     }
-  }, [readerView, onFetchComplete, extractedAuthor, item.published]);
+  }, [readerView, onFetchComplete]);
 
   if (loading && !initialContent) {
     return <div data-testid="article-skeleton">Loading...</div>;
@@ -43,17 +37,9 @@ export function ArticleReader({
   return (
     <ReaderContent
       feedItem={item}
-      readerView={
-        initialContent && readerView
-          ? {
-              ...readerView,
-              title: initialContent.title || readerView.title,
-              content: initialContent.content || readerView.content,
-            }
-          : readerView
-      }
+      readerView={readerView}
       loading={loading}
-      cleanedContent={initialContent?.content || cleanedContent}
+      cleanedContent={initialContent || cleanedContent}
       cleanedMarkdown={cleanedMarkdown}
       extractedAuthor={extractedAuthor}
     />

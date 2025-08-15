@@ -338,7 +338,7 @@ export function setGlobalPersistenceMonitor(monitor: PersistenceMonitor) {
 
   // Expose to window in development
   if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
-    (window as Record<string, unknown>).__PERSISTENCE_MONITOR__ = {
+    (window as unknown as Record<string, unknown>).__PERSISTENCE_MONITOR__ = {
       getMetrics: () => monitor.getMetrics(),
       getSummary: () => monitor.getSummary(),
       reset: () => monitor.reset(),
