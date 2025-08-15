@@ -1,25 +1,25 @@
-import { Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { useDebouncedCallback } from "use-debounce"
-import { useEffect, useState } from "react"
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useDebouncedCallback } from "use-debounce";
+import { useEffect, useState } from "react";
 
 interface SearchBarProps {
-  value: string
-  onChange: (value: string) => void
+  value: string;
+  onChange: (value: string) => void;
 }
 
 export function SearchBar({ value, onChange }: SearchBarProps) {
-  const [localValue, setLocalValue] = useState(value)
+  const [localValue, setLocalValue] = useState(value);
 
   const debouncedOnChange = useDebouncedCallback((newValue: string) => {
     if (newValue.length >= 3 || newValue.length === 0) {
-      onChange(newValue)
+      onChange(newValue);
     }
-  }, 500)
+  }, 500);
 
   useEffect(() => {
-    setLocalValue(value)
-  }, [value])
+    setLocalValue(value);
+  }, [value]);
 
   return (
     <div className="relative w-full sm:w-auto">
@@ -30,11 +30,11 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
         className="w-full sm:w-[250px] pl-8"
         value={localValue}
         onChange={(e) => {
-          const newValue = e.target.value
-          setLocalValue(newValue)
-          debouncedOnChange(newValue)
+          const newValue = e.target.value;
+          setLocalValue(newValue);
+          debouncedOnChange(newValue);
         }}
       />
     </div>
-  )
-} 
+  );
+}

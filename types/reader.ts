@@ -20,4 +20,4 @@ export type ReaderLayout = "modal" | "standard" | "compact";
 export interface ReaderViewProps {
   feedItem: FeedItem | null;
   onScroll?: (data: ScrollData) => void;
-} 
+}

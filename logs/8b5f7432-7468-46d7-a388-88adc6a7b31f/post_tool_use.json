@@ -1,0 +1,879 @@
+[
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\sentry.server.config.ts"
+    },
+    "tool_response": {
+      "type": "text",
+      "file": {
+        "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\sentry.server.config.ts",
+        "content": "// This file configures the initialization of Sentry on the server.\n// The config you add here will be used whenever the server handles a request.\nimport * as Sentry from \"@sentry/nextjs\";\n\nSentry.init({\n  dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,\n\n  // Adjust this value in production, or use tracesSampler for greater control\n  tracesSampleRate: process.env.NODE_ENV === \"production\" ? 0.1 : 1.0,\n\n  // Setting this option to true will print useful information to the console while you're setting up Sentry.\n  debug: false,\n\n  // Environment\n  environment:\n    process.env.NEXT_PUBLIC_ENV || process.env.NODE_ENV || \"development\",\n\n  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n  ],\n\n  // Performance monitoring\n  profilesSampleRate: process.env.NODE_ENV === \"production\" ? 0.1 : 1.0,\n\n  // Filter transactions\n  beforeSendTransaction(transaction) {\n    // Don't send transactions for health checks\n    if (transaction.transaction?.includes(\"/api/health\")) {\n      return null;\n    }\n    return transaction;\n  },\n\n  // Enhanced error context\n  beforeSend(event) {\n    // Add server-specific context\n    if (event.request) {\n      // Sanitize sensitive headers\n      const headers = { ...event.request.headers };\n      delete headers.cookie;\n      delete headers.authorization;\n      event.request.headers = headers;\n    }\n    return event;\n  },\n});\n",
+        "numLines": 51,
+        "startLine": 1,
+        "totalLines": 51
+      }
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\sentry.server.config.ts",
+      "old_string": "  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n  ],",
+      "new_string": "  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n    // Explicitly exclude Prisma integration to avoid OpenTelemetry warnings\n    ...Sentry.getDefaultIntegrations().filter(integration => \n      integration.name !== 'Prisma' && \n      integration.name !== '@prisma/instrumentation'\n    ),\n  ],"
+    },
+    "tool_response": {
+      "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\sentry.server.config.ts",
+      "oldString": "  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n  ],",
+      "newString": "  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n    // Explicitly exclude Prisma integration to avoid OpenTelemetry warnings\n    ...Sentry.getDefaultIntegrations().filter(integration => \n      integration.name !== 'Prisma' && \n      integration.name !== '@prisma/instrumentation'\n    ),\n  ],",
+      "originalFile": "// This file configures the initialization of Sentry on the server.\n// The config you add here will be used whenever the server handles a request.\nimport * as Sentry from \"@sentry/nextjs\";\n\nSentry.init({\n  dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,\n\n  // Adjust this value in production, or use tracesSampler for greater control\n  tracesSampleRate: process.env.NODE_ENV === \"production\" ? 0.1 : 1.0,\n\n  // Setting this option to true will print useful information to the console while you're setting up Sentry.\n  debug: false,\n\n  // Environment\n  environment:\n    process.env.NEXT_PUBLIC_ENV || process.env.NODE_ENV || \"development\",\n\n  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n  ],\n\n  // Performance monitoring\n  profilesSampleRate: process.env.NODE_ENV === \"production\" ? 0.1 : 1.0,\n\n  // Filter transactions\n  beforeSendTransaction(transaction) {\n    // Don't send transactions for health checks\n    if (transaction.transaction?.includes(\"/api/health\")) {\n      return null;\n    }\n    return transaction;\n  },\n\n  // Enhanced error context\n  beforeSend(event) {\n    // Add server-specific context\n    if (event.request) {\n      // Sanitize sensitive headers\n      const headers = { ...event.request.headers };\n      delete headers.cookie;\n      delete headers.authorization;\n      event.request.headers = headers;\n    }\n    return event;\n  },\n});\n",
+      "structuredPatch": [
+        {
+          "oldStart": 21,
+          "oldLines": 6,
+          "newStart": 21,
+          "newLines": 11,
+          "lines": [
+            "     Sentry.captureConsoleIntegration({",
+            "       levels: [\"error\", \"warn\"],",
+            "     }),",
+            "+    // Explicitly exclude Prisma integration to avoid OpenTelemetry warnings",
+            "+    ...Sentry.getDefaultIntegrations().filter(integration => ",
+            "+      integration.name !== 'Prisma' && ",
+            "+      integration.name !== '@prisma/instrumentation'",
+            "+    ),",
+            "   ],",
+            " ",
+            "   // Performance monitoring"
+          ]
+        }
+      ],
+      "userModified": false,
+      "replaceAll": false
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "prisma",
+      "glob": "**/*.{js,ts,tsx,json}",
+      "output_mode": "files_with_matches",
+      "-i": true
+    },
+    "tool_response": {
+      "mode": "files_with_matches",
+      "filenames": [
+        "C:\\Users\\adity\\Projects\\digests-nextjs\\logs\\8b5f7432-7468-46d7-a388-88adc6a7b31f\\pre_tool_use.json",
+        "C:\\Users\\adity\\Projects\\digests-nextjs\\logs\\8b5f7432-7468-46d7-a388-88adc6a7b31f\\post_tool_use.json",
+        "C:\\Users\\adity\\Projects\\digests-nextjs\\sentry.server.config.ts",
+        "C:\\Users\\adity\\Projects\\digests-nextjs\\logs\\8b5f7432-7468-46d7-a388-88adc6a7b31f\\user_prompt_submit.json",
+        "C:\\Users\\adity\\Projects\\digests-nextjs\\package-lock.json"
+      ],
+      "numFiles": 5
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "@prisma",
+      "path": "C:\\Users\\adity\\Projects\\digests-nextjs\\package.json",
+      "output_mode": "content"
+    },
+    "tool_response": {
+      "mode": "content",
+      "numFiles": 0,
+      "filenames": [],
+      "content": "",
+      "numLines": 0
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\sentry.server.config.ts",
+      "old_string": "  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n    // Explicitly exclude Prisma integration to avoid OpenTelemetry warnings\n    ...Sentry.getDefaultIntegrations().filter(integration => \n      integration.name !== 'Prisma' && \n      integration.name !== '@prisma/instrumentation'\n    ),\n  ],",
+      "new_string": "  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n  ],\n  \n  // Disable automatic instrumentation for unused packages\n  skipOpenTelemetrySetup: true,"
+    },
+    "tool_response": {
+      "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\sentry.server.config.ts",
+      "oldString": "  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n    // Explicitly exclude Prisma integration to avoid OpenTelemetry warnings\n    ...Sentry.getDefaultIntegrations().filter(integration => \n      integration.name !== 'Prisma' && \n      integration.name !== '@prisma/instrumentation'\n    ),\n  ],",
+      "newString": "  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n  ],\n  \n  // Disable automatic instrumentation for unused packages\n  skipOpenTelemetrySetup: true,",
+      "originalFile": "// This file configures the initialization of Sentry on the server.\n// The config you add here will be used whenever the server handles a request.\nimport * as Sentry from \"@sentry/nextjs\";\n\nSentry.init({\n  dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,\n\n  // Adjust this value in production, or use tracesSampler for greater control\n  tracesSampleRate: process.env.NODE_ENV === \"production\" ? 0.1 : 1.0,\n\n  // Setting this option to true will print useful information to the console while you're setting up Sentry.\n  debug: false,\n\n  // Environment\n  environment:\n    process.env.NEXT_PUBLIC_ENV || process.env.NODE_ENV || \"development\",\n\n  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n    // Explicitly exclude Prisma integration to avoid OpenTelemetry warnings\n    ...Sentry.getDefaultIntegrations().filter(integration => \n      integration.name !== 'Prisma' && \n      integration.name !== '@prisma/instrumentation'\n    ),\n  ],\n\n  // Performance monitoring\n  profilesSampleRate: process.env.NODE_ENV === \"production\" ? 0.1 : 1.0,\n\n  // Filter transactions\n  beforeSendTransaction(transaction) {\n    // Don't send transactions for health checks\n    if (transaction.transaction?.includes(\"/api/health\")) {\n      return null;\n    }\n    return transaction;\n  },\n\n  // Enhanced error context\n  beforeSend(event) {\n    // Add server-specific context\n    if (event.request) {\n      // Sanitize sensitive headers\n      const headers = { ...event.request.headers };\n      delete headers.cookie;\n      delete headers.authorization;\n      event.request.headers = headers;\n    }\n    return event;\n  },\n});\n",
+      "structuredPatch": [
+        {
+          "oldStart": 21,
+          "oldLines": 12,
+          "newStart": 21,
+          "newLines": 10,
+          "lines": [
+            "     Sentry.captureConsoleIntegration({",
+            "       levels: [\"error\", \"warn\"],",
+            "     }),",
+            "-    // Explicitly exclude Prisma integration to avoid OpenTelemetry warnings",
+            "-    ...Sentry.getDefaultIntegrations().filter(integration => ",
+            "-      integration.name !== 'Prisma' && ",
+            "-      integration.name !== '@prisma/instrumentation'",
+            "-    ),",
+            "   ],",
+            "+  ",
+            "+  // Disable automatic instrumentation for unused packages",
+            "+  skipOpenTelemetrySetup: true,",
+            " ",
+            "   // Performance monitoring",
+            "   profilesSampleRate: process.env.NODE_ENV === \"production\" ? 0.1 : 1.0,"
+          ]
+        }
+      ],
+      "userModified": false,
+      "replaceAll": false
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\next.config.mjs",
+      "old_string": "  tunnelRoute: \"/monitoring\",\n  disableLogger: true,\n  automaticVercelMonitors: true,\n  \n  // Disable problematic integrations\n  integrations: (integrations) => {\n    return integrations.filter(integration => {\n      // Filter out Prisma integration if causing issues\n      return integration.name !== 'Prisma';\n    });\n  },",
+      "new_string": "  tunnelRoute: \"/monitoring\",\n  disableLogger: true,\n  automaticVercelMonitors: true,"
+    },
+    "tool_response": {
+      "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\next.config.mjs",
+      "oldString": "  tunnelRoute: \"/monitoring\",\n  disableLogger: true,\n  automaticVercelMonitors: true,\n  \n  // Disable problematic integrations\n  integrations: (integrations) => {\n    return integrations.filter(integration => {\n      // Filter out Prisma integration if causing issues\n      return integration.name !== 'Prisma';\n    });\n  },",
+      "newString": "  tunnelRoute: \"/monitoring\",\n  disableLogger: true,\n  automaticVercelMonitors: true,",
+      "originalFile": "import createMDX from '@next/mdx';\nimport remarkGfm from 'remark-gfm';\nimport { withSentryConfig } from '@sentry/nextjs';\nimport bundleAnalyzer from '@next/bundle-analyzer';\n\nconst withMDX = createMDX({\n  extension: /\\.mdx?$/,\n  options: {\n    remarkPlugins: [remarkGfm],\n    rehypePlugins: [],\n  },\n});\n\n/** @type {import('next').NextConfig} */\nconst nextConfig = {\n    reactStrictMode: true,\n    typescript: {\n        ignoreBuildErrors: false,\n    },\n    eslint: {\n        dirs: ['app', 'components', 'lib', 'hooks', 'services', 'store', 'utils', 'types', 'contexts', 'config'],\n    },\n    transpilePackages: [\"next-mdx-remote\"],\n    images: {\n        remotePatterns: [\n            {\n        protocol: 'https',\n        hostname: '**',\n      },\n      {\n        protocol: 'http',\n        hostname: '**',\n      },\n    ],\n  },\n  experimental: {\n    reactCompiler: true,\n  },\n  async headers() {\n    return [\n      {\n        source: '/:path*',\n        headers: [\n          {\n            key: 'Content-Security-Policy',\n            value: [\n              \"default-src 'self'\",\n              \"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live\",\n              \"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com\",\n              \"img-src 'self' data: https: http: blob:\",\n              \"font-src 'self' https://fonts.gstatic.com\",\n              \"connect-src 'self' https: http: wss: ws:\",\n              \"media-src 'self' blob:\",\n              \"object-src 'none'\",\n              \"frame-ancestors 'none'\",\n              \"base-uri 'self'\",\n              \"form-action 'self'\",\n              \"frame-src 'self' https://vercel.live\",\n              \"manifest-src 'self'\",\n              \"worker-src 'self' blob:\",\n            ].join('; ')\n          },\n          {\n            key: 'X-Frame-Options',\n            value: 'DENY',\n          },\n          {\n            key: 'X-Content-Type-Options',\n            value: 'nosniff',\n          },\n          {\n            key: 'Referrer-Policy',\n            value: 'strict-origin-when-cross-origin',\n          },\n          {\n            key: 'Permissions-Policy',\n            value: 'geolocation=(), camera=(), microphone=(), payment=(), usb=(), magnetometer=(), accelerometer=(), gyroscope=()',\n          },\n        ],\n      },\n    ];\n  },\n  webpack: (config, { isServer }) => {\n    config.module.rules.push({\n      test: /\\.lottie$/,\n      type: 'asset/resource',\n      generator: {\n        filename: 'static/lottie/[name].[hash][ext]',\n      },\n    });\n\n    // Generate source maps for Sentry\n    if (!isServer) {\n      config.devtool = 'source-map';\n    }\n\n    return config;\n  },\n  pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],\n  // Sentry configuration for source maps\n  productionBrowserSourceMaps: true,\n};\n\n// Wrap the config with Sentry\nconst sentryWebpackPluginOptions = {\n  // Your Sentry auth token\n  authToken: process.env.SENTRY_AUTH_TOKEN,\n  \n  // Your Sentry org and project\n  org: process.env.SENTRY_ORG,\n  project: process.env.SENTRY_PROJECT,\n\n  // Additional options for the Sentry webpack plugin\n  silent: true, // Suppresses all logs\n  \n  // Upload source maps to Sentry\n  include: \".next\",\n  ignore: [\"node_modules\"],\n  \n  // Automatically release tracking\n  release: {\n    create: true,\n    finalize: true,\n    // Use environment variable or generate from git\n    name: process.env.SENTRY_RELEASE || process.env.VERCEL_GIT_COMMIT_SHA,\n  },\n\n  // For all available options, see:\n  // https://github.com/getsentry/sentry-webpack-plugin#options\n  hideSourceMaps: false,\n  widenClientFileUpload: true,\n  transpileClientSDK: true,\n  tunnelRoute: \"/monitoring\",\n  disableLogger: true,\n  automaticVercelMonitors: true,\n  \n  // Disable problematic integrations\n  integrations: (integrations) => {\n    return integrations.filter(integration => {\n      // Filter out Prisma integration if causing issues\n      return integration.name !== 'Prisma';\n    });\n  },\n};\n\n// Configure bundle analyzer\nconst withBundleAnalyzer = bundleAnalyzer({\n  enabled: process.env.ANALYZE === 'true',\n});\n\n// Conditionally apply Sentry config in production and bundle analyzer\nconst config = process.env.NODE_ENV === 'production' && process.env.SENTRY_AUTH_TOKEN\n  ? withSentryConfig(withBundleAnalyzer(withMDX(nextConfig)), sentryWebpackPluginOptions)\n  : withBundleAnalyzer(withMDX(nextConfig));\n\nexport default config;",
+      "structuredPatch": [
+        {
+          "oldStart": 133,
+          "oldLines": 14,
+          "newStart": 133,
+          "newLines": 6,
+          "lines": [
+            "   tunnelRoute: \"/monitoring\",",
+            "   disableLogger: true,",
+            "   automaticVercelMonitors: true,",
+            "-  ",
+            "-  // Disable problematic integrations",
+            "-  integrations: (integrations) => {",
+            "-    return integrations.filter(integration => {",
+            "-      // Filter out Prisma integration if causing issues",
+            "-      return integration.name !== 'Prisma';",
+            "-    });",
+            "-  },",
+            " };",
+            " ",
+            " // Configure bundle analyzer"
+          ]
+        }
+      ],
+      "userModified": false,
+      "replaceAll": false
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "TodoWrite",
+    "tool_input": {
+      "todos": [
+        {
+          "content": "CRITICAL: Fix PodcastArtwork type assertions (loading/priority props)",
+          "status": "completed",
+          "id": "phase1-1"
+        },
+        {
+          "content": "CRITICAL: Fix SyncOperation import error in use-feed-mutations.ts",
+          "status": "completed",
+          "id": "phase1-2"
+        },
+        {
+          "content": "CRITICAL: Remove unused ref in ScrollArea component",
+          "status": "completed",
+          "id": "phase1-3"
+        },
+        {
+          "content": "CRITICAL: Fix function declaration order and type issues",
+          "status": "completed",
+          "id": "phase1-4"
+        },
+        {
+          "content": "CRITICAL: Fix all TypeScript build errors in api-service.ts and utils/encryption.ts",
+          "status": "completed",
+          "id": "phase1-5"
+        },
+        {
+          "content": "DEV: Clean and rebuild Next.js development server",
+          "status": "completed",
+          "id": "dev-1"
+        },
+        {
+          "content": "DEV: Fix MODULE_TYPELESS_PACKAGE_JSON warning",
+          "status": "completed",
+          "id": "dev-2"
+        },
+        {
+          "content": "DEV: Fix Prisma/OpenTelemetry warning in Sentry config",
+          "status": "completed",
+          "id": "dev-3"
+        },
+        {
+          "content": "SECURITY: Sanitize API logging in services/api-service.ts",
+          "status": "completed",
+          "id": "phase2-1"
+        },
+        {
+          "content": "SECURITY: Verify HTML sanitization across all dangerouslySetInnerHTML",
+          "status": "completed",
+          "id": "phase2-2"
+        },
+        {
+          "content": "PERFORMANCE: Fix re-render issues in FeedList component",
+          "status": "completed",
+          "id": "phase3-1"
+        },
+        {
+          "content": "PERFORMANCE: Bundle size optimization - analyze Sentry impact",
+          "status": "completed",
+          "id": "phase3-2"
+        },
+        {
+          "content": "ERROR HANDLING: Add error boundaries to key components",
+          "status": "completed",
+          "id": "phase4-2"
+        },
+        {
+          "content": "ERROR HANDLING: Standardize error patterns across services",
+          "status": "pending",
+          "id": "phase4-1"
+        },
+        {
+          "content": "ARCHITECTURE: Reduce prop drilling in Feed components",
+          "status": "pending",
+          "id": "phase5-1"
+        },
+        {
+          "content": "ARCHITECTURE: Implement proper loading state management",
+          "status": "pending",
+          "id": "phase5-2"
+        }
+      ]
+    },
+    "tool_response": {
+      "oldTodos": [
+        {
+          "content": "CRITICAL: Fix PodcastArtwork type assertions (loading/priority props)",
+          "status": "completed",
+          "id": "phase1-1"
+        },
+        {
+          "content": "CRITICAL: Fix SyncOperation import error in use-feed-mutations.ts",
+          "status": "completed",
+          "id": "phase1-2"
+        },
+        {
+          "content": "CRITICAL: Remove unused ref in ScrollArea component",
+          "status": "completed",
+          "id": "phase1-3"
+        },
+        {
+          "content": "CRITICAL: Fix function declaration order and type issues",
+          "status": "completed",
+          "id": "phase1-4"
+        },
+        {
+          "content": "CRITICAL: Fix all TypeScript build errors in api-service.ts and utils/encryption.ts",
+          "status": "completed",
+          "id": "phase1-5"
+        },
+        {
+          "content": "DEV: Clean and rebuild Next.js development server",
+          "status": "in_progress",
+          "id": "dev-1"
+        },
+        {
+          "content": "DEV: Fix MODULE_TYPELESS_PACKAGE_JSON warning",
+          "status": "pending",
+          "id": "dev-2"
+        },
+        {
+          "content": "DEV: Fix Prisma/OpenTelemetry warning in Sentry config",
+          "status": "pending",
+          "id": "dev-3"
+        },
+        {
+          "content": "SECURITY: Sanitize API logging in services/api-service.ts",
+          "status": "completed",
+          "id": "phase2-1"
+        },
+        {
+          "content": "SECURITY: Verify HTML sanitization across all dangerouslySetInnerHTML",
+          "status": "completed",
+          "id": "phase2-2"
+        },
+        {
+          "content": "PERFORMANCE: Fix re-render issues in FeedList component",
+          "status": "completed",
+          "id": "phase3-1"
+        },
+        {
+          "content": "PERFORMANCE: Bundle size optimization - analyze Sentry impact",
+          "status": "completed",
+          "id": "phase3-2"
+        },
+        {
+          "content": "ERROR HANDLING: Standardize error patterns across services",
+          "status": "pending",
+          "id": "phase4-1"
+        },
+        {
+          "content": "ERROR HANDLING: Add error boundaries to key components",
+          "status": "completed",
+          "id": "phase4-2"
+        },
+        {
+          "content": "ARCHITECTURE: Reduce prop drilling in Feed components",
+          "status": "pending",
+          "id": "phase5-1"
+        },
+        {
+          "content": "ARCHITECTURE: Implement proper loading state management",
+          "status": "pending",
+          "id": "phase5-2"
+        }
+      ],
+      "newTodos": [
+        {
+          "content": "CRITICAL: Fix PodcastArtwork type assertions (loading/priority props)",
+          "status": "completed",
+          "id": "phase1-1"
+        },
+        {
+          "content": "CRITICAL: Fix SyncOperation import error in use-feed-mutations.ts",
+          "status": "completed",
+          "id": "phase1-2"
+        },
+        {
+          "content": "CRITICAL: Remove unused ref in ScrollArea component",
+          "status": "completed",
+          "id": "phase1-3"
+        },
+        {
+          "content": "CRITICAL: Fix function declaration order and type issues",
+          "status": "completed",
+          "id": "phase1-4"
+        },
+        {
+          "content": "CRITICAL: Fix all TypeScript build errors in api-service.ts and utils/encryption.ts",
+          "status": "completed",
+          "id": "phase1-5"
+        },
+        {
+          "content": "DEV: Clean and rebuild Next.js development server",
+          "status": "completed",
+          "id": "dev-1"
+        },
+        {
+          "content": "DEV: Fix MODULE_TYPELESS_PACKAGE_JSON warning",
+          "status": "completed",
+          "id": "dev-2"
+        },
+        {
+          "content": "DEV: Fix Prisma/OpenTelemetry warning in Sentry config",
+          "status": "completed",
+          "id": "dev-3"
+        },
+        {
+          "content": "SECURITY: Sanitize API logging in services/api-service.ts",
+          "status": "completed",
+          "id": "phase2-1"
+        },
+        {
+          "content": "SECURITY: Verify HTML sanitization across all dangerouslySetInnerHTML",
+          "status": "completed",
+          "id": "phase2-2"
+        },
+        {
+          "content": "PERFORMANCE: Fix re-render issues in FeedList component",
+          "status": "completed",
+          "id": "phase3-1"
+        },
+        {
+          "content": "PERFORMANCE: Bundle size optimization - analyze Sentry impact",
+          "status": "completed",
+          "id": "phase3-2"
+        },
+        {
+          "content": "ERROR HANDLING: Add error boundaries to key components",
+          "status": "completed",
+          "id": "phase4-2"
+        },
+        {
+          "content": "ERROR HANDLING: Standardize error patterns across services",
+          "status": "pending",
+          "id": "phase4-1"
+        },
+        {
+          "content": "ARCHITECTURE: Reduce prop drilling in Feed components",
+          "status": "pending",
+          "id": "phase5-1"
+        },
+        {
+          "content": "ARCHITECTURE: Implement proper loading state management",
+          "status": "pending",
+          "id": "phase5-2"
+        }
+      ]
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js"
+    },
+    "tool_response": {
+      "type": "text",
+      "file": {
+        "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+        "content": "\"use strict\";\n/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.themes = void 0;\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nvar flexokiLight = {\n  name: \"flexoki-light\",\n  displayName: \"Flexoki Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(48 100% 97%)\",\n    foreground: \"hsl(0 3% 6%)\",\n    // Card colors\n    card: \"hsl(48 100% 97%)\",\n    cardForeground: \"hsl(0 3% 6%)\",\n    // Popover colors\n    popover: \"hsl(48 100% 97%)\",\n    popoverForeground: \"hsl(0 3% 6%)\",\n    // Primary colors\n    primary: \"hsl(0 3% 6%)\",\n    primaryForeground: \"hsl(48 100% 97%)\",\n    // Secondary colors\n    secondary: \"hsl(51 33% 92%)\",\n    secondaryForeground: \"hsl(0 3% 6%)\",\n    // Muted colors\n    muted: \"hsl(51 33% 92%)\",\n    mutedForeground: \"hsl(50 3% 30%)\",\n    // Accent colors\n    accent: \"hsl(51 33% 92%)\",\n    accentForeground: \"hsl(0 3% 6%)\",\n    // Destructive colors\n    destructive: \"hsl(3 62% 42%)\",\n    destructiveForeground: \"hsl(48 100% 97%)\",\n    // Border, input, and ring colors\n    border: \"hsl(51 21% 88%)\",\n    input: \"hsl(51 21% 88%)\",\n    ring: \"hsl(55 10% 79%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(51 33% 92%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(3 62% 42%)\",\n    redSecondary: \"hsl(5 61% 54%)\",\n    orangePrimary: \"hsl(22 80% 41%)\",\n    orangeSecondary: \"hsl(23 70% 51%)\",\n    yellowPrimary: \"hsl(45 99% 34%)\",\n    yellowSecondary: \"hsl(45 82% 45%)\",\n    greenPrimary: \"hsl(73 84% 27%)\",\n    greenSecondary: \"hsl(72 46% 41%)\",\n    cyanPrimary: \"hsl(175 57% 33%)\",\n    cyanSecondary: \"hsl(175 49% 45%)\",\n    bluePrimary: \"hsl(212 68% 39%)\",\n    blueSecondary: \"hsl(208 49% 50%)\",\n    purplePrimary: \"hsl(259 42% 43%)\",\n    purpleSecondary: \"hsl(251 40% 64%)\",\n    magentaPrimary: \"hsl(326 55% 41%)\",\n    magentaSecondary: \"hsl(329 54% 59%)\",\n  },\n};\n/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nvar flexokiDark = {\n  name: \"flexoki-dark\",\n  displayName: \"Flexoki Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 3% 6%)\",\n    foreground: \"hsl(55 10% 100%)\",\n    // Card colors\n    card: \"hsl(0 3% 6%)\",\n    cardForeground: \"hsl(55 10% 100%)\",\n    // Popover colors\n    popover: \"hsl(0 3% 6%)\",\n    popoverForeground: \"hsl(55 10% 79%)\",\n    // Primary colors\n    primary: \"hsl(55 10% 79%)\",\n    primaryForeground: \"hsl(0 3% 6%)\",\n    // Secondary colors\n    secondary: \"hsl(30 4% 11%)\",\n    secondaryForeground: \"hsl(55 10% 79%)\",\n    // Muted colors\n    muted: \"hsl(30 4% 11%)\",\n    mutedForeground: \"hsl(43 3% 85%)\",\n    // Accent colors\n    accent: \"hsl(30 4% 11%)\",\n    accentForeground: \"hsl(55 10% 79%)\",\n    // Destructive colors\n    destructive: \"hsl(5 61% 54%)\",\n    destructiveForeground: \"hsl(0 3% 6%)\",\n    // Border, input, and ring colors\n    border: \"hsl(30 3% 15%)\",\n    input: \"hsl(30 3% 15%)\",\n    ring: \"hsl(30 3% 24%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(30 4% 11%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(5 61% 54%)\",\n    redSecondary: \"hsl(3 62% 42%)\",\n    orangePrimary: \"hsl(23 70% 51%)\",\n    orangeSecondary: \"hsl(22 80% 41%)\",\n    yellowPrimary: \"hsl(45 82% 45%)\",\n    yellowSecondary: \"hsl(45 99% 34%)\",\n    greenPrimary: \"hsl(72 46% 41%)\",\n    greenSecondary: \"hsl(73 84% 27%)\",\n    cyanPrimary: \"hsl(175 49% 45%)\",\n    cyanSecondary: \"hsl(175 57% 33%)\",\n    bluePrimary: \"hsl(208 49% 50%)\",\n    blueSecondary: \"hsl(212 68% 39%)\",\n    purplePrimary: \"hsl(251 40% 64%)\",\n    purpleSecondary: \"hsl(259 42% 43%)\",\n    magentaPrimary: \"hsl(329 54% 59%)\",\n    magentaSecondary: \"hsl(326 55% 41%)\",\n  },\n};\n/**\n * Standard Light theme\n */\nvar standardLight = {\n  name: \"standard-light\",\n  displayName: \"Standard Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 0% 100%)\",\n    foreground: \"hsl(222.2 84% 4.9%)\",\n    // Card colors\n    card: \"hsl(0 0% 100%)\",\n    cardForeground: \"hsl(222.2 84% 4.9%)\",\n    // Popover colors\n    popover: \"hsl(0 0% 100%)\",\n    popoverForeground: \"hsl(222.2 84% 4.9%)\",\n    // Primary colors\n    primary: \"hsl(221.2 83.2% 53.3%)\",\n    primaryForeground: \"hsl(210 40% 98%)\",\n    // Secondary colors\n    secondary: \"hsl(210 40% 96.1%)\",\n    secondaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Muted colors\n    muted: \"hsl(210 40% 96.1%)\",\n    mutedForeground: \"hsl(215.4 16.3% 46.9%)\",\n    // Accent colors\n    accent: \"hsl(210 40% 96.1%)\",\n    accentForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Destructive colors\n    destructive: \"hsl(0 84.2% 60.2%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(214.3 31.8% 91.4%)\",\n    input: \"hsl(214.3 31.8% 91.4%)\",\n    ring: \"hsl(221.2 83.2% 53.3%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(210 40% 96.1%)\",\n    brandPrimary: \"hsl(221.2 83.2% 53.3%)\",\n    // Color palette\n    redPrimary: \"hsl(0 84.2% 60.2%)\",\n    redSecondary: \"hsl(0 72.2% 50.6%)\",\n    orangePrimary: \"hsl(24.6 95% 53.1%)\",\n    orangeSecondary: \"hsl(35 91.7% 43.9%)\",\n    yellowPrimary: \"hsl(45 93.4% 47.5%)\",\n    yellowSecondary: \"hsl(48 96.6% 60%)\",\n    greenPrimary: \"hsl(142.1 76.2% 36.3%)\",\n    greenSecondary: \"hsl(142.1 70.6% 45.3%)\",\n    cyanPrimary: \"hsl(182.1 73.8% 46.1%)\",\n    cyanSecondary: \"hsl(184.6 70.3% 45.7%)\",\n    bluePrimary: \"hsl(221.2 83.2% 53.3%)\",\n    blueSecondary: \"hsl(221.2 83.1% 65.9%)\",\n    purplePrimary: \"hsl(262.1 83.3% 57.8%)\",\n    purpleSecondary: \"hsl(262.1 83.3% 67.8%)\",\n    magentaPrimary: \"hsl(325.1 80.2% 53.1%)\",\n    magentaSecondary: \"hsl(328.2 85.1% 70.2%)\",\n  },\n};\n/**\n * Standard Dark theme\n */\nvar standardDark = {\n  name: \"standard-dark\",\n  displayName: \"Standard Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(222.2 84% 4.9%)\",\n    foreground: \"hsl(210 40% 98%)\",\n    // Card colors\n    card: \"hsl(222.2 84% 4.9%)\",\n    cardForeground: \"hsl(210 40% 98%)\",\n    // Popover colors\n    popover: \"hsl(222.2 84% 4.9%)\",\n    popoverForeground: \"hsl(210 40% 98%)\",\n    // Primary colors\n    primary: \"hsl(217.2 91.2% 59.8%)\",\n    primaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Secondary colors\n    secondary: \"hsl(217.2 32.6% 17.5%)\",\n    secondaryForeground: \"hsl(210 40% 98%)\",\n    // Muted colors\n    muted: \"hsl(217.2 32.6% 17.5%)\",\n    mutedForeground: \"hsl(215 20.2% 65.1%)\",\n    // Accent colors\n    accent: \"hsl(217.2 32.6% 17.5%)\",\n    accentForeground: \"hsl(210 40% 98%)\",\n    // Destructive colors\n    destructive: \"hsl(0 62.8% 30.6%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(217.2 32.6% 17.5%)\",\n    input: \"hsl(217.2 32.6% 17.5%)\",\n    ring: \"hsl(224.3 76.3% 48%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(217.2 32.6% 17.5%)\",\n    brandPrimary: \"hsl(217.2 91.2% 59.8%)\",\n    // Color palette\n    redPrimary: \"hsl(0 72.2% 50.6%)\",\n    redSecondary: \"hsl(0 62.8% 30.6%)\",\n    orangePrimary: \"hsl(20.5 90.2% 48.2%)\",\n    orangeSecondary: \"hsl(17.5 98.6% 35.1%)\",\n    yellowPrimary: \"hsl(40.8 96.6% 40%)\",\n    yellowSecondary: \"hsl(47.9 95.8% 53.1%)\",\n    greenPrimary: \"hsl(142.4 70.6% 45.3%)\",\n    greenSecondary: \"hsl(139.9 47.2% 36.7%)\",\n    cyanPrimary: \"hsl(185.6 78.3% 40.8%)\",\n    cyanSecondary: \"hsl(172.5 66% 50.4%)\",\n    bluePrimary: \"hsl(210.5 100% 66.1%)\",\n    blueSecondary: \"hsl(213.8 93.9% 67.8%)\",\n    purplePrimary: \"hsl(266.3 96.5% 80%)\",\n    purpleSecondary: \"hsl(269.1 75.3% 70%)\",\n    magentaPrimary: \"hsl(332.2 86.8% 70.4%)\",\n    magentaSecondary: \"hsl(333.9 84.7% 70.8%)\",\n  },\n};\n/**\n * Dracula Light theme\n */\nvar draculaLight = {\n  name: \"dracula-light\",\n  displayName: \"Dracula Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(60 30% 96%)\",\n    foreground: \"hsl(231 15% 18%)\",\n    // Card colors\n    card: \"hsl(60 30% 96%)\",\n    cardForeground: \"hsl(231 15% 18%)\",\n    // Popover colors\n    popover: \"hsl(60 30% 96%)\",\n    popoverForeground: \"hsl(231 15% 18%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(60 30% 92%)\",\n    secondaryForeground: \"hsl(231 15% 18%)\",\n    // Muted colors\n    muted: \"hsl(60 30% 92%)\",\n    mutedForeground: \"hsl(231 15% 50%)\",\n    // Accent colors\n    accent: \"hsl(60 30% 92%)\",\n    accentForeground: \"hsl(231 15% 18%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(60 30% 88%)\",\n    input: \"hsl(60 30% 88%)\",\n    ring: \"hsl(231 15% 50%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(60 30% 92%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 77%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 81%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 80%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 75%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 87%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 85%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 85%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 84%)\",\n  },\n};\n/**\n * Dracula Dark theme\n */\nvar draculaDark = {\n  name: \"dracula-dark\",\n  displayName: \"Dracula Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(231 15% 18%)\",\n    foreground: \"hsl(60 30% 96%)\",\n    // Card colors\n    card: \"hsl(231 15% 18%)\",\n    cardForeground: \"hsl(60 30% 96%)\",\n    // Popover colors\n    popover: \"hsl(231 15% 18%)\",\n    popoverForeground: \"hsl(60 30% 96%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(231 15% 26%)\",\n    secondaryForeground: \"hsl(60 30% 96%)\",\n    // Muted colors\n    muted: \"hsl(231 15% 26%)\",\n    mutedForeground: \"hsl(60 30% 76%)\",\n    // Accent colors\n    accent: \"hsl(231 15% 26%)\",\n    accentForeground: \"hsl(60 30% 96%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(231 15% 26%)\",\n    input: \"hsl(231 15% 26%)\",\n    ring: \"hsl(326 100% 74%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(231 15% 26%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 57%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 61%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 60%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 55%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 67%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 65%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 65%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 64%)\",\n  },\n};\n/**\n * Array of all available themes\n */\nexports.themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];\n",
+        "numLines": 363,
+        "startLine": 1,
+        "totalLines": 363
+      }
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "\"use strict\";\n/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.themes = void 0;",
+      "new_string": "/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */"
+    },
+    "tool_response": {
+      "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "oldString": "\"use strict\";\n/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.themes = void 0;",
+      "newString": "/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */",
+      "originalFile": "\"use strict\";\n/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.themes = void 0;\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nvar flexokiLight = {\n  name: \"flexoki-light\",\n  displayName: \"Flexoki Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(48 100% 97%)\",\n    foreground: \"hsl(0 3% 6%)\",\n    // Card colors\n    card: \"hsl(48 100% 97%)\",\n    cardForeground: \"hsl(0 3% 6%)\",\n    // Popover colors\n    popover: \"hsl(48 100% 97%)\",\n    popoverForeground: \"hsl(0 3% 6%)\",\n    // Primary colors\n    primary: \"hsl(0 3% 6%)\",\n    primaryForeground: \"hsl(48 100% 97%)\",\n    // Secondary colors\n    secondary: \"hsl(51 33% 92%)\",\n    secondaryForeground: \"hsl(0 3% 6%)\",\n    // Muted colors\n    muted: \"hsl(51 33% 92%)\",\n    mutedForeground: \"hsl(50 3% 30%)\",\n    // Accent colors\n    accent: \"hsl(51 33% 92%)\",\n    accentForeground: \"hsl(0 3% 6%)\",\n    // Destructive colors\n    destructive: \"hsl(3 62% 42%)\",\n    destructiveForeground: \"hsl(48 100% 97%)\",\n    // Border, input, and ring colors\n    border: \"hsl(51 21% 88%)\",\n    input: \"hsl(51 21% 88%)\",\n    ring: \"hsl(55 10% 79%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(51 33% 92%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(3 62% 42%)\",\n    redSecondary: \"hsl(5 61% 54%)\",\n    orangePrimary: \"hsl(22 80% 41%)\",\n    orangeSecondary: \"hsl(23 70% 51%)\",\n    yellowPrimary: \"hsl(45 99% 34%)\",\n    yellowSecondary: \"hsl(45 82% 45%)\",\n    greenPrimary: \"hsl(73 84% 27%)\",\n    greenSecondary: \"hsl(72 46% 41%)\",\n    cyanPrimary: \"hsl(175 57% 33%)\",\n    cyanSecondary: \"hsl(175 49% 45%)\",\n    bluePrimary: \"hsl(212 68% 39%)\",\n    blueSecondary: \"hsl(208 49% 50%)\",\n    purplePrimary: \"hsl(259 42% 43%)\",\n    purpleSecondary: \"hsl(251 40% 64%)\",\n    magentaPrimary: \"hsl(326 55% 41%)\",\n    magentaSecondary: \"hsl(329 54% 59%)\",\n  },\n};\n/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nvar flexokiDark = {\n  name: \"flexoki-dark\",\n  displayName: \"Flexoki Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 3% 6%)\",\n    foreground: \"hsl(55 10% 100%)\",\n    // Card colors\n    card: \"hsl(0 3% 6%)\",\n    cardForeground: \"hsl(55 10% 100%)\",\n    // Popover colors\n    popover: \"hsl(0 3% 6%)\",\n    popoverForeground: \"hsl(55 10% 79%)\",\n    // Primary colors\n    primary: \"hsl(55 10% 79%)\",\n    primaryForeground: \"hsl(0 3% 6%)\",\n    // Secondary colors\n    secondary: \"hsl(30 4% 11%)\",\n    secondaryForeground: \"hsl(55 10% 79%)\",\n    // Muted colors\n    muted: \"hsl(30 4% 11%)\",\n    mutedForeground: \"hsl(43 3% 85%)\",\n    // Accent colors\n    accent: \"hsl(30 4% 11%)\",\n    accentForeground: \"hsl(55 10% 79%)\",\n    // Destructive colors\n    destructive: \"hsl(5 61% 54%)\",\n    destructiveForeground: \"hsl(0 3% 6%)\",\n    // Border, input, and ring colors\n    border: \"hsl(30 3% 15%)\",\n    input: \"hsl(30 3% 15%)\",\n    ring: \"hsl(30 3% 24%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(30 4% 11%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(5 61% 54%)\",\n    redSecondary: \"hsl(3 62% 42%)\",\n    orangePrimary: \"hsl(23 70% 51%)\",\n    orangeSecondary: \"hsl(22 80% 41%)\",\n    yellowPrimary: \"hsl(45 82% 45%)\",\n    yellowSecondary: \"hsl(45 99% 34%)\",\n    greenPrimary: \"hsl(72 46% 41%)\",\n    greenSecondary: \"hsl(73 84% 27%)\",\n    cyanPrimary: \"hsl(175 49% 45%)\",\n    cyanSecondary: \"hsl(175 57% 33%)\",\n    bluePrimary: \"hsl(208 49% 50%)\",\n    blueSecondary: \"hsl(212 68% 39%)\",\n    purplePrimary: \"hsl(251 40% 64%)\",\n    purpleSecondary: \"hsl(259 42% 43%)\",\n    magentaPrimary: \"hsl(329 54% 59%)\",\n    magentaSecondary: \"hsl(326 55% 41%)\",\n  },\n};\n/**\n * Standard Light theme\n */\nvar standardLight = {\n  name: \"standard-light\",\n  displayName: \"Standard Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 0% 100%)\",\n    foreground: \"hsl(222.2 84% 4.9%)\",\n    // Card colors\n    card: \"hsl(0 0% 100%)\",\n    cardForeground: \"hsl(222.2 84% 4.9%)\",\n    // Popover colors\n    popover: \"hsl(0 0% 100%)\",\n    popoverForeground: \"hsl(222.2 84% 4.9%)\",\n    // Primary colors\n    primary: \"hsl(221.2 83.2% 53.3%)\",\n    primaryForeground: \"hsl(210 40% 98%)\",\n    // Secondary colors\n    secondary: \"hsl(210 40% 96.1%)\",\n    secondaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Muted colors\n    muted: \"hsl(210 40% 96.1%)\",\n    mutedForeground: \"hsl(215.4 16.3% 46.9%)\",\n    // Accent colors\n    accent: \"hsl(210 40% 96.1%)\",\n    accentForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Destructive colors\n    destructive: \"hsl(0 84.2% 60.2%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(214.3 31.8% 91.4%)\",\n    input: \"hsl(214.3 31.8% 91.4%)\",\n    ring: \"hsl(221.2 83.2% 53.3%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(210 40% 96.1%)\",\n    brandPrimary: \"hsl(221.2 83.2% 53.3%)\",\n    // Color palette\n    redPrimary: \"hsl(0 84.2% 60.2%)\",\n    redSecondary: \"hsl(0 72.2% 50.6%)\",\n    orangePrimary: \"hsl(24.6 95% 53.1%)\",\n    orangeSecondary: \"hsl(35 91.7% 43.9%)\",\n    yellowPrimary: \"hsl(45 93.4% 47.5%)\",\n    yellowSecondary: \"hsl(48 96.6% 60%)\",\n    greenPrimary: \"hsl(142.1 76.2% 36.3%)\",\n    greenSecondary: \"hsl(142.1 70.6% 45.3%)\",\n    cyanPrimary: \"hsl(182.1 73.8% 46.1%)\",\n    cyanSecondary: \"hsl(184.6 70.3% 45.7%)\",\n    bluePrimary: \"hsl(221.2 83.2% 53.3%)\",\n    blueSecondary: \"hsl(221.2 83.1% 65.9%)\",\n    purplePrimary: \"hsl(262.1 83.3% 57.8%)\",\n    purpleSecondary: \"hsl(262.1 83.3% 67.8%)\",\n    magentaPrimary: \"hsl(325.1 80.2% 53.1%)\",\n    magentaSecondary: \"hsl(328.2 85.1% 70.2%)\",\n  },\n};\n/**\n * Standard Dark theme\n */\nvar standardDark = {\n  name: \"standard-dark\",\n  displayName: \"Standard Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(222.2 84% 4.9%)\",\n    foreground: \"hsl(210 40% 98%)\",\n    // Card colors\n    card: \"hsl(222.2 84% 4.9%)\",\n    cardForeground: \"hsl(210 40% 98%)\",\n    // Popover colors\n    popover: \"hsl(222.2 84% 4.9%)\",\n    popoverForeground: \"hsl(210 40% 98%)\",\n    // Primary colors\n    primary: \"hsl(217.2 91.2% 59.8%)\",\n    primaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Secondary colors\n    secondary: \"hsl(217.2 32.6% 17.5%)\",\n    secondaryForeground: \"hsl(210 40% 98%)\",\n    // Muted colors\n    muted: \"hsl(217.2 32.6% 17.5%)\",\n    mutedForeground: \"hsl(215 20.2% 65.1%)\",\n    // Accent colors\n    accent: \"hsl(217.2 32.6% 17.5%)\",\n    accentForeground: \"hsl(210 40% 98%)\",\n    // Destructive colors\n    destructive: \"hsl(0 62.8% 30.6%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(217.2 32.6% 17.5%)\",\n    input: \"hsl(217.2 32.6% 17.5%)\",\n    ring: \"hsl(224.3 76.3% 48%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(217.2 32.6% 17.5%)\",\n    brandPrimary: \"hsl(217.2 91.2% 59.8%)\",\n    // Color palette\n    redPrimary: \"hsl(0 72.2% 50.6%)\",\n    redSecondary: \"hsl(0 62.8% 30.6%)\",\n    orangePrimary: \"hsl(20.5 90.2% 48.2%)\",\n    orangeSecondary: \"hsl(17.5 98.6% 35.1%)\",\n    yellowPrimary: \"hsl(40.8 96.6% 40%)\",\n    yellowSecondary: \"hsl(47.9 95.8% 53.1%)\",\n    greenPrimary: \"hsl(142.4 70.6% 45.3%)\",\n    greenSecondary: \"hsl(139.9 47.2% 36.7%)\",\n    cyanPrimary: \"hsl(185.6 78.3% 40.8%)\",\n    cyanSecondary: \"hsl(172.5 66% 50.4%)\",\n    bluePrimary: \"hsl(210.5 100% 66.1%)\",\n    blueSecondary: \"hsl(213.8 93.9% 67.8%)\",\n    purplePrimary: \"hsl(266.3 96.5% 80%)\",\n    purpleSecondary: \"hsl(269.1 75.3% 70%)\",\n    magentaPrimary: \"hsl(332.2 86.8% 70.4%)\",\n    magentaSecondary: \"hsl(333.9 84.7% 70.8%)\",\n  },\n};\n/**\n * Dracula Light theme\n */\nvar draculaLight = {\n  name: \"dracula-light\",\n  displayName: \"Dracula Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(60 30% 96%)\",\n    foreground: \"hsl(231 15% 18%)\",\n    // Card colors\n    card: \"hsl(60 30% 96%)\",\n    cardForeground: \"hsl(231 15% 18%)\",\n    // Popover colors\n    popover: \"hsl(60 30% 96%)\",\n    popoverForeground: \"hsl(231 15% 18%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(60 30% 92%)\",\n    secondaryForeground: \"hsl(231 15% 18%)\",\n    // Muted colors\n    muted: \"hsl(60 30% 92%)\",\n    mutedForeground: \"hsl(231 15% 50%)\",\n    // Accent colors\n    accent: \"hsl(60 30% 92%)\",\n    accentForeground: \"hsl(231 15% 18%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(60 30% 88%)\",\n    input: \"hsl(60 30% 88%)\",\n    ring: \"hsl(231 15% 50%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(60 30% 92%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 77%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 81%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 80%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 75%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 87%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 85%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 85%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 84%)\",\n  },\n};\n/**\n * Dracula Dark theme\n */\nvar draculaDark = {\n  name: \"dracula-dark\",\n  displayName: \"Dracula Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(231 15% 18%)\",\n    foreground: \"hsl(60 30% 96%)\",\n    // Card colors\n    card: \"hsl(231 15% 18%)\",\n    cardForeground: \"hsl(60 30% 96%)\",\n    // Popover colors\n    popover: \"hsl(231 15% 18%)\",\n    popoverForeground: \"hsl(60 30% 96%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(231 15% 26%)\",\n    secondaryForeground: \"hsl(60 30% 96%)\",\n    // Muted colors\n    muted: \"hsl(231 15% 26%)\",\n    mutedForeground: \"hsl(60 30% 76%)\",\n    // Accent colors\n    accent: \"hsl(231 15% 26%)\",\n    accentForeground: \"hsl(60 30% 96%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(231 15% 26%)\",\n    input: \"hsl(231 15% 26%)\",\n    ring: \"hsl(326 100% 74%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(231 15% 26%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 57%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 61%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 60%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 55%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 67%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 65%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 65%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 64%)\",\n  },\n};\n/**\n * Array of all available themes\n */\nexports.themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];\n",
+      "structuredPatch": [
+        {
+          "oldStart": 1,
+          "oldLines": 10,
+          "newStart": 1,
+          "newLines": 7,
+          "lines": [
+            "-\"use strict\";",
+            " /**",
+            "  * Theme definitions for the digests-nextjs application",
+            "  * This file contains all the theme definitions used in the application",
+            "  */",
+            "-Object.defineProperty(exports, \"__esModule\", { value: true });",
+            "-exports.themes = void 0;",
+            " /**",
+            "  * Flexoki Light theme",
+            "  * Based on the current light theme in app/globals.css"
+          ]
+        }
+      ],
+      "userModified": false,
+      "replaceAll": false
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nvar flexokiLight = {",
+      "new_string": "/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nconst flexokiLight = {"
+    },
+    "tool_response": {
+      "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "oldString": "/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nvar flexokiLight = {",
+      "newString": "/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nconst flexokiLight = {",
+      "originalFile": "/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nvar flexokiLight = {\n  name: \"flexoki-light\",\n  displayName: \"Flexoki Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(48 100% 97%)\",\n    foreground: \"hsl(0 3% 6%)\",\n    // Card colors\n    card: \"hsl(48 100% 97%)\",\n    cardForeground: \"hsl(0 3% 6%)\",\n    // Popover colors\n    popover: \"hsl(48 100% 97%)\",\n    popoverForeground: \"hsl(0 3% 6%)\",\n    // Primary colors\n    primary: \"hsl(0 3% 6%)\",\n    primaryForeground: \"hsl(48 100% 97%)\",\n    // Secondary colors\n    secondary: \"hsl(51 33% 92%)\",\n    secondaryForeground: \"hsl(0 3% 6%)\",\n    // Muted colors\n    muted: \"hsl(51 33% 92%)\",\n    mutedForeground: \"hsl(50 3% 30%)\",\n    // Accent colors\n    accent: \"hsl(51 33% 92%)\",\n    accentForeground: \"hsl(0 3% 6%)\",\n    // Destructive colors\n    destructive: \"hsl(3 62% 42%)\",\n    destructiveForeground: \"hsl(48 100% 97%)\",\n    // Border, input, and ring colors\n    border: \"hsl(51 21% 88%)\",\n    input: \"hsl(51 21% 88%)\",\n    ring: \"hsl(55 10% 79%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(51 33% 92%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(3 62% 42%)\",\n    redSecondary: \"hsl(5 61% 54%)\",\n    orangePrimary: \"hsl(22 80% 41%)\",\n    orangeSecondary: \"hsl(23 70% 51%)\",\n    yellowPrimary: \"hsl(45 99% 34%)\",\n    yellowSecondary: \"hsl(45 82% 45%)\",\n    greenPrimary: \"hsl(73 84% 27%)\",\n    greenSecondary: \"hsl(72 46% 41%)\",\n    cyanPrimary: \"hsl(175 57% 33%)\",\n    cyanSecondary: \"hsl(175 49% 45%)\",\n    bluePrimary: \"hsl(212 68% 39%)\",\n    blueSecondary: \"hsl(208 49% 50%)\",\n    purplePrimary: \"hsl(259 42% 43%)\",\n    purpleSecondary: \"hsl(251 40% 64%)\",\n    magentaPrimary: \"hsl(326 55% 41%)\",\n    magentaSecondary: \"hsl(329 54% 59%)\",\n  },\n};\n/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nvar flexokiDark = {\n  name: \"flexoki-dark\",\n  displayName: \"Flexoki Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 3% 6%)\",\n    foreground: \"hsl(55 10% 100%)\",\n    // Card colors\n    card: \"hsl(0 3% 6%)\",\n    cardForeground: \"hsl(55 10% 100%)\",\n    // Popover colors\n    popover: \"hsl(0 3% 6%)\",\n    popoverForeground: \"hsl(55 10% 79%)\",\n    // Primary colors\n    primary: \"hsl(55 10% 79%)\",\n    primaryForeground: \"hsl(0 3% 6%)\",\n    // Secondary colors\n    secondary: \"hsl(30 4% 11%)\",\n    secondaryForeground: \"hsl(55 10% 79%)\",\n    // Muted colors\n    muted: \"hsl(30 4% 11%)\",\n    mutedForeground: \"hsl(43 3% 85%)\",\n    // Accent colors\n    accent: \"hsl(30 4% 11%)\",\n    accentForeground: \"hsl(55 10% 79%)\",\n    // Destructive colors\n    destructive: \"hsl(5 61% 54%)\",\n    destructiveForeground: \"hsl(0 3% 6%)\",\n    // Border, input, and ring colors\n    border: \"hsl(30 3% 15%)\",\n    input: \"hsl(30 3% 15%)\",\n    ring: \"hsl(30 3% 24%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(30 4% 11%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(5 61% 54%)\",\n    redSecondary: \"hsl(3 62% 42%)\",\n    orangePrimary: \"hsl(23 70% 51%)\",\n    orangeSecondary: \"hsl(22 80% 41%)\",\n    yellowPrimary: \"hsl(45 82% 45%)\",\n    yellowSecondary: \"hsl(45 99% 34%)\",\n    greenPrimary: \"hsl(72 46% 41%)\",\n    greenSecondary: \"hsl(73 84% 27%)\",\n    cyanPrimary: \"hsl(175 49% 45%)\",\n    cyanSecondary: \"hsl(175 57% 33%)\",\n    bluePrimary: \"hsl(208 49% 50%)\",\n    blueSecondary: \"hsl(212 68% 39%)\",\n    purplePrimary: \"hsl(251 40% 64%)\",\n    purpleSecondary: \"hsl(259 42% 43%)\",\n    magentaPrimary: \"hsl(329 54% 59%)\",\n    magentaSecondary: \"hsl(326 55% 41%)\",\n  },\n};\n/**\n * Standard Light theme\n */\nvar standardLight = {\n  name: \"standard-light\",\n  displayName: \"Standard Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 0% 100%)\",\n    foreground: \"hsl(222.2 84% 4.9%)\",\n    // Card colors\n    card: \"hsl(0 0% 100%)\",\n    cardForeground: \"hsl(222.2 84% 4.9%)\",\n    // Popover colors\n    popover: \"hsl(0 0% 100%)\",\n    popoverForeground: \"hsl(222.2 84% 4.9%)\",\n    // Primary colors\n    primary: \"hsl(221.2 83.2% 53.3%)\",\n    primaryForeground: \"hsl(210 40% 98%)\",\n    // Secondary colors\n    secondary: \"hsl(210 40% 96.1%)\",\n    secondaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Muted colors\n    muted: \"hsl(210 40% 96.1%)\",\n    mutedForeground: \"hsl(215.4 16.3% 46.9%)\",\n    // Accent colors\n    accent: \"hsl(210 40% 96.1%)\",\n    accentForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Destructive colors\n    destructive: \"hsl(0 84.2% 60.2%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(214.3 31.8% 91.4%)\",\n    input: \"hsl(214.3 31.8% 91.4%)\",\n    ring: \"hsl(221.2 83.2% 53.3%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(210 40% 96.1%)\",\n    brandPrimary: \"hsl(221.2 83.2% 53.3%)\",\n    // Color palette\n    redPrimary: \"hsl(0 84.2% 60.2%)\",\n    redSecondary: \"hsl(0 72.2% 50.6%)\",\n    orangePrimary: \"hsl(24.6 95% 53.1%)\",\n    orangeSecondary: \"hsl(35 91.7% 43.9%)\",\n    yellowPrimary: \"hsl(45 93.4% 47.5%)\",\n    yellowSecondary: \"hsl(48 96.6% 60%)\",\n    greenPrimary: \"hsl(142.1 76.2% 36.3%)\",\n    greenSecondary: \"hsl(142.1 70.6% 45.3%)\",\n    cyanPrimary: \"hsl(182.1 73.8% 46.1%)\",\n    cyanSecondary: \"hsl(184.6 70.3% 45.7%)\",\n    bluePrimary: \"hsl(221.2 83.2% 53.3%)\",\n    blueSecondary: \"hsl(221.2 83.1% 65.9%)\",\n    purplePrimary: \"hsl(262.1 83.3% 57.8%)\",\n    purpleSecondary: \"hsl(262.1 83.3% 67.8%)\",\n    magentaPrimary: \"hsl(325.1 80.2% 53.1%)\",\n    magentaSecondary: \"hsl(328.2 85.1% 70.2%)\",\n  },\n};\n/**\n * Standard Dark theme\n */\nvar standardDark = {\n  name: \"standard-dark\",\n  displayName: \"Standard Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(222.2 84% 4.9%)\",\n    foreground: \"hsl(210 40% 98%)\",\n    // Card colors\n    card: \"hsl(222.2 84% 4.9%)\",\n    cardForeground: \"hsl(210 40% 98%)\",\n    // Popover colors\n    popover: \"hsl(222.2 84% 4.9%)\",\n    popoverForeground: \"hsl(210 40% 98%)\",\n    // Primary colors\n    primary: \"hsl(217.2 91.2% 59.8%)\",\n    primaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Secondary colors\n    secondary: \"hsl(217.2 32.6% 17.5%)\",\n    secondaryForeground: \"hsl(210 40% 98%)\",\n    // Muted colors\n    muted: \"hsl(217.2 32.6% 17.5%)\",\n    mutedForeground: \"hsl(215 20.2% 65.1%)\",\n    // Accent colors\n    accent: \"hsl(217.2 32.6% 17.5%)\",\n    accentForeground: \"hsl(210 40% 98%)\",\n    // Destructive colors\n    destructive: \"hsl(0 62.8% 30.6%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(217.2 32.6% 17.5%)\",\n    input: \"hsl(217.2 32.6% 17.5%)\",\n    ring: \"hsl(224.3 76.3% 48%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(217.2 32.6% 17.5%)\",\n    brandPrimary: \"hsl(217.2 91.2% 59.8%)\",\n    // Color palette\n    redPrimary: \"hsl(0 72.2% 50.6%)\",\n    redSecondary: \"hsl(0 62.8% 30.6%)\",\n    orangePrimary: \"hsl(20.5 90.2% 48.2%)\",\n    orangeSecondary: \"hsl(17.5 98.6% 35.1%)\",\n    yellowPrimary: \"hsl(40.8 96.6% 40%)\",\n    yellowSecondary: \"hsl(47.9 95.8% 53.1%)\",\n    greenPrimary: \"hsl(142.4 70.6% 45.3%)\",\n    greenSecondary: \"hsl(139.9 47.2% 36.7%)\",\n    cyanPrimary: \"hsl(185.6 78.3% 40.8%)\",\n    cyanSecondary: \"hsl(172.5 66% 50.4%)\",\n    bluePrimary: \"hsl(210.5 100% 66.1%)\",\n    blueSecondary: \"hsl(213.8 93.9% 67.8%)\",\n    purplePrimary: \"hsl(266.3 96.5% 80%)\",\n    purpleSecondary: \"hsl(269.1 75.3% 70%)\",\n    magentaPrimary: \"hsl(332.2 86.8% 70.4%)\",\n    magentaSecondary: \"hsl(333.9 84.7% 70.8%)\",\n  },\n};\n/**\n * Dracula Light theme\n */\nvar draculaLight = {\n  name: \"dracula-light\",\n  displayName: \"Dracula Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(60 30% 96%)\",\n    foreground: \"hsl(231 15% 18%)\",\n    // Card colors\n    card: \"hsl(60 30% 96%)\",\n    cardForeground: \"hsl(231 15% 18%)\",\n    // Popover colors\n    popover: \"hsl(60 30% 96%)\",\n    popoverForeground: \"hsl(231 15% 18%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(60 30% 92%)\",\n    secondaryForeground: \"hsl(231 15% 18%)\",\n    // Muted colors\n    muted: \"hsl(60 30% 92%)\",\n    mutedForeground: \"hsl(231 15% 50%)\",\n    // Accent colors\n    accent: \"hsl(60 30% 92%)\",\n    accentForeground: \"hsl(231 15% 18%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(60 30% 88%)\",\n    input: \"hsl(60 30% 88%)\",\n    ring: \"hsl(231 15% 50%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(60 30% 92%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 77%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 81%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 80%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 75%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 87%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 85%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 85%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 84%)\",\n  },\n};\n/**\n * Dracula Dark theme\n */\nvar draculaDark = {\n  name: \"dracula-dark\",\n  displayName: \"Dracula Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(231 15% 18%)\",\n    foreground: \"hsl(60 30% 96%)\",\n    // Card colors\n    card: \"hsl(231 15% 18%)\",\n    cardForeground: \"hsl(60 30% 96%)\",\n    // Popover colors\n    popover: \"hsl(231 15% 18%)\",\n    popoverForeground: \"hsl(60 30% 96%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(231 15% 26%)\",\n    secondaryForeground: \"hsl(60 30% 96%)\",\n    // Muted colors\n    muted: \"hsl(231 15% 26%)\",\n    mutedForeground: \"hsl(60 30% 76%)\",\n    // Accent colors\n    accent: \"hsl(231 15% 26%)\",\n    accentForeground: \"hsl(60 30% 96%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(231 15% 26%)\",\n    input: \"hsl(231 15% 26%)\",\n    ring: \"hsl(326 100% 74%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(231 15% 26%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 57%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 61%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 60%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 55%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 67%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 65%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 65%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 64%)\",\n  },\n};\n/**\n * Array of all available themes\n */\nexports.themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];\n",
+      "structuredPatch": [
+        {
+          "oldStart": 6,
+          "oldLines": 7,
+          "newStart": 6,
+          "newLines": 7,
+          "lines": [
+            "  * Flexoki Light theme",
+            "  * Based on the current light theme in app/globals.css",
+            "  */",
+            "-var flexokiLight = {",
+            "+const flexokiLight = {",
+            "   name: \"flexoki-light\",",
+            "   displayName: \"Flexoki Light\",",
+            "   coreColors: {"
+          ]
+        }
+      ],
+      "userModified": false,
+      "replaceAll": false
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nvar flexokiDark = {",
+      "new_string": "/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nconst flexokiDark = {"
+    },
+    "tool_response": {
+      "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "oldString": "/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nvar flexokiDark = {",
+      "newString": "/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nconst flexokiDark = {",
+      "originalFile": "/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nconst flexokiLight = {\n  name: \"flexoki-light\",\n  displayName: \"Flexoki Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(48 100% 97%)\",\n    foreground: \"hsl(0 3% 6%)\",\n    // Card colors\n    card: \"hsl(48 100% 97%)\",\n    cardForeground: \"hsl(0 3% 6%)\",\n    // Popover colors\n    popover: \"hsl(48 100% 97%)\",\n    popoverForeground: \"hsl(0 3% 6%)\",\n    // Primary colors\n    primary: \"hsl(0 3% 6%)\",\n    primaryForeground: \"hsl(48 100% 97%)\",\n    // Secondary colors\n    secondary: \"hsl(51 33% 92%)\",\n    secondaryForeground: \"hsl(0 3% 6%)\",\n    // Muted colors\n    muted: \"hsl(51 33% 92%)\",\n    mutedForeground: \"hsl(50 3% 30%)\",\n    // Accent colors\n    accent: \"hsl(51 33% 92%)\",\n    accentForeground: \"hsl(0 3% 6%)\",\n    // Destructive colors\n    destructive: \"hsl(3 62% 42%)\",\n    destructiveForeground: \"hsl(48 100% 97%)\",\n    // Border, input, and ring colors\n    border: \"hsl(51 21% 88%)\",\n    input: \"hsl(51 21% 88%)\",\n    ring: \"hsl(55 10% 79%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(51 33% 92%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(3 62% 42%)\",\n    redSecondary: \"hsl(5 61% 54%)\",\n    orangePrimary: \"hsl(22 80% 41%)\",\n    orangeSecondary: \"hsl(23 70% 51%)\",\n    yellowPrimary: \"hsl(45 99% 34%)\",\n    yellowSecondary: \"hsl(45 82% 45%)\",\n    greenPrimary: \"hsl(73 84% 27%)\",\n    greenSecondary: \"hsl(72 46% 41%)\",\n    cyanPrimary: \"hsl(175 57% 33%)\",\n    cyanSecondary: \"hsl(175 49% 45%)\",\n    bluePrimary: \"hsl(212 68% 39%)\",\n    blueSecondary: \"hsl(208 49% 50%)\",\n    purplePrimary: \"hsl(259 42% 43%)\",\n    purpleSecondary: \"hsl(251 40% 64%)\",\n    magentaPrimary: \"hsl(326 55% 41%)\",\n    magentaSecondary: \"hsl(329 54% 59%)\",\n  },\n};\n/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nvar flexokiDark = {\n  name: \"flexoki-dark\",\n  displayName: \"Flexoki Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 3% 6%)\",\n    foreground: \"hsl(55 10% 100%)\",\n    // Card colors\n    card: \"hsl(0 3% 6%)\",\n    cardForeground: \"hsl(55 10% 100%)\",\n    // Popover colors\n    popover: \"hsl(0 3% 6%)\",\n    popoverForeground: \"hsl(55 10% 79%)\",\n    // Primary colors\n    primary: \"hsl(55 10% 79%)\",\n    primaryForeground: \"hsl(0 3% 6%)\",\n    // Secondary colors\n    secondary: \"hsl(30 4% 11%)\",\n    secondaryForeground: \"hsl(55 10% 79%)\",\n    // Muted colors\n    muted: \"hsl(30 4% 11%)\",\n    mutedForeground: \"hsl(43 3% 85%)\",\n    // Accent colors\n    accent: \"hsl(30 4% 11%)\",\n    accentForeground: \"hsl(55 10% 79%)\",\n    // Destructive colors\n    destructive: \"hsl(5 61% 54%)\",\n    destructiveForeground: \"hsl(0 3% 6%)\",\n    // Border, input, and ring colors\n    border: \"hsl(30 3% 15%)\",\n    input: \"hsl(30 3% 15%)\",\n    ring: \"hsl(30 3% 24%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(30 4% 11%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(5 61% 54%)\",\n    redSecondary: \"hsl(3 62% 42%)\",\n    orangePrimary: \"hsl(23 70% 51%)\",\n    orangeSecondary: \"hsl(22 80% 41%)\",\n    yellowPrimary: \"hsl(45 82% 45%)\",\n    yellowSecondary: \"hsl(45 99% 34%)\",\n    greenPrimary: \"hsl(72 46% 41%)\",\n    greenSecondary: \"hsl(73 84% 27%)\",\n    cyanPrimary: \"hsl(175 49% 45%)\",\n    cyanSecondary: \"hsl(175 57% 33%)\",\n    bluePrimary: \"hsl(208 49% 50%)\",\n    blueSecondary: \"hsl(212 68% 39%)\",\n    purplePrimary: \"hsl(251 40% 64%)\",\n    purpleSecondary: \"hsl(259 42% 43%)\",\n    magentaPrimary: \"hsl(329 54% 59%)\",\n    magentaSecondary: \"hsl(326 55% 41%)\",\n  },\n};\n/**\n * Standard Light theme\n */\nvar standardLight = {\n  name: \"standard-light\",\n  displayName: \"Standard Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 0% 100%)\",\n    foreground: \"hsl(222.2 84% 4.9%)\",\n    // Card colors\n    card: \"hsl(0 0% 100%)\",\n    cardForeground: \"hsl(222.2 84% 4.9%)\",\n    // Popover colors\n    popover: \"hsl(0 0% 100%)\",\n    popoverForeground: \"hsl(222.2 84% 4.9%)\",\n    // Primary colors\n    primary: \"hsl(221.2 83.2% 53.3%)\",\n    primaryForeground: \"hsl(210 40% 98%)\",\n    // Secondary colors\n    secondary: \"hsl(210 40% 96.1%)\",\n    secondaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Muted colors\n    muted: \"hsl(210 40% 96.1%)\",\n    mutedForeground: \"hsl(215.4 16.3% 46.9%)\",\n    // Accent colors\n    accent: \"hsl(210 40% 96.1%)\",\n    accentForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Destructive colors\n    destructive: \"hsl(0 84.2% 60.2%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(214.3 31.8% 91.4%)\",\n    input: \"hsl(214.3 31.8% 91.4%)\",\n    ring: \"hsl(221.2 83.2% 53.3%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(210 40% 96.1%)\",\n    brandPrimary: \"hsl(221.2 83.2% 53.3%)\",\n    // Color palette\n    redPrimary: \"hsl(0 84.2% 60.2%)\",\n    redSecondary: \"hsl(0 72.2% 50.6%)\",\n    orangePrimary: \"hsl(24.6 95% 53.1%)\",\n    orangeSecondary: \"hsl(35 91.7% 43.9%)\",\n    yellowPrimary: \"hsl(45 93.4% 47.5%)\",\n    yellowSecondary: \"hsl(48 96.6% 60%)\",\n    greenPrimary: \"hsl(142.1 76.2% 36.3%)\",\n    greenSecondary: \"hsl(142.1 70.6% 45.3%)\",\n    cyanPrimary: \"hsl(182.1 73.8% 46.1%)\",\n    cyanSecondary: \"hsl(184.6 70.3% 45.7%)\",\n    bluePrimary: \"hsl(221.2 83.2% 53.3%)\",\n    blueSecondary: \"hsl(221.2 83.1% 65.9%)\",\n    purplePrimary: \"hsl(262.1 83.3% 57.8%)\",\n    purpleSecondary: \"hsl(262.1 83.3% 67.8%)\",\n    magentaPrimary: \"hsl(325.1 80.2% 53.1%)\",\n    magentaSecondary: \"hsl(328.2 85.1% 70.2%)\",\n  },\n};\n/**\n * Standard Dark theme\n */\nvar standardDark = {\n  name: \"standard-dark\",\n  displayName: \"Standard Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(222.2 84% 4.9%)\",\n    foreground: \"hsl(210 40% 98%)\",\n    // Card colors\n    card: \"hsl(222.2 84% 4.9%)\",\n    cardForeground: \"hsl(210 40% 98%)\",\n    // Popover colors\n    popover: \"hsl(222.2 84% 4.9%)\",\n    popoverForeground: \"hsl(210 40% 98%)\",\n    // Primary colors\n    primary: \"hsl(217.2 91.2% 59.8%)\",\n    primaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Secondary colors\n    secondary: \"hsl(217.2 32.6% 17.5%)\",\n    secondaryForeground: \"hsl(210 40% 98%)\",\n    // Muted colors\n    muted: \"hsl(217.2 32.6% 17.5%)\",\n    mutedForeground: \"hsl(215 20.2% 65.1%)\",\n    // Accent colors\n    accent: \"hsl(217.2 32.6% 17.5%)\",\n    accentForeground: \"hsl(210 40% 98%)\",\n    // Destructive colors\n    destructive: \"hsl(0 62.8% 30.6%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(217.2 32.6% 17.5%)\",\n    input: \"hsl(217.2 32.6% 17.5%)\",\n    ring: \"hsl(224.3 76.3% 48%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(217.2 32.6% 17.5%)\",\n    brandPrimary: \"hsl(217.2 91.2% 59.8%)\",\n    // Color palette\n    redPrimary: \"hsl(0 72.2% 50.6%)\",\n    redSecondary: \"hsl(0 62.8% 30.6%)\",\n    orangePrimary: \"hsl(20.5 90.2% 48.2%)\",\n    orangeSecondary: \"hsl(17.5 98.6% 35.1%)\",\n    yellowPrimary: \"hsl(40.8 96.6% 40%)\",\n    yellowSecondary: \"hsl(47.9 95.8% 53.1%)\",\n    greenPrimary: \"hsl(142.4 70.6% 45.3%)\",\n    greenSecondary: \"hsl(139.9 47.2% 36.7%)\",\n    cyanPrimary: \"hsl(185.6 78.3% 40.8%)\",\n    cyanSecondary: \"hsl(172.5 66% 50.4%)\",\n    bluePrimary: \"hsl(210.5 100% 66.1%)\",\n    blueSecondary: \"hsl(213.8 93.9% 67.8%)\",\n    purplePrimary: \"hsl(266.3 96.5% 80%)\",\n    purpleSecondary: \"hsl(269.1 75.3% 70%)\",\n    magentaPrimary: \"hsl(332.2 86.8% 70.4%)\",\n    magentaSecondary: \"hsl(333.9 84.7% 70.8%)\",\n  },\n};\n/**\n * Dracula Light theme\n */\nvar draculaLight = {\n  name: \"dracula-light\",\n  displayName: \"Dracula Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(60 30% 96%)\",\n    foreground: \"hsl(231 15% 18%)\",\n    // Card colors\n    card: \"hsl(60 30% 96%)\",\n    cardForeground: \"hsl(231 15% 18%)\",\n    // Popover colors\n    popover: \"hsl(60 30% 96%)\",\n    popoverForeground: \"hsl(231 15% 18%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(60 30% 92%)\",\n    secondaryForeground: \"hsl(231 15% 18%)\",\n    // Muted colors\n    muted: \"hsl(60 30% 92%)\",\n    mutedForeground: \"hsl(231 15% 50%)\",\n    // Accent colors\n    accent: \"hsl(60 30% 92%)\",\n    accentForeground: \"hsl(231 15% 18%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(60 30% 88%)\",\n    input: \"hsl(60 30% 88%)\",\n    ring: \"hsl(231 15% 50%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(60 30% 92%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 77%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 81%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 80%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 75%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 87%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 85%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 85%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 84%)\",\n  },\n};\n/**\n * Dracula Dark theme\n */\nvar draculaDark = {\n  name: \"dracula-dark\",\n  displayName: \"Dracula Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(231 15% 18%)\",\n    foreground: \"hsl(60 30% 96%)\",\n    // Card colors\n    card: \"hsl(231 15% 18%)\",\n    cardForeground: \"hsl(60 30% 96%)\",\n    // Popover colors\n    popover: \"hsl(231 15% 18%)\",\n    popoverForeground: \"hsl(60 30% 96%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(231 15% 26%)\",\n    secondaryForeground: \"hsl(60 30% 96%)\",\n    // Muted colors\n    muted: \"hsl(231 15% 26%)\",\n    mutedForeground: \"hsl(60 30% 76%)\",\n    // Accent colors\n    accent: \"hsl(231 15% 26%)\",\n    accentForeground: \"hsl(60 30% 96%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(231 15% 26%)\",\n    input: \"hsl(231 15% 26%)\",\n    ring: \"hsl(326 100% 74%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(231 15% 26%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 57%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 61%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 60%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 55%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 67%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 65%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 65%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 64%)\",\n  },\n};\n/**\n * Array of all available themes\n */\nexports.themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];\n",
+      "structuredPatch": [
+        {
+          "oldStart": 64,
+          "oldLines": 7,
+          "newStart": 64,
+          "newLines": 7,
+          "lines": [
+            "  * Flexoki Dark theme",
+            "  * Based on the current dark theme in app/globals.css",
+            "  */",
+            "-var flexokiDark = {",
+            "+const flexokiDark = {",
+            "   name: \"flexoki-dark\",",
+            "   displayName: \"Flexoki Dark\",",
+            "   coreColors: {"
+          ]
+        }
+      ],
+      "userModified": false,
+      "replaceAll": false
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Standard Light theme\n */\nvar standardLight = {",
+      "new_string": "/**\n * Standard Light theme\n */\nconst standardLight = {"
+    },
+    "tool_response": {
+      "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "oldString": "/**\n * Standard Light theme\n */\nvar standardLight = {",
+      "newString": "/**\n * Standard Light theme\n */\nconst standardLight = {",
+      "originalFile": "/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nconst flexokiLight = {\n  name: \"flexoki-light\",\n  displayName: \"Flexoki Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(48 100% 97%)\",\n    foreground: \"hsl(0 3% 6%)\",\n    // Card colors\n    card: \"hsl(48 100% 97%)\",\n    cardForeground: \"hsl(0 3% 6%)\",\n    // Popover colors\n    popover: \"hsl(48 100% 97%)\",\n    popoverForeground: \"hsl(0 3% 6%)\",\n    // Primary colors\n    primary: \"hsl(0 3% 6%)\",\n    primaryForeground: \"hsl(48 100% 97%)\",\n    // Secondary colors\n    secondary: \"hsl(51 33% 92%)\",\n    secondaryForeground: \"hsl(0 3% 6%)\",\n    // Muted colors\n    muted: \"hsl(51 33% 92%)\",\n    mutedForeground: \"hsl(50 3% 30%)\",\n    // Accent colors\n    accent: \"hsl(51 33% 92%)\",\n    accentForeground: \"hsl(0 3% 6%)\",\n    // Destructive colors\n    destructive: \"hsl(3 62% 42%)\",\n    destructiveForeground: \"hsl(48 100% 97%)\",\n    // Border, input, and ring colors\n    border: \"hsl(51 21% 88%)\",\n    input: \"hsl(51 21% 88%)\",\n    ring: \"hsl(55 10% 79%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(51 33% 92%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(3 62% 42%)\",\n    redSecondary: \"hsl(5 61% 54%)\",\n    orangePrimary: \"hsl(22 80% 41%)\",\n    orangeSecondary: \"hsl(23 70% 51%)\",\n    yellowPrimary: \"hsl(45 99% 34%)\",\n    yellowSecondary: \"hsl(45 82% 45%)\",\n    greenPrimary: \"hsl(73 84% 27%)\",\n    greenSecondary: \"hsl(72 46% 41%)\",\n    cyanPrimary: \"hsl(175 57% 33%)\",\n    cyanSecondary: \"hsl(175 49% 45%)\",\n    bluePrimary: \"hsl(212 68% 39%)\",\n    blueSecondary: \"hsl(208 49% 50%)\",\n    purplePrimary: \"hsl(259 42% 43%)\",\n    purpleSecondary: \"hsl(251 40% 64%)\",\n    magentaPrimary: \"hsl(326 55% 41%)\",\n    magentaSecondary: \"hsl(329 54% 59%)\",\n  },\n};\n/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nconst flexokiDark = {\n  name: \"flexoki-dark\",\n  displayName: \"Flexoki Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 3% 6%)\",\n    foreground: \"hsl(55 10% 100%)\",\n    // Card colors\n    card: \"hsl(0 3% 6%)\",\n    cardForeground: \"hsl(55 10% 100%)\",\n    // Popover colors\n    popover: \"hsl(0 3% 6%)\",\n    popoverForeground: \"hsl(55 10% 79%)\",\n    // Primary colors\n    primary: \"hsl(55 10% 79%)\",\n    primaryForeground: \"hsl(0 3% 6%)\",\n    // Secondary colors\n    secondary: \"hsl(30 4% 11%)\",\n    secondaryForeground: \"hsl(55 10% 79%)\",\n    // Muted colors\n    muted: \"hsl(30 4% 11%)\",\n    mutedForeground: \"hsl(43 3% 85%)\",\n    // Accent colors\n    accent: \"hsl(30 4% 11%)\",\n    accentForeground: \"hsl(55 10% 79%)\",\n    // Destructive colors\n    destructive: \"hsl(5 61% 54%)\",\n    destructiveForeground: \"hsl(0 3% 6%)\",\n    // Border, input, and ring colors\n    border: \"hsl(30 3% 15%)\",\n    input: \"hsl(30 3% 15%)\",\n    ring: \"hsl(30 3% 24%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(30 4% 11%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(5 61% 54%)\",\n    redSecondary: \"hsl(3 62% 42%)\",\n    orangePrimary: \"hsl(23 70% 51%)\",\n    orangeSecondary: \"hsl(22 80% 41%)\",\n    yellowPrimary: \"hsl(45 82% 45%)\",\n    yellowSecondary: \"hsl(45 99% 34%)\",\n    greenPrimary: \"hsl(72 46% 41%)\",\n    greenSecondary: \"hsl(73 84% 27%)\",\n    cyanPrimary: \"hsl(175 49% 45%)\",\n    cyanSecondary: \"hsl(175 57% 33%)\",\n    bluePrimary: \"hsl(208 49% 50%)\",\n    blueSecondary: \"hsl(212 68% 39%)\",\n    purplePrimary: \"hsl(251 40% 64%)\",\n    purpleSecondary: \"hsl(259 42% 43%)\",\n    magentaPrimary: \"hsl(329 54% 59%)\",\n    magentaSecondary: \"hsl(326 55% 41%)\",\n  },\n};\n/**\n * Standard Light theme\n */\nvar standardLight = {\n  name: \"standard-light\",\n  displayName: \"Standard Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 0% 100%)\",\n    foreground: \"hsl(222.2 84% 4.9%)\",\n    // Card colors\n    card: \"hsl(0 0% 100%)\",\n    cardForeground: \"hsl(222.2 84% 4.9%)\",\n    // Popover colors\n    popover: \"hsl(0 0% 100%)\",\n    popoverForeground: \"hsl(222.2 84% 4.9%)\",\n    // Primary colors\n    primary: \"hsl(221.2 83.2% 53.3%)\",\n    primaryForeground: \"hsl(210 40% 98%)\",\n    // Secondary colors\n    secondary: \"hsl(210 40% 96.1%)\",\n    secondaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Muted colors\n    muted: \"hsl(210 40% 96.1%)\",\n    mutedForeground: \"hsl(215.4 16.3% 46.9%)\",\n    // Accent colors\n    accent: \"hsl(210 40% 96.1%)\",\n    accentForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Destructive colors\n    destructive: \"hsl(0 84.2% 60.2%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(214.3 31.8% 91.4%)\",\n    input: \"hsl(214.3 31.8% 91.4%)\",\n    ring: \"hsl(221.2 83.2% 53.3%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(210 40% 96.1%)\",\n    brandPrimary: \"hsl(221.2 83.2% 53.3%)\",\n    // Color palette\n    redPrimary: \"hsl(0 84.2% 60.2%)\",\n    redSecondary: \"hsl(0 72.2% 50.6%)\",\n    orangePrimary: \"hsl(24.6 95% 53.1%)\",\n    orangeSecondary: \"hsl(35 91.7% 43.9%)\",\n    yellowPrimary: \"hsl(45 93.4% 47.5%)\",\n    yellowSecondary: \"hsl(48 96.6% 60%)\",\n    greenPrimary: \"hsl(142.1 76.2% 36.3%)\",\n    greenSecondary: \"hsl(142.1 70.6% 45.3%)\",\n    cyanPrimary: \"hsl(182.1 73.8% 46.1%)\",\n    cyanSecondary: \"hsl(184.6 70.3% 45.7%)\",\n    bluePrimary: \"hsl(221.2 83.2% 53.3%)\",\n    blueSecondary: \"hsl(221.2 83.1% 65.9%)\",\n    purplePrimary: \"hsl(262.1 83.3% 57.8%)\",\n    purpleSecondary: \"hsl(262.1 83.3% 67.8%)\",\n    magentaPrimary: \"hsl(325.1 80.2% 53.1%)\",\n    magentaSecondary: \"hsl(328.2 85.1% 70.2%)\",\n  },\n};\n/**\n * Standard Dark theme\n */\nvar standardDark = {\n  name: \"standard-dark\",\n  displayName: \"Standard Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(222.2 84% 4.9%)\",\n    foreground: \"hsl(210 40% 98%)\",\n    // Card colors\n    card: \"hsl(222.2 84% 4.9%)\",\n    cardForeground: \"hsl(210 40% 98%)\",\n    // Popover colors\n    popover: \"hsl(222.2 84% 4.9%)\",\n    popoverForeground: \"hsl(210 40% 98%)\",\n    // Primary colors\n    primary: \"hsl(217.2 91.2% 59.8%)\",\n    primaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Secondary colors\n    secondary: \"hsl(217.2 32.6% 17.5%)\",\n    secondaryForeground: \"hsl(210 40% 98%)\",\n    // Muted colors\n    muted: \"hsl(217.2 32.6% 17.5%)\",\n    mutedForeground: \"hsl(215 20.2% 65.1%)\",\n    // Accent colors\n    accent: \"hsl(217.2 32.6% 17.5%)\",\n    accentForeground: \"hsl(210 40% 98%)\",\n    // Destructive colors\n    destructive: \"hsl(0 62.8% 30.6%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(217.2 32.6% 17.5%)\",\n    input: \"hsl(217.2 32.6% 17.5%)\",\n    ring: \"hsl(224.3 76.3% 48%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(217.2 32.6% 17.5%)\",\n    brandPrimary: \"hsl(217.2 91.2% 59.8%)\",\n    // Color palette\n    redPrimary: \"hsl(0 72.2% 50.6%)\",\n    redSecondary: \"hsl(0 62.8% 30.6%)\",\n    orangePrimary: \"hsl(20.5 90.2% 48.2%)\",\n    orangeSecondary: \"hsl(17.5 98.6% 35.1%)\",\n    yellowPrimary: \"hsl(40.8 96.6% 40%)\",\n    yellowSecondary: \"hsl(47.9 95.8% 53.1%)\",\n    greenPrimary: \"hsl(142.4 70.6% 45.3%)\",\n    greenSecondary: \"hsl(139.9 47.2% 36.7%)\",\n    cyanPrimary: \"hsl(185.6 78.3% 40.8%)\",\n    cyanSecondary: \"hsl(172.5 66% 50.4%)\",\n    bluePrimary: \"hsl(210.5 100% 66.1%)\",\n    blueSecondary: \"hsl(213.8 93.9% 67.8%)\",\n    purplePrimary: \"hsl(266.3 96.5% 80%)\",\n    purpleSecondary: \"hsl(269.1 75.3% 70%)\",\n    magentaPrimary: \"hsl(332.2 86.8% 70.4%)\",\n    magentaSecondary: \"hsl(333.9 84.7% 70.8%)\",\n  },\n};\n/**\n * Dracula Light theme\n */\nvar draculaLight = {\n  name: \"dracula-light\",\n  displayName: \"Dracula Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(60 30% 96%)\",\n    foreground: \"hsl(231 15% 18%)\",\n    // Card colors\n    card: \"hsl(60 30% 96%)\",\n    cardForeground: \"hsl(231 15% 18%)\",\n    // Popover colors\n    popover: \"hsl(60 30% 96%)\",\n    popoverForeground: \"hsl(231 15% 18%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(60 30% 92%)\",\n    secondaryForeground: \"hsl(231 15% 18%)\",\n    // Muted colors\n    muted: \"hsl(60 30% 92%)\",\n    mutedForeground: \"hsl(231 15% 50%)\",\n    // Accent colors\n    accent: \"hsl(60 30% 92%)\",\n    accentForeground: \"hsl(231 15% 18%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(60 30% 88%)\",\n    input: \"hsl(60 30% 88%)\",\n    ring: \"hsl(231 15% 50%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(60 30% 92%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 77%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 81%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 80%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 75%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 87%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 85%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 85%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 84%)\",\n  },\n};\n/**\n * Dracula Dark theme\n */\nvar draculaDark = {\n  name: \"dracula-dark\",\n  displayName: \"Dracula Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(231 15% 18%)\",\n    foreground: \"hsl(60 30% 96%)\",\n    // Card colors\n    card: \"hsl(231 15% 18%)\",\n    cardForeground: \"hsl(60 30% 96%)\",\n    // Popover colors\n    popover: \"hsl(231 15% 18%)\",\n    popoverForeground: \"hsl(60 30% 96%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(231 15% 26%)\",\n    secondaryForeground: \"hsl(60 30% 96%)\",\n    // Muted colors\n    muted: \"hsl(231 15% 26%)\",\n    mutedForeground: \"hsl(60 30% 76%)\",\n    // Accent colors\n    accent: \"hsl(231 15% 26%)\",\n    accentForeground: \"hsl(60 30% 96%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(231 15% 26%)\",\n    input: \"hsl(231 15% 26%)\",\n    ring: \"hsl(326 100% 74%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(231 15% 26%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 57%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 61%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 60%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 55%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 67%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 65%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 65%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 64%)\",\n  },\n};\n/**\n * Array of all available themes\n */\nexports.themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];\n",
+      "structuredPatch": [
+        {
+          "oldStart": 121,
+          "oldLines": 7,
+          "newStart": 121,
+          "newLines": 7,
+          "lines": [
+            " /**",
+            "  * Standard Light theme",
+            "  */",
+            "-var standardLight = {",
+            "+const standardLight = {",
+            "   name: \"standard-light\",",
+            "   displayName: \"Standard Light\",",
+            "   coreColors: {"
+          ]
+        }
+      ],
+      "userModified": false,
+      "replaceAll": false
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Standard Dark theme\n */\nvar standardDark = {",
+      "new_string": "/**\n * Standard Dark theme\n */\nconst standardDark = {"
+    },
+    "tool_response": {
+      "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "oldString": "/**\n * Standard Dark theme\n */\nvar standardDark = {",
+      "newString": "/**\n * Standard Dark theme\n */\nconst standardDark = {",
+      "originalFile": "/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nconst flexokiLight = {\n  name: \"flexoki-light\",\n  displayName: \"Flexoki Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(48 100% 97%)\",\n    foreground: \"hsl(0 3% 6%)\",\n    // Card colors\n    card: \"hsl(48 100% 97%)\",\n    cardForeground: \"hsl(0 3% 6%)\",\n    // Popover colors\n    popover: \"hsl(48 100% 97%)\",\n    popoverForeground: \"hsl(0 3% 6%)\",\n    // Primary colors\n    primary: \"hsl(0 3% 6%)\",\n    primaryForeground: \"hsl(48 100% 97%)\",\n    // Secondary colors\n    secondary: \"hsl(51 33% 92%)\",\n    secondaryForeground: \"hsl(0 3% 6%)\",\n    // Muted colors\n    muted: \"hsl(51 33% 92%)\",\n    mutedForeground: \"hsl(50 3% 30%)\",\n    // Accent colors\n    accent: \"hsl(51 33% 92%)\",\n    accentForeground: \"hsl(0 3% 6%)\",\n    // Destructive colors\n    destructive: \"hsl(3 62% 42%)\",\n    destructiveForeground: \"hsl(48 100% 97%)\",\n    // Border, input, and ring colors\n    border: \"hsl(51 21% 88%)\",\n    input: \"hsl(51 21% 88%)\",\n    ring: \"hsl(55 10% 79%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(51 33% 92%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(3 62% 42%)\",\n    redSecondary: \"hsl(5 61% 54%)\",\n    orangePrimary: \"hsl(22 80% 41%)\",\n    orangeSecondary: \"hsl(23 70% 51%)\",\n    yellowPrimary: \"hsl(45 99% 34%)\",\n    yellowSecondary: \"hsl(45 82% 45%)\",\n    greenPrimary: \"hsl(73 84% 27%)\",\n    greenSecondary: \"hsl(72 46% 41%)\",\n    cyanPrimary: \"hsl(175 57% 33%)\",\n    cyanSecondary: \"hsl(175 49% 45%)\",\n    bluePrimary: \"hsl(212 68% 39%)\",\n    blueSecondary: \"hsl(208 49% 50%)\",\n    purplePrimary: \"hsl(259 42% 43%)\",\n    purpleSecondary: \"hsl(251 40% 64%)\",\n    magentaPrimary: \"hsl(326 55% 41%)\",\n    magentaSecondary: \"hsl(329 54% 59%)\",\n  },\n};\n/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nconst flexokiDark = {\n  name: \"flexoki-dark\",\n  displayName: \"Flexoki Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 3% 6%)\",\n    foreground: \"hsl(55 10% 100%)\",\n    // Card colors\n    card: \"hsl(0 3% 6%)\",\n    cardForeground: \"hsl(55 10% 100%)\",\n    // Popover colors\n    popover: \"hsl(0 3% 6%)\",\n    popoverForeground: \"hsl(55 10% 79%)\",\n    // Primary colors\n    primary: \"hsl(55 10% 79%)\",\n    primaryForeground: \"hsl(0 3% 6%)\",\n    // Secondary colors\n    secondary: \"hsl(30 4% 11%)\",\n    secondaryForeground: \"hsl(55 10% 79%)\",\n    // Muted colors\n    muted: \"hsl(30 4% 11%)\",\n    mutedForeground: \"hsl(43 3% 85%)\",\n    // Accent colors\n    accent: \"hsl(30 4% 11%)\",\n    accentForeground: \"hsl(55 10% 79%)\",\n    // Destructive colors\n    destructive: \"hsl(5 61% 54%)\",\n    destructiveForeground: \"hsl(0 3% 6%)\",\n    // Border, input, and ring colors\n    border: \"hsl(30 3% 15%)\",\n    input: \"hsl(30 3% 15%)\",\n    ring: \"hsl(30 3% 24%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(30 4% 11%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(5 61% 54%)\",\n    redSecondary: \"hsl(3 62% 42%)\",\n    orangePrimary: \"hsl(23 70% 51%)\",\n    orangeSecondary: \"hsl(22 80% 41%)\",\n    yellowPrimary: \"hsl(45 82% 45%)\",\n    yellowSecondary: \"hsl(45 99% 34%)\",\n    greenPrimary: \"hsl(72 46% 41%)\",\n    greenSecondary: \"hsl(73 84% 27%)\",\n    cyanPrimary: \"hsl(175 49% 45%)\",\n    cyanSecondary: \"hsl(175 57% 33%)\",\n    bluePrimary: \"hsl(208 49% 50%)\",\n    blueSecondary: \"hsl(212 68% 39%)\",\n    purplePrimary: \"hsl(251 40% 64%)\",\n    purpleSecondary: \"hsl(259 42% 43%)\",\n    magentaPrimary: \"hsl(329 54% 59%)\",\n    magentaSecondary: \"hsl(326 55% 41%)\",\n  },\n};\n/**\n * Standard Light theme\n */\nconst standardLight = {\n  name: \"standard-light\",\n  displayName: \"Standard Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 0% 100%)\",\n    foreground: \"hsl(222.2 84% 4.9%)\",\n    // Card colors\n    card: \"hsl(0 0% 100%)\",\n    cardForeground: \"hsl(222.2 84% 4.9%)\",\n    // Popover colors\n    popover: \"hsl(0 0% 100%)\",\n    popoverForeground: \"hsl(222.2 84% 4.9%)\",\n    // Primary colors\n    primary: \"hsl(221.2 83.2% 53.3%)\",\n    primaryForeground: \"hsl(210 40% 98%)\",\n    // Secondary colors\n    secondary: \"hsl(210 40% 96.1%)\",\n    secondaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Muted colors\n    muted: \"hsl(210 40% 96.1%)\",\n    mutedForeground: \"hsl(215.4 16.3% 46.9%)\",\n    // Accent colors\n    accent: \"hsl(210 40% 96.1%)\",\n    accentForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Destructive colors\n    destructive: \"hsl(0 84.2% 60.2%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(214.3 31.8% 91.4%)\",\n    input: \"hsl(214.3 31.8% 91.4%)\",\n    ring: \"hsl(221.2 83.2% 53.3%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(210 40% 96.1%)\",\n    brandPrimary: \"hsl(221.2 83.2% 53.3%)\",\n    // Color palette\n    redPrimary: \"hsl(0 84.2% 60.2%)\",\n    redSecondary: \"hsl(0 72.2% 50.6%)\",\n    orangePrimary: \"hsl(24.6 95% 53.1%)\",\n    orangeSecondary: \"hsl(35 91.7% 43.9%)\",\n    yellowPrimary: \"hsl(45 93.4% 47.5%)\",\n    yellowSecondary: \"hsl(48 96.6% 60%)\",\n    greenPrimary: \"hsl(142.1 76.2% 36.3%)\",\n    greenSecondary: \"hsl(142.1 70.6% 45.3%)\",\n    cyanPrimary: \"hsl(182.1 73.8% 46.1%)\",\n    cyanSecondary: \"hsl(184.6 70.3% 45.7%)\",\n    bluePrimary: \"hsl(221.2 83.2% 53.3%)\",\n    blueSecondary: \"hsl(221.2 83.1% 65.9%)\",\n    purplePrimary: \"hsl(262.1 83.3% 57.8%)\",\n    purpleSecondary: \"hsl(262.1 83.3% 67.8%)\",\n    magentaPrimary: \"hsl(325.1 80.2% 53.1%)\",\n    magentaSecondary: \"hsl(328.2 85.1% 70.2%)\",\n  },\n};\n/**\n * Standard Dark theme\n */\nvar standardDark = {\n  name: \"standard-dark\",\n  displayName: \"Standard Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(222.2 84% 4.9%)\",\n    foreground: \"hsl(210 40% 98%)\",\n    // Card colors\n    card: \"hsl(222.2 84% 4.9%)\",\n    cardForeground: \"hsl(210 40% 98%)\",\n    // Popover colors\n    popover: \"hsl(222.2 84% 4.9%)\",\n    popoverForeground: \"hsl(210 40% 98%)\",\n    // Primary colors\n    primary: \"hsl(217.2 91.2% 59.8%)\",\n    primaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Secondary colors\n    secondary: \"hsl(217.2 32.6% 17.5%)\",\n    secondaryForeground: \"hsl(210 40% 98%)\",\n    // Muted colors\n    muted: \"hsl(217.2 32.6% 17.5%)\",\n    mutedForeground: \"hsl(215 20.2% 65.1%)\",\n    // Accent colors\n    accent: \"hsl(217.2 32.6% 17.5%)\",\n    accentForeground: \"hsl(210 40% 98%)\",\n    // Destructive colors\n    destructive: \"hsl(0 62.8% 30.6%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(217.2 32.6% 17.5%)\",\n    input: \"hsl(217.2 32.6% 17.5%)\",\n    ring: \"hsl(224.3 76.3% 48%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(217.2 32.6% 17.5%)\",\n    brandPrimary: \"hsl(217.2 91.2% 59.8%)\",\n    // Color palette\n    redPrimary: \"hsl(0 72.2% 50.6%)\",\n    redSecondary: \"hsl(0 62.8% 30.6%)\",\n    orangePrimary: \"hsl(20.5 90.2% 48.2%)\",\n    orangeSecondary: \"hsl(17.5 98.6% 35.1%)\",\n    yellowPrimary: \"hsl(40.8 96.6% 40%)\",\n    yellowSecondary: \"hsl(47.9 95.8% 53.1%)\",\n    greenPrimary: \"hsl(142.4 70.6% 45.3%)\",\n    greenSecondary: \"hsl(139.9 47.2% 36.7%)\",\n    cyanPrimary: \"hsl(185.6 78.3% 40.8%)\",\n    cyanSecondary: \"hsl(172.5 66% 50.4%)\",\n    bluePrimary: \"hsl(210.5 100% 66.1%)\",\n    blueSecondary: \"hsl(213.8 93.9% 67.8%)\",\n    purplePrimary: \"hsl(266.3 96.5% 80%)\",\n    purpleSecondary: \"hsl(269.1 75.3% 70%)\",\n    magentaPrimary: \"hsl(332.2 86.8% 70.4%)\",\n    magentaSecondary: \"hsl(333.9 84.7% 70.8%)\",\n  },\n};\n/**\n * Dracula Light theme\n */\nvar draculaLight = {\n  name: \"dracula-light\",\n  displayName: \"Dracula Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(60 30% 96%)\",\n    foreground: \"hsl(231 15% 18%)\",\n    // Card colors\n    card: \"hsl(60 30% 96%)\",\n    cardForeground: \"hsl(231 15% 18%)\",\n    // Popover colors\n    popover: \"hsl(60 30% 96%)\",\n    popoverForeground: \"hsl(231 15% 18%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(60 30% 92%)\",\n    secondaryForeground: \"hsl(231 15% 18%)\",\n    // Muted colors\n    muted: \"hsl(60 30% 92%)\",\n    mutedForeground: \"hsl(231 15% 50%)\",\n    // Accent colors\n    accent: \"hsl(60 30% 92%)\",\n    accentForeground: \"hsl(231 15% 18%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(60 30% 88%)\",\n    input: \"hsl(60 30% 88%)\",\n    ring: \"hsl(231 15% 50%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(60 30% 92%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 77%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 81%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 80%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 75%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 87%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 85%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 85%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 84%)\",\n  },\n};\n/**\n * Dracula Dark theme\n */\nvar draculaDark = {\n  name: \"dracula-dark\",\n  displayName: \"Dracula Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(231 15% 18%)\",\n    foreground: \"hsl(60 30% 96%)\",\n    // Card colors\n    card: \"hsl(231 15% 18%)\",\n    cardForeground: \"hsl(60 30% 96%)\",\n    // Popover colors\n    popover: \"hsl(231 15% 18%)\",\n    popoverForeground: \"hsl(60 30% 96%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(231 15% 26%)\",\n    secondaryForeground: \"hsl(60 30% 96%)\",\n    // Muted colors\n    muted: \"hsl(231 15% 26%)\",\n    mutedForeground: \"hsl(60 30% 76%)\",\n    // Accent colors\n    accent: \"hsl(231 15% 26%)\",\n    accentForeground: \"hsl(60 30% 96%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(231 15% 26%)\",\n    input: \"hsl(231 15% 26%)\",\n    ring: \"hsl(326 100% 74%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(231 15% 26%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 57%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 61%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 60%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 55%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 67%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 65%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 65%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 64%)\",\n  },\n};\n/**\n * Array of all available themes\n */\nexports.themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];\n",
+      "structuredPatch": [
+        {
+          "oldStart": 178,
+          "oldLines": 7,
+          "newStart": 178,
+          "newLines": 7,
+          "lines": [
+            " /**",
+            "  * Standard Dark theme",
+            "  */",
+            "-var standardDark = {",
+            "+const standardDark = {",
+            "   name: \"standard-dark\",",
+            "   displayName: \"Standard Dark\",",
+            "   coreColors: {"
+          ]
+        }
+      ],
+      "userModified": false,
+      "replaceAll": false
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Dracula Light theme\n */\nvar draculaLight = {",
+      "new_string": "/**\n * Dracula Light theme\n */\nconst draculaLight = {"
+    },
+    "tool_response": {
+      "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "oldString": "/**\n * Dracula Light theme\n */\nvar draculaLight = {",
+      "newString": "/**\n * Dracula Light theme\n */\nconst draculaLight = {",
+      "originalFile": "/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nconst flexokiLight = {\n  name: \"flexoki-light\",\n  displayName: \"Flexoki Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(48 100% 97%)\",\n    foreground: \"hsl(0 3% 6%)\",\n    // Card colors\n    card: \"hsl(48 100% 97%)\",\n    cardForeground: \"hsl(0 3% 6%)\",\n    // Popover colors\n    popover: \"hsl(48 100% 97%)\",\n    popoverForeground: \"hsl(0 3% 6%)\",\n    // Primary colors\n    primary: \"hsl(0 3% 6%)\",\n    primaryForeground: \"hsl(48 100% 97%)\",\n    // Secondary colors\n    secondary: \"hsl(51 33% 92%)\",\n    secondaryForeground: \"hsl(0 3% 6%)\",\n    // Muted colors\n    muted: \"hsl(51 33% 92%)\",\n    mutedForeground: \"hsl(50 3% 30%)\",\n    // Accent colors\n    accent: \"hsl(51 33% 92%)\",\n    accentForeground: \"hsl(0 3% 6%)\",\n    // Destructive colors\n    destructive: \"hsl(3 62% 42%)\",\n    destructiveForeground: \"hsl(48 100% 97%)\",\n    // Border, input, and ring colors\n    border: \"hsl(51 21% 88%)\",\n    input: \"hsl(51 21% 88%)\",\n    ring: \"hsl(55 10% 79%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(51 33% 92%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(3 62% 42%)\",\n    redSecondary: \"hsl(5 61% 54%)\",\n    orangePrimary: \"hsl(22 80% 41%)\",\n    orangeSecondary: \"hsl(23 70% 51%)\",\n    yellowPrimary: \"hsl(45 99% 34%)\",\n    yellowSecondary: \"hsl(45 82% 45%)\",\n    greenPrimary: \"hsl(73 84% 27%)\",\n    greenSecondary: \"hsl(72 46% 41%)\",\n    cyanPrimary: \"hsl(175 57% 33%)\",\n    cyanSecondary: \"hsl(175 49% 45%)\",\n    bluePrimary: \"hsl(212 68% 39%)\",\n    blueSecondary: \"hsl(208 49% 50%)\",\n    purplePrimary: \"hsl(259 42% 43%)\",\n    purpleSecondary: \"hsl(251 40% 64%)\",\n    magentaPrimary: \"hsl(326 55% 41%)\",\n    magentaSecondary: \"hsl(329 54% 59%)\",\n  },\n};\n/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nconst flexokiDark = {\n  name: \"flexoki-dark\",\n  displayName: \"Flexoki Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 3% 6%)\",\n    foreground: \"hsl(55 10% 100%)\",\n    // Card colors\n    card: \"hsl(0 3% 6%)\",\n    cardForeground: \"hsl(55 10% 100%)\",\n    // Popover colors\n    popover: \"hsl(0 3% 6%)\",\n    popoverForeground: \"hsl(55 10% 79%)\",\n    // Primary colors\n    primary: \"hsl(55 10% 79%)\",\n    primaryForeground: \"hsl(0 3% 6%)\",\n    // Secondary colors\n    secondary: \"hsl(30 4% 11%)\",\n    secondaryForeground: \"hsl(55 10% 79%)\",\n    // Muted colors\n    muted: \"hsl(30 4% 11%)\",\n    mutedForeground: \"hsl(43 3% 85%)\",\n    // Accent colors\n    accent: \"hsl(30 4% 11%)\",\n    accentForeground: \"hsl(55 10% 79%)\",\n    // Destructive colors\n    destructive: \"hsl(5 61% 54%)\",\n    destructiveForeground: \"hsl(0 3% 6%)\",\n    // Border, input, and ring colors\n    border: \"hsl(30 3% 15%)\",\n    input: \"hsl(30 3% 15%)\",\n    ring: \"hsl(30 3% 24%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(30 4% 11%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(5 61% 54%)\",\n    redSecondary: \"hsl(3 62% 42%)\",\n    orangePrimary: \"hsl(23 70% 51%)\",\n    orangeSecondary: \"hsl(22 80% 41%)\",\n    yellowPrimary: \"hsl(45 82% 45%)\",\n    yellowSecondary: \"hsl(45 99% 34%)\",\n    greenPrimary: \"hsl(72 46% 41%)\",\n    greenSecondary: \"hsl(73 84% 27%)\",\n    cyanPrimary: \"hsl(175 49% 45%)\",\n    cyanSecondary: \"hsl(175 57% 33%)\",\n    bluePrimary: \"hsl(208 49% 50%)\",\n    blueSecondary: \"hsl(212 68% 39%)\",\n    purplePrimary: \"hsl(251 40% 64%)\",\n    purpleSecondary: \"hsl(259 42% 43%)\",\n    magentaPrimary: \"hsl(329 54% 59%)\",\n    magentaSecondary: \"hsl(326 55% 41%)\",\n  },\n};\n/**\n * Standard Light theme\n */\nconst standardLight = {\n  name: \"standard-light\",\n  displayName: \"Standard Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 0% 100%)\",\n    foreground: \"hsl(222.2 84% 4.9%)\",\n    // Card colors\n    card: \"hsl(0 0% 100%)\",\n    cardForeground: \"hsl(222.2 84% 4.9%)\",\n    // Popover colors\n    popover: \"hsl(0 0% 100%)\",\n    popoverForeground: \"hsl(222.2 84% 4.9%)\",\n    // Primary colors\n    primary: \"hsl(221.2 83.2% 53.3%)\",\n    primaryForeground: \"hsl(210 40% 98%)\",\n    // Secondary colors\n    secondary: \"hsl(210 40% 96.1%)\",\n    secondaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Muted colors\n    muted: \"hsl(210 40% 96.1%)\",\n    mutedForeground: \"hsl(215.4 16.3% 46.9%)\",\n    // Accent colors\n    accent: \"hsl(210 40% 96.1%)\",\n    accentForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Destructive colors\n    destructive: \"hsl(0 84.2% 60.2%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(214.3 31.8% 91.4%)\",\n    input: \"hsl(214.3 31.8% 91.4%)\",\n    ring: \"hsl(221.2 83.2% 53.3%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(210 40% 96.1%)\",\n    brandPrimary: \"hsl(221.2 83.2% 53.3%)\",\n    // Color palette\n    redPrimary: \"hsl(0 84.2% 60.2%)\",\n    redSecondary: \"hsl(0 72.2% 50.6%)\",\n    orangePrimary: \"hsl(24.6 95% 53.1%)\",\n    orangeSecondary: \"hsl(35 91.7% 43.9%)\",\n    yellowPrimary: \"hsl(45 93.4% 47.5%)\",\n    yellowSecondary: \"hsl(48 96.6% 60%)\",\n    greenPrimary: \"hsl(142.1 76.2% 36.3%)\",\n    greenSecondary: \"hsl(142.1 70.6% 45.3%)\",\n    cyanPrimary: \"hsl(182.1 73.8% 46.1%)\",\n    cyanSecondary: \"hsl(184.6 70.3% 45.7%)\",\n    bluePrimary: \"hsl(221.2 83.2% 53.3%)\",\n    blueSecondary: \"hsl(221.2 83.1% 65.9%)\",\n    purplePrimary: \"hsl(262.1 83.3% 57.8%)\",\n    purpleSecondary: \"hsl(262.1 83.3% 67.8%)\",\n    magentaPrimary: \"hsl(325.1 80.2% 53.1%)\",\n    magentaSecondary: \"hsl(328.2 85.1% 70.2%)\",\n  },\n};\n/**\n * Standard Dark theme\n */\nconst standardDark = {\n  name: \"standard-dark\",\n  displayName: \"Standard Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(222.2 84% 4.9%)\",\n    foreground: \"hsl(210 40% 98%)\",\n    // Card colors\n    card: \"hsl(222.2 84% 4.9%)\",\n    cardForeground: \"hsl(210 40% 98%)\",\n    // Popover colors\n    popover: \"hsl(222.2 84% 4.9%)\",\n    popoverForeground: \"hsl(210 40% 98%)\",\n    // Primary colors\n    primary: \"hsl(217.2 91.2% 59.8%)\",\n    primaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Secondary colors\n    secondary: \"hsl(217.2 32.6% 17.5%)\",\n    secondaryForeground: \"hsl(210 40% 98%)\",\n    // Muted colors\n    muted: \"hsl(217.2 32.6% 17.5%)\",\n    mutedForeground: \"hsl(215 20.2% 65.1%)\",\n    // Accent colors\n    accent: \"hsl(217.2 32.6% 17.5%)\",\n    accentForeground: \"hsl(210 40% 98%)\",\n    // Destructive colors\n    destructive: \"hsl(0 62.8% 30.6%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(217.2 32.6% 17.5%)\",\n    input: \"hsl(217.2 32.6% 17.5%)\",\n    ring: \"hsl(224.3 76.3% 48%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(217.2 32.6% 17.5%)\",\n    brandPrimary: \"hsl(217.2 91.2% 59.8%)\",\n    // Color palette\n    redPrimary: \"hsl(0 72.2% 50.6%)\",\n    redSecondary: \"hsl(0 62.8% 30.6%)\",\n    orangePrimary: \"hsl(20.5 90.2% 48.2%)\",\n    orangeSecondary: \"hsl(17.5 98.6% 35.1%)\",\n    yellowPrimary: \"hsl(40.8 96.6% 40%)\",\n    yellowSecondary: \"hsl(47.9 95.8% 53.1%)\",\n    greenPrimary: \"hsl(142.4 70.6% 45.3%)\",\n    greenSecondary: \"hsl(139.9 47.2% 36.7%)\",\n    cyanPrimary: \"hsl(185.6 78.3% 40.8%)\",\n    cyanSecondary: \"hsl(172.5 66% 50.4%)\",\n    bluePrimary: \"hsl(210.5 100% 66.1%)\",\n    blueSecondary: \"hsl(213.8 93.9% 67.8%)\",\n    purplePrimary: \"hsl(266.3 96.5% 80%)\",\n    purpleSecondary: \"hsl(269.1 75.3% 70%)\",\n    magentaPrimary: \"hsl(332.2 86.8% 70.4%)\",\n    magentaSecondary: \"hsl(333.9 84.7% 70.8%)\",\n  },\n};\n/**\n * Dracula Light theme\n */\nvar draculaLight = {\n  name: \"dracula-light\",\n  displayName: \"Dracula Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(60 30% 96%)\",\n    foreground: \"hsl(231 15% 18%)\",\n    // Card colors\n    card: \"hsl(60 30% 96%)\",\n    cardForeground: \"hsl(231 15% 18%)\",\n    // Popover colors\n    popover: \"hsl(60 30% 96%)\",\n    popoverForeground: \"hsl(231 15% 18%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(60 30% 92%)\",\n    secondaryForeground: \"hsl(231 15% 18%)\",\n    // Muted colors\n    muted: \"hsl(60 30% 92%)\",\n    mutedForeground: \"hsl(231 15% 50%)\",\n    // Accent colors\n    accent: \"hsl(60 30% 92%)\",\n    accentForeground: \"hsl(231 15% 18%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(60 30% 88%)\",\n    input: \"hsl(60 30% 88%)\",\n    ring: \"hsl(231 15% 50%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(60 30% 92%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 77%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 81%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 80%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 75%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 87%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 85%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 85%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 84%)\",\n  },\n};\n/**\n * Dracula Dark theme\n */\nvar draculaDark = {\n  name: \"dracula-dark\",\n  displayName: \"Dracula Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(231 15% 18%)\",\n    foreground: \"hsl(60 30% 96%)\",\n    // Card colors\n    card: \"hsl(231 15% 18%)\",\n    cardForeground: \"hsl(60 30% 96%)\",\n    // Popover colors\n    popover: \"hsl(231 15% 18%)\",\n    popoverForeground: \"hsl(60 30% 96%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(231 15% 26%)\",\n    secondaryForeground: \"hsl(60 30% 96%)\",\n    // Muted colors\n    muted: \"hsl(231 15% 26%)\",\n    mutedForeground: \"hsl(60 30% 76%)\",\n    // Accent colors\n    accent: \"hsl(231 15% 26%)\",\n    accentForeground: \"hsl(60 30% 96%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(231 15% 26%)\",\n    input: \"hsl(231 15% 26%)\",\n    ring: \"hsl(326 100% 74%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(231 15% 26%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 57%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 61%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 60%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 55%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 67%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 65%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 65%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 64%)\",\n  },\n};\n/**\n * Array of all available themes\n */\nexports.themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];\n",
+      "structuredPatch": [
+        {
+          "oldStart": 235,
+          "oldLines": 7,
+          "newStart": 235,
+          "newLines": 7,
+          "lines": [
+            " /**",
+            "  * Dracula Light theme",
+            "  */",
+            "-var draculaLight = {",
+            "+const draculaLight = {",
+            "   name: \"dracula-light\",",
+            "   displayName: \"Dracula Light\",",
+            "   coreColors: {"
+          ]
+        }
+      ],
+      "userModified": false,
+      "replaceAll": false
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Dracula Dark theme\n */\nvar draculaDark = {",
+      "new_string": "/**\n * Dracula Dark theme\n */\nconst draculaDark = {"
+    },
+    "tool_response": {
+      "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "oldString": "/**\n * Dracula Dark theme\n */\nvar draculaDark = {",
+      "newString": "/**\n * Dracula Dark theme\n */\nconst draculaDark = {",
+      "originalFile": "/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nconst flexokiLight = {\n  name: \"flexoki-light\",\n  displayName: \"Flexoki Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(48 100% 97%)\",\n    foreground: \"hsl(0 3% 6%)\",\n    // Card colors\n    card: \"hsl(48 100% 97%)\",\n    cardForeground: \"hsl(0 3% 6%)\",\n    // Popover colors\n    popover: \"hsl(48 100% 97%)\",\n    popoverForeground: \"hsl(0 3% 6%)\",\n    // Primary colors\n    primary: \"hsl(0 3% 6%)\",\n    primaryForeground: \"hsl(48 100% 97%)\",\n    // Secondary colors\n    secondary: \"hsl(51 33% 92%)\",\n    secondaryForeground: \"hsl(0 3% 6%)\",\n    // Muted colors\n    muted: \"hsl(51 33% 92%)\",\n    mutedForeground: \"hsl(50 3% 30%)\",\n    // Accent colors\n    accent: \"hsl(51 33% 92%)\",\n    accentForeground: \"hsl(0 3% 6%)\",\n    // Destructive colors\n    destructive: \"hsl(3 62% 42%)\",\n    destructiveForeground: \"hsl(48 100% 97%)\",\n    // Border, input, and ring colors\n    border: \"hsl(51 21% 88%)\",\n    input: \"hsl(51 21% 88%)\",\n    ring: \"hsl(55 10% 79%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(51 33% 92%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(3 62% 42%)\",\n    redSecondary: \"hsl(5 61% 54%)\",\n    orangePrimary: \"hsl(22 80% 41%)\",\n    orangeSecondary: \"hsl(23 70% 51%)\",\n    yellowPrimary: \"hsl(45 99% 34%)\",\n    yellowSecondary: \"hsl(45 82% 45%)\",\n    greenPrimary: \"hsl(73 84% 27%)\",\n    greenSecondary: \"hsl(72 46% 41%)\",\n    cyanPrimary: \"hsl(175 57% 33%)\",\n    cyanSecondary: \"hsl(175 49% 45%)\",\n    bluePrimary: \"hsl(212 68% 39%)\",\n    blueSecondary: \"hsl(208 49% 50%)\",\n    purplePrimary: \"hsl(259 42% 43%)\",\n    purpleSecondary: \"hsl(251 40% 64%)\",\n    magentaPrimary: \"hsl(326 55% 41%)\",\n    magentaSecondary: \"hsl(329 54% 59%)\",\n  },\n};\n/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nconst flexokiDark = {\n  name: \"flexoki-dark\",\n  displayName: \"Flexoki Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 3% 6%)\",\n    foreground: \"hsl(55 10% 100%)\",\n    // Card colors\n    card: \"hsl(0 3% 6%)\",\n    cardForeground: \"hsl(55 10% 100%)\",\n    // Popover colors\n    popover: \"hsl(0 3% 6%)\",\n    popoverForeground: \"hsl(55 10% 79%)\",\n    // Primary colors\n    primary: \"hsl(55 10% 79%)\",\n    primaryForeground: \"hsl(0 3% 6%)\",\n    // Secondary colors\n    secondary: \"hsl(30 4% 11%)\",\n    secondaryForeground: \"hsl(55 10% 79%)\",\n    // Muted colors\n    muted: \"hsl(30 4% 11%)\",\n    mutedForeground: \"hsl(43 3% 85%)\",\n    // Accent colors\n    accent: \"hsl(30 4% 11%)\",\n    accentForeground: \"hsl(55 10% 79%)\",\n    // Destructive colors\n    destructive: \"hsl(5 61% 54%)\",\n    destructiveForeground: \"hsl(0 3% 6%)\",\n    // Border, input, and ring colors\n    border: \"hsl(30 3% 15%)\",\n    input: \"hsl(30 3% 15%)\",\n    ring: \"hsl(30 3% 24%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(30 4% 11%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(5 61% 54%)\",\n    redSecondary: \"hsl(3 62% 42%)\",\n    orangePrimary: \"hsl(23 70% 51%)\",\n    orangeSecondary: \"hsl(22 80% 41%)\",\n    yellowPrimary: \"hsl(45 82% 45%)\",\n    yellowSecondary: \"hsl(45 99% 34%)\",\n    greenPrimary: \"hsl(72 46% 41%)\",\n    greenSecondary: \"hsl(73 84% 27%)\",\n    cyanPrimary: \"hsl(175 49% 45%)\",\n    cyanSecondary: \"hsl(175 57% 33%)\",\n    bluePrimary: \"hsl(208 49% 50%)\",\n    blueSecondary: \"hsl(212 68% 39%)\",\n    purplePrimary: \"hsl(251 40% 64%)\",\n    purpleSecondary: \"hsl(259 42% 43%)\",\n    magentaPrimary: \"hsl(329 54% 59%)\",\n    magentaSecondary: \"hsl(326 55% 41%)\",\n  },\n};\n/**\n * Standard Light theme\n */\nconst standardLight = {\n  name: \"standard-light\",\n  displayName: \"Standard Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 0% 100%)\",\n    foreground: \"hsl(222.2 84% 4.9%)\",\n    // Card colors\n    card: \"hsl(0 0% 100%)\",\n    cardForeground: \"hsl(222.2 84% 4.9%)\",\n    // Popover colors\n    popover: \"hsl(0 0% 100%)\",\n    popoverForeground: \"hsl(222.2 84% 4.9%)\",\n    // Primary colors\n    primary: \"hsl(221.2 83.2% 53.3%)\",\n    primaryForeground: \"hsl(210 40% 98%)\",\n    // Secondary colors\n    secondary: \"hsl(210 40% 96.1%)\",\n    secondaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Muted colors\n    muted: \"hsl(210 40% 96.1%)\",\n    mutedForeground: \"hsl(215.4 16.3% 46.9%)\",\n    // Accent colors\n    accent: \"hsl(210 40% 96.1%)\",\n    accentForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Destructive colors\n    destructive: \"hsl(0 84.2% 60.2%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(214.3 31.8% 91.4%)\",\n    input: \"hsl(214.3 31.8% 91.4%)\",\n    ring: \"hsl(221.2 83.2% 53.3%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(210 40% 96.1%)\",\n    brandPrimary: \"hsl(221.2 83.2% 53.3%)\",\n    // Color palette\n    redPrimary: \"hsl(0 84.2% 60.2%)\",\n    redSecondary: \"hsl(0 72.2% 50.6%)\",\n    orangePrimary: \"hsl(24.6 95% 53.1%)\",\n    orangeSecondary: \"hsl(35 91.7% 43.9%)\",\n    yellowPrimary: \"hsl(45 93.4% 47.5%)\",\n    yellowSecondary: \"hsl(48 96.6% 60%)\",\n    greenPrimary: \"hsl(142.1 76.2% 36.3%)\",\n    greenSecondary: \"hsl(142.1 70.6% 45.3%)\",\n    cyanPrimary: \"hsl(182.1 73.8% 46.1%)\",\n    cyanSecondary: \"hsl(184.6 70.3% 45.7%)\",\n    bluePrimary: \"hsl(221.2 83.2% 53.3%)\",\n    blueSecondary: \"hsl(221.2 83.1% 65.9%)\",\n    purplePrimary: \"hsl(262.1 83.3% 57.8%)\",\n    purpleSecondary: \"hsl(262.1 83.3% 67.8%)\",\n    magentaPrimary: \"hsl(325.1 80.2% 53.1%)\",\n    magentaSecondary: \"hsl(328.2 85.1% 70.2%)\",\n  },\n};\n/**\n * Standard Dark theme\n */\nconst standardDark = {\n  name: \"standard-dark\",\n  displayName: \"Standard Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(222.2 84% 4.9%)\",\n    foreground: \"hsl(210 40% 98%)\",\n    // Card colors\n    card: \"hsl(222.2 84% 4.9%)\",\n    cardForeground: \"hsl(210 40% 98%)\",\n    // Popover colors\n    popover: \"hsl(222.2 84% 4.9%)\",\n    popoverForeground: \"hsl(210 40% 98%)\",\n    // Primary colors\n    primary: \"hsl(217.2 91.2% 59.8%)\",\n    primaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Secondary colors\n    secondary: \"hsl(217.2 32.6% 17.5%)\",\n    secondaryForeground: \"hsl(210 40% 98%)\",\n    // Muted colors\n    muted: \"hsl(217.2 32.6% 17.5%)\",\n    mutedForeground: \"hsl(215 20.2% 65.1%)\",\n    // Accent colors\n    accent: \"hsl(217.2 32.6% 17.5%)\",\n    accentForeground: \"hsl(210 40% 98%)\",\n    // Destructive colors\n    destructive: \"hsl(0 62.8% 30.6%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(217.2 32.6% 17.5%)\",\n    input: \"hsl(217.2 32.6% 17.5%)\",\n    ring: \"hsl(224.3 76.3% 48%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(217.2 32.6% 17.5%)\",\n    brandPrimary: \"hsl(217.2 91.2% 59.8%)\",\n    // Color palette\n    redPrimary: \"hsl(0 72.2% 50.6%)\",\n    redSecondary: \"hsl(0 62.8% 30.6%)\",\n    orangePrimary: \"hsl(20.5 90.2% 48.2%)\",\n    orangeSecondary: \"hsl(17.5 98.6% 35.1%)\",\n    yellowPrimary: \"hsl(40.8 96.6% 40%)\",\n    yellowSecondary: \"hsl(47.9 95.8% 53.1%)\",\n    greenPrimary: \"hsl(142.4 70.6% 45.3%)\",\n    greenSecondary: \"hsl(139.9 47.2% 36.7%)\",\n    cyanPrimary: \"hsl(185.6 78.3% 40.8%)\",\n    cyanSecondary: \"hsl(172.5 66% 50.4%)\",\n    bluePrimary: \"hsl(210.5 100% 66.1%)\",\n    blueSecondary: \"hsl(213.8 93.9% 67.8%)\",\n    purplePrimary: \"hsl(266.3 96.5% 80%)\",\n    purpleSecondary: \"hsl(269.1 75.3% 70%)\",\n    magentaPrimary: \"hsl(332.2 86.8% 70.4%)\",\n    magentaSecondary: \"hsl(333.9 84.7% 70.8%)\",\n  },\n};\n/**\n * Dracula Light theme\n */\nconst draculaLight = {\n  name: \"dracula-light\",\n  displayName: \"Dracula Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(60 30% 96%)\",\n    foreground: \"hsl(231 15% 18%)\",\n    // Card colors\n    card: \"hsl(60 30% 96%)\",\n    cardForeground: \"hsl(231 15% 18%)\",\n    // Popover colors\n    popover: \"hsl(60 30% 96%)\",\n    popoverForeground: \"hsl(231 15% 18%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(60 30% 92%)\",\n    secondaryForeground: \"hsl(231 15% 18%)\",\n    // Muted colors\n    muted: \"hsl(60 30% 92%)\",\n    mutedForeground: \"hsl(231 15% 50%)\",\n    // Accent colors\n    accent: \"hsl(60 30% 92%)\",\n    accentForeground: \"hsl(231 15% 18%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(60 30% 88%)\",\n    input: \"hsl(60 30% 88%)\",\n    ring: \"hsl(231 15% 50%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(60 30% 92%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 77%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 81%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 80%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 75%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 87%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 85%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 85%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 84%)\",\n  },\n};\n/**\n * Dracula Dark theme\n */\nvar draculaDark = {\n  name: \"dracula-dark\",\n  displayName: \"Dracula Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(231 15% 18%)\",\n    foreground: \"hsl(60 30% 96%)\",\n    // Card colors\n    card: \"hsl(231 15% 18%)\",\n    cardForeground: \"hsl(60 30% 96%)\",\n    // Popover colors\n    popover: \"hsl(231 15% 18%)\",\n    popoverForeground: \"hsl(60 30% 96%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(231 15% 26%)\",\n    secondaryForeground: \"hsl(60 30% 96%)\",\n    // Muted colors\n    muted: \"hsl(231 15% 26%)\",\n    mutedForeground: \"hsl(60 30% 76%)\",\n    // Accent colors\n    accent: \"hsl(231 15% 26%)\",\n    accentForeground: \"hsl(60 30% 96%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(231 15% 26%)\",\n    input: \"hsl(231 15% 26%)\",\n    ring: \"hsl(326 100% 74%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(231 15% 26%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 57%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 61%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 60%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 55%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 67%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 65%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 65%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 64%)\",\n  },\n};\n/**\n * Array of all available themes\n */\nexports.themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];\n",
+      "structuredPatch": [
+        {
+          "oldStart": 292,
+          "oldLines": 7,
+          "newStart": 292,
+          "newLines": 7,
+          "lines": [
+            " /**",
+            "  * Dracula Dark theme",
+            "  */",
+            "-var draculaDark = {",
+            "+const draculaDark = {",
+            "   name: \"dracula-dark\",",
+            "   displayName: \"Dracula Dark\",",
+            "   coreColors: {"
+          ]
+        }
+      ],
+      "userModified": false,
+      "replaceAll": false
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Array of all available themes\n */\nexports.themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];",
+      "new_string": "/**\n * Array of all available themes\n */\nexport const themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];"
+    },
+    "tool_response": {
+      "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "oldString": "/**\n * Array of all available themes\n */\nexports.themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];",
+      "newString": "/**\n * Array of all available themes\n */\nexport const themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];",
+      "originalFile": "/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nconst flexokiLight = {\n  name: \"flexoki-light\",\n  displayName: \"Flexoki Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(48 100% 97%)\",\n    foreground: \"hsl(0 3% 6%)\",\n    // Card colors\n    card: \"hsl(48 100% 97%)\",\n    cardForeground: \"hsl(0 3% 6%)\",\n    // Popover colors\n    popover: \"hsl(48 100% 97%)\",\n    popoverForeground: \"hsl(0 3% 6%)\",\n    // Primary colors\n    primary: \"hsl(0 3% 6%)\",\n    primaryForeground: \"hsl(48 100% 97%)\",\n    // Secondary colors\n    secondary: \"hsl(51 33% 92%)\",\n    secondaryForeground: \"hsl(0 3% 6%)\",\n    // Muted colors\n    muted: \"hsl(51 33% 92%)\",\n    mutedForeground: \"hsl(50 3% 30%)\",\n    // Accent colors\n    accent: \"hsl(51 33% 92%)\",\n    accentForeground: \"hsl(0 3% 6%)\",\n    // Destructive colors\n    destructive: \"hsl(3 62% 42%)\",\n    destructiveForeground: \"hsl(48 100% 97%)\",\n    // Border, input, and ring colors\n    border: \"hsl(51 21% 88%)\",\n    input: \"hsl(51 21% 88%)\",\n    ring: \"hsl(55 10% 79%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(51 33% 92%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(3 62% 42%)\",\n    redSecondary: \"hsl(5 61% 54%)\",\n    orangePrimary: \"hsl(22 80% 41%)\",\n    orangeSecondary: \"hsl(23 70% 51%)\",\n    yellowPrimary: \"hsl(45 99% 34%)\",\n    yellowSecondary: \"hsl(45 82% 45%)\",\n    greenPrimary: \"hsl(73 84% 27%)\",\n    greenSecondary: \"hsl(72 46% 41%)\",\n    cyanPrimary: \"hsl(175 57% 33%)\",\n    cyanSecondary: \"hsl(175 49% 45%)\",\n    bluePrimary: \"hsl(212 68% 39%)\",\n    blueSecondary: \"hsl(208 49% 50%)\",\n    purplePrimary: \"hsl(259 42% 43%)\",\n    purpleSecondary: \"hsl(251 40% 64%)\",\n    magentaPrimary: \"hsl(326 55% 41%)\",\n    magentaSecondary: \"hsl(329 54% 59%)\",\n  },\n};\n/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nconst flexokiDark = {\n  name: \"flexoki-dark\",\n  displayName: \"Flexoki Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 3% 6%)\",\n    foreground: \"hsl(55 10% 100%)\",\n    // Card colors\n    card: \"hsl(0 3% 6%)\",\n    cardForeground: \"hsl(55 10% 100%)\",\n    // Popover colors\n    popover: \"hsl(0 3% 6%)\",\n    popoverForeground: \"hsl(55 10% 79%)\",\n    // Primary colors\n    primary: \"hsl(55 10% 79%)\",\n    primaryForeground: \"hsl(0 3% 6%)\",\n    // Secondary colors\n    secondary: \"hsl(30 4% 11%)\",\n    secondaryForeground: \"hsl(55 10% 79%)\",\n    // Muted colors\n    muted: \"hsl(30 4% 11%)\",\n    mutedForeground: \"hsl(43 3% 85%)\",\n    // Accent colors\n    accent: \"hsl(30 4% 11%)\",\n    accentForeground: \"hsl(55 10% 79%)\",\n    // Destructive colors\n    destructive: \"hsl(5 61% 54%)\",\n    destructiveForeground: \"hsl(0 3% 6%)\",\n    // Border, input, and ring colors\n    border: \"hsl(30 3% 15%)\",\n    input: \"hsl(30 3% 15%)\",\n    ring: \"hsl(30 3% 24%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(30 4% 11%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(5 61% 54%)\",\n    redSecondary: \"hsl(3 62% 42%)\",\n    orangePrimary: \"hsl(23 70% 51%)\",\n    orangeSecondary: \"hsl(22 80% 41%)\",\n    yellowPrimary: \"hsl(45 82% 45%)\",\n    yellowSecondary: \"hsl(45 99% 34%)\",\n    greenPrimary: \"hsl(72 46% 41%)\",\n    greenSecondary: \"hsl(73 84% 27%)\",\n    cyanPrimary: \"hsl(175 49% 45%)\",\n    cyanSecondary: \"hsl(175 57% 33%)\",\n    bluePrimary: \"hsl(208 49% 50%)\",\n    blueSecondary: \"hsl(212 68% 39%)\",\n    purplePrimary: \"hsl(251 40% 64%)\",\n    purpleSecondary: \"hsl(259 42% 43%)\",\n    magentaPrimary: \"hsl(329 54% 59%)\",\n    magentaSecondary: \"hsl(326 55% 41%)\",\n  },\n};\n/**\n * Standard Light theme\n */\nconst standardLight = {\n  name: \"standard-light\",\n  displayName: \"Standard Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 0% 100%)\",\n    foreground: \"hsl(222.2 84% 4.9%)\",\n    // Card colors\n    card: \"hsl(0 0% 100%)\",\n    cardForeground: \"hsl(222.2 84% 4.9%)\",\n    // Popover colors\n    popover: \"hsl(0 0% 100%)\",\n    popoverForeground: \"hsl(222.2 84% 4.9%)\",\n    // Primary colors\n    primary: \"hsl(221.2 83.2% 53.3%)\",\n    primaryForeground: \"hsl(210 40% 98%)\",\n    // Secondary colors\n    secondary: \"hsl(210 40% 96.1%)\",\n    secondaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Muted colors\n    muted: \"hsl(210 40% 96.1%)\",\n    mutedForeground: \"hsl(215.4 16.3% 46.9%)\",\n    // Accent colors\n    accent: \"hsl(210 40% 96.1%)\",\n    accentForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Destructive colors\n    destructive: \"hsl(0 84.2% 60.2%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(214.3 31.8% 91.4%)\",\n    input: \"hsl(214.3 31.8% 91.4%)\",\n    ring: \"hsl(221.2 83.2% 53.3%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(210 40% 96.1%)\",\n    brandPrimary: \"hsl(221.2 83.2% 53.3%)\",\n    // Color palette\n    redPrimary: \"hsl(0 84.2% 60.2%)\",\n    redSecondary: \"hsl(0 72.2% 50.6%)\",\n    orangePrimary: \"hsl(24.6 95% 53.1%)\",\n    orangeSecondary: \"hsl(35 91.7% 43.9%)\",\n    yellowPrimary: \"hsl(45 93.4% 47.5%)\",\n    yellowSecondary: \"hsl(48 96.6% 60%)\",\n    greenPrimary: \"hsl(142.1 76.2% 36.3%)\",\n    greenSecondary: \"hsl(142.1 70.6% 45.3%)\",\n    cyanPrimary: \"hsl(182.1 73.8% 46.1%)\",\n    cyanSecondary: \"hsl(184.6 70.3% 45.7%)\",\n    bluePrimary: \"hsl(221.2 83.2% 53.3%)\",\n    blueSecondary: \"hsl(221.2 83.1% 65.9%)\",\n    purplePrimary: \"hsl(262.1 83.3% 57.8%)\",\n    purpleSecondary: \"hsl(262.1 83.3% 67.8%)\",\n    magentaPrimary: \"hsl(325.1 80.2% 53.1%)\",\n    magentaSecondary: \"hsl(328.2 85.1% 70.2%)\",\n  },\n};\n/**\n * Standard Dark theme\n */\nconst standardDark = {\n  name: \"standard-dark\",\n  displayName: \"Standard Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(222.2 84% 4.9%)\",\n    foreground: \"hsl(210 40% 98%)\",\n    // Card colors\n    card: \"hsl(222.2 84% 4.9%)\",\n    cardForeground: \"hsl(210 40% 98%)\",\n    // Popover colors\n    popover: \"hsl(222.2 84% 4.9%)\",\n    popoverForeground: \"hsl(210 40% 98%)\",\n    // Primary colors\n    primary: \"hsl(217.2 91.2% 59.8%)\",\n    primaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Secondary colors\n    secondary: \"hsl(217.2 32.6% 17.5%)\",\n    secondaryForeground: \"hsl(210 40% 98%)\",\n    // Muted colors\n    muted: \"hsl(217.2 32.6% 17.5%)\",\n    mutedForeground: \"hsl(215 20.2% 65.1%)\",\n    // Accent colors\n    accent: \"hsl(217.2 32.6% 17.5%)\",\n    accentForeground: \"hsl(210 40% 98%)\",\n    // Destructive colors\n    destructive: \"hsl(0 62.8% 30.6%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(217.2 32.6% 17.5%)\",\n    input: \"hsl(217.2 32.6% 17.5%)\",\n    ring: \"hsl(224.3 76.3% 48%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(217.2 32.6% 17.5%)\",\n    brandPrimary: \"hsl(217.2 91.2% 59.8%)\",\n    // Color palette\n    redPrimary: \"hsl(0 72.2% 50.6%)\",\n    redSecondary: \"hsl(0 62.8% 30.6%)\",\n    orangePrimary: \"hsl(20.5 90.2% 48.2%)\",\n    orangeSecondary: \"hsl(17.5 98.6% 35.1%)\",\n    yellowPrimary: \"hsl(40.8 96.6% 40%)\",\n    yellowSecondary: \"hsl(47.9 95.8% 53.1%)\",\n    greenPrimary: \"hsl(142.4 70.6% 45.3%)\",\n    greenSecondary: \"hsl(139.9 47.2% 36.7%)\",\n    cyanPrimary: \"hsl(185.6 78.3% 40.8%)\",\n    cyanSecondary: \"hsl(172.5 66% 50.4%)\",\n    bluePrimary: \"hsl(210.5 100% 66.1%)\",\n    blueSecondary: \"hsl(213.8 93.9% 67.8%)\",\n    purplePrimary: \"hsl(266.3 96.5% 80%)\",\n    purpleSecondary: \"hsl(269.1 75.3% 70%)\",\n    magentaPrimary: \"hsl(332.2 86.8% 70.4%)\",\n    magentaSecondary: \"hsl(333.9 84.7% 70.8%)\",\n  },\n};\n/**\n * Dracula Light theme\n */\nconst draculaLight = {\n  name: \"dracula-light\",\n  displayName: \"Dracula Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(60 30% 96%)\",\n    foreground: \"hsl(231 15% 18%)\",\n    // Card colors\n    card: \"hsl(60 30% 96%)\",\n    cardForeground: \"hsl(231 15% 18%)\",\n    // Popover colors\n    popover: \"hsl(60 30% 96%)\",\n    popoverForeground: \"hsl(231 15% 18%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(60 30% 92%)\",\n    secondaryForeground: \"hsl(231 15% 18%)\",\n    // Muted colors\n    muted: \"hsl(60 30% 92%)\",\n    mutedForeground: \"hsl(231 15% 50%)\",\n    // Accent colors\n    accent: \"hsl(60 30% 92%)\",\n    accentForeground: \"hsl(231 15% 18%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(60 30% 88%)\",\n    input: \"hsl(60 30% 88%)\",\n    ring: \"hsl(231 15% 50%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(60 30% 92%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 77%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 81%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 80%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 75%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 87%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 85%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 85%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 84%)\",\n  },\n};\n/**\n * Dracula Dark theme\n */\nconst draculaDark = {\n  name: \"dracula-dark\",\n  displayName: \"Dracula Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(231 15% 18%)\",\n    foreground: \"hsl(60 30% 96%)\",\n    // Card colors\n    card: \"hsl(231 15% 18%)\",\n    cardForeground: \"hsl(60 30% 96%)\",\n    // Popover colors\n    popover: \"hsl(231 15% 18%)\",\n    popoverForeground: \"hsl(60 30% 96%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(231 15% 26%)\",\n    secondaryForeground: \"hsl(60 30% 96%)\",\n    // Muted colors\n    muted: \"hsl(231 15% 26%)\",\n    mutedForeground: \"hsl(60 30% 76%)\",\n    // Accent colors\n    accent: \"hsl(231 15% 26%)\",\n    accentForeground: \"hsl(60 30% 96%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(231 15% 26%)\",\n    input: \"hsl(231 15% 26%)\",\n    ring: \"hsl(326 100% 74%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(231 15% 26%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 57%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 61%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 60%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 55%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 67%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 65%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 65%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 64%)\",\n  },\n};\n/**\n * Array of all available themes\n */\nexports.themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];\n",
+      "structuredPatch": [
+        {
+          "oldStart": 349,
+          "oldLines": 7,
+          "newStart": 349,
+          "newLines": 7,
+          "lines": [
+            " /**",
+            "  * Array of all available themes",
+            "  */",
+            "-exports.themes = [",
+            "+export const themes = [",
+            "   flexokiLight,",
+            "   flexokiDark,",
+            "   standardLight,"
+          ]
+        }
+      ],
+      "userModified": false,
+      "replaceAll": false
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "mv tailwind.config.ts tailwind.config.mjs",
+      "description": "Rename tailwind config to .mjs to fix module type warning"
+    },
+    "tool_response": {
+      "stdout": "",
+      "stderr": "",
+      "interrupted": false,
+      "isImage": false
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\tsconfig.json",
+      "old_string": "  \"include\": [\n    \"next-env.d.ts\",\n    \"**/*.ts\",\n    \"**/*.tsx\",\n    \".next/types/**/*.ts\",\n    \"tailwind.config.js\"\n  ],",
+      "new_string": "  \"include\": [\n    \"next-env.d.ts\",\n    \"**/*.ts\",\n    \"**/*.tsx\",\n    \".next/types/**/*.ts\",\n    \"tailwind.config.mjs\"\n  ],"
+    },
+    "tool_response": {
+      "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\tsconfig.json",
+      "oldString": "  \"include\": [\n    \"next-env.d.ts\",\n    \"**/*.ts\",\n    \"**/*.tsx\",\n    \".next/types/**/*.ts\",\n    \"tailwind.config.js\"\n  ],",
+      "newString": "  \"include\": [\n    \"next-env.d.ts\",\n    \"**/*.ts\",\n    \"**/*.tsx\",\n    \".next/types/**/*.ts\",\n    \"tailwind.config.mjs\"\n  ],",
+      "originalFile": "{\n  \"compilerOptions\": {\n    \"lib\": [\"dom\", \"dom.iterable\", \"esnext\"],\n    \"allowJs\": true,\n    \"skipLibCheck\": true,\n    \"strict\": true,\n    \"forceConsistentCasingInFileNames\": true,\n    \"noEmit\": true,\n    \"esModuleInterop\": true,\n    \"module\": \"esnext\",\n    \"moduleResolution\": \"bundler\",\n    \"resolveJsonModule\": true,\n    \"isolatedModules\": true,\n    \"jsx\": \"preserve\",\n    \"incremental\": true,\n    \"plugins\": [\n      {\n        \"name\": \"next\"\n      }\n    ],\n    \"paths\": {\n      \"@/*\": [\"./*\"]\n    },\n    \"target\": \"ES2017\"\n  },\n  \"include\": [\n    \"next-env.d.ts\",\n    \"**/*.ts\",\n    \"**/*.tsx\",\n    \".next/types/**/*.ts\",\n    \"tailwind.config.js\"\n  ],\n  \"exclude\": [\n    \"node_modules\",\n    \"check-sentry-*.ts\",\n    \"test-sentry-*.ts\",\n    \"scripts/**/*\",\n    \"lib/persistence/examples/**/*\"\n  ]\n}\n",
+      "structuredPatch": [
+        {
+          "oldStart": 28,
+          "oldLines": 7,
+          "newStart": 28,
+          "newLines": 7,
+          "lines": [
+            "     \"**/*.ts\",",
+            "     \"**/*.tsx\",",
+            "     \".next/types/**/*.ts\",",
+            "-    \"tailwind.config.js\"",
+            "+    \"tailwind.config.mjs\"",
+            "   ],",
+            "   \"exclude\": [",
+            "     \"node_modules\","
+          ]
+        }
+      ],
+      "userModified": false,
+      "replaceAll": false
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "\"use strict\";\n/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.themes = void 0;\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nvar flexokiLight = {",
+      "new_string": "/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nconst flexokiLight = {"
+    },
+    "tool_response": {
+      "filePath": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "oldString": "\"use strict\";\n/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.themes = void 0;\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nvar flexokiLight = {",
+      "newString": "/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nconst flexokiLight = {",
+      "originalFile": "\"use strict\";\n/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.themes = void 0;\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nvar flexokiLight = {\n  name: \"flexoki-light\",\n  displayName: \"Flexoki Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(48 100% 97%)\",\n    foreground: \"hsl(0 3% 6%)\",\n    // Card colors\n    card: \"hsl(48 100% 97%)\",\n    cardForeground: \"hsl(0 3% 6%)\",\n    // Popover colors\n    popover: \"hsl(48 100% 97%)\",\n    popoverForeground: \"hsl(0 3% 6%)\",\n    // Primary colors\n    primary: \"hsl(0 3% 6%)\",\n    primaryForeground: \"hsl(48 100% 97%)\",\n    // Secondary colors\n    secondary: \"hsl(51 33% 92%)\",\n    secondaryForeground: \"hsl(0 3% 6%)\",\n    // Muted colors\n    muted: \"hsl(51 33% 92%)\",\n    mutedForeground: \"hsl(50 3% 30%)\",\n    // Accent colors\n    accent: \"hsl(51 33% 92%)\",\n    accentForeground: \"hsl(0 3% 6%)\",\n    // Destructive colors\n    destructive: \"hsl(3 62% 42%)\",\n    destructiveForeground: \"hsl(48 100% 97%)\",\n    // Border, input, and ring colors\n    border: \"hsl(51 21% 88%)\",\n    input: \"hsl(51 21% 88%)\",\n    ring: \"hsl(55 10% 79%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(51 33% 92%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(3 62% 42%)\",\n    redSecondary: \"hsl(5 61% 54%)\",\n    orangePrimary: \"hsl(22 80% 41%)\",\n    orangeSecondary: \"hsl(23 70% 51%)\",\n    yellowPrimary: \"hsl(45 99% 34%)\",\n    yellowSecondary: \"hsl(45 82% 45%)\",\n    greenPrimary: \"hsl(73 84% 27%)\",\n    greenSecondary: \"hsl(72 46% 41%)\",\n    cyanPrimary: \"hsl(175 57% 33%)\",\n    cyanSecondary: \"hsl(175 49% 45%)\",\n    bluePrimary: \"hsl(212 68% 39%)\",\n    blueSecondary: \"hsl(208 49% 50%)\",\n    purplePrimary: \"hsl(259 42% 43%)\",\n    purpleSecondary: \"hsl(251 40% 64%)\",\n    magentaPrimary: \"hsl(326 55% 41%)\",\n    magentaSecondary: \"hsl(329 54% 59%)\",\n  },\n};\n/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nvar flexokiDark = {\n  name: \"flexoki-dark\",\n  displayName: \"Flexoki Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 3% 6%)\",\n    foreground: \"hsl(55 10% 100%)\",\n    // Card colors\n    card: \"hsl(0 3% 6%)\",\n    cardForeground: \"hsl(55 10% 100%)\",\n    // Popover colors\n    popover: \"hsl(0 3% 6%)\",\n    popoverForeground: \"hsl(55 10% 79%)\",\n    // Primary colors\n    primary: \"hsl(55 10% 79%)\",\n    primaryForeground: \"hsl(0 3% 6%)\",\n    // Secondary colors\n    secondary: \"hsl(30 4% 11%)\",\n    secondaryForeground: \"hsl(55 10% 79%)\",\n    // Muted colors\n    muted: \"hsl(30 4% 11%)\",\n    mutedForeground: \"hsl(43 3% 85%)\",\n    // Accent colors\n    accent: \"hsl(30 4% 11%)\",\n    accentForeground: \"hsl(55 10% 79%)\",\n    // Destructive colors\n    destructive: \"hsl(5 61% 54%)\",\n    destructiveForeground: \"hsl(0 3% 6%)\",\n    // Border, input, and ring colors\n    border: \"hsl(30 3% 15%)\",\n    input: \"hsl(30 3% 15%)\",\n    ring: \"hsl(30 3% 24%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(30 4% 11%)\",\n    brandPrimary: \"hsl(185 45% 47%)\",\n    // Color palette\n    redPrimary: \"hsl(5 61% 54%)\",\n    redSecondary: \"hsl(3 62% 42%)\",\n    orangePrimary: \"hsl(23 70% 51%)\",\n    orangeSecondary: \"hsl(22 80% 41%)\",\n    yellowPrimary: \"hsl(45 82% 45%)\",\n    yellowSecondary: \"hsl(45 99% 34%)\",\n    greenPrimary: \"hsl(72 46% 41%)\",\n    greenSecondary: \"hsl(73 84% 27%)\",\n    cyanPrimary: \"hsl(175 49% 45%)\",\n    cyanSecondary: \"hsl(175 57% 33%)\",\n    bluePrimary: \"hsl(208 49% 50%)\",\n    blueSecondary: \"hsl(212 68% 39%)\",\n    purplePrimary: \"hsl(251 40% 64%)\",\n    purpleSecondary: \"hsl(259 42% 43%)\",\n    magentaPrimary: \"hsl(329 54% 59%)\",\n    magentaSecondary: \"hsl(326 55% 41%)\",\n  },\n};\n/**\n * Standard Light theme\n */\nvar standardLight = {\n  name: \"standard-light\",\n  displayName: \"Standard Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(0 0% 100%)\",\n    foreground: \"hsl(222.2 84% 4.9%)\",\n    // Card colors\n    card: \"hsl(0 0% 100%)\",\n    cardForeground: \"hsl(222.2 84% 4.9%)\",\n    // Popover colors\n    popover: \"hsl(0 0% 100%)\",\n    popoverForeground: \"hsl(222.2 84% 4.9%)\",\n    // Primary colors\n    primary: \"hsl(221.2 83.2% 53.3%)\",\n    primaryForeground: \"hsl(210 40% 98%)\",\n    // Secondary colors\n    secondary: \"hsl(210 40% 96.1%)\",\n    secondaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Muted colors\n    muted: \"hsl(210 40% 96.1%)\",\n    mutedForeground: \"hsl(215.4 16.3% 46.9%)\",\n    // Accent colors\n    accent: \"hsl(210 40% 96.1%)\",\n    accentForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Destructive colors\n    destructive: \"hsl(0 84.2% 60.2%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(214.3 31.8% 91.4%)\",\n    input: \"hsl(214.3 31.8% 91.4%)\",\n    ring: \"hsl(221.2 83.2% 53.3%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(210 40% 96.1%)\",\n    brandPrimary: \"hsl(221.2 83.2% 53.3%)\",\n    // Color palette\n    redPrimary: \"hsl(0 84.2% 60.2%)\",\n    redSecondary: \"hsl(0 72.2% 50.6%)\",\n    orangePrimary: \"hsl(24.6 95% 53.1%)\",\n    orangeSecondary: \"hsl(35 91.7% 43.9%)\",\n    yellowPrimary: \"hsl(45 93.4% 47.5%)\",\n    yellowSecondary: \"hsl(48 96.6% 60%)\",\n    greenPrimary: \"hsl(142.1 76.2% 36.3%)\",\n    greenSecondary: \"hsl(142.1 70.6% 45.3%)\",\n    cyanPrimary: \"hsl(182.1 73.8% 46.1%)\",\n    cyanSecondary: \"hsl(184.6 70.3% 45.7%)\",\n    bluePrimary: \"hsl(221.2 83.2% 53.3%)\",\n    blueSecondary: \"hsl(221.2 83.1% 65.9%)\",\n    purplePrimary: \"hsl(262.1 83.3% 57.8%)\",\n    purpleSecondary: \"hsl(262.1 83.3% 67.8%)\",\n    magentaPrimary: \"hsl(325.1 80.2% 53.1%)\",\n    magentaSecondary: \"hsl(328.2 85.1% 70.2%)\",\n  },\n};\n/**\n * Standard Dark theme\n */\nvar standardDark = {\n  name: \"standard-dark\",\n  displayName: \"Standard Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(222.2 84% 4.9%)\",\n    foreground: \"hsl(210 40% 98%)\",\n    // Card colors\n    card: \"hsl(222.2 84% 4.9%)\",\n    cardForeground: \"hsl(210 40% 98%)\",\n    // Popover colors\n    popover: \"hsl(222.2 84% 4.9%)\",\n    popoverForeground: \"hsl(210 40% 98%)\",\n    // Primary colors\n    primary: \"hsl(217.2 91.2% 59.8%)\",\n    primaryForeground: \"hsl(222.2 47.4% 11.2%)\",\n    // Secondary colors\n    secondary: \"hsl(217.2 32.6% 17.5%)\",\n    secondaryForeground: \"hsl(210 40% 98%)\",\n    // Muted colors\n    muted: \"hsl(217.2 32.6% 17.5%)\",\n    mutedForeground: \"hsl(215 20.2% 65.1%)\",\n    // Accent colors\n    accent: \"hsl(217.2 32.6% 17.5%)\",\n    accentForeground: \"hsl(210 40% 98%)\",\n    // Destructive colors\n    destructive: \"hsl(0 62.8% 30.6%)\",\n    destructiveForeground: \"hsl(210 40% 98%)\",\n    // Border, input, and ring colors\n    border: \"hsl(217.2 32.6% 17.5%)\",\n    input: \"hsl(217.2 32.6% 17.5%)\",\n    ring: \"hsl(224.3 76.3% 48%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(217.2 32.6% 17.5%)\",\n    brandPrimary: \"hsl(217.2 91.2% 59.8%)\",\n    // Color palette\n    redPrimary: \"hsl(0 72.2% 50.6%)\",\n    redSecondary: \"hsl(0 62.8% 30.6%)\",\n    orangePrimary: \"hsl(20.5 90.2% 48.2%)\",\n    orangeSecondary: \"hsl(17.5 98.6% 35.1%)\",\n    yellowPrimary: \"hsl(40.8 96.6% 40%)\",\n    yellowSecondary: \"hsl(47.9 95.8% 53.1%)\",\n    greenPrimary: \"hsl(142.4 70.6% 45.3%)\",\n    greenSecondary: \"hsl(139.9 47.2% 36.7%)\",\n    cyanPrimary: \"hsl(185.6 78.3% 40.8%)\",\n    cyanSecondary: \"hsl(172.5 66% 50.4%)\",\n    bluePrimary: \"hsl(210.5 100% 66.1%)\",\n    blueSecondary: \"hsl(213.8 93.9% 67.8%)\",\n    purplePrimary: \"hsl(266.3 96.5% 80%)\",\n    purpleSecondary: \"hsl(269.1 75.3% 70%)\",\n    magentaPrimary: \"hsl(332.2 86.8% 70.4%)\",\n    magentaSecondary: \"hsl(333.9 84.7% 70.8%)\",\n  },\n};\n/**\n * Dracula Light theme\n */\nvar draculaLight = {\n  name: \"dracula-light\",\n  displayName: \"Dracula Light\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(60 30% 96%)\",\n    foreground: \"hsl(231 15% 18%)\",\n    // Card colors\n    card: \"hsl(60 30% 96%)\",\n    cardForeground: \"hsl(231 15% 18%)\",\n    // Popover colors\n    popover: \"hsl(60 30% 96%)\",\n    popoverForeground: \"hsl(231 15% 18%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(60 30% 92%)\",\n    secondaryForeground: \"hsl(231 15% 18%)\",\n    // Muted colors\n    muted: \"hsl(60 30% 92%)\",\n    mutedForeground: \"hsl(231 15% 50%)\",\n    // Accent colors\n    accent: \"hsl(60 30% 92%)\",\n    accentForeground: \"hsl(231 15% 18%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(60 30% 88%)\",\n    input: \"hsl(60 30% 88%)\",\n    ring: \"hsl(231 15% 50%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(60 30% 92%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 77%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 81%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 80%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 75%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 87%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 85%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 85%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 84%)\",\n  },\n};\n/**\n * Dracula Dark theme\n */\nvar draculaDark = {\n  name: \"dracula-dark\",\n  displayName: \"Dracula Dark\",\n  coreColors: {\n    // Base colors\n    background: \"hsl(231 15% 18%)\",\n    foreground: \"hsl(60 30% 96%)\",\n    // Card colors\n    card: \"hsl(231 15% 18%)\",\n    cardForeground: \"hsl(60 30% 96%)\",\n    // Popover colors\n    popover: \"hsl(231 15% 18%)\",\n    popoverForeground: \"hsl(60 30% 96%)\",\n    // Primary colors\n    primary: \"hsl(326 100% 74%)\",\n    primaryForeground: \"hsl(231 15% 18%)\",\n    // Secondary colors\n    secondary: \"hsl(231 15% 26%)\",\n    secondaryForeground: \"hsl(60 30% 96%)\",\n    // Muted colors\n    muted: \"hsl(231 15% 26%)\",\n    mutedForeground: \"hsl(60 30% 76%)\",\n    // Accent colors\n    accent: \"hsl(231 15% 26%)\",\n    accentForeground: \"hsl(60 30% 96%)\",\n    // Destructive colors\n    destructive: \"hsl(0 100% 67%)\",\n    destructiveForeground: \"hsl(60 30% 96%)\",\n    // Border, input, and ring colors\n    border: \"hsl(231 15% 26%)\",\n    input: \"hsl(231 15% 26%)\",\n    ring: \"hsl(326 100% 74%)\",\n    // Additional colors\n    blockquoteBackground: \"hsl(231 15% 26%)\",\n    brandPrimary: \"hsl(326 100% 74%)\",\n    // Color palette\n    redPrimary: \"hsl(0 100% 67%)\",\n    redSecondary: \"hsl(0 100% 57%)\",\n    orangePrimary: \"hsl(31 100% 71%)\",\n    orangeSecondary: \"hsl(31 100% 61%)\",\n    yellowPrimary: \"hsl(60 100% 70%)\",\n    yellowSecondary: \"hsl(60 100% 60%)\",\n    greenPrimary: \"hsl(135 94% 65%)\",\n    greenSecondary: \"hsl(135 94% 55%)\",\n    cyanPrimary: \"hsl(191 97% 77%)\",\n    cyanSecondary: \"hsl(191 97% 67%)\",\n    bluePrimary: \"hsl(225 100% 75%)\",\n    blueSecondary: \"hsl(225 100% 65%)\",\n    purplePrimary: \"hsl(250 100% 75%)\",\n    purpleSecondary: \"hsl(250 100% 65%)\",\n    magentaPrimary: \"hsl(326 100% 74%)\",\n    magentaSecondary: \"hsl(326 100% 64%)\",\n  },\n};\n/**\n * Array of all available themes\n */\nexports.themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];\n",
+      "structuredPatch": [
+        {
+          "oldStart": 1,
+          "oldLines": 15,
+          "newStart": 1,
+          "newLines": 12,
+          "lines": [
+            "-\"use strict\";",
+            " /**",
+            "  * Theme definitions for the digests-nextjs application",
+            "  * This file contains all the theme definitions used in the application",
+            "  */",
+            "-Object.defineProperty(exports, \"__esModule\", { value: true });",
+            "-exports.themes = void 0;",
+            " /**",
+            "  * Flexoki Light theme",
+            "  * Based on the current light theme in app/globals.css",
+            "  */",
+            "-var flexokiLight = {",
+            "+const flexokiLight = {",
+            "   name: \"flexoki-light\",",
+            "   displayName: \"Flexoki Light\",",
+            "   coreColors: {"
+          ]
+        }
+      ],
+      "userModified": false,
+      "replaceAll": false
+    }
+  }
+]

@@ -1,48 +1,64 @@
-"use client"
+"use client";
 
-import { useCallback, useMemo } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Play, Pause, SkipBack, SkipForward, Repeat, X } from "lucide-react"
-import { useFeedStore } from "@/store/useFeedStore"
-import { Slider } from "@/components/ui/slider"
-import Image from "next/image"
+import { useCallback, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Play, Pause, SkipBack, SkipForward, Repeat, X } from "lucide-react";
+import { useFeedStore } from "@/store/useFeedStore";
+import { Slider } from "@/components/ui/slider";
+import Image from "next/image";
 
 /**
  * Compact audio player that appears minimized at the bottom of the screen
  */
 export function AudioMiniPlayer() {
-  const { currentAudio, isPlaying, togglePlayPause, currentTime, duration, seek, setShowMiniPlayer } = useFeedStore()
+  const {
+    currentAudio,
+    isPlaying,
+    togglePlayPause,
+    currentTime,
+    duration,
+    seek,
+    setShowMiniPlayer,
+  } = useFeedStore();
 
   /**
    * Formats time in seconds to MM:SS format
    */
   const formatTime = useCallback((time: number) => {
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
-  }, [])
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+  }, []);
 
   /**
    * Memoized formatted times to prevent recalculation
    */
-  const formattedCurrentTime = useMemo(() => formatTime(currentTime), [formatTime, currentTime])
-  const formattedDuration = useMemo(() => formatTime(duration), [formatTime, duration])
-  
+  const formattedCurrentTime = useMemo(
+    () => formatTime(currentTime),
+    [formatTime, currentTime],
+  );
+  const formattedDuration = useMemo(
+    () => formatTime(duration),
+    [formatTime, duration],
+  );
+
   /**
    * Handles slider change for seeking
    */
   const handleSeek = useCallback(
     (value: number[]) => {
-      seek(value[0])
+      seek(value[0]);
     },
     [seek],
-  )
+  );
 
   /**
    * Memoized toggle function to avoid recreation
    */
-  const memoizedTogglePlayPause = useCallback(togglePlayPause, [togglePlayPause])
+  const memoizedTogglePlayPause = useCallback(togglePlayPause, [
+    togglePlayPause,
+  ]);
 
   /**
    * Handle close button click - stops audio and hides player
@@ -50,12 +66,12 @@ export function AudioMiniPlayer() {
   const handleClose = useCallback(() => {
     // Stop the audio playback
     if (isPlaying) {
-      togglePlayPause()
+      togglePlayPause();
     }
-    setShowMiniPlayer(false)
-  }, [setShowMiniPlayer, isPlaying, togglePlayPause])
+    setShowMiniPlayer(false);
+  }, [setShowMiniPlayer, isPlaying, togglePlayPause]);
 
-  if (!currentAudio) return null
+  if (!currentAudio) return null;
 
   return (
     <div className="fixed bottom-4 right-4 w-[640px] z-50 pointer-events-none">
@@ -83,12 +99,14 @@ export function AudioMiniPlayer() {
             {/* Top Section */}
             <div className="flex items-start justify-between mb-1">
               <div>
-                <h2 className="text-md font-bold mb-2 line-clamp-2">{currentAudio.title}</h2>
+                <h2 className="text-md font-bold mb-2 line-clamp-2">
+                  {currentAudio.title}
+                </h2>
                 <p className="text-xs opacity-75">{currentAudio.source}</p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8"
                 onClick={handleClose}
                 aria-label="Close mini player"
@@ -127,7 +145,11 @@ export function AudioMiniPlayer() {
                 onClick={memoizedTogglePlayPause} // Use memoized callback
                 aria-label={isPlaying ? "Pause" : "Play"}
               >
-                {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6 ml-0.5" />}
+                {isPlaying ? (
+                  <Pause className="h-6 w-6" />
+                ) : (
+                  <Play className="h-6 w-6 ml-0.5" />
+                )}
               </Button>
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <SkipForward className="h-5 w-5" />
@@ -140,5 +162,5 @@ export function AudioMiniPlayer() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

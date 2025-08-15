@@ -1,0 +1,349 @@
+[
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\sentry.server.config.ts"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\sentry.server.config.ts",
+      "old_string": "  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n  ],",
+      "new_string": "  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n    // Explicitly exclude Prisma integration to avoid OpenTelemetry warnings\n    ...Sentry.getDefaultIntegrations().filter(integration => \n      integration.name !== 'Prisma' && \n      integration.name !== '@prisma/instrumentation'\n    ),\n  ],"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "prisma",
+      "glob": "**/*.{js,ts,tsx,json}",
+      "output_mode": "files_with_matches",
+      "-i": true
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Grep",
+    "tool_input": {
+      "pattern": "@prisma",
+      "path": "C:\\Users\\adity\\Projects\\digests-nextjs\\package.json",
+      "output_mode": "content"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "ls schema.prisma prisma/",
+      "description": "Check for Prisma schema or directory"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\sentry.server.config.ts",
+      "old_string": "  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n    // Explicitly exclude Prisma integration to avoid OpenTelemetry warnings\n    ...Sentry.getDefaultIntegrations().filter(integration => \n      integration.name !== 'Prisma' && \n      integration.name !== '@prisma/instrumentation'\n    ),\n  ],",
+      "new_string": "  // Integrations\n  integrations: [\n    // Automatically capture unhandled promise rejections\n    Sentry.captureConsoleIntegration({\n      levels: [\"error\", \"warn\"],\n    }),\n  ],\n  \n  // Disable automatic instrumentation for unused packages\n  skipOpenTelemetrySetup: true,"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\next.config.mjs",
+      "old_string": "  tunnelRoute: \"/monitoring\",\n  disableLogger: true,\n  automaticVercelMonitors: true,\n  \n  // Disable problematic integrations\n  integrations: (integrations) => {\n    return integrations.filter(integration => {\n      // Filter out Prisma integration if causing issues\n      return integration.name !== 'Prisma';\n    });\n  },",
+      "new_string": "  tunnelRoute: \"/monitoring\",\n  disableLogger: true,\n  automaticVercelMonitors: true,"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "TodoWrite",
+    "tool_input": {
+      "todos": [
+        {
+          "content": "CRITICAL: Fix PodcastArtwork type assertions (loading/priority props)",
+          "status": "completed",
+          "id": "phase1-1"
+        },
+        {
+          "content": "CRITICAL: Fix SyncOperation import error in use-feed-mutations.ts",
+          "status": "completed",
+          "id": "phase1-2"
+        },
+        {
+          "content": "CRITICAL: Remove unused ref in ScrollArea component",
+          "status": "completed",
+          "id": "phase1-3"
+        },
+        {
+          "content": "CRITICAL: Fix function declaration order and type issues",
+          "status": "completed",
+          "id": "phase1-4"
+        },
+        {
+          "content": "CRITICAL: Fix all TypeScript build errors in api-service.ts and utils/encryption.ts",
+          "status": "completed",
+          "id": "phase1-5"
+        },
+        {
+          "content": "DEV: Clean and rebuild Next.js development server",
+          "status": "completed",
+          "id": "dev-1"
+        },
+        {
+          "content": "DEV: Fix MODULE_TYPELESS_PACKAGE_JSON warning",
+          "status": "completed",
+          "id": "dev-2"
+        },
+        {
+          "content": "DEV: Fix Prisma/OpenTelemetry warning in Sentry config",
+          "status": "completed",
+          "id": "dev-3"
+        },
+        {
+          "content": "SECURITY: Sanitize API logging in services/api-service.ts",
+          "status": "completed",
+          "id": "phase2-1"
+        },
+        {
+          "content": "SECURITY: Verify HTML sanitization across all dangerouslySetInnerHTML",
+          "status": "completed",
+          "id": "phase2-2"
+        },
+        {
+          "content": "PERFORMANCE: Fix re-render issues in FeedList component",
+          "status": "completed",
+          "id": "phase3-1"
+        },
+        {
+          "content": "PERFORMANCE: Bundle size optimization - analyze Sentry impact",
+          "status": "completed",
+          "id": "phase3-2"
+        },
+        {
+          "content": "ERROR HANDLING: Standardize error patterns across services",
+          "status": "pending",
+          "id": "phase4-1"
+        },
+        {
+          "content": "ERROR HANDLING: Add error boundaries to key components",
+          "status": "completed",
+          "id": "phase4-2"
+        },
+        {
+          "content": "ARCHITECTURE: Reduce prop drilling in Feed components",
+          "status": "pending",
+          "id": "phase5-1"
+        },
+        {
+          "content": "ARCHITECTURE: Implement proper loading state management",
+          "status": "pending",
+          "id": "phase5-2"
+        }
+      ]
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "npm run dev",
+      "description": "Start the development server to test our fixes"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "\"use strict\";\n/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.themes = void 0;",
+      "new_string": "/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nvar flexokiLight = {",
+      "new_string": "/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nconst flexokiLight = {"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nvar flexokiDark = {",
+      "new_string": "/**\n * Flexoki Dark theme\n * Based on the current dark theme in app/globals.css\n */\nconst flexokiDark = {"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Standard Light theme\n */\nvar standardLight = {",
+      "new_string": "/**\n * Standard Light theme\n */\nconst standardLight = {"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Standard Dark theme\n */\nvar standardDark = {",
+      "new_string": "/**\n * Standard Dark theme\n */\nconst standardDark = {"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Dracula Light theme\n */\nvar draculaLight = {",
+      "new_string": "/**\n * Dracula Light theme\n */\nconst draculaLight = {"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Dracula Dark theme\n */\nvar draculaDark = {",
+      "new_string": "/**\n * Dracula Dark theme\n */\nconst draculaDark = {"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "/**\n * Array of all available themes\n */\nexports.themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];",
+      "new_string": "/**\n * Array of all available themes\n */\nexport const themes = [\n  flexokiLight,\n  flexokiDark,\n  standardLight,\n  standardDark,\n  draculaLight,\n  draculaDark,\n];"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "mv tailwind.config.ts tailwind.config.mjs",
+      "description": "Rename tailwind config to .mjs to fix module type warning"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\tsconfig.json",
+      "old_string": "  \"include\": [\n    \"next-env.d.ts\",\n    \"**/*.ts\",\n    \"**/*.tsx\",\n    \".next/types/**/*.ts\",\n    \"tailwind.config.js\"\n  ],",
+      "new_string": "  \"include\": [\n    \"next-env.d.ts\",\n    \"**/*.ts\",\n    \"**/*.tsx\",\n    \".next/types/**/*.ts\",\n    \"tailwind.config.mjs\"\n  ],"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "timeout 10s npm run dev",
+      "description": "Test the development server with timeout to check for warnings"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "pnpm dev",
+      "description": "Start Next.js development server with pnpm"
+    }
+  },
+  {
+    "session_id": "8b5f7432-7468-46d7-a388-88adc6a7b31f",
+    "transcript_path": "C:\\Users\\adity\\.claude\\projects\\C--Users-adity-Projects-digests-nextjs\\8b5f7432-7468-46d7-a388-88adc6a7b31f.jsonl",
+    "cwd": "C:\\Users\\adity\\Projects\\digests-nextjs",
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "C:\\Users\\adity\\Projects\\digests-nextjs\\lib\\theme-definitions.js",
+      "old_string": "\"use strict\";\n/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.themes = void 0;\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nvar flexokiLight = {",
+      "new_string": "/**\n * Theme definitions for the digests-nextjs application\n * This file contains all the theme definitions used in the application\n */\n/**\n * Flexoki Light theme\n * Based on the current light theme in app/globals.css\n */\nconst flexokiLight = {"
+    }
+  }
+]

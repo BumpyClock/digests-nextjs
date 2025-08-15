@@ -48,8 +48,8 @@ export const ReaderContent = memo(function ReaderContent({
     layout === "modal"
       ? "px-2 py-2 md:px-6 md:py-2 lg:px-2"
       : isCompact
-      ? "px-3 py-4"
-      : "p-2";
+        ? "px-3 py-4"
+        : "p-2";
 
   return (
     <div className={`${containerPadding} ${className}`}>

@@ -1,0 +1,29 @@
+# Test files and directories
+**/__tests__/**
+**/*.test.*
+**/*.spec.*
+**/__mocks__/**
+**/test-utils/**
+**/*.mock.*
+
+# Build and generated files
+**/coverage/**
+**/.next/**
+**/dist/**
+**/build/**
+**/node_modules/**
+
+# Configuration and documentation
+*.config.*
+*.setup.*
+README.md
+CHANGELOG.md
+
+# Examples and documentation code
+**/examples/**
+**/*.example.*
+
+# Legacy and temporary files
+**/*.backup
+**/*.tmp
+**/*.old

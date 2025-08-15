@@ -83,7 +83,7 @@ const handleCardClick = useCallback(
 
     // Continue with existing logic
   },
-  [feedItem.id]
+  [feedItem.id],
 );
 ```
 

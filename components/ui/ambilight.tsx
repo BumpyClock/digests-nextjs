@@ -37,7 +37,7 @@ export function Ambilight({
             ? "ambilight-active"
             : "ambilight-inactive"
           : "group-hover:ambilight-active ambilight-inactive",
-        className
+        className,
       )}
       {...props}
     >

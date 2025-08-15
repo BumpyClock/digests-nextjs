@@ -1,48 +1,52 @@
-"use client"
+"use client";
 
 import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, Bookmark, Share2, ExternalLink } from "lucide-react"
-import { toggleFavoriteAction } from "@/app/actions"
-import { useToast } from "@/hooks/use-toast"
-import Link from "next/link"
-import Image from "next/image"
-import { FeedItem } from "@/types"
-import { useFeedsQuery, useReaderViewQuery } from "@/hooks/queries"
-import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowLeft, Bookmark, Share2, ExternalLink } from "lucide-react";
+import { toggleFavoriteAction } from "@/app/actions";
+import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
+import Image from "next/image";
+import { FeedItem } from "@/types";
+import { useFeedsQuery, useReaderViewQuery } from "@/hooks/queries";
+import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
 
-export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
+export default function ArticlePage(props: {
+  params: Promise<{ id: string }>;
+}) {
   const params = use(props.params);
-  const [article, setArticle] = useState<FeedItem | null>(null)
-  const [isBookmarked, setIsBookmarked] = useState(false)
-  const router = useRouter()
-  const { toast } = useToast()
-  
+  const [article, setArticle] = useState<FeedItem | null>(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const router = useRouter();
+  const { toast } = useToast();
+
   // Use React Query to get feeds data
-  const feedsQuery = useFeedsQuery()
-  
+  const feedsQuery = useFeedsQuery();
+
   // Find the article from feeds data
-  const foundArticle = feedsQuery.data?.items?.find((item: FeedItem) => item.id === params.id && item.type === "article")
-  
+  const foundArticle = feedsQuery.data?.items?.find(
+    (item: FeedItem) => item.id === params.id && item.type === "article",
+  );
+
   // Use React Query to get reader view data
-  const readerViewQuery = useReaderViewQuery(foundArticle?.link || "")
+  const readerViewQuery = useReaderViewQuery(foundArticle?.link || "");
 
   useEffect(() => {
     if (foundArticle) {
-      setArticle(foundArticle)
-      setIsBookmarked(foundArticle.favorite || false)
+      setArticle(foundArticle);
+      setIsBookmarked(foundArticle.favorite || false);
     }
-  }, [foundArticle])
+  }, [foundArticle]);
 
   const handleBookmark = async () => {
-    if (!article) return
+    if (!article) return;
 
     // Optimistic update
-    setIsBookmarked(!isBookmarked)
+    setIsBookmarked(!isBookmarked);
 
-    const result = await toggleFavoriteAction(article.id)
+    const result = await toggleFavoriteAction(article.id);
 
     if (result.success) {
       toast({
@@ -50,26 +54,27 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
         description: isBookmarked
           ? "This article has been removed from your bookmarks."
           : "This article has been added to your bookmarks.",
-      })
+      });
     } else {
       // Revert optimistic update if failed
-      setIsBookmarked(isBookmarked)
+      setIsBookmarked(isBookmarked);
 
       toast({
         title: "Error",
         description: result.message || "Failed to update bookmark status",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleShare = () => {
     // In a real app, this would use the Web Share API
     toast({
       title: "Share link copied",
-      description: "The link to this article has been copied to your clipboard.",
-    })
-  }
+      description:
+        "The link to this article has been copied to your clipboard.",
+    });
+  };
 
   if (feedsQuery.isLoading || readerViewQuery.isLoading) {
     return (
@@ -97,7 +102,7 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (!article) {
@@ -110,35 +115,45 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
         <div className="flex flex-col items-center justify-center py-12">
           <h2 className="text-2xl font-bold mb-2">Article not found</h2>
           <p className="text-muted-foreground mb-6">
-            The article you&apos;re looking for doesn&apos;t exist or has been removed.
+            The article you&apos;re looking for doesn&apos;t exist or has been
+            removed.
           </p>
           <Button onClick={() => router.push("/app")}>Return to feeds</Button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="container max-w-3xl py-8">
       <div className="mb-6">
-        <Button variant="ghost" size="sm" onClick={() => router.back()} className="mb-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.back()}
+          className="mb-4"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <h1 className="text-3xl font-bold mb-4">{readerViewQuery.data?.title || article.title}</h1>
+        <h1 className="text-3xl font-bold mb-4">
+          {readerViewQuery.data?.title || article.title}
+        </h1>
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-2">
             {readerViewQuery.data?.favicon && (
-              <Image 
-                src={readerViewQuery.data.favicon || "/placeholder-rss.svg"} 
-                alt="Site favicon" 
+              <Image
+                src={readerViewQuery.data.favicon || "/placeholder-rss.svg"}
+                alt="Site favicon"
                 width={24}
                 height={24}
                 className="rounded"
               />
             )}
             <div>
-              <p className="font-medium">{readerViewQuery.data?.siteName || article.link}</p>
+              <p className="font-medium">
+                {readerViewQuery.data?.siteName || article.link}
+              </p>
               <p className="text-sm text-muted-foreground">
                 {new Date(article.published).toLocaleDateString(undefined, {
                   year: "numeric",
@@ -150,14 +165,20 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
           </div>
           <div className="flex space-x-2">
             <Button variant="ghost" size="icon" onClick={handleBookmark}>
-              <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
+              <Bookmark
+                className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`}
+              />
               <span className="sr-only">Bookmark</span>
             </Button>
             <Button variant="ghost" size="icon" onClick={handleShare}>
               <Share2 className="h-4 w-4" />
               <span className="sr-only">Share</span>
             </Button>
-            <Link href={article.link || "#"} target="_blank" rel="noopener noreferrer">
+            <Link
+              href={article.link || "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Button variant="ghost" size="icon">
                 <ExternalLink className="h-4 w-4" />
                 <span className="sr-only">Open original</span>
@@ -179,13 +200,22 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
 
         <div className="prose prose-sm sm:prose dark:prose-invert w-full md:max-w-4xl">
           {readerViewQuery.data ? (
-            <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(readerViewQuery.data.content) }} />
+            <div
+              dangerouslySetInnerHTML={{
+                __html: sanitizeReaderContent(readerViewQuery.data.content),
+              }}
+            />
           ) : (
-            <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(article.content || article.description || '') }} />
+            <div
+              dangerouslySetInnerHTML={{
+                __html: sanitizeReaderContent(
+                  article.content || article.description || "",
+                ),
+              }}
+            />
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }
-

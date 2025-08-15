@@ -8,3 +8,5 @@ export {
   EmptyState,
   processArticleContent,
 } from "./ArticleReader";
+
+export { ArticleReader } from "./ArticleReaderWrapper";

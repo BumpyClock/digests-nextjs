@@ -6,34 +6,42 @@ import { EmptyState } from "@/components/Feed/ArticleReader/ArticleReader";
 import { useFeedStore } from "@/store/useFeedStore";
 import { useReaderView } from "@/hooks/use-reader-view";
 import { ReaderContent } from "@/components/Feed/ReaderContent";
+import { useFeedSelection } from "@/contexts/FeedContext";
 import { type FeedItem } from "@/types";
 
 interface ReaderViewPaneProps {
-  feedItem: FeedItem | null;
+  feedItem?: FeedItem | null; // Optional - will use context if not provided
 }
 
-export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
+export function ReaderViewPane({ feedItem: providedFeedItem }: ReaderViewPaneProps) {
+  const { selectedItem } = useFeedSelection();
+  
+  // Use provided feedItem or fall back to context
+  const feedItem = providedFeedItem ?? selectedItem;
   const { markAsRead } = useFeedStore();
   const { readerView, loading, cleanedContent } = useReaderView(feedItem);
-  
+
   // Mark as read after viewing
   useEffect(() => {
     if (feedItem) {
       const timer = setTimeout(() => {
         markAsRead(feedItem.id);
       }, 2000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [feedItem, markAsRead]);
 
   // Mark as read on scroll
-  const handleScroll = useCallback((e: Event) => {
-    const target = e.target as HTMLDivElement;
-    if (target.scrollTop > 100 && feedItem) {
-      markAsRead(feedItem.id);
-    }
-  }, [feedItem, markAsRead]);
+  const handleScroll = useCallback(
+    (e: Event) => {
+      const target = e.target as HTMLDivElement;
+      if (target.scrollTop > 100 && feedItem) {
+        markAsRead(feedItem.id);
+      }
+    },
+    [feedItem, markAsRead],
+  );
 
   if (!feedItem) {
     return <EmptyState />;
@@ -41,10 +49,7 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
 
   return (
     <div className="h-full border rounded-md overflow-hidden bg-card">
-      <ScrollArea 
-        className="h-full w-full"
-        onScroll={handleScroll}
-      >
+      <ScrollArea className="h-full w-full" onScroll={handleScroll}>
         <ReaderContent
           feedItem={feedItem}
           readerView={readerView}
@@ -55,4 +60,4 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
       </ScrollArea>
     </div>
   );
-} 
+}

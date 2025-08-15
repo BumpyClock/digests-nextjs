@@ -26,7 +26,7 @@ import { useRenderCount } from "@/store/middleware/performanceMiddleware";
 function MyComponent() {
   // In development, logs render count to console
   useRenderCount('MyComponent');
-  
+
   return <div>...</div>;
 }
 ```
@@ -43,7 +43,7 @@ The system automatically collects and aggregates performance metrics:
 import { performanceMetrics } from "@/store/middleware/performanceMiddleware";
 
 // Get stats for a specific metric
-const stats = performanceMetrics.getStats('FeedStore');
+const stats = performanceMetrics.getStats("FeedStore");
 console.log(stats); // { avg: "5.23", max: "25.14", min: "0.12", count: 100 }
 
 // Log all metrics
@@ -59,8 +59,8 @@ Debug which components subscribe to which store parts:
 import { debugSubscription } from "@/store/middleware/performanceMiddleware";
 
 function MyComponent() {
-  const items = useFeedStore(state => {
-    debugSubscription('FeedStore', state => state.items, 'MyComponent');
+  const items = useFeedStore((state) => {
+    debugSubscription("FeedStore", (state) => state.items, "MyComponent");
     return state.items;
   });
 }
@@ -75,6 +75,7 @@ function MyComponent() {
 ## Reading the Logs
 
 ### Slow Update Warning
+
 ```
 [FeedStore] Slow update detected: 25.14ms
 {
@@ -86,11 +87,13 @@ function MyComponent() {
 ```
 
 ### Render Count Log
+
 ```
 [Render] FeedCard-item-123 rendered 3 times
 ```
 
 ### Performance Metrics Summary
+
 ```
 === Performance Metrics ===
 FeedStore: { avg: "5.23", max: "25.14", min: "0.12", count: 100 }

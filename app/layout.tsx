@@ -8,12 +8,12 @@ import { Header } from "@/components/header";
 import { Toaster } from "@/components/ui/sonner";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { WorkerInitializer } from "@/components/worker-init";
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/react";
 import { AmbilightFilterDefs } from "@/components/ui/AmbilightFilterDefs";
 import { FeedAnimationProvider } from "@/contexts/FeedAnimationContext";
 import { QueryProvider } from "@/components/providers/query-provider";
-
+import ErrorBoundary from "@/components/error-boundary";
 
 const notoSans = Noto_Sans({ subsets: ["latin"] });
 
@@ -56,19 +56,17 @@ export default function RootLayout({
           <ThemeProvider>
             <FeedAnimationProvider>
               <WorkerInitializer />
-              <AmbilightFilterDefs
-                saturation={1}
-                spread={2}
-                blur={8}
-              />
-              <div className="flex min-h-screen flex-col">
-                <Header />
-                <main className="flex-1 w-full p-4 xs:p-4 md:p-4 xs:max-w-full md:max-w-5xl lg:max-w-full">
-                  {children}
-                  <SpeedInsights />
-                  <Analytics />
-                </main>
-              </div>
+              <AmbilightFilterDefs saturation={1} spread={2} blur={8} />
+              <ErrorBoundary>
+                <div className="flex min-h-screen flex-col">
+                  <Header />
+                  <main className="flex-1 w-full p-4 xs:p-4 md:p-4 xs:max-w-full md:max-w-5xl lg:max-w-full">
+                    {children}
+                    <SpeedInsights />
+                    <Analytics />
+                  </main>
+                </div>
+              </ErrorBoundary>
               <AudioPlayer />
               <Toaster />
             </FeedAnimationProvider>

@@ -1,8 +1,8 @@
-import { memo } from "react"
-import { Button } from "@/components/ui/button"
-import { Upload, Download } from "lucide-react"
-import { useOPML } from "@/app/web/settings/hooks/use-opml"
-import { OPMLImportDialog } from "./opml-import-dialog"
+import { memo } from "react";
+import { Button } from "@/components/ui/button";
+import { Upload, Download } from "lucide-react";
+import { useOPML } from "@/app/web/settings/hooks/use-opml";
+import { OPMLImportDialog } from "./opml-import-dialog";
 
 export const OPMLTools = memo(function OPMLTools() {
   const {
@@ -12,8 +12,8 @@ export const OPMLTools = memo(function OPMLTools() {
     isDialogOpen,
     setIsDialogOpen,
     detectedFeeds,
-    handleImportSelected
-  } = useOPML()
+    handleImportSelected,
+  } = useOPML();
 
   return (
     <>
@@ -37,11 +37,7 @@ export const OPMLTools = memo(function OPMLTools() {
             <Upload className="mr-2 h-4 w-4" />
             Import OPML
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportOPML}
-          >
+          <Button variant="outline" size="sm" onClick={handleExportOPML}>
             <Download className="mr-2 h-4 w-4" />
             Export OPML
           </Button>
@@ -55,5 +51,5 @@ export const OPMLTools = memo(function OPMLTools() {
         onOpenChange={setIsDialogOpen}
       />
     </>
-  )
-}) 
+  );
+});
