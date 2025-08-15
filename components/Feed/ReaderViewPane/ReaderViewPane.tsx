@@ -6,13 +6,18 @@ import { EmptyState } from "@/components/Feed/ArticleReader/ArticleReader";
 import { useFeedStore } from "@/store/useFeedStore";
 import { useReaderView } from "@/hooks/use-reader-view";
 import { ReaderContent } from "@/components/Feed/ReaderContent";
+import { useFeedSelection } from "@/contexts/FeedContext";
 import { type FeedItem } from "@/types";
 
 interface ReaderViewPaneProps {
-  feedItem: FeedItem | null;
+  feedItem?: FeedItem | null; // Optional - will use context if not provided
 }
 
-export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
+export function ReaderViewPane({ feedItem: providedFeedItem }: ReaderViewPaneProps) {
+  const { selectedItem } = useFeedSelection();
+  
+  // Use provided feedItem or fall back to context
+  const feedItem = providedFeedItem ?? selectedItem;
   const { markAsRead } = useFeedStore();
   const { readerView, loading, cleanedContent } = useReaderView(feedItem);
 

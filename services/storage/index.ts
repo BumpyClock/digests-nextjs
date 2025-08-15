@@ -12,6 +12,7 @@ import {
 } from "@/types/storage";
 import { Feed, FeedItem } from "@/types/feed";
 import { StorageError } from "@/types/errors";
+import { handleError, ErrorType, AppError } from "@/utils/error-handling";
 import { Logger } from "@/utils/logger";
 import { Result } from "@/types";
 import { memoryCache } from "./cache";
@@ -94,7 +95,10 @@ class LocalStorageProvider implements StorageProvider {
         error as Error,
         this.LOG_CONTEXT,
       );
-      throw new StorageError(`Failed to set item in storage: ${key}`);
+      throw new AppError(`Failed to set item in storage: ${key}`, ErrorType.CLIENT, {
+        context: { key, operation: "setItem" },
+        originalError: error as Error
+      });
     }
   }
 
@@ -116,7 +120,10 @@ class LocalStorageProvider implements StorageProvider {
         error as Error,
         this.LOG_CONTEXT,
       );
-      throw new StorageError(`Failed to remove item from storage: ${key}`);
+      throw new AppError(`Failed to remove item from storage: ${key}`, ErrorType.CLIENT, {
+        context: { key, operation: "removeItem" },
+        originalError: error as Error
+      });
     }
   }
 
@@ -133,7 +140,10 @@ class LocalStorageProvider implements StorageProvider {
       Logger.debug("Storage cleared", this.LOG_CONTEXT);
     } catch (error) {
       Logger.error("Error clearing storage", error as Error, this.LOG_CONTEXT);
-      throw new StorageError("Failed to clear storage");
+      throw new AppError("Failed to clear storage", ErrorType.CLIENT, {
+        context: { operation: "clear" },
+        originalError: error as Error
+      });
     }
   }
 }

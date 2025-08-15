@@ -41,8 +41,9 @@ next-env.d.ts
 .cursor/
 
 **/.claude/settings.local.json
-.claude/
+logs/
 .env
 .claude/tasks/**
 .claude/sprints/*
 package-lock.json
+**/*/__pycache__/*

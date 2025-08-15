@@ -5,6 +5,7 @@
  */
 
 import { generateUUIDSync, createHashSync } from "@/utils/uuid";
+import { handleError, withErrorHandling, ErrorType, AppError } from "@/utils/error-handling";
 import type {
   Feed,
   FeedItem,
@@ -586,7 +587,10 @@ class ApiService implements ApiClient {
       const feed = feeds.find((f) => f.guid === id);
 
       if (!feed) {
-        throw new Error(`Feed with id ${id} not found`);
+        throw new AppError(`Feed with id ${id} not found`, ErrorType.NOT_FOUND, {
+          statusCode: 404,
+          context: { feedId: id }
+        });
       }
 
       await this.cache.set(cacheKey, feed);
@@ -599,7 +603,11 @@ class ApiService implements ApiClient {
     create: async (feedDto: CreateFeedDto): Promise<Feed> => {
       const result = await this.fetchFeeds([feedDto.url]);
       if (result.feeds.length === 0) {
-        throw new Error("Failed to add feed");
+        throw new AppError("Failed to add feed", ErrorType.SERVER, {
+          statusCode: 500,
+          context: { feedUrl: feedDto.url },
+          retryable: true
+        });
       }
       return result.feeds[0];
     },
@@ -678,7 +686,10 @@ class ApiService implements ApiClient {
     update: async (_id: string, _feedDto: UpdateFeedDto): Promise<Feed> => {
       // Current API doesn't support feed updates
       // This would need to be implemented on the backend
-      throw new Error("Feed update not implemented");
+      throw new AppError("Feed update not implemented", ErrorType.NOT_FOUND, {
+        statusCode: 501,
+        context: { operation: "updateFeed" }
+      });
     },
 
     /**
@@ -863,11 +874,7 @@ class ApiService implements ApiClient {
 
       return result;
     } catch (error) {
-      Logger.error(
-        "[ApiService] Error fetching feeds:",
-        error instanceof Error ? error : new Error(String(error)),
-      );
-      throw error;
+      throw handleError(error, "fetchFeeds", { urls });
     }
   }
 
@@ -892,11 +899,7 @@ class ApiService implements ApiClient {
       // Fetch fresh data
       return await this.fetchFeeds(urls);
     } catch (error) {
-      Logger.error(
-        "[ApiService] Error refreshing feeds:",
-        error instanceof Error ? error : new Error(String(error)),
-      );
-      throw error;
+      throw handleError(error, "refreshFeeds", { urls });
     }
   }
 
@@ -907,7 +910,10 @@ class ApiService implements ApiClient {
     try {
       // Validate URL first
       if (!isValidUrl(url)) {
-        throw new Error("Invalid URL for reader view");
+        throw new AppError("Invalid URL for reader view", ErrorType.VALIDATION, {
+          statusCode: 400,
+          context: { url }
+        });
       }
 
       // Generate secure cache key
@@ -926,13 +932,21 @@ class ApiService implements ApiClient {
       });
 
       if (!Array.isArray(data) || data.length === 0) {
-        throw new Error("Invalid response from API");
+        throw new AppError("Invalid response from API", ErrorType.SERVER, {
+          statusCode: 500,
+          context: { url },
+          retryable: true
+        });
       }
 
       // Validate response (assuming we have an isArticle type guard)
       // For now, we'll do basic validation
       if (!data[0] || typeof data[0] !== "object") {
-        throw new Error("Invalid reader view response structure");
+        throw new AppError("Invalid reader view response structure", ErrorType.SERVER, {
+          statusCode: 500,
+          context: { url },
+          retryable: true
+        });
       }
 
       // Cache the result
@@ -940,11 +954,7 @@ class ApiService implements ApiClient {
 
       return data[0];
     } catch (error) {
-      Logger.error(
-        "[ApiService] Error fetching reader view:",
-        error instanceof Error ? error : new Error(String(error)),
-      );
-      throw error;
+      throw handleError(error, "fetchReaderView", { url });
     }
   }
 }

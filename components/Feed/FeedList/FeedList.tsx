@@ -13,17 +13,15 @@ import Image from "next/image";
 import { Heart } from "lucide-react";
 import { ScrollArea, useScrollAreaRef } from "@/components/ui/scroll-area";
 import { useIsItemRead } from "@/hooks/useFeedActions";
+import { useFeedContext, useFeedSelection, useFeedLoading, useFeedNavigation } from "@/contexts/FeedContext";
+import { LoadingStateGuard, LoadingSkeleton } from "@/components/ui/loading-states";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { cleanupTextContent } from "@/utils/htmlUtils";
 dayjs.extend(relativeTime);
 
 interface FeedListProps {
-  items: FeedItem[];
-  isLoading: boolean;
-  selectedItem?: FeedItem | null;
-  onItemSelect: (item: FeedItem, scrollTop: number) => void;
-  savedScrollPosition?: number;
+  // No props needed - uses context
 }
 
 const FeedListItem = memo(function FeedListItem({
@@ -99,99 +97,114 @@ const FeedListItem = memo(function FeedListItem({
   );
 });
 
-export function FeedList({
-  items,
-  isLoading,
-  selectedItem,
-  onItemSelect,
-  savedScrollPosition = 0,
-}: FeedListProps) {
+export function FeedList({}: FeedListProps) {
+  const { items, selectedItem, handleItemSelect } = useFeedContext();
+  const { loadingState } = useFeedLoading();
+  const { scrollPosition } = useFeedNavigation();
   const scrollbarsRef = useScrollAreaRef();
   const scrollableNodeRef = useRef<HTMLDivElement>(null);
   const [currentScrollTop, setCurrentScrollTop] = useState(0);
 
   // Restore scroll position when component remounts
   useEffect(() => {
-    if (scrollableNodeRef.current && savedScrollPosition > 0) {
-      scrollableNodeRef.current.scrollTop = savedScrollPosition;
+    if (scrollableNodeRef.current && scrollPosition > 0) {
+      scrollableNodeRef.current.scrollTop = scrollPosition;
     }
-  }, [savedScrollPosition]);
+  }, [scrollPosition]);
 
   const handleScroll = useCallback((e: Event) => {
     const target = e.target as HTMLDivElement;
     setCurrentScrollTop(target.scrollTop);
   }, []);
 
-  const handleItemSelect = useCallback(
+  const handleItemClick = useCallback(
     (item: FeedItem) => {
-      onItemSelect(item, currentScrollTop);
+      handleItemSelect(item, currentScrollTop);
     },
-    [onItemSelect, currentScrollTop],
+    [handleItemSelect, currentScrollTop],
   );
 
   // Memoize the item selection handlers to prevent re-renders
   const itemSelectHandlers = useMemo(() => {
     const handlers = new Map<string, () => void>();
     items.forEach((item) => {
-      handlers.set(item.id, () => handleItemSelect(item));
+      handlers.set(item.id, () => handleItemClick(item));
     });
     return handlers;
-  }, [items, handleItemSelect]);
+  }, [items, handleItemClick]);
 
   const renderSkeletons = useCallback(() => {
     return Array(10)
       .fill(0)
       .map((_, i) => (
-        <div key={i} className="p-4 border-b animate-pulse">
-          <div className="flex gap-3">
-            <div className="bg-secondary h-[70px] w-[70px] rounded-md"></div>
-            <div className="grow">
-              <div className="h-2 bg-secondary rounded w-16 mb-2"></div>
-              <div className="h-4 bg-secondary rounded w-full mb-2"></div>
-              <div className="h-4 bg-secondary rounded w-3/4 mb-2"></div>
-              <div className="h-2 bg-secondary rounded w-20 mt-2"></div>
-            </div>
-          </div>
+        <div key={i} className="p-4 border-b">
+          <LoadingSkeleton lines={2} showAvatar className="flex gap-3" />
         </div>
       ));
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="border rounded-md overflow-hidden h-full">
-        <ScrollArea variant="list" className="h-full">
-          {renderSkeletons()}
-        </ScrollArea>
-      </div>
-    );
-  }
-
-  if (!items || items.length === 0) {
-    return (
-      <div className="border rounded-md p-8 flex items-center justify-center h-full">
-        <p className="text-muted-foreground">No items found</p>
-      </div>
-    );
-  }
-
   return (
     <div className="border rounded-md overflow-hidden h-full">
-      <ScrollArea
-        ref={scrollbarsRef}
-        variant="list"
-        className="h-full"
-        onScroll={handleScroll}
-        scrollableNodeRef={scrollableNodeRef}
+      <LoadingStateGuard 
+        loadingState={loadingState}
+        fallback={{
+          loading: (
+            <ScrollArea variant="list" className="h-full">
+              {renderSkeletons()}
+            </ScrollArea>
+          ),
+          refreshing: (
+            <ScrollArea variant="list" className="h-full">
+              {items.length > 0 ? (
+                items.map((item) => (
+                  <div key={item.id} className="opacity-50">
+                    <FeedListItem
+                      item={item}
+                      isSelected={selectedItem?.id === item.id}
+                      onSelect={itemSelectHandlers.get(item.id)!}
+                    />
+                  </div>
+                ))
+              ) : (
+                renderSkeletons()
+              )}
+            </ScrollArea>
+          ),
+          initializing: (
+            <ScrollArea variant="list" className="h-full">
+              {renderSkeletons()}
+            </ScrollArea>
+          ),
+          error: (
+            <div className="p-8 flex items-center justify-center h-full">
+              <p className="text-muted-foreground">Failed to load items. Please try refreshing.</p>
+            </div>
+          ),
+        }}
       >
-        {items.map((item) => (
-          <FeedListItem
-            key={item.id}
-            item={item}
-            isSelected={selectedItem?.id === item.id}
-            onSelect={itemSelectHandlers.get(item.id)!}
-          />
-        ))}
-      </ScrollArea>
+        {(!items || items.length === 0) ? (
+          <div className="p-8 flex items-center justify-center h-full">
+            <p className="text-muted-foreground">No items found</p>
+          </div>
+        ) : (
+          <ScrollArea
+            ref={scrollbarsRef}
+            variant="list"
+            className="h-full"
+            onScroll={handleScroll}
+            scrollableNodeRef={scrollableNodeRef}
+          >
+            {items.map((item) => (
+              <FeedListItem
+                key={item.id}
+                item={item}
+                isSelected={selectedItem?.id === item.id}
+                onSelect={itemSelectHandlers.get(item.id)!}
+              />
+            ))}
+          </ScrollArea>
+        )}
+      </LoadingStateGuard>
     </div>
   );
 }
