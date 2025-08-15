@@ -1,7 +1,6 @@
 "use client";
 
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
-import * as Sentry from "@sentry/nextjs";
 import { Logger } from "@/utils/logger";
 import { AlertCircle, RefreshCw, Home } from "lucide-react";
 
@@ -97,14 +96,7 @@ class ErrorBoundary extends Component<Props, State> {
       }
     }
 
-    // Log to Sentry with additional context
-    Sentry.withScope((scope) => {
-      scope.setContext("errorBoundary", {
-        componentStack: errorInfo.componentStack,
-      });
-      scope.setLevel("error");
-      Sentry.captureException(error);
-    });
+    // Error has been logged above
   }
 
   public resetError = () => {
@@ -130,15 +122,6 @@ class ErrorBoundary extends Component<Props, State> {
 export function useErrorHandler() {
   return (error: Error, errorInfo?: { componentStack?: string }) => {
     Logger.error("Error handled by hook", error);
-
-    Sentry.withScope((scope) => {
-      if (errorInfo?.componentStack) {
-        scope.setContext("errorBoundary", {
-          componentStack: errorInfo.componentStack,
-        });
-      }
-      Sentry.captureException(error);
-    });
 
     if (process.env.NODE_ENV === "development") {
       console.error("Error handled:", error, errorInfo);

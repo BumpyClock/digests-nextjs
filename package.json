@@ -41,7 +41,6 @@
     "@radix-ui/react-switch": "1.2.5",
     "@radix-ui/react-tabs": "1.1.12",
     "@radix-ui/react-toast": "1.2.14",
-    "@sentry/nextjs": "10.1.0",
     "@tailwindcss/typography": "0.5.16",
     "@tanstack/query-persist-client-core": "^5.85.2",
     "@tanstack/query-sync-storage-persister": "^5.85.2",
@@ -121,7 +120,6 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "@heroui/shared-utils",
-      "@sentry/cli",
       "@tailwindcss/oxide",
       "@vercel/speed-insights",
       "sharp",

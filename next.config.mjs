@@ -1,6 +1,5 @@
 import createMDX from '@next/mdx';
 import remarkGfm from 'remark-gfm';
-import { withSentryConfig } from '@sentry/nextjs';
 import bundleAnalyzer from '@next/bundle-analyzer';
 
 const withMDX = createMDX({
@@ -89,60 +88,19 @@ const nextConfig = {
       },
     });
 
-    // Generate source maps for Sentry
-    // if (!isServer) {
-    //   config.devtool = 'source-map';
-    // }
 
     return config;
   },
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
-  // Sentry configuration for source maps
-  productionBrowserSourceMaps: true,
 };
 
-// Wrap the config with Sentry
-const sentryWebpackPluginOptions = {
-  // Your Sentry auth token
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  
-  // Your Sentry org and project
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-
-  // Additional options for the Sentry webpack plugin
-  silent: true, // Suppresses all logs
-  
-  // Upload source maps to Sentry
-  include: ".next",
-  ignore: ["node_modules"],
-  
-  // Automatically release tracking
-  release: {
-    create: true,
-    finalize: true,
-    // Use environment variable or generate from git
-    name: process.env.SENTRY_RELEASE || process.env.VERCEL_GIT_COMMIT_SHA,
-  },
-
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options
-  hideSourceMaps: false,
-  widenClientFileUpload: true,
-  transpileClientSDK: true,
-  tunnelRoute: "/monitoring",
-  disableLogger: true,
-  automaticVercelMonitors: true,
-};
 
 // Configure bundle analyzer
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
-// Conditionally apply Sentry config in production and bundle analyzer
-const config = process.env.NODE_ENV === 'production' && process.env.SENTRY_AUTH_TOKEN
-  ? withSentryConfig(withBundleAnalyzer(withMDX(nextConfig)), sentryWebpackPluginOptions)
-  : withBundleAnalyzer(withMDX(nextConfig));
+// Configure with bundle analyzer
+const config = withBundleAnalyzer(withMDX(nextConfig));
 
 export default config;

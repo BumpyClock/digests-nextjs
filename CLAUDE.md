@@ -67,11 +67,9 @@ This project uses the SPARC (Specification, Pseudocode, Architecture, Refinement
 
 Digests is a RSS reader and podcast aggregator that allows users to subscribe to RSS feeds and podcasts, and receive daily digests of new content. The web application is built using Next.js, and TypeScript. We use Zustand for client state management, and React Query for server state management. The application is designed to be fast, responsive, and easy to use.
 
-# Sentry Integration
+# Error Handling
 
-Sentry is integrated into the Next.js application to monitor and report errors, performance issues, and logs. The integration is configured to capture both client-side and server-side errors, as well as logs from the application.
-
-Sentry documentation is saved in `docs/sentry-rules.md` and should be followed for all Sentry-related code changes. Online documentation can be found at https://docs.sentry.io/platforms/javascript/guides/nextjs/
+The application uses standardized error handling utilities located in `utils/error-handling.ts` for consistent error management across the application. Error boundaries are implemented for React components using `components/error-boundary.tsx`.
 
 # Digests API
 

@@ -1,5 +1,4 @@
 import React, { useCallback } from "react";
-import * as Sentry from "@sentry/nextjs";
 import { toast } from "sonner";
 import { Logger } from "@/utils/logger";
 
@@ -16,7 +15,6 @@ export function useErrorHandling() {
       const {
         showToast = true,
         fallbackMessage = "An unexpected error occurred",
-        context,
         onError,
       } = options;
 
@@ -24,14 +22,7 @@ export function useErrorHandling() {
       Logger.error("Error captured by useErrorHandling", error);
       console.error("Error:", error);
 
-      // Capture in Sentry with context
-      Sentry.withScope((scope) => {
-        if (context) {
-          scope.setContext("errorHandling", context);
-        }
-        scope.setLevel("error");
-        Sentry.captureException(error);
-      });
+      // Error logged to console and Logger
 
       // Show toast notification if enabled
       if (showToast) {

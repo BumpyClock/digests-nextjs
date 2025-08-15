@@ -3,7 +3,6 @@
  */
 
 import { Logger } from "@/utils/logger";
-import * as Sentry from "@sentry/nextjs";
 
 export enum ErrorType {
   NETWORK = "NETWORK_ERROR",
@@ -133,25 +132,7 @@ export function handleError(
     context: standardError.context,
   });
 
-  // Report to Sentry for non-client errors
-  if (
-    standardError.type !== ErrorType.VALIDATION &&
-    standardError.type !== ErrorType.CLIENT
-  ) {
-    Sentry.withScope((scope) => {
-      scope.setTag("operation", operation);
-      scope.setContext("error", {
-        type: standardError.type,
-        code: standardError.code,
-        statusCode: standardError.statusCode,
-        retryable: standardError.retryable,
-      });
-      if (context) {
-        scope.setContext("operationContext", context);
-      }
-      Sentry.captureException(standardError.originalError || standardError);
-    });
-  }
+  // Error has been logged to console via Logger
 
   return standardError;
 }
