@@ -2,12 +2,12 @@ import { memo } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Plus } from "lucide-react"
-import { useFeedStore } from "@/store/useFeedStore"
+import { useSubscriptions } from "@/hooks/useFeedSelectors"
 import { useFeedManagement } from "@/app/web/settings/hooks/use-feed-management"
 import { SettingsFeedGrid } from "@/app/web/settings/settingsFeedGrid"
 
 export const FeedList = memo(function FeedList() {
-  const { feeds } = useFeedStore()
+  const feeds = useSubscriptions()
   const { handleRemoveFeed, handleCopyFeed } = useFeedManagement()
 
   if (feeds.length === 0) {

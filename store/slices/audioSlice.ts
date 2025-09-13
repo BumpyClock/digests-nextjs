@@ -1,3 +1,5 @@
+// ABOUTME: Zustand slice managing audio playback state and actions for the app's audio player.
+// ABOUTME: Provides state (current track, playback status, timing, UI flags) and handlers to control audio.
 import { StateCreator } from "zustand"
 import type { AudioInfo } from "@/components/AudioPlayer/types"
 import { handleAudioError } from "@/utils/audio"
@@ -28,7 +30,7 @@ export interface AudioSlice {
 // Create a singleton audio element
 const audioElement = typeof window !== 'undefined' ? new Audio() : null
 
-export const createAudioSlice: StateCreator<any, [], [], AudioSlice> = (set, get) => {
+export const createAudioSlice: StateCreator<AudioSlice, [], [], AudioSlice> = (set, get) => {
   // Set up audio element event listeners once
   if (audioElement) {
     audioElement.onloadedmetadata = () => {
@@ -146,7 +148,7 @@ export const createAudioSlice: StateCreator<any, [], [], AudioSlice> = (set, get
     },
 
     toggleMinimize: () => {
-      set((state) => ({ isMinimized: !state.isMinimized }))
+      set((state: AudioSlice) => ({ isMinimized: !state.isMinimized }))
     },
 
     setShowMiniPlayer: (show) => {

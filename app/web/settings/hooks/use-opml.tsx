@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react"
-import { useFeedStore } from "@/store/useFeedStore"
+import { useSubscriptions } from "@/hooks/useFeedSelectors"
 import { useBatchAddFeedsMutation } from "@/hooks/queries"
 import { toast } from "sonner"
 import { exportOPML } from "../utils/opml"
@@ -12,7 +12,7 @@ interface FeedItem {
 
 export function useOPML() {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { feeds } = useFeedStore()
+  const feeds = useSubscriptions()
   const batchAddFeedsMutation = useBatchAddFeedsMutation()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [detectedFeeds, setDetectedFeeds] = useState<FeedItem[]>([])
@@ -36,7 +36,7 @@ export function useOPML() {
       const outlines = doc.querySelectorAll('outline')
       
       // Get unique feed URLs from OPML
-      const existingUrls = new Set(feeds.map(f => f.feedUrl))
+      const existingUrls = new Set(feeds.map((f: { feedUrl: string }) => f.feedUrl))
       const uniqueFeeds = new Map<string, FeedItem>()
       
       outlines.forEach(outline => {

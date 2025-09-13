@@ -1,11 +1,18 @@
 const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
 const modules = [
   'utils/formatDuration.ts',
   'utils/url-helpers.ts'
 ];
+
 try {
-  execSync(`rm -rf compiled-tests && mkdir compiled-tests`);
-  execSync(`npx tsc ${modules.join(' ')} --module commonjs --target es2017 --outDir compiled-tests`, { stdio: 'inherit' });
+  const outDir = path.join(process.cwd(), 'compiled-tests');
+  // Remove directory cross‑platform
+  fs.rmSync(outDir, { recursive: true, force: true });
+  fs.mkdirSync(outDir, { recursive: true });
+  execSync(`npx tsc ${modules.join(' ')} --module commonjs --target es2017 --skipLibCheck true --outDir compiled-tests`, { stdio: 'inherit' });
 } catch (e) {
   console.error('Failed to compile test modules', e);
   process.exit(1);

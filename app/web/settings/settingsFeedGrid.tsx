@@ -1,9 +1,10 @@
 import { memo } from "react"
 import { SettingsFeedCard } from "./components/settings-feed-card"
 import type { Feed } from "@/types"
+import type { Subscription } from "@/types/subscription"
 
 interface SettingsFeedGridProps {
-  feeds: Feed[]
+  feeds: Array<Feed | Subscription>
   onDelete: (id: string) => void
   onCopy: (id: string) => void
 }
@@ -22,4 +23,3 @@ export const SettingsFeedGrid = memo(function SettingsFeedGrid({ feeds, onDelete
     </div>
   )
 })
-

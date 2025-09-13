@@ -25,7 +25,7 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
     async function loadPodcast() {
       setLoading(true)
 
-      const { success, items } = await fetchFeedsAction()
+      const { success, items } = await fetchFeedsAction(params.id)
 
       if (success && items) {
         const foundPodcast = items.find((item: FeedItem) => item.id === params.id && item.type === "podcast")

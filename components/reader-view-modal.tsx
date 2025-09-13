@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect } from "react";
 import { FeedItem } from "@/types";
 import { BaseModal } from "./base-modal";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -8,6 +8,7 @@ import { useReaderView } from "@/hooks/use-reader-view";
 import { useScrollShadow } from "@/hooks/use-scroll-shadow";
 import { ScrollShadow } from "./ui/scroll-shadow";
 import { ReaderContent } from "@/components/Feed/ReaderContent";
+import { useFeedStore } from "@/store/useFeedStore";
 
 interface ReaderViewModalProps {
   isOpen: boolean;
@@ -21,16 +22,20 @@ export function ReaderViewModal({
   onClose,
 }: ReaderViewModalProps) {
   const { readerView, loading, cleanedContent, cleanedMarkdown, extractedAuthor } = useReaderView(feedItem, isOpen);
-  const { scrollTop, isBottomVisible, handleScroll, hasScrolled } = useScrollShadow();
+  const { isBottomVisible, handleScroll, hasScrolled } = useScrollShadow();
+  const { markAsRead } = useFeedStore();
   
-  const parallaxOffset = useMemo(() => {
-    return Math.min(scrollTop * 0.2, 50);
-  }, [scrollTop]);
-
   const handleScrollEvent = (e: Event) => {
     const target = e.target as HTMLDivElement;
     handleScroll({ scrollTop: target.scrollTop, scrollHeight: target.scrollHeight, clientHeight: target.clientHeight });
   };
+
+  // Mark as read shortly after opening to avoid grid re-render during animation
+  useEffect(() => {
+    if (!isOpen || !feedItem) return;
+    const t = setTimeout(() => markAsRead(feedItem.id), 800);
+    return () => clearTimeout(t);
+  }, [isOpen, feedItem, markAsRead]);
 
   return (
     <BaseModal
@@ -56,7 +61,6 @@ export function ReaderViewModal({
               cleanedMarkdown={cleanedMarkdown}
               extractedAuthor={extractedAuthor}
               layout="modal"
-              parallaxOffset={parallaxOffset}
             />
           </div>
         </ScrollArea>

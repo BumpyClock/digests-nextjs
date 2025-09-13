@@ -5,19 +5,22 @@ import { QueryClient } from '@tanstack/react-query'
 // Create a function that returns a new QueryClient instance
 // This ensures we don't share state between server and client
 function makeQueryClient() {
+  const ttl = Number(process.env.NEXT_PUBLIC_WORKER_CACHE_TTL)
+  const staleTimeMs = Number.isFinite(ttl) && ttl > 0 ? ttl : 15 * 60 * 1000
+  const gcTimeMs = staleTimeMs * 2
+
   return new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 5 * 60 * 1000, // 5 minutes - RSS feeds don't change rapidly
-        gcTime: 10 * 60 * 1000, // 10 minutes (previously cacheTime)
-        retry: 2, // Retry failed requests twice
-        refetchOnWindowFocus: false, // Don't refetch on window focus for RSS app
-        refetchOnReconnect: true, // Do refetch when network reconnects
-        refetchOnMount: true, // Refetch when component mounts
+        staleTime: staleTimeMs,
+        gcTime: gcTimeMs,
+        retry: 2,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: true,
+        refetchOnMount: true,
       },
       mutations: {
-        retry: 1, // Retry mutations once
-        // Global error handling for mutations can be added here
+        retry: 1,
       },
     },
   })

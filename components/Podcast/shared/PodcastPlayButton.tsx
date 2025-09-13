@@ -1,3 +1,5 @@
+// ABOUTME: Play/pause button for podcast feed items integrating with audio store.
+// ABOUTME: Handles marking items as read and toggling playback state.
 "use client"
 
 import { memo, useCallback } from "react"
@@ -10,7 +12,8 @@ import { getPodcastAudioUrl } from "@/types/podcast"
 
 interface PodcastPlayButtonProps {
   podcast: FeedItem
-  variant?: "default" | "ghost" | "outline-solid"
+  // Align with underlying Button variants; accept string to avoid tight coupling if button adds more.
+  variant?: "default" | "ghost" | "outline" | "secondary" | "destructive" | "link"
   size?: "default" | "sm" | "lg" | "icon"
   className?: string
   showLabel?: boolean
@@ -67,7 +70,6 @@ export const PodcastPlayButton = memo(function PodcastPlayButton({
       className={cn("gap-2", className)}
       onClick={handleClick}
       aria-label={`${label} ${podcast.title}`}
-      aria-pressed={isCurrentlyPlaying}
       role="switch"
       aria-checked={isCurrentlyPlaying}
     >

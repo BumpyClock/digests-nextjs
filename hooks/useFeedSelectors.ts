@@ -39,7 +39,7 @@ export const useIsInReadLater = (itemId: string): boolean => {
  */
 export const useReadActions = (): {
   markAsRead: (itemId: string) => void;
-  markAllAsRead: () => void;
+  markAllAsRead: (items: FeedItem[]) => void;
 } => {
   return useFeedStore(
     useShallow(state => ({
@@ -70,12 +70,8 @@ export const useReadLaterActions = (): {
  * Hook to get the count of unread items
  * @returns Number of unread items
  */
-export const useUnreadCount = (): number => {
-  return useFeedStore(state => {
-    const readItems = state.readItems instanceof Set ? state.readItems : new Set();
-    return state.feedItems.filter(item => !readItems.has(item.id)).length;
-  });
-};
+// Deprecated: items are no longer stored in Zustand.
+export const useUnreadCount = (): number => 0;
 
 /**
  * Hook to get feed items for a specific feed
@@ -83,25 +79,15 @@ export const useUnreadCount = (): number => {
  * @param feedUrl - The URL of the feed to filter by
  * @returns Array of feed items for the specified feed
  */
-export const useFeedItemsByFeed = (feedUrl: string): FeedItem[] => {
-  return useFeedStore(
-    useShallow(state => state.feedItems.filter(item => item.feedUrl === feedUrl))
-  );
-};
+// Deprecated: items are managed by React Query.
+export const useFeedItemsByFeed = (_feedUrl: string): FeedItem[] => [];
 
 /**
  * Hook to get feed items for the active feed
  * @returns Array of feed items for the active feed, or all items if no active feed
  */
-export const useActiveFeedItems = (): FeedItem[] => {
-  return useFeedStore(
-    useShallow(state => {
-      const { feedItems, activeFeed } = state;
-      if (!activeFeed) return feedItems;
-      return feedItems.filter(item => item.feedUrl === activeFeed);
-    })
-  );
-};
+// Deprecated: items are managed by React Query.
+export const useActiveFeedItems = (): FeedItem[] => [];
 
 /**
  * Hook to get feed actions
@@ -149,6 +135,10 @@ export const useFeeds = () => {
   return useFeedStore(state => state.feeds);
 };
 
+export const useSubscriptions = () => {
+  return useFeedStore((state: any) => state.subscriptions ?? []);
+};
+
 /**
  * Hook to get feed titles for search/command purposes
  * Uses shallow equality to prevent re-renders when titles don't change
@@ -168,22 +158,15 @@ export const useFeedTitles = () => {
  * Hook to get unread items
  * @returns Array of unread feed items
  */
-export const useUnreadItems = (): FeedItem[] => {
-  return useFeedStore(
-    useShallow(state => {
-      const readItems = state.readItems instanceof Set ? state.readItems : new Set();
-      return state.feedItems.filter(item => !readItems.has(item.id));
-    })
-  );
-};
+// Deprecated: items are managed by React Query.
+export const useUnreadItems = (): FeedItem[] => [];
 
 /**
  * Hook to get read later items
  * @returns Array of items marked for read later
  */
-export const useReadLaterItems = (): FeedItem[] => {
-  return useFeedStore(state => state.getReadLaterItems());
-};
+// Deprecated: derive read later items in containers from React Query data + store.readLaterItems.
+export const useReadLaterItems = (): FeedItem[] => [];
 
 /**
  * Hook for the main web page data needs
@@ -196,9 +179,7 @@ export const useWebPageData = () => {
       initialized: state.initialized,
       hydrated: state.hydrated,
       setInitialized: state.setInitialized,
-      getUnreadItems: state.getUnreadItems,
       setActiveFeed: state.setActiveFeed,
-      getReadLaterItems: state.getReadLaterItems,
       // Server state now handled by React Query
     }))
   );

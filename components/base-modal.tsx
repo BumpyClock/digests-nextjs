@@ -1,3 +1,5 @@
+// ABOUTME: Shared modal component with animated overlay and responsive layout.
+// ABOUTME: Provides consistent modal structure for reader and podcast detail views.
 "use client"
 
 import type React from "react"
@@ -16,6 +18,11 @@ interface BaseModalProps {
   title?: string
   children: React.ReactNode
   className?: string
+  /**
+   * Optional identifier used by animation/transition systems.
+   * Kept optional so existing usages without itemId remain valid.
+   */
+  itemId?: string
 }
 
 /**
@@ -82,14 +89,15 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
           <DialogPrimitive.Portal>
-            {/* Custom backdrop with blur and opacity */}
+            {/* Custom backdrop with blur and opacity (smaller blur for performance) */}
             <DialogPrimitive.Overlay asChild>
               <motion.div
-                className="fixed inset-0 z-50 bg-black/80 backdrop-blur-[40px]"
+                className="fixed inset-0 z-50 bg-black/70"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
+                style={{ willChange: 'opacity' }}
               />
             </DialogPrimitive.Overlay>
             
@@ -122,6 +130,7 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
                   duration: 0.25, 
                   ease: [0.16, 1, 0.3, 1] // Custom ease for smooth feel
                 }}
+                style={{ willChange: 'transform, opacity' }}
               >
                 <div className={`relative w-full h-full bg-background shadow-2xl overflow-hidden ${
                   effectiveIsMobile ? "rounded-none" : "rounded-[32px]"

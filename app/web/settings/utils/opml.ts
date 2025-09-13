@@ -1,6 +1,7 @@
 import type { Feed } from "@/types"
+import type { Subscription } from "@/types/subscription"
 
-export function generateOPML(feeds: Feed[]): string {
+export function generateOPML(feeds: Array<Feed | Subscription>): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <opml version="1.0">
   <head>
@@ -9,7 +10,7 @@ export function generateOPML(feeds: Feed[]): string {
   <body>
     ${feeds.map(feed => `
     <outline 
-      type="${feed.type || 'rss'}"
+      type="${(feed as Feed).type || 'rss'}"
       text="${feed.feedTitle || ''}"
       title="${feed.feedTitle || ''}"
       xmlUrl="${feed.feedUrl}"
@@ -31,7 +32,7 @@ export function downloadBlob(content: string, filename: string, contentType: str
   URL.revokeObjectURL(url)
 }
 
-export function exportOPML(feeds: Feed[]): void {
+export function exportOPML(feeds: Array<Feed | Subscription>): void {
   const opml = generateOPML(feeds)
   downloadBlob(opml, "digests-subscriptions.opml", "text/xml")
-} 
+}

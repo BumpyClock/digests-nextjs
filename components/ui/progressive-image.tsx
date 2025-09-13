@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
+/* eslint-disable @next/next/no-img-element */
 import { cn } from "@/lib/utils"
 import { getImageKitUrl } from "@/utils/imagekit"
 

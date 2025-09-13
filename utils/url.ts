@@ -1,12 +1,22 @@
 export const normalizeUrl = (url?: string | null): string => {
   if (!url) return '';
   try {
-    const decoded = decodeURIComponent(url);
+    // Trim whitespace and normalize
+    const trimmed = url.trim();
+    if (!trimmed) return '';
+
+    const decoded = decodeURIComponent(trimmed);
     return decoded
-      .replace(/^https?:\/\//, '')
-      .replace(/\/+$/, '')
-      .replace(/([^:])\/+/g, '$1/');
+      .toLowerCase() // Convert to lowercase for consistency
+      .replace(/^https?:\/\//, '') // Remove protocol
+      .replace(/\/+$/, '') // Remove trailing slashes
+      .replace(/([^:])\/+/g, '$1/'); // Normalize multiple slashes
   } catch {
-    return url.replace(/^https?:\/\//, '').replace(/\/+$/, '');
+    // Fallback for malformed URLs
+    return url
+      .trim()
+      .toLowerCase()
+      .replace(/^https?:\/\//, '')
+      .replace(/\/+$/, '');
   }
 };

@@ -1,7 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { Share2, Download, ExternalLink } from "lucide-react"
-import type { FeedItem } from "@/lib/rss"
+import type { FeedItem } from "@/types"
 import { BaseModal } from "@/components/base-modal"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { toast } from "sonner"
@@ -102,7 +102,15 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast }: PodcastDetails
               {/* Metadata */}
               <PodcastMetadata
                 published={podcast.published}
-                duration={podcast.duration || podcast.enclosures?.[0]?.length}
+                duration={
+                  typeof podcast.duration === 'number'
+                    ? podcast.duration
+                    : ((): number | undefined => {
+                        const raw = (podcast.duration as unknown) ?? podcast.enclosures?.[0]?.length
+                        const n = typeof raw === 'string' ? parseInt(raw, 10) : (raw as number | undefined)
+                        return Number.isFinite(n as number) ? (n as number) : undefined
+                      })()
+                }
                 author={podcast.author ? cleanupTextContent(podcast.author) : undefined}
                 variant="compact"
                 className="mb-6"
@@ -144,7 +152,7 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast }: PodcastDetails
                     asChild
                     title="Open in browser"
                   >
-                    <a href={podcast.link} target="_blank" rel="noopener noreferrer">
+                    <a href={podcast.link} target="_blank" rel="noopener noreferrer" aria-label="Open episode in browser">
                       <ExternalLink className="h-4 w-4" />
                     </a>
                   </Button>

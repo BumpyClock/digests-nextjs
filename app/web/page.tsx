@@ -19,7 +19,7 @@ import { FEED_REFRESHED_EVENT } from "@/components/Feed/FeedGrid/FeedGrid";
 import { normalizeUrl } from "@/utils/url";
 
 // React Query imports
-import { useFeedsQuery, useRefreshFeedsMutation, useFeedBackgroundSync } from "@/hooks/queries";
+import { useFeedsData, useRefreshFeedsMutation, useFeedBackgroundSync } from "@/hooks/queries";
 import { useFeedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
 
@@ -61,7 +61,7 @@ function WebPageContent() {
   const feedUrlDecoded = feedParam ? normalizeUrl(feedParam) : "";
 
   // React Query hooks for server state
-  const feedsQuery = useFeedsQuery();
+  const feedsQuery = useFeedsData();
   const refreshMutation = useRefreshFeedsMutation();
   const { data: backgroundSyncData, clearNotification } = useFeedBackgroundSync();
 
@@ -70,14 +70,14 @@ function WebPageContent() {
     initialized,
     setInitialized,
     setActiveFeed,
-    getReadLaterItems,
   } = useWebPageData();
   
   // Get read items set for unread filtering
   const readItems = useFeedStore(state => state.readItems);
+  const readLaterSet = useFeedStore(state => state.readLaterItems);
 
   // React Query is now the single source of truth for server state
-  const feedItems = feedsQuery.data?.items || [];
+  const feedItems = useMemo(() => feedsQuery.data?.items ?? [], [feedsQuery.data?.items]);
   const existingFeeds = useFeedStore(state => state.feeds);
   const loading = feedsQuery.isLoading || (!initialized && existingFeeds.length > 0 && feedItems.length === 0);
   const refreshing = refreshMutation.isPending;
@@ -295,8 +295,9 @@ function WebPageContent() {
   }, [filterUnreadItemsByType]);
 
   const readLaterItems = useMemo(() => {
-    return getReadLaterItems();
-  }, [getReadLaterItems]);
+    const set = readLaterSet instanceof Set ? readLaterSet : new Set<string>();
+    return (feedItems || []).filter((item) => set.has(item.id));
+  }, [feedItems, readLaterSet]);
 
   const clearFeedFilter = useCallback(() => {
     window.history.pushState({}, "", "/web"); // or just /web
@@ -357,6 +358,7 @@ function WebPageContent() {
               onSeeAllMatches={handleSeeAllMatches}
               handleRefresh={handleRefresh}
               onFeedSelect={handleFeedSelect}
+              items={feedItems}
             />
             <Button 
               variant="outline" 

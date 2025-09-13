@@ -28,6 +28,7 @@ import { isPodcast } from "@/types/podcast";
 import { getImageKitUrl, IMAGE_PRESETS, canUseImageKit } from "@/utils/imagekit";
 import { motion } from "motion/react";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
+import Image from "next/image";
 dayjs.extend(relativeTime);
 
 interface FeedCardProps {
@@ -190,9 +191,7 @@ export const FeedCard = memo(function FeedCard({
     const isShareOrBookmarkButton = target.closest('button');
     
     if (!isShareOrBookmarkButton) {
-      // Mark as read after modal opens to prevent item from disappearing
-      markAsRead(feedItem.id);
-      
+      // Open the appropriate modal; marking as read is now handled inside the reader view
       // Open appropriate modal
       if (isPodcast(feedItem)) {
         setIsPodcastDetailsOpen(true);
@@ -292,7 +291,7 @@ export const FeedCard = memo(function FeedCard({
                 {imageLoading && (
                   <Skeleton className="absolute inset-0 z-10 rounded-[32px]" />
                 )}
-                <img
+                <Image
                   src={showPlaceholder 
                     ? (isPodcast(feedItem) ? "/placeholder-podcast.svg" : "/placeholder-rss.svg") 
                     : (canUseImageKit(feedItem.thumbnail) 
@@ -305,7 +304,7 @@ export const FeedCard = memo(function FeedCard({
                   className={`w-full h-full object-cover rounded-[32px] group-hover:scale-[1.05] transition-all duration-150 ${
                     imageLoading ? "opacity-0" : "opacity-100"
                   }`}
-                  onError={handleImageError}
+                  onError={() => handleImageError()}
                   onLoad={() => setImageLoading(false)}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
                   loading="lazy"
@@ -322,11 +321,11 @@ export const FeedCard = memo(function FeedCard({
               >
                 <div className="flex space-between gap-2 align-center items-center">
                   {(!faviconError && feedItem.favicon && isValidUrl(feedItem.favicon)) ? (
-                    <img
+                    <Image
                       src={feedItem.favicon}
                       alt={`${cleanupTextContent(feedItem.siteTitle)} favicon`}
                       className="w-6 h-6 bg-white rounded-[4px] "
-                      onError={handleFaviconError}
+                      onError={() => handleFaviconError()}
                       width={24}
                       height={24}
                     />

@@ -1,3 +1,5 @@
+// ABOUTME: Command bar component providing global search and quick actions.
+// ABOUTME: Implements feed/article filtering, suggestions, and reader modal launching.
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
@@ -14,8 +16,8 @@ import {
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { FeedItem, Feed } from "@/types";
-import { useFeeds, useReadActions } from "@/hooks/useFeedSelectors";
-import { useFeedStore } from "@/store/useFeedStore";
+import type { Subscription } from "@/types/subscription";
+import { useSubscriptions, useReadActions } from "@/hooks/useFeedSelectors";
 import { Button } from "@/components/ui/button";
 import {
   Moon,
@@ -41,6 +43,7 @@ interface CommandBarProps {
   onSeeAllMatches: () => void;
   handleRefresh: () => void;
   onFeedSelect: (feedUrl: string) => void;
+  items?: FeedItem[]; // Optional prop to accept React Query data
 }
 
 const MemoizedCommandItem = React.memo(CommandItem, (prevProps, nextProps) => {
@@ -67,12 +70,19 @@ SuggestionItem.displayName = 'SuggestionItem';
 
 // Feed Item Component
 const FeedItemComponent = React.memo(({ source, onSelect }: { 
-  source: Feed;
+  source: Feed | Subscription;
   onSelect: (feedUrl: string) => void;
 }) => (
   <MemoizedCommandItem
     className="text-xs font-normal"
-    value={[source.author, source.categories, source.description, source.feedUrl, source.siteTitle, source.feedTitle].join(" ")}
+    value={[
+      (source as Feed).author,
+      (source as Feed).categories,
+      (source as Feed).description,
+      source.feedUrl,
+      source.siteTitle,
+      source.feedTitle,
+    ].filter(Boolean).join(" ")}
     key={source.feedUrl}
     onSelect={() => onSelect(source.feedUrl)}
   >
@@ -146,13 +156,15 @@ const SuggestionsSection = React.memo(({
   router,
   setTheme, 
   handleRefresh,
-  markAllAsRead 
+  markAllAsRead,
+  feedItems,
 }: {
   setOpen: (open: boolean) => void;
-  router: import('next/navigation').AppRouterInstance;
+  router: ReturnType<typeof useRouter>;
   setTheme: (theme: string) => void;
   handleRefresh: () => void;
-  markAllAsRead: () => void;
+  markAllAsRead: (items: FeedItem[]) => void;
+  feedItems: FeedItem[];
 }) => (
   <CommandGroup heading="Suggestions" className="text-xs">
     <SuggestionItem icon={Search} label="Search for feeds/articles" onSelect={() => {}} />
@@ -208,7 +220,7 @@ const SuggestionsSection = React.memo(({
       icon={CheckCircle} 
       label="Mark All as Read" 
       onSelect={() => {
-        markAllAsRead();
+        markAllAsRead(feedItems);
         setOpen(false);
       }} 
     />
@@ -245,13 +257,15 @@ export function CommandBar({
   onSeeAllMatches,
   handleRefresh,
   onFeedSelect,
+  items,
 }: CommandBarProps) {
   const router = useRouter();
   const { setTheme } = useTheme();
-  const feeds = useFeeds();
+  const feeds = useSubscriptions();
   const { markAllAsRead } = useReadActions();
   // const unreadCount = useUnreadCount();
-  const { feedItems } = useFeedStore(); // Still need feedItems for search
+  // Prefer prop (React Query data). Do not read items from store.
+  const feedItems: FeedItem[] = items ?? [];
   const { open, setOpen, handleKeyDown, handleClose } =
     useCommandBarShortcuts(onApplySearch);
 
@@ -331,6 +345,7 @@ export function CommandBar({
                   setTheme={setTheme}
                   handleRefresh={handleRefresh}
                   markAllAsRead={markAllAsRead}
+                  feedItems={feedItems}
                 />
                 <CommandSeparator />
               </>
@@ -341,7 +356,7 @@ export function CommandBar({
                 heading={`Feeds (${filteredSources.length})`}
                 className="text-xs font-bold text-muted-foreground"
               >
-                {filteredSources.map((source: Feed) => (
+                {filteredSources.map((source: Feed | Subscription) => (
                   <FeedItemComponent 
                     key={source.feedUrl}
                     source={source}
@@ -403,7 +418,6 @@ export function CommandBar({
           isOpen={isModalOpen}
           onClose={() => setModalOpen(false)}
           feedItem={selectedArticle}
-          initialPosition={{ x: 0, y: 0, width: 600, height: 400 }}
         />
       )}
     </>

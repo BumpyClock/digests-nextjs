@@ -11,7 +11,7 @@ export interface AudioError {
  * Handles audio playback errors with user-friendly messages
  */
 export function handleAudioError(error: unknown, audioTitle?: string): AudioError {
-  Logger.error("Audio playback error", error)
+  Logger.error("Audio playback error", error instanceof Error ? error : undefined)
   
   let errorCode = "UNKNOWN_ERROR"
   let errorMessage = "Failed to play audio"

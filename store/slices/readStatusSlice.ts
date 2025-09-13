@@ -6,12 +6,22 @@ type ReadStatusSlice = {
   readItems: Set<string>;
   readLaterItems: Set<string>;
   markAsRead: (itemId: string) => void;
-  getUnreadItems: () => FeedItem[];
-  markAllAsRead: () => void;
+  /**
+   * Returns unread items from the provided list using the store's readItems set.
+   * Server-fetched items are no longer stored in Zustand; pass them in.
+   */
+  getUnreadItems: (items: FeedItem[]) => FeedItem[];
+  /**
+   * Marks all provided items as read by adding their IDs to readItems.
+   */
+  markAllAsRead: (items: FeedItem[]) => void;
   addToReadLater: (itemId: string) => void;
   removeFromReadLater: (itemId: string) => void;
   isInReadLater: (itemId: string) => boolean;
-  getReadLaterItems: () => FeedItem[];
+  /**
+   * Filters provided items by the readLaterItems set in the store.
+   */
+  getReadLaterItems: (items: FeedItem[]) => FeedItem[];
 };
 
 export const createReadStatusSlice: StateCreator<any, [], [], ReadStatusSlice> = (set, get) => ({
@@ -36,19 +46,16 @@ export const createReadStatusSlice: StateCreator<any, [], [], ReadStatusSlice> =
     }
   },
 
-  getUnreadItems: () => {
-    const { feedItems, readItems } = get();
-    // Safety check to ensure readItems is a Set
+  getUnreadItems: (items: FeedItem[]) => {
+    const { readItems } = get();
     const readItemsSet = readItems instanceof Set ? readItems : new Set();
-    const unreadItems = feedItems.filter((item: FeedItem) => !readItemsSet.has(item.id));
+    const unreadItems = (items || []).filter((item: FeedItem) => !readItemsSet.has(item.id));
     Logger.debug("unreadItems", unreadItems);
-    // Ensure it returns an empty array if no unread items
     return unreadItems.length > 0 ? unreadItems : [];
   },
 
-  markAllAsRead: () => {
-    const { feedItems } = get();
-    const allIds = new Set(feedItems.map((item: FeedItem) => item.id));
+  markAllAsRead: (items: FeedItem[]) => {
+    const allIds = new Set((items || []).map((item: FeedItem) => item.id));
     set({ readItems: allIds });
   },
 
@@ -68,13 +75,15 @@ export const createReadStatusSlice: StateCreator<any, [], [], ReadStatusSlice> =
 
   isInReadLater: (itemId: string) => {
     const { readLaterItems } = get();
-    return readLaterItems.has(itemId);
+    const set = readLaterItems instanceof Set
+      ? readLaterItems
+      : new Set(Array.isArray(readLaterItems) ? readLaterItems : []);
+    return set.has(itemId);
   },
 
-  getReadLaterItems: () => {
-    const { feedItems, readLaterItems } = get();
-    // Ensure readLaterItems is a Set
+  getReadLaterItems: (items: FeedItem[]) => {
+    const { readLaterItems } = get();
     const readLaterSet = readLaterItems instanceof Set ? readLaterItems : new Set();
-    return feedItems.filter((item: FeedItem) => readLaterSet.has(item.id));
+    return (items || []).filter((item: FeedItem) => readLaterSet.has(item.id));
   },
 });

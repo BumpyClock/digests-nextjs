@@ -161,7 +161,6 @@ export function FeedList({
   return (
     <div className="border rounded-md overflow-hidden h-full">
       <ScrollArea 
-        ref={scrollbarsRef}
         variant="list"
         className="h-full"
         onScroll={handleScroll}

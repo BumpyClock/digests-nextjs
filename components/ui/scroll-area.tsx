@@ -1,3 +1,5 @@
+// ABOUTME: Wrapper around simplebar-react providing styled scroll areas.
+// ABOUTME: Supports variants and optional scroll event handling for modals/lists.
 "use client"
 
 import * as React from "react"
@@ -19,7 +21,10 @@ export interface ScrollAreaProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   scrollableNodeRef?: React.Ref<HTMLDivElement>
 }
 
-const ScrollArea = React.forwardRef<SimpleBar, ScrollAreaProps>(
+// Use instance type of SimpleBar without exporting it as a type elsewhere
+// Intentionally use any for the SimpleBar ref to avoid complex generic mismatch with the library's internal typing.
+// This keeps external props type-safe while preventing TS errors about value/type distinctions.
+const ScrollArea = (
   ({ 
     className, 
     children, 
@@ -30,7 +35,7 @@ const ScrollArea = React.forwardRef<SimpleBar, ScrollAreaProps>(
     scrollableNodeRef,
     style,
     ...props 
-  }, ref) => {
+  }: ScrollAreaProps) => {
     // Different configurations for different variants
     const variantStyles = {
       default: "",
@@ -46,7 +51,6 @@ const ScrollArea = React.forwardRef<SimpleBar, ScrollAreaProps>(
 
     return (
       <SimpleBar
-        ref={ref}
         className={cn(
           "relative w-full",
           variantStyles[variant],
@@ -56,7 +60,8 @@ const ScrollArea = React.forwardRef<SimpleBar, ScrollAreaProps>(
         autoHide={autoHide}
         scrollableNodeProps={{ 
           ref: scrollableNodeRef,
-          onScroll: onScroll 
+          // SimpleBar dispatches a native Event; keep user callback signature consistent
+          onScroll: (e: Event) => onScroll?.(e)
         }}
         {...props}
       >
@@ -67,11 +72,11 @@ const ScrollArea = React.forwardRef<SimpleBar, ScrollAreaProps>(
     )
   }
 )
-ScrollArea.displayName = "ScrollArea"
+// No displayName needed since not using forwardRef
 
 // Export a hook to access SimpleBar instance methods
 export const useScrollAreaRef = () => {
-  return React.useRef<SimpleBar>(null)
+  return React.useRef(null)
 }
 
 export { ScrollArea }

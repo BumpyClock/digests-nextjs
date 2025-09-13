@@ -1,5 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { FeedItem, Feed } from '@/types';
+import type { Subscription } from '@/types/subscription';
 import { useDebounce } from 'use-debounce';
 
 /**
@@ -31,16 +32,16 @@ function itemMatchesSearch(item: FeedItem, query: string): { match: boolean; sco
 /**
  * Helper: combine relevant Feed fields & see if they match `query`.
  */
-function feedMatchesSearch(feed: Feed, query: string): { match: boolean; score: number } {
+function feedMatchesSearch(feed: Feed | Subscription, query: string): { match: boolean; score: number } {
   const search = query.toLowerCase();
 
   // Combine relevant feed fields
   const combined = [
     feed.feedTitle,
     feed.siteTitle,
-    feed.description,
-    feed.categories,
-    feed.author, // if your Feed object has feed.author
+    (feed as Feed).description,
+    (feed as Feed).categories,
+    (feed as Feed).author,
   ]
     .filter(Boolean)
     .join(" ");
@@ -58,7 +59,7 @@ function feedMatchesSearch(feed: Feed, query: string): { match: boolean; score: 
 export function useCommandBarSearch(
   searchValue: string,
   feedItems: FeedItem[],
-  feeds: Feed[],
+  feeds: Array<Feed | Subscription>,
   onSeeAllMatches: () => void,
   handleClose: () => void,
   onSearchValueChange: (value: string) => void
@@ -89,7 +90,7 @@ export function useCommandBarSearch(
       return uniqueFeedSources;
     }
     const searchLower = searchValue.toLowerCase();
-    const filtered = feeds
+    const filtered = (uniqueFeedSources as Array<Feed | Subscription>)
       .map(feed => ({ feed, ...feedMatchesSearch(feed, searchLower) }))
       .filter(({ match }) => match)
       .sort((a, b) => b.score - a.score); 

@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 import Image from "next/image"
 import { FeedItem } from "@/types"
-import { useFeedsQuery, useReaderViewQuery } from "@/hooks/queries"
+import { useFeedsData, useReaderViewQuery } from "@/hooks/queries"
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
@@ -21,7 +21,7 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
   const { toast } = useToast()
   
   // Use React Query to get feeds data
-  const feedsQuery = useFeedsQuery()
+  const feedsQuery = useFeedsData()
   
   // Find the article from feeds data
   const foundArticle = feedsQuery.data?.items?.find((item: FeedItem) => item.id === params.id && item.type === "article")

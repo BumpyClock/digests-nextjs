@@ -74,7 +74,15 @@ export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
               
               <PodcastMetadata
                 published={feedItem.published}
-                duration={feedItem.duration || feedItem.enclosures?.[0]?.length}
+                duration={
+                  typeof feedItem.duration === 'number'
+                    ? feedItem.duration
+                    : ((): number | undefined => {
+                        const raw = (feedItem.duration as unknown) ?? feedItem.enclosures?.[0]?.length
+                        const n = typeof raw === 'string' ? parseInt(raw, 10) : (raw as number | undefined)
+                        return Number.isFinite(n as number) ? (n as number) : undefined
+                      })()
+                }
                 author={feedItem.author ? cleanupTextContent(feedItem.author) : undefined}
                 variant="compact"
                 className="mb-4"

@@ -16,11 +16,7 @@ export interface FeedItem {
     categories: string
     enclosures: Enclosure[] | null
     thumbnail: string
-    thumbnailColor: {
-      r: number
-      g: number
-      b: number
-    }
+    thumbnailColor: thumbnailColor
     thumbnailColorComputed: string
     siteTitle: string
     feedTitle: string
@@ -57,4 +53,10 @@ export interface FeedItem {
     url: string
     type: string
     length?: string
-  }
+}
+  
+export interface thumbnailColor {
+  r: number
+  g: number
+  b: number
+}

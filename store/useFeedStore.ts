@@ -5,8 +5,8 @@ import localforage from "localforage"
 import { useState, useEffect } from "react"
 
 import type { Feed, FeedItem } from "@/types"
+import type { Subscription } from "@/types/subscription"
 import { createFeedSlice } from "./slices/feedSlice"
-import { createItemsSlice } from "./slices/itemsSlice"
 import { createReadStatusSlice } from "./slices/readStatusSlice"
 import { createMetadataSlice } from "./slices/metadataSlice"
 import { createAudioSlice, type AudioSlice } from "./slices/audioSlice"
@@ -17,16 +17,13 @@ import { withPerformanceMonitoring } from "./middleware/performanceMiddleware"
  * Server state is now handled by React Query, this only manages client state
  * @typedef {Object} FeedState
  * @property {Feed[]} feeds - List of feeds (synced from React Query)
- * @property {FeedItem[]} feedItems - List of feed items (synced from React Query)
  * @property {boolean} initialized - Initialization state
  * @property {boolean} hydrated - Hydration state
  * @property {Set<string>} readItems - Track read item IDs
  * @property {string | null} activeFeed - Track active feed URL
  * @property {Set<string>} readLaterItems - Track read later item IDs
  * @method setFeeds - Sets the feeds in the store
- * @method setFeedItems - Sets the feed items in the store
  * @method setHydrated - Sets the hydration state
- * @method sortFeedItemsByDate - Sorts feed items by published date
  * @method removeFeedFromCache - Removes a feed from local cache
  * @method setInitialized - Sets the initialized state
  * @method markAsRead - Marks a specific feed item as read
@@ -41,7 +38,7 @@ import { withPerformanceMonitoring } from "./middleware/performanceMiddleware"
 interface FeedState extends AudioSlice {
   // From slices
   feeds: Feed[]
-  feedItems: FeedItem[]
+  subscriptions: Subscription[]
   initialized: boolean
   hydrated: boolean
   readItems: Set<string>
@@ -50,21 +47,19 @@ interface FeedState extends AudioSlice {
 
   // Setters
   setFeeds: (feeds: Feed[]) => void
-  setFeedItems: (items: FeedItem[]) => void
   setHydrated: (state: boolean) => void
   setActiveFeed: (feedUrl: string | null) => void
   setInitialized: (value: boolean) => void
 
   // Client-side actions (server actions moved to React Query)
-  sortFeedItemsByDate: (items: FeedItem[]) => FeedItem[]
   removeFeedFromCache: (feedUrl: string) => void
   markAsRead: (itemId: string) => void
-  getUnreadItems: () => FeedItem[]
-  markAllAsRead: () => void
+  getUnreadItems: (items: FeedItem[]) => FeedItem[]
+  markAllAsRead: (items: FeedItem[]) => void
   addToReadLater: (itemId: string) => void
   removeFromReadLater: (itemId: string) => void
   isInReadLater: (itemId: string) => boolean
-  getReadLaterItems: () => FeedItem[]
+  getReadLaterItems: (items: FeedItem[]) => FeedItem[]
 }
 
 // Add hydration flag at top of file
@@ -77,7 +72,6 @@ export const useFeedStore = create<FeedState>()(
           (set, get, api) => ({
       // Combine all slices
       ...createFeedSlice(set, get, api),
-      ...createItemsSlice(set, get, api),
       ...createReadStatusSlice(set, get, api),
       ...createMetadataSlice(set, get, api),
       ...createAudioSlice(set, get, api),
@@ -86,11 +80,29 @@ export const useFeedStore = create<FeedState>()(
     }),
     {
       name: "digests-feed-store",
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localforage),
+      migrate: (state: any, from: number) => {
+        try {
+          if (from < 3) {
+            // Drop persisted items and normalize Sets
+            delete state.feedItems;
+            // Drop large feeds array from persistence if present
+            if (state.feeds) delete state.feeds;
+            state.readItems = new Set(Array.isArray(state.readItems) ? state.readItems :
+              (state.readItems instanceof Set ? Array.from(state.readItems) : []));
+            state.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems :
+              (state.readLaterItems instanceof Set ? Array.from(state.readLaterItems) : []));
+          }
+        } catch {
+          // Fallback if migration fails
+        }
+        return state;
+      },
       partialize: (state) => ({
-        feeds: state.feeds,
-        feedItems: state.feedItems,
+        // Persist only lightweight subscriptions and client/UI state
+        subscriptions: state.subscriptions,
+        // Do NOT persist feedItems - handled by React Query
         initialized: state.initialized,
         readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
         activeFeed: state.activeFeed,
@@ -126,8 +138,18 @@ export const useFeedStore = create<FeedState>()(
             hydrated = true;
             useFeedStore.getState().setHydrated(true);
             
-            // Ensure the Set conversion actually worked
+            // If feeds are empty but subscriptions exist, seed minimal feeds for URL computation
             const store = useFeedStore.getState();
+            if ((!Array.isArray(store.feeds) || store.feeds.length === 0) && Array.isArray((state as any).subscriptions)) {
+              const subs = (state as any).subscriptions as Subscription[];
+              // Seed feeds with minimal info (will be replaced by RQ data)
+              store.setFeeds(subs.map(s => ({
+                type: '', guid: '', status: '', siteTitle: s.siteTitle, feedTitle: s.feedTitle, feedUrl: s.feedUrl,
+                description: '', link: '', lastUpdated: '', lastRefreshed: '', published: '', author: null, language: s.language, favicon: s.favicon, categories: ''
+              }) as unknown as Feed));
+            }
+
+            // Ensure the Set conversion actually worked
             if (!(store.readItems instanceof Set)) {
               console.warn('readItems is not a Set after rehydration, setting manually');
               store.readItems = new Set(Array.isArray(state.readItems) ? state.readItems : []);
@@ -154,7 +176,6 @@ export const useFeedStore = create<FeedState>()(
     (set, get, api) => ({
       // Combine all slices
       ...createFeedSlice(set, get, api),
-      ...createItemsSlice(set, get, api),
       ...createReadStatusSlice(set, get, api),
       ...createMetadataSlice(set, get, api),
       ...createAudioSlice(set, get, api),
@@ -163,11 +184,27 @@ export const useFeedStore = create<FeedState>()(
     }),
     {
       name: "digests-feed-store",
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => localforage),
+      migrate: (state: any, from: number) => {
+        try {
+          if (from < 3) {
+            // Drop persisted items and normalize Sets
+            delete state.feedItems;
+            if (state.feeds) delete state.feeds;
+            state.readItems = new Set(Array.isArray(state.readItems) ? state.readItems :
+              (state.readItems instanceof Set ? Array.from(state.readItems) : []));
+            state.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems :
+              (state.readLaterItems instanceof Set ? Array.from(state.readLaterItems) : []));
+          }
+        } catch {
+          // Fallback if migration fails
+        }
+        return state;
+      },
       partialize: (state) => ({
-        feeds: state.feeds,
-        feedItems: state.feedItems,
+        subscriptions: state.subscriptions,
+        // Do NOT persist feedItems - handled by React Query
         initialized: state.initialized,
         readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
         activeFeed: state.activeFeed,

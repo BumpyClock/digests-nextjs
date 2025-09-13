@@ -1,10 +1,13 @@
+// ABOUTME: Custom MDX component mappings for links, images, and typography.
+// ABOUTME: Enhances MDX rendering with Next.js Link/Image and styled elements.
 import type { MDXComponents } from 'mdx/types';
+import type { ComponentProps, ReactNode } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
 export function getMDXComponents(components: MDXComponents): MDXComponents {
   return {
-    a: ({ href = '#', children, ...props }) => {
+  a: ({ href = '#', children, ...props }: { href?: string; children?: ReactNode } & ComponentProps<'a'>) => {
       try {
         if (href.startsWith('/')) {
           return (

@@ -5,9 +5,10 @@ import noise from "@/public/noise.svg"
 import placeholderRss from "@/public/placeholder-rss.svg"
 import placeholderPodcast from "@/public/placeholder-podcast.svg"
 import type { Feed } from "@/types"
+import type { Subscription } from "@/types/subscription"
 
 interface FeedCardProps {
-  feed: Feed;
+  feed: Feed | Subscription;
   onDelete?: () => void
   onCopy?: () => void
 }
@@ -21,7 +22,7 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({ feed, onDelete,
     onCopy?.()
   }, [onCopy])
 
-  const placeholderImage = feed.type === 'podcast' ? placeholderPodcast : placeholderRss
+  const placeholderImage = (feed as Feed).type === 'podcast' ? placeholderPodcast : placeholderRss
 
   return (
     <div className="relative group transition-all duration-200 group-hover:scale-105 group-hover:translate-y-[-8px]">

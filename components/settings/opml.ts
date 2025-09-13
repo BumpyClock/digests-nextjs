@@ -1,4 +1,4 @@
-import type { Feed } from "@/lib/rss"
+import type { Feed } from "@/types"
 
 export function generateOPML(feeds: Feed[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
