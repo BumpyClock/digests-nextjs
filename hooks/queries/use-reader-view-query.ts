@@ -25,12 +25,3 @@ export const useReaderViewQuery = (url: string) => {
     retry: 2, // Retry failed requests twice
   })
 }
-
-// Hook for prefetching reader view (used on hover)
-export const usePrefetchReaderView = () => {
-  return (url: string) => {
-    // This would be used by the QueryClient to prefetch
-    // Implementation would be in the component that uses it
-    return readerViewKeys.byUrl(url)
-  }
-}

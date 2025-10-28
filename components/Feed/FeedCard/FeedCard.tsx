@@ -20,7 +20,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { useTheme } from "next-themes";
 import { workerService } from "@/services/worker-service";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useIsItemRead, useIsInReadLater, useReadActions, useReadLaterActions } from "@/hooks/useFeedSelectors";
+import { useIsItemRead, useIsInReadLater, useReadLaterActions } from "@/hooks/useFeedSelectors";
 import { cleanupTextContent } from "@/utils/htmlUtils";
 import { Ambilight } from "@/components/ui/ambilight";
 import { PodcastPlayButton } from "@/components/Podcast/shared/PodcastPlayButton";
@@ -29,6 +29,7 @@ import { getImageKitUrl, IMAGE_PRESETS, canUseImageKit } from "@/utils/imagekit"
 import { motion } from "motion/react";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
 import Image from "next/image";
+import { isValidUrl } from "@/utils/url";
 dayjs.extend(relativeTime);
 
 interface FeedCardProps {
@@ -177,8 +178,7 @@ export const FeedCard = memo(function FeedCard({
   );
   const [imageLoading, setImageLoading] = useState(true);
   const isRead = useIsItemRead(feedItem.id);
-  const { markAsRead } = useReadActions();
-  
+
   // Animation context
   const { animationEnabled } = useFeedAnimation();
 
@@ -189,7 +189,7 @@ export const FeedCard = memo(function FeedCard({
     // Check if the click was on a share or bookmark button
     const target = e.target as HTMLElement;
     const isShareOrBookmarkButton = target.closest('button');
-    
+
     if (!isShareOrBookmarkButton) {
       // Open the appropriate modal; marking as read is now handled inside the reader view
       // Open appropriate modal
@@ -199,7 +199,7 @@ export const FeedCard = memo(function FeedCard({
         setIsReaderViewOpen(true);
       }
     }
-  }, [feedItem, markAsRead]);
+  }, [feedItem]);
 
 
 
@@ -215,16 +215,6 @@ export const FeedCard = memo(function FeedCard({
   const handleFaviconError = useCallback(() => {
     setFaviconError(true);
   }, []);
-
-  const isValidUrl = (url: string | undefined): boolean => {
-    if (!url) return false;
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  };
 
   const getShadowStyle = () => {
     if (isPressed) return pressedShadow;

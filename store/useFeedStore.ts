@@ -86,7 +86,9 @@ export const useFeedStore = create<FeedState>()(
         try {
           if (from < 3) {
             // Drop persisted items and normalize Sets
-            delete state.feedItems;
+            // Remove old feedItems property (now handled by React Query)
+            const { feedItems: _, ...cleanState } = state;
+            Object.assign(state, cleanState);
             // Drop large feeds array from persistence if present
             if (state.feeds) delete state.feeds;
             state.readItems = new Set(Array.isArray(state.readItems) ? state.readItems :
@@ -190,7 +192,9 @@ export const useFeedStore = create<FeedState>()(
         try {
           if (from < 3) {
             // Drop persisted items and normalize Sets
-            delete state.feedItems;
+            // Remove old feedItems property (now handled by React Query)
+            const { feedItems: _, ...cleanState } = state;
+            Object.assign(state, cleanState);
             if (state.feeds) delete state.feeds;
             state.readItems = new Set(Array.isArray(state.readItems) ? state.readItems :
               (state.readItems instanceof Set ? Array.from(state.readItems) : []));

@@ -23,7 +23,7 @@ export interface FeedItem {
     feedUrl: string
     favicon: string
     favorite?: boolean
-    duration?: number
+    duration?: number | string
     // Additional fields for podcasts
     itunesEpisode?: string
     itunesSeason?: string

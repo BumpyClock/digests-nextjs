@@ -9,6 +9,7 @@ import { useIsItemRead } from "@/hooks/useFeedSelectors";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { cleanupTextContent } from "@/utils/htmlUtils";
+import { isValidUrl } from "@/utils/url";
 dayjs.extend(relativeTime);
 
 interface FeedListProps {
@@ -32,16 +33,6 @@ const FeedListItem = memo(function FeedListItem({
   const formattedDate = useMemo(() => {
     return item.published ? dayjs(item.published).fromNow() : "Date unknown";
   }, [item.published]);
-
-  const isValidUrl = (url: string | undefined): boolean => {
-    if (!url) return false;
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  };
 
   return (
     <div
@@ -95,7 +86,6 @@ export function FeedList({
   onItemSelect,
   savedScrollPosition = 0,
 }: FeedListProps) {
-  const scrollbarsRef = useRef<HTMLDivElement>(null);
   const scrollableNodeRef = useRef<HTMLDivElement>(null);
   const [currentScrollTop, setCurrentScrollTop] = useState(0);
 

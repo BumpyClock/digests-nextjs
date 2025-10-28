@@ -415,14 +415,3 @@ export function cleanupMarkdownContent(
  * Export the metadata cleanup function for standalone use
  */
 export { cleanupMarkdownMetadata };
-
-/**
- * Unified function to deduplicate images in both HTML and markdown content
- */
-export function deduplicateImages(content: string, thumbnailUrl?: string, isMarkdown = false): string {
-  if (isMarkdown) {
-    return deduplicateMarkdownImages(content, thumbnailUrl);
-  } else {
-    return deduplicateHtmlImages(content, thumbnailUrl);
-  }
-}
