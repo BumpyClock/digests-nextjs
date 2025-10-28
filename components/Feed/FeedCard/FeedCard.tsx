@@ -190,7 +190,7 @@ export const FeedCard = memo(function FeedCard({
     // Check if the click was on a share or bookmark button
     const target = e.target as HTMLElement;
     const isShareOrBookmarkButton = target.closest('button');
-    
+
     if (!isShareOrBookmarkButton) {
       // Open the appropriate modal; marking as read is now handled inside the reader view
       // Open appropriate modal
@@ -200,7 +200,7 @@ export const FeedCard = memo(function FeedCard({
         setIsReaderViewOpen(true);
       }
     }
-  }, [feedItem, markAsRead]);
+  }, [feedItem]);
 
 
 

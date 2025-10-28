@@ -86,7 +86,6 @@ export function FeedList({
   onItemSelect,
   savedScrollPosition = 0,
 }: FeedListProps) {
-  const scrollbarsRef = useRef<HTMLDivElement>(null);
   const scrollableNodeRef = useRef<HTMLDivElement>(null);
   const [currentScrollTop, setCurrentScrollTop] = useState(0);
 
