@@ -178,8 +178,7 @@ export const FeedCard = memo(function FeedCard({
   );
   const [imageLoading, setImageLoading] = useState(true);
   const isRead = useIsItemRead(feedItem.id);
-  const { markAsRead } = useReadActions();
-  
+
   // Animation context
   const { animationEnabled } = useFeedAnimation();
 

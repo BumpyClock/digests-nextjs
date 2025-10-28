@@ -34,8 +34,8 @@ function isValidImageUrl(url: string): boolean {
   // Check if it's a valid absolute URL
   if (isValidUrl(url)) return true;
 
-  // Allow relative paths
-  return url.startsWith("/") || url.startsWith("http");
+  // Allow relative paths only (/, ./, ../)
+  return url.startsWith("/") || url.startsWith("./") || url.startsWith("../");
 }
 
 export const ArticleImage = memo(

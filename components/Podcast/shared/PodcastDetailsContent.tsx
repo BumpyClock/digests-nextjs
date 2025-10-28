@@ -3,6 +3,7 @@ import type { FeedItem } from "@/types"
 import { cleanupTextContent } from "@/utils/htmlUtils"
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 import { getImageProps } from "@/utils/image-config"
+import { isValidUrl } from "@/utils/url"
 import { PodcastArtwork } from "../PodcastArtwork"
 import { PodcastMetadata } from "../PodcastMetadata"
 import { PodcastPlayButton } from "./PodcastPlayButton"
@@ -64,7 +65,7 @@ export function PodcastDetailsContent({
 
           {/* Podcast Channel */}
           <div className={`flex items-center gap-2 mb-4`}>
-            {podcast.favicon ? (
+            {podcast.favicon && isValidUrl(podcast.favicon) ? (
               <Image
                 src={podcast.favicon}
                 alt={podcast.siteTitle}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Bookmark, Share2 } from "lucide-react"
 import { fetchFeedsAction } from "@/app/actions"
@@ -11,10 +11,10 @@ import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 import { ContentPageSkeleton } from "@/components/ContentPageSkeleton"
 import { ContentNotFound } from "@/components/ContentNotFound"
 import { useContentActions } from "@/hooks/use-content-actions"
-import { useRouter } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 
-export default function PodcastPage(props: { params: Promise<{ id: string }> }) {
-  const params = use(props.params);
+export default function PodcastPage() {
+  const params = useParams();
   const [podcast, setPodcast] = useState<FeedItem | null>(null)
   const [loading, setLoading] = useState(true)
   const [isBookmarked, setIsBookmarked] = useState(false)
@@ -24,12 +24,15 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
 
   useEffect(() => {
     async function loadPodcast() {
+      const id = params?.id as string | undefined
+      if (!id) return
+
       setLoading(true)
 
-      const { success, items } = await fetchFeedsAction(params.id)
+      const { success, items } = await fetchFeedsAction(id)
 
       if (success && items) {
-        const foundPodcast = items.find((item: FeedItem) => item.id === params.id && item.type === "podcast")
+        const foundPodcast = items.find((item: FeedItem) => item.id === id && item.type === "podcast")
 
         if (foundPodcast) {
           setPodcast(foundPodcast)
@@ -41,7 +44,7 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
     }
 
     loadPodcast()
-  }, [params.id])
+  }, [params])
 
   const handleBookmark = async () => {
     if (!podcast) return
@@ -107,7 +110,7 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
                 <Bookmark className={`mr-2 h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
                 {isBookmarked ? "Saved" : "Save"}
               </Button>
-              <Button variant="outline" onClick={handleShare}>
+              <Button variant="outline" onClick={() => handleShare(podcast.link, podcast.title)}>
                 <Share2 className="mr-2 h-4 w-4" />
                 Share
               </Button>

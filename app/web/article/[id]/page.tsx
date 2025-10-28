@@ -84,7 +84,7 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
               <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
               <span className="sr-only">Bookmark</span>
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleShare}>
+            <Button variant="ghost" size="icon" onClick={() => handleShare(article.link, article.title)}>
               <Share2 className="h-4 w-4" />
               <span className="sr-only">Share</span>
             </Button>
