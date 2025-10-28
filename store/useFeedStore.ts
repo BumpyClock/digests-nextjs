@@ -11,6 +11,7 @@ import { createReadStatusSlice } from "./slices/readStatusSlice"
 import { createMetadataSlice } from "./slices/metadataSlice"
 import { createAudioSlice, type AudioSlice } from "./slices/audioSlice"
 import { withPerformanceMonitoring } from "./middleware/performanceMiddleware"
+import { Logger } from "@/utils/logger"
 
 /**
  * The Zustand store shape optimized for React Query integration
@@ -123,7 +124,7 @@ export const useFeedStore = create<FeedState>()(
             } else if (Array.isArray(state.readItems)) {
               state.readItems = new Set(state.readItems);
             } else {
-              console.warn('Invalid readItems format, resetting to empty Set');
+              Logger.warn('Invalid readItems format, resetting to empty Set');
               state.readItems = new Set();
             }
             
@@ -133,7 +134,7 @@ export const useFeedStore = create<FeedState>()(
             } else if (Array.isArray(state.readLaterItems)) {
               state.readLaterItems = new Set(state.readLaterItems);
             } else {
-              console.warn('Invalid readLaterItems format, resetting to empty Set');
+              Logger.warn('Invalid readLaterItems format, resetting to empty Set');
               state.readLaterItems = new Set();
             }
             
@@ -153,16 +154,16 @@ export const useFeedStore = create<FeedState>()(
 
             // Ensure the Set conversion actually worked
             if (!(store.readItems instanceof Set)) {
-              console.warn('readItems is not a Set after rehydration, setting manually');
+              Logger.warn('readItems is not a Set after rehydration, setting manually');
               store.readItems = new Set(Array.isArray(state.readItems) ? state.readItems : []);
             }
             
             if (!(store.readLaterItems instanceof Set)) {
-              console.warn('readLaterItems is not a Set after rehydration, setting manually');
+              Logger.warn('readLaterItems is not a Set after rehydration, setting manually');
               store.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems : []);
             }
           } catch (error) {
-            console.error('Error during store rehydration:', error);
+            Logger.error('Error during store rehydration', error instanceof Error ? error : undefined);
             state.readItems = new Set();
             state.readLaterItems = new Set();
             useFeedStore.getState().readItems = new Set();
@@ -227,7 +228,7 @@ export const useFeedStore = create<FeedState>()(
             } else if (Array.isArray(state.readItems)) {
               state.readItems = new Set(state.readItems);
             } else {
-              console.warn('Invalid readItems format, resetting to empty Set');
+              Logger.warn('Invalid readItems format, resetting to empty Set');
               state.readItems = new Set();
             }
             
@@ -237,7 +238,7 @@ export const useFeedStore = create<FeedState>()(
             } else if (Array.isArray(state.readLaterItems)) {
               state.readLaterItems = new Set(state.readLaterItems);
             } else {
-              console.warn('Invalid readLaterItems format, resetting to empty Set');
+              Logger.warn('Invalid readLaterItems format, resetting to empty Set');
               state.readLaterItems = new Set();
             }
             
@@ -247,16 +248,16 @@ export const useFeedStore = create<FeedState>()(
             // Ensure the Set conversion actually worked
             const store = useFeedStore.getState();
             if (!(store.readItems instanceof Set)) {
-              console.warn('readItems is not a Set after rehydration, setting manually');
+              Logger.warn('readItems is not a Set after rehydration, setting manually');
               store.readItems = new Set(Array.isArray(state.readItems) ? state.readItems : []);
             }
             
             if (!(store.readLaterItems instanceof Set)) {
-              console.warn('readLaterItems is not a Set after rehydration, setting manually');
+              Logger.warn('readLaterItems is not a Set after rehydration, setting manually');
               store.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems : []);
             }
           } catch (error) {
-            console.error('Error during store rehydration:', error);
+            Logger.error('Error during store rehydration', error instanceof Error ? error : undefined);
             state.readItems = new Set();
             state.readLaterItems = new Set();
             useFeedStore.getState().readItems = new Set();

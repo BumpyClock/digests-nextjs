@@ -80,7 +80,7 @@ class WorkerService {
       this.isInitialized = true;
       Logger.debug('WorkerService: Workers initialized');
     } catch (error) {
-      console.error('WorkerService: Failed to initialize workers', error);
+      Logger.error('WorkerService: Failed to initialize workers', error instanceof Error ? error : undefined);
       // Ensure service can still work without workers
       this.fallbackMode = true;
     }
@@ -119,12 +119,12 @@ class WorkerService {
    */
   private handleWorkerMessage = (event: MessageEvent): void => {
     const response = event.data as WorkerResponse;
-    
+
     // Log errors
     if (response.type === 'ERROR') {
-      console.error('WorkerService: Error from worker', response.message);
+      Logger.error(`WorkerService: Error from worker - ${response.message}`);
     }
-    
+
     // Call handlers for this message type
     const handlers = this.messageHandlers.get(response.type);
     if (handlers) {
@@ -162,7 +162,7 @@ class WorkerService {
    */
   postMessage(message: WorkerMessage): void {
     if (!this.isInitialized) {
-      console.error('WorkerService: Workers not initialized');
+      Logger.error('WorkerService: Workers not initialized');
       return;
     }
 
@@ -177,20 +177,20 @@ class WorkerService {
   /**
    * Fetches feeds from the worker
    */
-  async fetchFeeds(url: string): Promise<{ 
-    success: boolean; 
-    feeds: Feed[]; 
+  async fetchFeeds(url: string): Promise<{
+    success: boolean;
+    feeds: Feed[];
     items: FeedItem[];
-    message?: string; 
+    message?: string;
   }> {
     const apiConfig = getApiConfig();
     return new Promise(resolve => {
       // Initialize if not already
       if (!this.isInitialized) this.initialize();
-      
+
       // If no worker, fall back to direct API call
       if (!this.rssWorker) {
-        console.warn('WorkerService: Worker not available, using fallback');
+        Logger.warn('WorkerService: Worker not available, using fallback');
         import('../lib/rss').then(({ fetchFeeds }) => {
           fetchFeeds([url])
             .then(result => resolve({ success: true, ...result }))
@@ -242,7 +242,7 @@ class WorkerService {
       
       // If no worker, fall back to direct API call
       if (!this.rssWorker) {
-        console.warn('WorkerService: Worker not available, using fallback');
+        Logger.warn('WorkerService: Worker not available, using fallback');
         import('../lib/rss').then(({ fetchFeeds }) => {
           fetchFeeds(urls)
             .then(result => resolve({ success: true, ...result }))
@@ -293,7 +293,7 @@ class WorkerService {
       
       // If no worker, fall back to direct API call
       if (!this.rssWorker) {
-        console.warn('WorkerService: Worker not available, using fallback');
+        Logger.warn('WorkerService: Worker not available, using fallback');
         import('../lib/rss').then(({ fetchReaderView }) => {
           fetchReaderView([url])
             .then(data => resolve({ success: true, data }))
@@ -339,7 +339,7 @@ class WorkerService {
       if (!this.isInitialized) this.initialize();
 
       if (!this.shadowWorker) {
-        console.warn('WorkerService: Worker not available, using fallback');
+        Logger.warn('WorkerService: Worker not available, using fallback');
         import('../utils/shadow').then(({ generateCardShadows }) => {
           resolve(generateCardShadows(color, isDarkMode));
         });
@@ -374,15 +374,15 @@ class WorkerService {
       if (!this.isInitialized) this.initialize();
       
       if (!this.rssWorker) {
-        console.warn('WorkerService: Worker not available, using fallback');
+        Logger.warn('WorkerService: Worker not available, using fallback');
         import('../lib/rss').then(({ fetchFeeds }) => {
           fetchFeeds(urls)
             .then(result => resolve({ success: true, ...result }))
-            .catch(error => resolve({ 
-              success: false, 
-              feeds: [], 
-              items: [], 
-              message: error.message 
+            .catch(error => resolve({
+              success: false,
+              feeds: [],
+              items: [],
+              message: error.message
             }));
         });
         return;

@@ -27,9 +27,6 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    reactCompiler: true,
-  },
   webpack: (config) => {
     config.module.rules.push({
       test: /\.lottie$/,

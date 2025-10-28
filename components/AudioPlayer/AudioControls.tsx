@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react"
 import { useFeedStore } from "@/store/useFeedStore"
+import { formatTime } from "@/utils/audio"
 
 /**
  * Component that renders audio playback controls
@@ -12,19 +13,10 @@ export function AudioControls() {
   const { isPlaying, currentTime, duration, volume, isMuted, togglePlayPause, seek, setVolume, toggleMute } = useFeedStore()
 
   /**
-   * Formats time in seconds to MM:SS format
-   */
-  const formatTime = useCallback((time: number) => {
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
-  }, [])
-
-  /**
    * Memoized formatted time values to prevent recalculation
    */
-  const formattedCurrentTime = useMemo(() => formatTime(currentTime), [formatTime, currentTime])
-  const formattedDuration = useMemo(() => formatTime(duration), [formatTime, duration])
+  const formattedCurrentTime = useMemo(() => formatTime(currentTime), [currentTime])
+  const formattedDuration = useMemo(() => formatTime(duration), [duration])
 
   /**
    * Handles seek slider value changes

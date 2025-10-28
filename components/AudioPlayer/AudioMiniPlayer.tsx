@@ -7,6 +7,7 @@ import { Play, Pause, SkipBack, SkipForward, Repeat, X } from "lucide-react"
 import { useFeedStore } from "@/store/useFeedStore"
 import { Slider } from "@/components/ui/slider"
 import Image from "next/image"
+import { formatTime } from "@/utils/audio"
 
 /**
  * Compact audio player that appears minimized at the bottom of the screen
@@ -15,19 +16,10 @@ export function AudioMiniPlayer() {
   const { currentAudio, isPlaying, togglePlayPause, currentTime, duration, seek, setShowMiniPlayer } = useFeedStore()
 
   /**
-   * Formats time in seconds to MM:SS format
-   */
-  const formatTime = useCallback((time: number) => {
-    const minutes = Math.floor(time / 60)
-    const seconds = Math.floor(time % 60)
-    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`
-  }, [])
-
-  /**
    * Memoized formatted times to prevent recalculation
    */
-  const formattedCurrentTime = useMemo(() => formatTime(currentTime), [formatTime, currentTime])
-  const formattedDuration = useMemo(() => formatTime(duration), [formatTime, duration])
+  const formattedCurrentTime = useMemo(() => formatTime(currentTime), [currentTime])
+  const formattedDuration = useMemo(() => formatTime(duration), [duration])
   
   /**
    * Handles slider change for seeking
