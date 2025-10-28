@@ -13,6 +13,16 @@ import { ContentPageSkeleton } from "@/components/ContentPageSkeleton"
 import { ContentNotFound } from "@/components/ContentNotFound"
 import { useContentActions } from "@/hooks/use-content-actions"
 
+/**
+ * Renders the article detail page for a feed item identified by the provided route params.
+ *
+ * Retrieves feeds and reader-view data, displays title, site metadata, hero image and sanitized HTML content,
+ * and provides bookmark, share, and open-original actions. Shows a loading skeleton while data is loading and
+ * a not-found UI when the article cannot be resolved.
+ *
+ * @param props - Component props containing `params`, a promise that resolves to an object with the route `id` used to locate the article.
+ * @returns The article detail page JSX, or appropriate loading / not-found UI when applicable.
+ */
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
   const [article, setArticle] = useState<FeedItem | null>(null)

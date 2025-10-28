@@ -13,6 +13,14 @@ import { ContentNotFound } from "@/components/ContentNotFound"
 import { useContentActions } from "@/hooks/use-content-actions"
 import { useRouter } from "next/navigation"
 
+/**
+ * Renders the podcast detail page for the podcast id provided in the route params.
+ *
+ * Loads podcast data from the feed, shows a loading skeleton while fetching, displays a not-found view if the podcast is missing, and otherwise renders the podcast detail UI with playback, bookmark, and share controls.
+ *
+ * @param props.params - A Promise that resolves to an object containing the route `id` used to load the podcast
+ * @returns The podcast detail page UI: a loading skeleton, a not-found view, or the detailed podcast view with actions and description
+ */
 export default function PodcastPage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
   const [podcast, setPodcast] = useState<FeedItem | null>(null)

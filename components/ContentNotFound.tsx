@@ -8,7 +8,10 @@ interface ContentNotFoundProps {
 }
 
 /**
- * Shared "not found" state for article and podcast detail pages
+ * Renders a not-found state for a given content type.
+ *
+ * @param contentType - Label of the missing content (e.g., "Article", "Podcast"); used in the heading and message
+ * @returns The JSX element for the not-found UI
  */
 export function ContentNotFound({ contentType }: ContentNotFoundProps) {
   const router = useRouter()

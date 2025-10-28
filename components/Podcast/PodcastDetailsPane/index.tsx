@@ -11,6 +11,12 @@ interface PodcastDetailsPaneProps {
   feedItem: FeedItem | null;
 }
 
+/**
+ * Render a pane displaying details for a podcast feed item and mark the item as read after two seconds of viewing.
+ *
+ * @param feedItem - The feed item to display; when `null`, an empty state is rendered.
+ * @returns The React element for the podcast details pane or an empty state when `feedItem` is `null`.
+ */
 export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
   const { markAsRead } = useFeedStore();
 
