@@ -7,7 +7,6 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import tinycolor from 'tinycolor2';
-import { Logger } from '../utils/logger.ts'; // TODO: ensure this path works when running the script
 
 // Current directory
 const __filename = fileURLToPath(import.meta.url);
@@ -529,7 +528,7 @@ function generateCssFile() {
   
   // Write the CSS file
   fs.writeFileSync(outputPath, css, 'utf8');
-  Logger.info(`Generated theme CSS at ${outputPath}`);
+  console.log(`✓ Generated theme CSS at ${outputPath}`);
 }
 
 // Execute the function

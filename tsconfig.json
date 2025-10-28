@@ -29,11 +29,10 @@
       ]
     },
     "target": "ES2017"
-    ,"types": ["node", "jest"]
+    ,"types": ["node"]
   },
   "include": [
     "next-env.d.ts",
-    "jest.setup.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
@@ -41,6 +40,8 @@
   ],
   "exclude": [
     "node_modules",
-    "node_modules/*"
+    "node_modules/*",
+    "**/__tests__/**",
+    "tests/**"
   ]
 }
