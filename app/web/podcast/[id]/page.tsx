@@ -1,16 +1,17 @@
 "use client"
 
 import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Bookmark, Share2 } from "lucide-react"
-import { fetchFeedsAction, toggleFavoriteAction } from "@/app/actions"
-import { useToast } from "@/hooks/use-toast"
+import { fetchFeedsAction } from "@/app/actions"
 import { useAudioActions } from "@/hooks/useFeedSelectors"
 import Image from "next/image"
 import type { FeedItem } from "@/types/feed"
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
+import { ContentPageSkeleton } from "@/components/ContentPageSkeleton"
+import { ContentNotFound } from "@/components/ContentNotFound"
+import { useContentActions } from "@/hooks/use-content-actions"
+import { useRouter } from "next/navigation"
 
 export default function PodcastPage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
@@ -18,8 +19,8 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
   const [loading, setLoading] = useState(true)
   const [isBookmarked, setIsBookmarked] = useState(false)
   const router = useRouter()
-  const { toast } = useToast()
   const { playAudio } = useAudioActions()
+  const { handleBookmark: bookmarkAction, handleShare } = useContentActions("podcast")
 
   useEffect(() => {
     async function loadPodcast() {
@@ -44,37 +45,7 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
 
   const handleBookmark = async () => {
     if (!podcast) return
-
-    // Optimistic update
-    setIsBookmarked(!isBookmarked)
-
-    const result = await toggleFavoriteAction(podcast.id)
-
-    if (result.success) {
-      toast({
-        title: isBookmarked ? "Removed from bookmarks" : "Added to bookmarks",
-        description: isBookmarked
-          ? "This podcast has been removed from your bookmarks."
-          : "This podcast has been added to your bookmarks.",
-      })
-    } else {
-      // Revert optimistic update if failed
-      setIsBookmarked(isBookmarked)
-
-      toast({
-        title: "Error",
-        description: result.message || "Failed to update bookmark status",
-        variant: "destructive",
-      })
-    }
-  }
-
-  const handleShare = () => {
-    // In a real app, this would use the Web Share API
-    toast({
-      title: "Share link copied",
-      description: "The link to this podcast has been copied to your clipboard.",
-    })
+    await bookmarkAction(podcast.id, isBookmarked, setIsBookmarked)
   }
 
   const handlePlay = () => {
@@ -90,48 +61,11 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
   }
 
   if (loading) {
-    return (
-      <div className="container max-w-3xl py-8">
-        <div className="mb-6">
-          <Button variant="ghost" size="sm" className="mb-4">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
-          <Skeleton className="h-8 w-3/4 mb-4" />
-          <div className="flex items-center space-x-4 mb-6">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <div>
-              <Skeleton className="h-4 w-32 mb-2" />
-              <Skeleton className="h-3 w-24" />
-            </div>
-          </div>
-          <Skeleton className="h-[300px] w-full rounded-lg mb-6" />
-          <div className="space-y-4">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-        </div>
-      </div>
-    )
+    return <ContentPageSkeleton />
   }
 
   if (!podcast) {
-    return (
-      <div className="container max-w-3xl py-8">
-        <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-        <div className="flex flex-col items-center justify-center py-12">
-          <h2 className="text-2xl font-bold mb-2">Podcast not found</h2>
-          <p className="text-muted-foreground mb-6">
-            The podcast you&apos;re looking for doesn&apos;t exist or has been removed.
-          </p>
-          <Button onClick={() => router.push("/app")}>Return to feeds</Button>
-        </div>
-      </div>
-    )
+    return <ContentNotFound contentType="Podcast" />
   }
 
   return (
@@ -190,4 +124,3 @@ export default function PodcastPage(props: { params: Promise<{ id: string }> }) 
     </div>
   )
 }
-

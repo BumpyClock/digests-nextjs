@@ -4,7 +4,7 @@ const path = require('path');
 
 const modules = [
   'utils/formatDuration.ts',
-  'utils/url-helpers.ts'
+  'utils/url.ts'
 ];
 
 try {
