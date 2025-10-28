@@ -25,8 +25,13 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 
 /**
- * Validates if a string is a valid image URL or path
- * Extends the base isValidUrl to also allow relative paths
+ * Determine whether a string is a valid image URL or relative image path.
+ *
+ * Considers a non-empty string valid if it is an absolute URL (per isValidUrl)
+ * or a relative path that begins with `/` or `http`.
+ *
+ * @param url - The candidate image URL or path to validate
+ * @returns `true` if `url` is an absolute URL or a relative image path starting with `/` or `http`, `false` otherwise.
  */
 function isValidImageUrl(url: string): boolean {
   if (!url || url.trim() === "") return false;

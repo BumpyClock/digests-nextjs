@@ -3,8 +3,12 @@ import { toggleFavoriteAction } from "@/app/actions"
 import { useToast } from "@/hooks/use-toast"
 
 /**
- * Shared hook for bookmark and share functionality
- * Used by article and podcast detail pages
+ * Provides bookmark and share handlers tailored to an article or podcast detail page.
+ *
+ * @param contentType - Either `"article"` or `"podcast"`, used to tailor toast messages.
+ * @returns An object with:
+ * - `handleBookmark(itemId, isBookmarked, setIsBookmarked)`: toggles the bookmarked state optimistically, synchronizes the change with the server, and shows a success or error toast; on failure it reverts the optimistic update.
+ * - `handleShare()`: shows a toast indicating the content link has been copied to the clipboard.
  */
 export function useContentActions(contentType: "article" | "podcast") {
   const { toast } = useToast()

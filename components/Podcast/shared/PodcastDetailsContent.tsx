@@ -19,8 +19,15 @@ interface PodcastDetailsContentProps {
 }
 
 /**
- * Shared podcast details content component
- * Used by both PodcastDetailsModal and PodcastDetailsPane
+ * Renders detailed podcast information including artwork, channel, metadata, actions, and description.
+ *
+ * Renders a responsive layout that adapts between "modal" and "pane" variants and optionally shows ambilight on artwork.
+ *
+ * @param props.podcast - Podcast data (FeedItem) used to populate artwork, title, channel, metadata, and description.
+ * @param props.actionButtons - Optional additional action buttons rendered alongside the play button.
+ * @param props.showAmbilight - When true, enables ambilight effect on the artwork.
+ * @param props.variant - Layout variant; `"modal"` applies modal-specific sizing and spacing, `"pane"` uses the default pane layout.
+ * @returns The JSX element tree for the podcast details UI.
  */
 export function PodcastDetailsContent({
   podcast,

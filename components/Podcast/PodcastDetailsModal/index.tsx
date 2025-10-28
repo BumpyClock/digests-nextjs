@@ -13,6 +13,14 @@ interface PodcastDetailsModalProps {
   podcast: FeedItem
 }
 
+/**
+ * Render a modal displaying podcast details and action buttons for sharing, downloading, and opening the episode in a browser.
+ *
+ * @param isOpen - Whether the modal is visible
+ * @param onClose - Callback invoked to close the modal
+ * @param podcast - FeedItem containing podcast metadata, links, and enclosures used to populate content and actions
+ * @returns A React element representing the podcast details modal
+ */
 export function PodcastDetailsModal({ isOpen, onClose, podcast }: PodcastDetailsModalProps) {
 
   const handleShare = async () => {
