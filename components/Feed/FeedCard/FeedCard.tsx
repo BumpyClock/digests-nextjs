@@ -29,6 +29,7 @@ import { getImageKitUrl, IMAGE_PRESETS, canUseImageKit } from "@/utils/imagekit"
 import { motion } from "motion/react";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
 import Image from "next/image";
+import { isValidUrl } from "@/utils/url";
 dayjs.extend(relativeTime);
 
 interface FeedCardProps {
@@ -215,16 +216,6 @@ export const FeedCard = memo(function FeedCard({
   const handleFaviconError = useCallback(() => {
     setFaviconError(true);
   }, []);
-
-  const isValidUrl = (url: string | undefined): boolean => {
-    if (!url) return false;
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  };
 
   const getShadowStyle = () => {
     if (isPressed) return pressedShadow;

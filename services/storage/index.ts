@@ -241,18 +241,32 @@ export class StorageService {
   }
   
   /**
+   * Helper to get feeds or return early with error
+   * @private
+   */
+  private async getFeedsOrError(): Promise<Result<Feed[]>> {
+    const feedsResult = await this.getFeeds()
+
+    if (!feedsResult.success) {
+      return { success: false, error: feedsResult.error }
+    }
+
+    return { success: true, data: feedsResult.data ?? [] }
+  }
+
+  /**
    * Adds a single feed to storage
    * @param feed - Feed to add
    */
   async addFeed(feed: Feed): Promise<Result<void>> {
     try {
-      const feedsResult = await this.getFeeds()
-      
+      const feedsResult = await this.getFeedsOrError()
+
       if (!feedsResult.success) {
         return { success: false, error: feedsResult.error }
       }
-      
-      const feeds = feedsResult.data ?? []
+
+      const feeds = feedsResult.data
       
       // Check if feed already exists
       const exists = feeds.some(f => f.feedUrl === feed.feedUrl)
@@ -278,13 +292,13 @@ export class StorageService {
    */
   async removeFeed(feedUrl: string): Promise<Result<void>> {
     try {
-      const feedsResult = await this.getFeeds()
-      
+      const feedsResult = await this.getFeedsOrError()
+
       if (!feedsResult.success) {
         return { success: false, error: feedsResult.error }
       }
-      
-      const feeds = (feedsResult.data ?? []).filter(f => f.feedUrl !== feedUrl)
+
+      const feeds = feedsResult.data.filter(f => f.feedUrl !== feedUrl)
       
       // Save updated feeds
       const saveResult = await this.saveFeeds(feeds)

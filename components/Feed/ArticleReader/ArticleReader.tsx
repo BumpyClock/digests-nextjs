@@ -17,11 +17,26 @@ import { getImageProps } from "@/utils/image-config";
 import { ProgressiveImage } from "@/components/ui/progressive-image";
 import { canUseImageKit } from "@/utils/imagekit";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
+import { isValidUrl } from "@/utils/url";
 import { motion, AnimatePresence } from "motion/react";
 import ReactMarkdown from "react-markdown";
 import type { Components as MarkdownComponents } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+
+/**
+ * Validates if a string is a valid image URL or path
+ * Extends the base isValidUrl to also allow relative paths
+ */
+function isValidImageUrl(url: string): boolean {
+  if (!url || url.trim() === "") return false;
+
+  // Check if it's a valid absolute URL
+  if (isValidUrl(url)) return true;
+
+  // Allow relative paths
+  return url.startsWith("/") || url.startsWith("http");
+}
 
 export const ArticleImage = memo(
   ({
@@ -41,20 +56,8 @@ export const ArticleImage = memo(
     progressive?: boolean;
     initialSrc?: string;
   }) => {
-    // Validate the URL before rendering
-    const isValidUrl = (url: string) => {
-      if (!url || url.trim() === "") return false;
-      try {
-        new URL(url);
-        return true;
-      } catch {
-        // If it's not a full URL, check if it's a valid relative path
-        return url.startsWith("/") || url.startsWith("http");
-      }
-    };
-
     // Don't render anything if there's no valid image
-    if (!isValidUrl(src)) {
+    if (!isValidImageUrl(src)) {
       return null;
     }
 
@@ -110,19 +113,7 @@ export const SiteFavicon = memo(
     size?: "small" | "medium";
     priority?: boolean;
   }) => {
-    // Validate the URL before rendering
-    const isValidUrl = (url: string) => {
-      if (!url || url.trim() === "") return false;
-      try {
-        new URL(url);
-        return true;
-      } catch {
-        // If it's not a full URL, check if it's a valid relative path
-        return url.startsWith("/") || url.startsWith("http");
-      }
-    };
-
-    const faviconSrc = isValidUrl(favicon) ? favicon : "/placeholder-rss.svg";
+    const faviconSrc = isValidImageUrl(favicon) ? favicon : "/placeholder-rss.svg";
 
     return (
       <Image

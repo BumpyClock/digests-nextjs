@@ -20,3 +20,18 @@ export const normalizeUrl = (url?: string | null): string => {
       .replace(/\/+$/, '');
   }
 };
+
+/**
+ * Checks if a string is a valid URL
+ * @param url - The URL string to validate
+ * @returns true if the URL is valid, false otherwise
+ */
+export const isValidUrl = (url: string | undefined | null): boolean => {
+  if (!url) return false;
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
