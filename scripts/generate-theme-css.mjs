@@ -515,17 +515,29 @@ function generateCssFile() {
     css += '}\n\n';
   });
   
-  // Add a special case for dark mode
+  // Add special cases for light and dark mode aliases
+  // Light mode alias
+  css += `html[data-theme="light"] {\n`;
+  const lightTheme = themes.find(t => t.name === 'flexoki-light') || themes[0];
+  const lightVars = generateCssVariables(lightTheme.coreColors);
+
+  // Add all light theme variables
+  Object.entries(lightVars).forEach(([name, value]) => {
+    css += `  ${name}: ${value};\n`;
+  });
+  css += '}\n\n';
+
+  // Dark mode alias
   css += `html[data-theme="dark"] {\n`;
   const darkTheme = themes.find(t => t.name === 'flexoki-dark') || themes[1];
   const darkVars = generateCssVariables(darkTheme.coreColors);
-  
+
   // Add all dark theme variables
   Object.entries(darkVars).forEach(([name, value]) => {
     css += `  ${name}: ${value};\n`;
   });
   css += '}\n\n';
-  
+
   // Write the CSS file
   fs.writeFileSync(outputPath, css, 'utf8');
   console.log(`✓ Generated theme CSS at ${outputPath}`);
