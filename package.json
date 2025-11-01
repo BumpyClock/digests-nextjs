@@ -75,6 +75,7 @@
     "@types/tinycolor2": "^1.4.6",
     "eslint": "9.21.0",
     "eslint-config-next": "15.2.1",
+    "jscpd": "^4.0.5",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.13",
     "tinycolor2": "^1.6.0",
