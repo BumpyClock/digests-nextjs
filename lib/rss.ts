@@ -1,11 +1,12 @@
-import type { 
-  Feed, 
-  FeedItem, 
-  FetchFeedsResponse, 
-  ReaderViewResponse 
+import type {
+  Feed,
+  FeedItem,
+  FetchFeedsResponse,
+  ReaderViewResponse
 } from '@/types'
 import { getApiUrl } from '@/lib/config'
 import { Logger } from '@/utils/logger'
+import { transformFeedResponse } from '@/lib/feed-transformer'
 
 export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
   try {
@@ -31,51 +32,7 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
       throw new Error("Invalid response from API")
     }
 
-    const feeds: Feed[] = data.feeds.map((feed: Feed) => ({
-      type: feed.type,
-      guid: feed.guid || feed.link?.replace(/[^a-zA-Z0-9]/g, '') || crypto.randomUUID(),
-      status: feed.status,
-      siteTitle: feed.siteTitle,
-      feedTitle: feed.feedTitle,
-      feedUrl: feed.feedUrl,
-      description: feed.description,
-      link: feed.link,
-      lastUpdated: feed.lastUpdated,
-      lastRefreshed: feed.lastRefreshed,
-      published: feed.published,
-      author: feed.author,
-      language: feed.language,
-      favicon: feed.favicon,
-      categories: feed.categories,
-      items: Array.isArray(feed.items) ? feed.items.map((item: FeedItem) => ({
-        type: item.type,
-        id: item.id || item.link?.replace(/[^a-zA-Z0-9]/g, '') || crypto.randomUUID(),
-        title: item.title,
-        description: item.description,
-        link: item.link,
-        author: item.author,
-        published: item.published,
-        content: item.content,
-        created: item.created,
-        content_encoded: item.content_encoded,
-        categories: item.categories,
-        enclosures: item.enclosures,
-        thumbnail: item.thumbnail,
-        thumbnailColor: item.thumbnailColor,
-        thumbnailColorComputed: item.thumbnailColorComputed,
-        siteTitle: feed.siteTitle,
-        feedTitle: feed.feedTitle,
-        feedUrl: feed.feedUrl,
-        favicon: feed.favicon,
-        favorite: false,
-      })) : [],
-    }))
-
-    const items: FeedItem[] = feeds
-      .flatMap(feed => feed.items || [])
-
-
-    return { feeds, items }
+    return transformFeedResponse(data)
   } catch (error) {
     console.error("Error fetching feeds:", error)
     throw error
