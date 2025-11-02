@@ -15,8 +15,9 @@ const __dirname = path.dirname(__filename);
 // Path to output file
 const outputPath = path.join(__dirname, '..', 'app', 'generated-themes.css');
 
-// Dynamic import of theme definitions from TypeScript source
-const { themes } = await import('../lib/theme-definitions.ts');
+// Import compiled theme definitions (CommonJS module)
+const themeDefinitionsModule = await import('../lib/theme-definitions.js');
+const themes = themeDefinitionsModule.default?.themes || themeDefinitionsModule.themes;
 
 /**
  * Generates CSS variables from core colors

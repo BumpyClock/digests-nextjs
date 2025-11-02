@@ -44,6 +44,7 @@ class WorkerService {
   private isInitialized = false;
   private fallbackMode = false;
   private cacheTtl = DEFAULT_CACHE_TTL;
+  private readonly WORKER_TIMEOUT_MS = 30000; // 30 seconds
 
   /**
    * Initializes the worker service
@@ -176,13 +177,13 @@ class WorkerService {
 
   /**
    * Sends a message to a worker and returns a promise that resolves with the response
-   * Handles initialization, fallback mode, and one-time message handling
+   * Handles initialization, fallback mode, one-time message handling, and timeout
    * @param worker - The worker to send the message to ('rss' or 'shadow')
    * @param message - The message to send
    * @param expectedResponseType - The expected response type to listen for
    * @param fallbackFn - Optional fallback function to call if worker is not available
    * @param responseFilter - Optional filter to match specific responses (e.g., for shadow generation by id)
-   * @returns Promise that resolves with the response data
+   * @returns Promise that resolves with the response data or rejects on timeout/error
    */
   private sendWorkerMessage<T extends WorkerResponse>(
     worker: 'rss' | 'shadow',
@@ -210,14 +211,36 @@ class WorkerService {
         return;
       }
 
+      let timeoutId: NodeJS.Timeout | number | null = null;
+      let unsubscribe: (() => void) | null = null;
+
+      // Cleanup function to ensure all resources are released
+      const cleanup = () => {
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId as any);
+          timeoutId = null;
+        }
+        if (unsubscribe) {
+          unsubscribe();
+          unsubscribe = null;
+        }
+      };
+
+      // Set up timeout
+      timeoutId = setTimeout(() => {
+        cleanup();
+        reject(new Error(`Worker message timeout after ${this.WORKER_TIMEOUT_MS}ms`));
+      }, this.WORKER_TIMEOUT_MS);
+
       // Register one-time handler for response
-      const unsubscribe = this.onMessage(expectedResponseType, (response) => {
-        // Apply filter if provided
+      unsubscribe = this.onMessage(expectedResponseType, (response) => {
+        // Apply filter if provided - if false, keep listener active
         if (responseFilter && !responseFilter(response as T)) {
           return;
         }
 
-        unsubscribe();
+        // Filter matched or no filter - clean up and resolve
+        cleanup();
         resolve(response as T);
       });
 
