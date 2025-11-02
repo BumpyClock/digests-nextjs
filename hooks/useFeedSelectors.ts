@@ -66,28 +66,8 @@ export const useReadLaterActions = (): {
   );
 };
 
-/**
- * Hook to get the count of unread items
- * @returns Number of unread items
- */
-// Deprecated: items are no longer stored in Zustand.
-export const useUnreadCount = (): number => 0;
 
-/**
- * Hook to get feed items for a specific feed
- * Uses shallow equality to prevent re-renders when array content doesn't change
- * @param feedUrl - The URL of the feed to filter by
- * @returns Array of feed items for the specified feed
- */
-// Deprecated: items are managed by React Query.
-export const useFeedItemsByFeed = (_feedUrl: string): FeedItem[] => [];
 
-/**
- * Hook to get feed items for the active feed
- * @returns Array of feed items for the active feed, or all items if no active feed
- */
-// Deprecated: items are managed by React Query.
-export const useActiveFeedItems = (): FeedItem[] => [];
 
 /**
  * Hook to get feed actions
@@ -154,19 +134,7 @@ export const useFeedTitles = () => {
   );
 };
 
-/**
- * Hook to get unread items
- * @returns Array of unread feed items
- */
-// Deprecated: items are managed by React Query.
-export const useUnreadItems = (): FeedItem[] => [];
 
-/**
- * Hook to get read later items
- * @returns Array of items marked for read later
- */
-// Deprecated: derive read later items in containers from React Query data + store.readLaterItems.
-export const useReadLaterItems = (): FeedItem[] => [];
 
 /**
  * Hook for the main web page data needs
