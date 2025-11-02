@@ -7,7 +7,6 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import tinycolor from 'tinycolor2';
-import themeDefinitions from '../lib/theme-definitions.js';
 
 // Current directory
 const __filename = fileURLToPath(import.meta.url);
@@ -16,8 +15,8 @@ const __dirname = path.dirname(__filename);
 // Path to output file
 const outputPath = path.join(__dirname, '..', 'app', 'generated-themes.css');
 
-// Import themes from the shared theme definitions file
-const themes = themeDefinitions.themes;
+// Dynamic import of theme definitions from TypeScript source
+const { themes } = await import('../lib/theme-definitions.ts');
 
 /**
  * Generates CSS variables from core colors
