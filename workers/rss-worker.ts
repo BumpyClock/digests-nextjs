@@ -1,7 +1,8 @@
 // workers/rss-worker.ts
-import type { Feed, FeedItem, ReaderViewResponse } from '../types';
+import type { Feed, FeedItem, ReaderViewResponse, FetchFeedsResponse } from '../types';
 import { DEFAULT_API_CONFIG } from '../lib/config';
 import { Logger } from '@/utils/logger';
+import { transformFeedResponse } from '../lib/feed-transformer';
 
 // Default cache TTL from environment (fallback to 30 minutes)
 const DEFAULT_CACHE_TTL = (() => {
@@ -102,58 +103,18 @@ async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feed
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as FetchFeedsResponse;
 
     if (!data || !Array.isArray(data.feeds)) {
       throw new Error("Invalid response from API");
     }
 
-    const feeds: Feed[] = data.feeds.map((feed: Feed) => ({
-      type: feed.type,
-      guid: feed.guid,
-      status: feed.status,
-      siteTitle: feed.siteTitle,
-      feedTitle: feed.feedTitle,
-      feedUrl: feed.feedUrl,
-      description: feed.description,
-      link: feed.link,
-      lastUpdated: feed.lastUpdated,
-      lastRefreshed: feed.lastRefreshed,
-      published: feed.published,
-      author: feed.author,
-      language: feed.language,
-      favicon: feed.favicon,
-      categories: feed.categories,
-      items: Array.isArray(feed.items) ? feed.items.map((item: FeedItem) => ({
-        type: item.type,
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        link: item.link,
-        author: item.author,
-        published: item.published,
-        content: item.content,
-        created: item.created,
-        content_encoded: item.content_encoded,
-        categories: item.categories,
-        enclosures: item.enclosures,
-        thumbnail: item.thumbnail,
-        thumbnailColor: item.thumbnailColor,
-        thumbnailColorComputed: item.thumbnailColorComputed,
-        siteTitle: feed.siteTitle,
-        feedTitle: feed.feedTitle,
-        feedUrl: feed.feedUrl,
-        favicon: feed.favicon,
-        favorite: false,
-      })) : [],
-    }));
+    // Transform the response using shared utility
+    const result = transformFeedResponse(data);
 
-    const items: FeedItem[] = feeds.flatMap(feed => feed.items || []);
-    
     // Cache the result
-    const result = { feeds, items };
     workerCache.set(cacheKey, result);
-    
+
     return result;
   } catch (error) {
     console.error("[Worker] Error fetching feeds:", error);

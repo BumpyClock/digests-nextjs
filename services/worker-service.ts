@@ -44,6 +44,7 @@ class WorkerService {
   private isInitialized = false;
   private fallbackMode = false;
   private cacheTtl = DEFAULT_CACHE_TTL;
+  private readonly WORKER_TIMEOUT_MS = 30000; // 30 seconds
 
   /**
    * Initializes the worker service
@@ -175,6 +176,80 @@ class WorkerService {
   }
 
   /**
+   * Sends a message to a worker and returns a promise that resolves with the response
+   * Handles initialization, fallback mode, one-time message handling, and timeout
+   * @param worker - The worker to send the message to ('rss' or 'shadow')
+   * @param message - The message to send
+   * @param expectedResponseType - The expected response type to listen for
+   * @param fallbackFn - Optional fallback function to call if worker is not available
+   * @param responseFilter - Optional filter to match specific responses (e.g., for shadow generation by id)
+   * @returns Promise that resolves with the response data or rejects on timeout/error
+   */
+  private sendWorkerMessage<T extends WorkerResponse>(
+    worker: 'rss' | 'shadow',
+    message: WorkerMessage,
+    expectedResponseType: T['type'],
+    fallbackFn?: () => Promise<any>,
+    responseFilter?: (response: T) => boolean
+  ): Promise<T> {
+    return new Promise((resolve, reject) => {
+      // Initialize if not already
+      if (!this.isInitialized) this.initialize();
+
+      // Check if worker is available
+      const workerInstance = worker === 'rss' ? this.rssWorker : this.shadowWorker;
+
+      if (!workerInstance) {
+        if (fallbackFn) {
+          Logger.warn('WorkerService: Worker not available, using fallback');
+          fallbackFn()
+            .then(resolve)
+            .catch(reject);
+        } else {
+          reject(new Error('Worker not available and no fallback provided'));
+        }
+        return;
+      }
+
+      let timeoutId: NodeJS.Timeout | number | null = null;
+      let unsubscribe: (() => void) | null = null;
+
+      // Cleanup function to ensure all resources are released
+      const cleanup = () => {
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId as any);
+          timeoutId = null;
+        }
+        if (unsubscribe) {
+          unsubscribe();
+          unsubscribe = null;
+        }
+      };
+
+      // Set up timeout
+      timeoutId = setTimeout(() => {
+        cleanup();
+        reject(new Error(`Worker message timeout after ${this.WORKER_TIMEOUT_MS}ms`));
+      }, this.WORKER_TIMEOUT_MS);
+
+      // Register one-time handler for response
+      unsubscribe = this.onMessage(expectedResponseType, (response) => {
+        // Apply filter if provided - if false, keep listener active
+        if (responseFilter && !responseFilter(response as T)) {
+          return;
+        }
+
+        // Filter matched or no filter - clean up and resolve
+        cleanup();
+        resolve(response as T);
+      });
+
+      // Send message to worker
+      this.postMessage(message);
+    });
+  }
+
+  /**
    * Fetches feeds from the worker
    */
   async fetchFeeds(url: string): Promise<{
@@ -184,98 +259,84 @@ class WorkerService {
     message?: string;
   }> {
     const apiConfig = getApiConfig();
-    return new Promise(resolve => {
-      // Initialize if not already
-      if (!this.isInitialized) this.initialize();
 
-      // If no worker, fall back to direct API call
-      if (!this.rssWorker) {
-        Logger.warn('WorkerService: Worker not available, using fallback');
-        import('../lib/rss').then(({ fetchFeeds }) => {
-          fetchFeeds([url])
-            .then(result => resolve({ success: true, ...result }))
-            .catch(error => resolve({ 
-              success: false, 
-              feeds: [], 
-              items: [], 
-              message: error.message 
-            }));
-        });
-        return;
-      }
-
-      // Register one-time handler for response
-      const unsubscribe = this.onMessage('FEEDS_RESULT', (response) => {
-        unsubscribe();
-        resolve({
-          success: response.success,
-          feeds: response.feeds,
-          items: response.items,
-          message: response.message
-        });
-      });
-      
-      // Send message to worker
-      this.postMessage({
+    const response = await this.sendWorkerMessage<Extract<WorkerResponse, { type: 'FEEDS_RESULT' }>>(
+      'rss',
+      {
         type: 'FETCH_FEEDS',
-        payload: { 
+        payload: {
           urls: [url],
           apiBaseUrl: apiConfig.baseUrl
         }
-      });
-    });
+      },
+      'FEEDS_RESULT',
+      async () => {
+        const { fetchFeeds } = await import('../lib/rss');
+        try {
+          const result = await fetchFeeds([url]);
+          return { success: true, ...result };
+        } catch (error: any) {
+          return {
+            success: false,
+            feeds: [],
+            items: [],
+            message: error.message
+          };
+        }
+      }
+    );
+
+    return {
+      success: response.success,
+      feeds: response.feeds,
+      items: response.items,
+      message: response.message
+    };
   }
 
   /**
    * Refreshes feeds from the worker
    */
-  async refreshFeeds(urls: string[]): Promise<{ 
-    success: boolean; 
-    feeds: Feed[]; 
+  async refreshFeeds(urls: string[]): Promise<{
+    success: boolean;
+    feeds: Feed[];
     items: FeedItem[];
     message?: string;
   }> {
     const apiConfig = getApiConfig();
-    return new Promise(resolve => {
-      // Initialize if not already
-      if (!this.isInitialized) this.initialize();
-      
-      // If no worker, fall back to direct API call
-      if (!this.rssWorker) {
-        Logger.warn('WorkerService: Worker not available, using fallback');
-        import('../lib/rss').then(({ fetchFeeds }) => {
-          fetchFeeds(urls)
-            .then(result => resolve({ success: true, ...result }))
-            .catch(error => resolve({ 
-              success: false, 
-              feeds: [], 
-              items: [], 
-              message: error.message 
-            }));
-        });
-        return;
-      }
 
-      // Register one-time handler for response
-      const unsubscribe = this.onMessage('FEEDS_RESULT', (response) => {
-        unsubscribe();
-        resolve({
-          success: response.success,
-          feeds: response.feeds,
-          items: response.items,
-          message: response.message
-        });
-      });
-      
-      // Send message to worker
-      this.postMessage({
+    const response = await this.sendWorkerMessage<Extract<WorkerResponse, { type: 'FEEDS_RESULT' }>>(
+      'rss',
+      {
         type: 'REFRESH_FEEDS',
-        payload: { 
+        payload: {
           urls,
-          apiBaseUrl: apiConfig.baseUrl 
+          apiBaseUrl: apiConfig.baseUrl
         }
-      });
-    });
+      },
+      'FEEDS_RESULT',
+      async () => {
+        const { fetchFeeds } = await import('../lib/rss');
+        try {
+          const result = await fetchFeeds(urls);
+          return { success: true, ...result };
+        } catch (error: any) {
+          return {
+            success: false,
+            feeds: [],
+            items: [],
+            message: error.message
+          };
+        }
+      }
+    );
+
+    return {
+      success: response.success,
+      feeds: response.feeds,
+      items: response.items,
+      message: response.message
+    };
   }
 
   /**
@@ -287,44 +348,37 @@ class WorkerService {
     message?: string;
   }> {
     const apiConfig = getApiConfig();
-    return new Promise(resolve => {
-      // Initialize if not already
-      if (!this.isInitialized) this.initialize();
-      
-      // If no worker, fall back to direct API call
-      if (!this.rssWorker) {
-        Logger.warn('WorkerService: Worker not available, using fallback');
-        import('../lib/rss').then(({ fetchReaderView }) => {
-          fetchReaderView([url])
-            .then(data => resolve({ success: true, data }))
-            .catch(error => resolve({ 
-              success: false, 
-              data: [], 
-              message: error.message 
-            }));
-        });
-        return;
-      }
 
-      // Register one-time handler for response
-      const unsubscribe = this.onMessage('READER_VIEW_RESULT', (response) => {
-        unsubscribe();
-        resolve({
-          success: response.success,
-          data: response.data,
-          message: response.message
-        });
-      });
-      
-      // Send message to worker
-      this.postMessage({
+    const response = await this.sendWorkerMessage<Extract<WorkerResponse, { type: 'READER_VIEW_RESULT' }>>(
+      'rss',
+      {
         type: 'FETCH_READER_VIEW',
-        payload: { 
+        payload: {
           urls: [url],
           apiBaseUrl: apiConfig.baseUrl
         }
-      });
-    });
+      },
+      'READER_VIEW_RESULT',
+      async () => {
+        const { fetchReaderView } = await import('../lib/rss');
+        try {
+          const data = await fetchReaderView([url]);
+          return { success: true, data };
+        } catch (error: any) {
+          return {
+            success: false,
+            data: [],
+            message: error.message
+          };
+        }
+      }
+    );
+
+    return {
+      success: response.success,
+      data: response.data,
+      message: response.message
+    };
   }
 
   /**
@@ -335,77 +389,66 @@ class WorkerService {
     hoverShadow: string,
     pressedShadow: string
   }> {
-    return new Promise(resolve => {
-      if (!this.isInitialized) this.initialize();
-
-      if (!this.shadowWorker) {
-        Logger.warn('WorkerService: Worker not available, using fallback');
-        import('../utils/shadow').then(({ generateCardShadows }) => {
-          resolve(generateCardShadows(color, isDarkMode));
-        });
-        return;
-      }
-
-      const unsubscribe = this.onMessage('SHADOWS_RESULT', (response) => {
-        if (response.payload.id === id) {
-          unsubscribe();
-          resolve(response.payload.shadows);
-        }
-      });
-
-      this.postMessage({
+    const response = await this.sendWorkerMessage<Extract<WorkerResponse, { type: 'SHADOWS_RESULT' }>>(
+      'shadow',
+      {
         type: 'GENERATE_SHADOWS',
         payload: { id, color, isDarkMode }
-      });
-    });
+      },
+      'SHADOWS_RESULT',
+      async () => {
+        const { generateCardShadows } = await import('../utils/shadow');
+        return generateCardShadows(color, isDarkMode);
+      },
+      (response) => response.payload.id === id
+    );
+
+    return response.payload.shadows;
   }
 
   /**
    * Checks for updates without refreshing the store
    */
-  async checkForUpdates(urls: string[]): Promise<{ 
-    success: boolean; 
-    feeds: Feed[]; 
+  async checkForUpdates(urls: string[]): Promise<{
+    success: boolean;
+    feeds: Feed[];
     items: FeedItem[];
     message?: string;
   }> {
     const apiConfig = getApiConfig();
-    return new Promise(resolve => {
-      if (!this.isInitialized) this.initialize();
-      
-      if (!this.rssWorker) {
-        Logger.warn('WorkerService: Worker not available, using fallback');
-        import('../lib/rss').then(({ fetchFeeds }) => {
-          fetchFeeds(urls)
-            .then(result => resolve({ success: true, ...result }))
-            .catch(error => resolve({
-              success: false,
-              feeds: [],
-              items: [],
-              message: error.message
-            }));
-        });
-        return;
-      }
 
-      const unsubscribe = this.onMessage('FEEDS_RESULT', (response) => {
-        unsubscribe();
-        resolve({
-          success: response.success,
-          feeds: response.feeds,
-          items: response.items,
-          message: response.message
-        });
-      });
-      
-      this.postMessage({
+    const response = await this.sendWorkerMessage<Extract<WorkerResponse, { type: 'FEEDS_RESULT' }>>(
+      'rss',
+      {
         type: 'CHECK_UPDATES',
-        payload: { 
+        payload: {
           urls,
           apiBaseUrl: apiConfig.baseUrl
         }
-      });
-    });
+      },
+      'FEEDS_RESULT',
+      async () => {
+        const { fetchFeeds } = await import('../lib/rss');
+        try {
+          const result = await fetchFeeds(urls);
+          return { success: true, ...result };
+        } catch (error: any) {
+          return {
+            success: false,
+            feeds: [],
+            items: [],
+            message: error.message
+          };
+        }
+      }
+    );
+
+    return {
+      success: response.success,
+      feeds: response.feeds,
+      items: response.items,
+      message: response.message
+    };
   }
 
   /**
