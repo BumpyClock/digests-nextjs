@@ -72,12 +72,10 @@
     "@types/node": "22.13.9",
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4",
-    "@types/tinycolor2": "^1.4.6",
     "eslint": "9.21.0",
     "eslint-config-next": "15.2.1",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.13",
-    "tinycolor2": "^1.6.0",
     "typescript": "^5.9.2"
   },
   "pnpm": {

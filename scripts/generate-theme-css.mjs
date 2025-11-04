@@ -6,7 +6,6 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import tinycolor from 'tinycolor2';
 
 // Current directory
 const __filename = fileURLToPath(import.meta.url);
