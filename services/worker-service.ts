@@ -1,5 +1,7 @@
 // services/worker-service.ts
 import type { Feed, FeedItem, ReaderViewResponse } from '../types';
+import type { IFeedFetcher } from '@/lib/interfaces/feed-fetcher.interface';
+import { createFeedFetcher } from '@/lib/feed-fetcher';
 import { generateCardShadows } from '../utils/shadow';
 import { getApiConfig } from '@/store/useApiConfigStore';
 import { Logger } from '@/utils/logger';
@@ -45,6 +47,12 @@ class WorkerService {
   private fallbackMode = false;
   private cacheTtl = DEFAULT_CACHE_TTL;
   private readonly WORKER_TIMEOUT_MS = 30000; // 30 seconds
+  private fallbackFetcher: IFeedFetcher; // NEW
+
+  constructor(fallbackFetcher?: IFeedFetcher) {
+    // Allow injection of custom fetcher (for testing)
+    this.fallbackFetcher = fallbackFetcher || createFeedFetcher();
+  }
 
   /**
    * Initializes the worker service
@@ -271,9 +279,9 @@ class WorkerService {
       },
       'FEEDS_RESULT',
       async () => {
-        const { fetchFeeds } = await import('../lib/rss');
+        Logger.debug('[WorkerService] Using fallback fetcher');
         try {
-          const result = await fetchFeeds([url]);
+          const result = await this.fallbackFetcher.fetchFeeds([url]);
           return { success: true, ...result };
         } catch (error: any) {
           return {
@@ -316,9 +324,9 @@ class WorkerService {
       },
       'FEEDS_RESULT',
       async () => {
-        const { fetchFeeds } = await import('../lib/rss');
+        Logger.debug('[WorkerService] Using fallback fetcher for refresh');
         try {
-          const result = await fetchFeeds(urls);
+          const result = await this.fallbackFetcher.fetchFeeds(urls);
           return { success: true, ...result };
         } catch (error: any) {
           return {
@@ -360,9 +368,9 @@ class WorkerService {
       },
       'READER_VIEW_RESULT',
       async () => {
-        const { fetchReaderView } = await import('../lib/rss');
+        Logger.debug('[WorkerService] Using fallback fetcher for reader view');
         try {
-          const data = await fetchReaderView([url]);
+          const data = await this.fallbackFetcher.fetchReaderView([url]);
           return { success: true, data };
         } catch (error: any) {
           return {
@@ -428,9 +436,9 @@ class WorkerService {
       },
       'FEEDS_RESULT',
       async () => {
-        const { fetchFeeds } = await import('../lib/rss');
+        Logger.debug('[WorkerService] Using fallback fetcher for updates');
         try {
-          const result = await fetchFeeds(urls);
+          const result = await this.fallbackFetcher.fetchFeeds(urls);
           return { success: true, ...result };
         } catch (error: any) {
           return {
@@ -469,5 +477,9 @@ class WorkerService {
   }
 }
 
-// Export singleton instance
-export const workerService = new WorkerService();
+// Export singleton instance with default fetcher
+const workerServiceInstance = new WorkerService();
+export const workerService = workerServiceInstance;
+
+// Also export class for testing with custom fetcher
+export { WorkerService };
