@@ -16,6 +16,9 @@ export interface ReaderViewResponse {
   image: string
   favicon: string
   textContent: string
+  markdown: string
+  author?: string
+  error?: string
 }
 
 // Re-export types for convenience (types are defined in @/types/feed)

@@ -133,9 +133,9 @@ export function processArticleContent(
     : "";
 
   // Process markdown content with comprehensive cleanup (metadata + image deduplication)
-  const markdownResult = readerView.content
+  const markdownResult = readerView.markdown
     ? cleanupMarkdownContent(
-        readerView.content,
+        readerView.markdown,
         thumbnailUrl,
         readerView.title,
         undefined, // author not available in ReaderViewResponse
