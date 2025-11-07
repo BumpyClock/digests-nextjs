@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { EmptyState } from "@/components/Feed/ArticleReader/ArticleReader";
+import { EmptyState } from "@/components/Feed/ArticleReader";
 import { useFeedStore } from "@/store/useFeedStore";
 import { useReaderView } from "@/hooks/use-reader-view";
 import { ReaderContent } from "@/components/Feed/ReaderContent";

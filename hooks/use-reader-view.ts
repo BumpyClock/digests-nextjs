@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ReaderViewResponse, FeedItem } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { workerService } from "@/services/worker-service";
-import { processArticleContent } from "@/components/Feed/ArticleReader/ArticleReader";
+import { processArticleContent } from "@/components/Feed/ArticleReader";
 
 export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
   const [readerView, setReaderView] = useState<ReaderViewResponse | null>(null);

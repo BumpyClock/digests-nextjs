@@ -7,7 +7,7 @@ import { useIsMobile } from "@/hooks/use-media-query";
 import {
   ArticleHeader,
   ArticleContent,
-} from "@/components/Feed/ArticleReader/ArticleReader";
+} from "@/components/Feed/ArticleReader";
 
 interface ReaderContentProps {
   feedItem: FeedItem;
