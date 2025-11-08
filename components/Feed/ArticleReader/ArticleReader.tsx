@@ -41,13 +41,8 @@ export const ArticleReader = memo<ArticleReaderProps>(
 
     const isModal = layout === "modal";
 
-    // Extract author from reader view if available
-    const extractedAuthor = readerView?.author
-      ? { name: readerView.author, image: readerView.image }
-      : undefined;
-
-    // Process content
-    const { htmlContent, markdownContent } = processArticleContent(readerView);
+    // Process content and extract author metadata
+    const { htmlContent, markdownContent, extractedAuthor } = processArticleContent(readerView);
 
     // Render actions component
     const actionsComponent = (

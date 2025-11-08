@@ -125,7 +125,7 @@ export const ArticleActions: React.FC<ArticleActionsProps> = ({
         <Bookmark
           className={`h-4 w-4 mr-1 ${isInReadLater ? "fill-red-500 text-red-500" : ""}`}
         />
-        {isInReadLater ? "Read Later" : "Read Later"}
+        {isInReadLater ? "Saved" : "Read Later"}
       </Button>
       <Button
         size="sm"

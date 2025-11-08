@@ -34,11 +34,12 @@ function calculateReadingTime(content: string): string {
   if (!content) return "Reading time N/A";
 
   // Remove HTML tags and markdown formatting for accurate word count
+  // Order matters: remove images/links BEFORE removing brackets
   const cleanText = content
     .replace(/<[^>]*>/g, "") // Remove HTML tags
-    .replace(/[#*_`~\[\]()]/g, "") // Remove common markdown characters
-    .replace(/!\[.*?\]\(.*?\)/g, "") // Remove markdown images
-    .replace(/\[.*?\]\(.*?\)/g, "") // Remove markdown links
+    .replace(/!\[.*?\]\(.*?\)/g, "") // Remove markdown images FIRST
+    .replace(/\[.*?\]\(.*?\)/g, "") // Remove markdown links SECOND
+    .replace(/[#*_`~\[\]()]/g, "") // Then remove remaining markdown characters
     .trim();
 
   const wordCount = cleanText.split(/\s+/).filter(Boolean).length;
@@ -72,7 +73,7 @@ export const ArticleMetadata = memo<ArticleMetadataProps>(({
   return (
     <div className={`${className}`}>
       {/* Reading Time */}
-      <div className={`text-muted-foreground ${isCompact ? "text-fluid-xs" : "text-fluid-xs"} mb-1`}>
+      <div className="text-muted-foreground text-fluid-xs mb-1">
         <span>{readingTime}</span>
       </div>
 

@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import type { Components as MarkdownComponents } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import rehypeSanitize from "rehype-sanitize";
 import { Skeleton } from "@/components/ui/skeleton";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
 
@@ -254,7 +255,7 @@ export const ArticleContent = memo<ArticleContentProps>(
           <ReactMarkdown
             components={components}
             remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw]}
+            rehypePlugins={[rehypeRaw, rehypeSanitize]}
             allowedElements={undefined}
             disallowedElements={[]}
           >
