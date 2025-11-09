@@ -4,15 +4,31 @@ import type {
   FetchFeedsResponse,
   ReaderViewResponse
 } from '@/types'
+import type { FeedFetcherConfig } from './interfaces/feed-fetcher.interface'
 import { getApiUrl } from '@/lib/config'
 import { Logger } from '@/utils/logger'
 import { transformFeedResponse } from '@/lib/feed-transformer'
 
-export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
+/**
+ * Fetches feeds from the API
+ * @param urls - Array of feed URLs to fetch
+ * @param config - Optional configuration for API base URL
+ * @returns Promise with feeds and items
+ */
+export async function fetchFeeds(
+  urls: string[],
+  config?: FeedFetcherConfig
+): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
   try {
     Logger.debug(`Fetching feeds for URLs: ${urls.length}`)
     Logger.debug('Feed URLs', urls)
-    const response = await fetch(getApiUrl("/parse"), {
+
+    // Use custom API URL if provided, otherwise use default
+    const apiUrl = config?.apiBaseUrl
+      ? `${config.apiBaseUrl}/parse`
+      : getApiUrl("/parse");
+
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -39,10 +55,25 @@ export async function fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items
   }
 }
 
-export async function fetchReaderView(urls: string[]): Promise<ReaderViewResponse[]> {
+/**
+ * Fetches reader view data from the API
+ * @param urls - Array of article URLs to fetch
+ * @param config - Optional configuration for API base URL
+ * @returns Promise with reader view responses
+ */
+export async function fetchReaderView(
+  urls: string[],
+  config?: FeedFetcherConfig
+): Promise<ReaderViewResponse[]> {
   try {
     Logger.debug("Fetching reader view for URLs:", urls)
-    const response = await fetch(getApiUrl("/getreaderview"), {
+
+    // Use custom API URL if provided, otherwise use default
+    const apiUrl = config?.apiBaseUrl
+      ? `${config.apiBaseUrl}/getreaderview`
+      : getApiUrl("/getreaderview");
+
+    const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -24,8 +24,14 @@ export interface IFeedFetcher {
  * Configuration options for feed fetchers
  */
 export interface FeedFetcherConfig {
-  /** Base URL for API */
+  /**
+   * Base URL for API (e.g., 'https://api.digests.app')
+   * If provided, overrides the default API URL from config
+   */
   apiBaseUrl?: string;
-  /** Cache TTL in milliseconds */
+  /**
+   * Cache TTL in milliseconds
+   * Note: Currently only used by worker cache, not by HTTP fetcher
+   */
   cacheTtl?: number;
 }

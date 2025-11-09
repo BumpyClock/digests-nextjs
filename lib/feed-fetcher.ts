@@ -10,11 +10,11 @@ export class HttpFeedFetcher implements IFeedFetcher {
   constructor(private config?: FeedFetcherConfig) {}
 
   async fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
-    return fetchFeedsFromApi(urls);
+    return fetchFeedsFromApi(urls, this.config);
   }
 
   async fetchReaderView(urls: string[]): Promise<ReaderViewResponse[]> {
-    return fetchReaderViewFromApi(urls);
+    return fetchReaderViewFromApi(urls, this.config);
   }
 }
 
