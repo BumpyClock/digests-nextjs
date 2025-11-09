@@ -24,8 +24,9 @@ export async function fetchFeeds(
     Logger.debug('Feed URLs', urls)
 
     // Use custom API URL if provided, otherwise use default
+    // Normalize base URL by trimming trailing slashes to prevent double slashes
     const apiUrl = config?.apiBaseUrl
-      ? `${config.apiBaseUrl}/parse`
+      ? `${config.apiBaseUrl.replace(/\/+$/, '')}/parse`
       : getApiUrl("/parse");
 
     const response = await fetch(apiUrl, {
@@ -69,8 +70,9 @@ export async function fetchReaderView(
     Logger.debug("Fetching reader view for URLs:", urls)
 
     // Use custom API URL if provided, otherwise use default
+    // Normalize base URL by trimming trailing slashes to prevent double slashes
     const apiUrl = config?.apiBaseUrl
-      ? `${config.apiBaseUrl}/getreaderview`
+      ? `${config.apiBaseUrl.replace(/\/+$/, '')}/getreaderview`
       : getApiUrl("/getreaderview");
 
     const response = await fetch(apiUrl, {
