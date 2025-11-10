@@ -5,16 +5,12 @@ import { createFeedFetcher } from '@/lib/feed-fetcher';
 import { generateCardShadows } from '../utils/shadow';
 import { getApiConfig } from '@/store/useApiConfigStore';
 import { Logger } from '@/utils/logger';
+import { DEFAULT_CACHE_TTL_MS } from '@/lib/config';
 
 const isClient = typeof window !== 'undefined'
 
-const DEFAULT_CACHE_TTL = (() => {
-  const ttl = Number(process.env.NEXT_PUBLIC_WORKER_CACHE_TTL);
-  return Number.isFinite(ttl) ? ttl : 30 * 60 * 1000; // 30 minutes
-})();
-
 // Define the types for messages to and from the worker
-type WorkerMessage = 
+type WorkerMessage =
   | { type: 'FETCH_FEEDS'; payload: { urls: string[]; apiBaseUrl?: string } }
   | { type: 'FETCH_READER_VIEW'; payload: { urls: string[]; apiBaseUrl?: string } }
   | { type: 'REFRESH_FEEDS'; payload: { urls: string[]; apiBaseUrl?: string } }
@@ -45,7 +41,7 @@ class WorkerService {
   private messageHandlers: Map<string, Set<(data: any) => void>> = new Map();
   private isInitialized = false;
   private fallbackMode = false;
-  private cacheTtl = DEFAULT_CACHE_TTL;
+  private cacheTtl = DEFAULT_CACHE_TTL_MS;
   private readonly WORKER_TIMEOUT_MS = 30000; // 30 seconds
   private fallbackFetcher: IFeedFetcher; // NEW
 
