@@ -2,6 +2,18 @@
  * Application configuration values
  */
 
+/**
+ * Default cache TTL in milliseconds.
+ *
+ * Reads from the `NEXT_PUBLIC_WORKER_CACHE_TTL` environment variable and
+ * falls back to 30 minutes when the value is not a finite number. Exported so
+ * it can be reused across workers and services that need a shared default.
+ */
+export const DEFAULT_CACHE_TTL_MS = (() => {
+  const ttl = Number(process.env.NEXT_PUBLIC_WORKER_CACHE_TTL);
+  return Number.isFinite(ttl) ? ttl : 30 * 60 * 1000;
+})();
+
 export interface APIConfig {
   baseUrl: string;
   isCustom: boolean;

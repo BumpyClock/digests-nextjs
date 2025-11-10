@@ -1,14 +1,8 @@
 // workers/rss-worker.ts
 import type { Feed, FeedItem, ReaderViewResponse, FetchFeedsResponse } from '../types';
-import { DEFAULT_API_CONFIG } from '../lib/config';
+import { DEFAULT_API_CONFIG, DEFAULT_CACHE_TTL_MS } from '../lib/config';
 import { Logger } from '@/utils/logger';
 import { transformFeedResponse } from '../lib/feed-transformer';
-
-// Default cache TTL from environment (fallback to 30 minutes)
-const DEFAULT_CACHE_TTL = (() => {
-  const ttl = Number(process.env.NEXT_PUBLIC_WORKER_CACHE_TTL);
-  return Number.isFinite(ttl) ? ttl : 30 * 60 * 1000; // 30 minutes
-})();
 
 // Message types to organize communication
 type WorkerMessage =
@@ -29,7 +23,7 @@ class WorkerCache {
   private cache = new Map<string, { data: any; timestamp: number }>();
   private ttl: number;
 
-  constructor(ttl: number = 30 * 60 * 1000) {
+  constructor(ttl: number = DEFAULT_CACHE_TTL_MS) {
     this.ttl = ttl;
   }
 
@@ -64,7 +58,7 @@ class WorkerCache {
 }
 
 // Initialize worker cache and API URL
-const workerCache = new WorkerCache(DEFAULT_CACHE_TTL);
+const workerCache = new WorkerCache(DEFAULT_CACHE_TTL_MS);
 let apiBaseUrl = DEFAULT_API_CONFIG.baseUrl;
 
 /**
