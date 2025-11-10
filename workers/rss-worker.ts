@@ -73,7 +73,7 @@ let apiBaseUrl = DEFAULT_API_CONFIG.baseUrl;
  * @param urls - The list of feed URLs to fetch.
  * @param customApiUrl - Optional override for the API base URL.
  * @param options - Optional configuration object.
- * @param options.bypassCache - If true, skip cache read/write and force fresh fetch.
+ * @param options.bypassCache - If true, skip cache read and force fresh fetch. Fresh data is still cached.
  * @returns An object containing the fetched feeds and their items.
  *
  * @throws {Error} If the API response is invalid or the HTTP request fails.
@@ -124,10 +124,9 @@ async function fetchFeeds(
     // Transform the response using shared utility
     const result = transformFeedResponse(data);
 
-    // Cache the result (unless bypassed)
-    if (!bypassCache) {
-      workerCache.set(cacheKey, result);
-    }
+    // Always cache the fresh result to keep cache updated
+    // bypassCache only controls cache reads, not writes
+    workerCache.set(cacheKey, result);
 
     return result;
   } catch (error) {
