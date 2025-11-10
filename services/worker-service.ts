@@ -257,10 +257,15 @@ class WorkerService {
     });
   }
 
-  /**
-   * Fetches feeds from the worker
-   */
-  async fetchFeeds(url: string): Promise<{
+  private async sendFeedsRequest({
+    type,
+    urls,
+    fallbackLabel
+  }: {
+    type: 'FETCH_FEEDS' | 'REFRESH_FEEDS' | 'CHECK_UPDATES';
+    urls: string[];
+    fallbackLabel: string;
+  }): Promise<{
     success: boolean;
     feeds: Feed[];
     items: FeedItem[];
@@ -271,24 +276,25 @@ class WorkerService {
     const response = await this.sendWorkerMessage<Extract<WorkerResponse, { type: 'FEEDS_RESULT' }>>(
       'rss',
       {
-        type: 'FETCH_FEEDS',
+        type,
         payload: {
-          urls: [url],
+          urls,
           apiBaseUrl: apiConfig.baseUrl
         }
       },
       'FEEDS_RESULT',
       async () => {
-        Logger.debug('[WorkerService] Using fallback fetcher');
+        Logger.debug(`[WorkerService] Using fallback fetcher for ${fallbackLabel}`);
         try {
-          const result = await this.fallbackFetcher.fetchFeeds([url]);
+          const result = await this.fallbackFetcher.fetchFeeds(urls);
           return { success: true, ...result };
         } catch (error: any) {
+          const message = error instanceof Error ? error.message : String(error);
           return {
             success: false,
             feeds: [],
             items: [],
-            message: error.message
+            message
           };
         }
       }
@@ -303,6 +309,22 @@ class WorkerService {
   }
 
   /**
+   * Fetches feeds from the worker
+   */
+  async fetchFeeds(url: string): Promise<{
+    success: boolean;
+    feeds: Feed[];
+    items: FeedItem[];
+    message?: string;
+  }> {
+    return this.sendFeedsRequest({
+      type: 'FETCH_FEEDS',
+      urls: [url],
+      fallbackLabel: 'fetch'
+    });
+  }
+
+  /**
    * Refreshes feeds from the worker
    */
   async refreshFeeds(urls: string[]): Promise<{
@@ -311,40 +333,11 @@ class WorkerService {
     items: FeedItem[];
     message?: string;
   }> {
-    const apiConfig = getApiConfig();
-
-    const response = await this.sendWorkerMessage<Extract<WorkerResponse, { type: 'FEEDS_RESULT' }>>(
-      'rss',
-      {
-        type: 'REFRESH_FEEDS',
-        payload: {
-          urls,
-          apiBaseUrl: apiConfig.baseUrl
-        }
-      },
-      'FEEDS_RESULT',
-      async () => {
-        Logger.debug('[WorkerService] Using fallback fetcher for refresh');
-        try {
-          const result = await this.fallbackFetcher.fetchFeeds(urls);
-          return { success: true, ...result };
-        } catch (error: any) {
-          return {
-            success: false,
-            feeds: [],
-            items: [],
-            message: error.message
-          };
-        }
-      }
-    );
-
-    return {
-      success: response.success,
-      feeds: response.feeds,
-      items: response.items,
-      message: response.message
-    };
+    return this.sendFeedsRequest({
+      type: 'REFRESH_FEEDS',
+      urls,
+      fallbackLabel: 'refresh'
+    });
   }
 
   /**
@@ -423,40 +416,11 @@ class WorkerService {
     items: FeedItem[];
     message?: string;
   }> {
-    const apiConfig = getApiConfig();
-
-    const response = await this.sendWorkerMessage<Extract<WorkerResponse, { type: 'FEEDS_RESULT' }>>(
-      'rss',
-      {
-        type: 'CHECK_UPDATES',
-        payload: {
-          urls,
-          apiBaseUrl: apiConfig.baseUrl
-        }
-      },
-      'FEEDS_RESULT',
-      async () => {
-        Logger.debug('[WorkerService] Using fallback fetcher for updates');
-        try {
-          const result = await this.fallbackFetcher.fetchFeeds(urls);
-          return { success: true, ...result };
-        } catch (error: any) {
-          return {
-            success: false,
-            feeds: [],
-            items: [],
-            message: error.message
-          };
-        }
-      }
-    );
-
-    return {
-      success: response.success,
-      feeds: response.feeds,
-      items: response.items,
-      message: response.message
-    };
+    return this.sendFeedsRequest({
+      type: 'CHECK_UPDATES',
+      urls,
+      fallbackLabel: 'updates'
+    });
   }
 
   /**
