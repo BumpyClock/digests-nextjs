@@ -222,7 +222,12 @@ export const useFeedStore = create<FeedState>()(preparedFeedStoreInitializer)
 
 feedStoreApi = useFeedStore
 
-// Helper function for using the store with hydration
+/**
+ * Hydration-aware selector hook that returns the fallback until persistence finishes,
+ * then switches to the live store value. Provide a stable/memoized fallback (e.g. via
+ * useMemo) to avoid reference churn; the hook caches the initial fallback internally,
+ * so callers must memoize complex objects they pass in.
+ */
 export const useHydratedStore = <T>(
   selector: (state: FeedState) => T,
   fallback?: T
