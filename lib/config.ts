@@ -7,6 +7,16 @@ export interface APIConfig {
   isCustom: boolean;
 }
 
+const envWorkerCacheTtlRaw = Number(process.env.NEXT_PUBLIC_WORKER_CACHE_TTL);
+const envWorkerCacheTtlMs = Number.isFinite(envWorkerCacheTtlRaw)
+  ? Math.floor(envWorkerCacheTtlRaw)
+  : NaN;
+
+export const DEFAULT_CACHE_TTL_MS =
+  Number.isFinite(envWorkerCacheTtlMs) && envWorkerCacheTtlMs > 0
+    ? envWorkerCacheTtlMs
+    : 30 * 60 * 1000; // 30 minutes
+
 export const DEFAULT_API_CONFIG: APIConfig = {
   baseUrl: 'https://api.digests.app',
   isCustom: false
