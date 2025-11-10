@@ -58,7 +58,7 @@ class WorkerCache {
 }
 
 // Initialize worker cache and API URL
-const workerCache = new WorkerCache(DEFAULT_CACHE_TTL_MS);
+const workerCache = new WorkerCache();
 let apiBaseUrl = DEFAULT_API_CONFIG.baseUrl;
 
 /**

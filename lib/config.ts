@@ -7,10 +7,11 @@ export interface APIConfig {
   isCustom: boolean;
 }
 
-export const DEFAULT_CACHE_TTL_MS = (() => {
-  const ttl = Number(process.env.NEXT_PUBLIC_WORKER_CACHE_TTL);
-  return Number.isFinite(ttl) ? ttl : 30 * 60 * 1000; // 30 minutes
-})();
+const envWorkerCacheTtl = Number(process.env.NEXT_PUBLIC_WORKER_CACHE_TTL);
+export const DEFAULT_CACHE_TTL_MS =
+  Number.isFinite(envWorkerCacheTtl) && envWorkerCacheTtl > 0
+    ? Math.floor(envWorkerCacheTtl)
+    : 30 * 60 * 1000; // 30 minutes
 
 export const DEFAULT_API_CONFIG: APIConfig = {
   baseUrl: 'https://api.digests.app',
