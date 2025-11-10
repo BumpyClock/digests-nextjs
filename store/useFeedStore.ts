@@ -67,14 +67,24 @@ interface FeedState extends AudioSlice {
 // Add hydration flag at top of file
 let hydrated = false
 
+let feedStoreApi: UseBoundStore<StoreApi<FeedState>> | null = null
+
+const getFeedStore = (): UseBoundStore<StoreApi<FeedState>> => {
+  if (!feedStoreApi) {
+    throw new Error("Feed store accessed before initialization")
+  }
+
+  return feedStoreApi
+}
+
 type BaseFeedStoreCreator = StateCreator<FeedState, [], [], FeedState>
 
-const composeFeedStoreSlices: BaseFeedStoreCreator = (set, get, api) => ({
+const composeFeedStoreSlices: BaseFeedStoreCreator = (set, get, _api) => ({
   // Combine all slices
-  ...createFeedSlice(set, get, api),
-  ...createReadStatusSlice(set, get, api),
-  ...createMetadataSlice(set, get, api),
-  ...createAudioSlice(set, get, api),
+  ...createFeedSlice(set, get),
+  ...createReadStatusSlice(set, get),
+  ...createMetadataSlice(set, get),
+  ...createAudioSlice(set, get),
 
   // Server state is now handled by React Query
 })
@@ -200,7 +210,7 @@ const createFeedStorePersistOptions = (
 
 const feedStoreInitializer = persist(
   composeFeedStoreSlices,
-  createFeedStorePersistOptions(() => useFeedStore)
+  createFeedStorePersistOptions(getFeedStore)
 )
 
 const preparedFeedStoreInitializer =
@@ -209,6 +219,8 @@ const preparedFeedStoreInitializer =
     : feedStoreInitializer
 
 export const useFeedStore = create<FeedState>()(preparedFeedStoreInitializer)
+
+feedStoreApi = useFeedStore
 
 // Helper function for using the store with hydration
 export const useHydratedStore = <T>(selector: (state: FeedState) => T): T => {
