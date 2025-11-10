@@ -70,44 +70,6 @@ export const useReadLaterActions = (): {
 
 
 /**
- * Hook to get feed actions
- * Uses shallow equality to prevent re-renders when functions don't change
- * @returns Object with feed-related actions
- */
-export const useFeedActions = () => {
-  return useFeedStore(
-    useShallow(state => ({
-      setActiveFeed: state.setActiveFeed,
-      removeFeedFromCache: state.removeFeedFromCache,
-      // Server actions now handled by React Query
-    }))
-  );
-};
-
-/**
- * Hook to get client state (loading states now handled by React Query)
- * Uses shallow equality to prevent re-renders when values don't change
- * @returns Object with client state
- */
-export const useClientStates = () => {
-  return useFeedStore(
-    useShallow(state => ({
-      initialized: state.initialized,
-      hydrated: state.hydrated,
-      // Server loading states (loading, refreshing) now handled by React Query
-    }))
-  );
-};
-
-/**
- * Hook to check if the store is hydrated
- * @returns boolean indicating if the store is hydrated
- */
-export const useIsHydrated = (): boolean => {
-  return useFeedStore(state => state.hydrated);
-};
-
-/**
  * Hook to get all feeds
  * @returns Array of all feeds
  */
@@ -117,21 +79,6 @@ export const useFeeds = () => {
 
 export const useSubscriptions = () => {
   return useFeedStore((state: any) => state.subscriptions ?? []);
-};
-
-/**
- * Hook to get feed titles for search/command purposes
- * Uses shallow equality to prevent re-renders when titles don't change
- * @returns Array of objects with feed id and title
- */
-export const useFeedTitles = () => {
-  return useFeedStore(
-    useShallow(state => state.feeds.map(feed => ({
-      id: feed.feedUrl,  // Using feedUrl as id since Feed type doesn't have id
-      title: feed.feedTitle,
-      url: feed.feedUrl,
-    })))
-  );
 };
 
 
@@ -182,40 +129,3 @@ export const useAudioActions = () => {
   );
 };
 
-/**
- * Hook to get current audio info
- * @returns Current audio info or null
- */
-export const useCurrentAudio = () => {
-  return useFeedStore(state => state.currentAudio);
-};
-
-/**
- * Hook to get audio playback state
- * Uses shallow equality for efficient updates
- * @returns Object with playback state
- */
-export const useAudioPlaybackState = () => {
-  return useFeedStore(
-    useShallow(state => ({
-      isPlaying: state.isPlaying,
-      currentTime: state.currentTime,
-      duration: state.duration,
-      volume: state.volume,
-      isMuted: state.isMuted,
-    }))
-  );
-};
-
-/**
- * Hook to get audio UI state
- * @returns Object with UI state
- */
-export const useAudioUIState = () => {
-  return useFeedStore(
-    useShallow(state => ({
-      isMinimized: state.isMinimized,
-      showMiniPlayer: state.showMiniPlayer,
-    }))
-  );
-};

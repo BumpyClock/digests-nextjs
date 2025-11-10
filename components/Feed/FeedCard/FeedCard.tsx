@@ -10,8 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Share2, Bookmark } from "lucide-react";
 // Removed useAudio import - now using integrated audio from store
-import { toast } from "sonner";
 import { ReaderViewModal } from "@/components/reader-view-modal";
+import { handleShare, showReadLaterToast } from "@/utils/content-actions";
 import { PodcastDetailsModal } from "@/components/Podcast/PodcastDetailsModal";
 import { formatDuration } from "@/utils/formatDuration";
 import type { FeedItem } from "@/types";
@@ -54,42 +54,23 @@ const CardFooter = memo(function CardFooter({
   const isInReadLaterList = useIsInReadLater(feedItem.id);
   const { addToReadLater, removeFromReadLater } = useReadLaterActions();
 
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: feedItem.title,
-          text: feedItem.description,
-          url: feedItem.link,
-        });
-      } else {
-        // Fallback for browsers that don't support Web Share API
-        toast("Share link copied", {
-          description: "The link to this article has been copied to your clipboard.",
-        });
-      }
-    } catch (error) {
-      if (error instanceof Error && error.name !== 'AbortError') {
-        toast.error("Error sharing", {
-          description: "Failed to share the article. Please try again.",
-        });
-      }
-    }
+  const onShare = () => {
+    handleShare(
+      feedItem.link,
+      feedItem.title,
+      feedItem.description,
+      isPodcast(feedItem) ? "podcast" : "article"
+    );
   };
 
-  const handleReadLater = () => {
-    if (isInReadLaterList) {
+  const onReadLater = () => {
+    const wasInReadLater = isInReadLaterList;
+    if (wasInReadLater) {
       removeFromReadLater(feedItem.id);
-      toast("Removed from Read Later", {
-        description: "The article has been removed from your reading list.",
-      });
     } else {
       addToReadLater(feedItem.id);
-      toast("Added to Read Later", {
-        description: "The article has been added to your reading list.",
-      });
     }
-    // State update handled by store
+    showReadLaterToast(wasInReadLater, isPodcast(feedItem) ? "podcast" : "article");
   };
 
   return (
@@ -108,16 +89,16 @@ const CardFooter = memo(function CardFooter({
           variant="ghost"
           size="icon"
           className="h-8 w-8"
-          onClick={handleReadLater}
+          onClick={onReadLater}
         >
           <Bookmark
             className={`h-4 w-4 ${isInReadLaterList ? "fill-red-500 text-red-500" : ""}`}
           />
           <span className="sr-only">Read Later</span>
         </Button>
-      
+
         <Button variant="ghost" size="icon" className="h-8 w-8"
-          onClick={handleShare}
+          onClick={onShare}
         >
           <Share2 className="h-4 w-4" />
           <span className="sr-only">Share</span>
