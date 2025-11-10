@@ -87,8 +87,8 @@ async function fetchFeeds(
   const { bypassCache = false } = options ?? {};
 
   try {
-    // Generate cache key
-    const cacheKey = `feeds:${urls.sort().join(',')}`;
+    // Generate cache key from sorted copy to avoid mutating caller's array
+    const cacheKey = `feeds:${[...urls].sort().join(',')}`;
 
     // Check cache first (unless bypassed)
     if (!bypassCache) {
