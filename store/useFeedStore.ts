@@ -258,11 +258,5 @@ export const useHydratedStore = <T>(
 
   const value = useFeedStore(selector)
 
-  useEffect(() => {
-    if (fallback !== undefined) {
-      fallbackRef.current = fallback
-    }
-  }, [fallback])
-
   return hydrationDone ? value : fallbackRef.current
 }
