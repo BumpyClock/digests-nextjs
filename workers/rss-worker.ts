@@ -72,25 +72,37 @@ let apiBaseUrl = DEFAULT_API_CONFIG.baseUrl;
  *
  * @param urls - The list of feed URLs to fetch.
  * @param customApiUrl - Optional override for the API base URL.
+ * @param options - Optional configuration object.
+ * @param options.bypassCache - If true, skip cache read/write and force fresh fetch.
  * @returns An object containing the fetched feeds and their items.
  *
  * @throws {Error} If the API response is invalid or the HTTP request fails.
  */
-async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
+async function fetchFeeds(
+  urls: string[],
+  customApiUrl?: string,
+  options?: { bypassCache?: boolean }
+): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
   const currentApiUrl = customApiUrl || apiBaseUrl;
+  const { bypassCache = false } = options ?? {};
+
   try {
     // Generate cache key
     const cacheKey = `feeds:${urls.sort().join(',')}`;
-    
-    // Check cache first
-    const cached = workerCache.get<{ feeds: Feed[]; items: FeedItem[] }>(cacheKey);
-    if (cached) {
-      Logger.debug('[Worker] Using cached feeds');
-      return cached;
+
+    // Check cache first (unless bypassed)
+    if (!bypassCache) {
+      const cached = workerCache.get<{ feeds: Feed[]; items: FeedItem[] }>(cacheKey);
+      if (cached) {
+        Logger.debug('[Worker] Using cached feeds');
+        return cached;
+      }
+    } else {
+      Logger.debug('[Worker] Bypassing cache for fresh fetch');
     }
 
     Logger.debug(`[Worker] Fetching feeds for URLs: ${urls.length}`);
-    
+
     const response = await fetch(`${currentApiUrl}/parse`, {
       method: "POST",
       headers: {
@@ -112,8 +124,10 @@ async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feed
     // Transform the response using shared utility
     const result = transformFeedResponse(data);
 
-    // Cache the result
-    workerCache.set(cacheKey, result);
+    // Cache the result (unless bypassed)
+    if (!bypassCache) {
+      workerCache.set(cacheKey, result);
+    }
 
     return result;
   } catch (error) {
@@ -221,11 +235,11 @@ const messageHandlers: Record<string, MessageHandler> = {
   },
 
   /**
-   * Refresh feeds handler
+   * Refresh feeds handler - bypasses cache to force fresh fetch
    */
   REFRESH_FEEDS: async ({ urls, apiBaseUrl: customApiUrl }: { urls: string[]; apiBaseUrl?: string }) => {
     try {
-      const { feeds, items } = await fetchFeeds(urls, customApiUrl);
+      const { feeds, items } = await fetchFeeds(urls, customApiUrl, { bypassCache: true });
       return {
         type: 'FEEDS_RESULT',
         success: true,
