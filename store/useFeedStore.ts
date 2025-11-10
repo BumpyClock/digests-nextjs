@@ -1,6 +1,6 @@
 // store/useFeedStore.ts
-import { create } from "zustand"
-import { persist, createJSONStorage } from "zustand/middleware"
+import { create, type StateCreator, type StoreApi, type UseBoundStore } from "zustand"
+import { persist, createJSONStorage, type PersistOptions } from "zustand/middleware"
 import localforage from "localforage"
 import { useState, useEffect } from "react"
 
@@ -67,212 +67,148 @@ interface FeedState extends AudioSlice {
 // Add hydration flag at top of file
 let hydrated = false
 
-export const useFeedStore = create<FeedState>()(
-  process.env.NODE_ENV === 'development' 
-    ? withPerformanceMonitoring(
-        persist(
-          (set, get, api) => ({
-      // Combine all slices
-      ...createFeedSlice(set, get, api),
-      ...createReadStatusSlice(set, get, api),
-      ...createMetadataSlice(set, get, api),
-      ...createAudioSlice(set, get, api),
+type BaseFeedStoreCreator = StateCreator<FeedState, [], [], FeedState>
 
-      // Server state is now handled by React Query
-    }),
-    {
-      name: "digests-feed-store",
-      version: 3,
-      storage: createJSONStorage(() => localforage),
-      migrate: (state: any, from: number) => {
-        try {
-          if (from < 3) {
-            // Drop persisted items and normalize Sets
-            // Remove old feedItems property (now handled by React Query)
-            const { feedItems: _, ...cleanState } = state;
-            Object.assign(state, cleanState);
-            // Drop large feeds array from persistence if present
-            if (state.feeds) delete state.feeds;
-            // Use utility for clean Set deserialization
-            state.readItems = deserializeSet(state.readItems);
-            state.readLaterItems = deserializeSet(state.readLaterItems);
-          }
-        } catch {
-          // Fallback if migration fails
-          Logger.error('[Store] Migration failed, resetting state');
-          state.readItems = new Set();
-          state.readLaterItems = new Set();
-        }
-        return state;
-      },
-      partialize: (state) => ({
-        // Persist only lightweight subscriptions and client/UI state
-        subscriptions: state.subscriptions,
-        // Do NOT persist feedItems - handled by React Query
-        initialized: state.initialized,
-        readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
-        activeFeed: state.activeFeed,
-        readLaterItems: Array.isArray(state.readLaterItems) ? state.readLaterItems : Array.from(state.readLaterItems || []),
-        // Audio state
-        volume: state.volume,
-        isMuted: state.isMuted,
-        isMinimized: state.isMinimized,
-      }),
-      onRehydrateStorage: () => (state) => {
-        if (state && typeof window !== 'undefined') {
-          try {
-            // Initialize readItems as Set
-            if (!state.readItems) {
-              state.readItems = new Set();
-            } else if (Array.isArray(state.readItems)) {
-              state.readItems = new Set(state.readItems);
-            } else {
-              Logger.warn('Invalid readItems format, resetting to empty Set');
-              state.readItems = new Set();
-            }
-            
-            // Initialize readLaterItems as Set
-            if (!state.readLaterItems) {
-              state.readLaterItems = new Set();
-            } else if (Array.isArray(state.readLaterItems)) {
-              state.readLaterItems = new Set(state.readLaterItems);
-            } else {
-              Logger.warn('Invalid readLaterItems format, resetting to empty Set');
-              state.readLaterItems = new Set();
-            }
-            
-            hydrated = true;
-            useFeedStore.getState().setHydrated(true);
-            
-            // If feeds are empty but subscriptions exist, seed minimal feeds for URL computation
-            const store = useFeedStore.getState();
-            if ((!Array.isArray(store.feeds) || store.feeds.length === 0) && Array.isArray((state as any).subscriptions)) {
-              const subs = (state as any).subscriptions as Subscription[];
-              // Seed feeds with minimal info (will be replaced by RQ data)
-              store.setFeeds(subs.map(s => ({
-                type: '', guid: '', status: '', siteTitle: s.siteTitle, feedTitle: s.feedTitle, feedUrl: s.feedUrl,
-                description: '', link: '', lastUpdated: '', lastRefreshed: '', published: '', author: null, language: s.language, favicon: s.favicon, categories: ''
-              }) as unknown as Feed));
-            }
+const composeFeedStoreSlices: BaseFeedStoreCreator = (set, get, api) => ({
+  // Combine all slices
+  ...createFeedSlice(set, get, api),
+  ...createReadStatusSlice(set, get, api),
+  ...createMetadataSlice(set, get, api),
+  ...createAudioSlice(set, get, api),
 
-            // Ensure the Set conversion actually worked
-            if (!(store.readItems instanceof Set)) {
-              Logger.warn('readItems is not a Set after rehydration, setting manually');
-              store.readItems = new Set(Array.isArray(state.readItems) ? state.readItems : []);
-            }
-            
-            if (!(store.readLaterItems instanceof Set)) {
-              Logger.warn('readLaterItems is not a Set after rehydration, setting manually');
-              store.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems : []);
-            }
-          } catch (error) {
-            Logger.error('Error during store rehydration', error instanceof Error ? error : undefined);
-            state.readItems = new Set();
-            state.readLaterItems = new Set();
-            useFeedStore.getState().readItems = new Set();
-            useFeedStore.getState().readLaterItems = new Set();
-          }
-        }
-      },
+  // Server state is now handled by React Query
+})
+
+const createFeedStorePersistOptions = (
+  getStore: () => UseBoundStore<StoreApi<FeedState>>
+): PersistOptions<FeedState> => ({
+  name: "digests-feed-store",
+  version: 3,
+  storage: createJSONStorage(() => localforage),
+  migrate: (state: any, from: number) => {
+    try {
+      if (from < 3) {
+        // Drop persisted items and normalize Sets
+        // Remove old feedItems property (now handled by React Query)
+        const { feedItems: _, ...cleanState } = state
+        Object.assign(state, cleanState)
+        // Drop large feeds array from persistence if present
+        if (state.feeds) delete state.feeds
+        // Use utility for clean Set deserialization
+        state.readItems = deserializeSet(state.readItems)
+        state.readLaterItems = deserializeSet(state.readLaterItems)
+      }
+    } catch {
+      // Fallback if migration fails
+      Logger.error('[Store] Migration failed, resetting state')
+      state.readItems = new Set()
+      state.readLaterItems = new Set()
     }
-  ),
-  'FeedStore'
-)
-: persist(
-    (set, get, api) => ({
-      // Combine all slices
-      ...createFeedSlice(set, get, api),
-      ...createReadStatusSlice(set, get, api),
-      ...createMetadataSlice(set, get, api),
-      ...createAudioSlice(set, get, api),
+    return state
+  },
+  partialize: (state) => ({
+    // Persist only lightweight subscriptions and client/UI state
+    subscriptions: state.subscriptions,
+    // Do NOT persist feedItems - handled by React Query
+    initialized: state.initialized,
+    readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
+    activeFeed: state.activeFeed,
+    readLaterItems: Array.isArray(state.readLaterItems) ? state.readLaterItems : Array.from(state.readLaterItems || []),
+    // Audio state
+    volume: state.volume,
+    isMuted: state.isMuted,
+    isMinimized: state.isMinimized,
+  }),
+  onRehydrateStorage: () => (state) => {
+    if (state && typeof window !== 'undefined') {
+      try {
+        // Initialize readItems as Set
+        if (!state.readItems) {
+          state.readItems = new Set()
+        } else if (Array.isArray(state.readItems)) {
+          state.readItems = new Set(state.readItems)
+        } else {
+          Logger.warn('Invalid readItems format, resetting to empty Set')
+          state.readItems = new Set()
+        }
 
-      // Server state is now handled by React Query
-    }),
-    {
-      name: "digests-feed-store",
-      version: 3,
-      storage: createJSONStorage(() => localforage),
-      migrate: (state: any, from: number) => {
-        try {
-          if (from < 3) {
-            // Drop persisted items and normalize Sets
-            // Remove old feedItems property (now handled by React Query)
-            const { feedItems: _, ...cleanState } = state;
-            Object.assign(state, cleanState);
-            if (state.feeds) delete state.feeds;
-            // Use utility for clean Set deserialization
-            state.readItems = deserializeSet(state.readItems);
-            state.readLaterItems = deserializeSet(state.readLaterItems);
-          }
-        } catch {
-          // Fallback if migration fails
-          Logger.error('[Store] Migration failed, resetting state');
-          state.readItems = new Set();
-          state.readLaterItems = new Set();
+        // Initialize readLaterItems as Set
+        if (!state.readLaterItems) {
+          state.readLaterItems = new Set()
+        } else if (Array.isArray(state.readLaterItems)) {
+          state.readLaterItems = new Set(state.readLaterItems)
+        } else {
+          Logger.warn('Invalid readLaterItems format, resetting to empty Set')
+          state.readLaterItems = new Set()
         }
-        return state;
-      },
-      partialize: (state) => ({
-        subscriptions: state.subscriptions,
-        // Do NOT persist feedItems - handled by React Query
-        initialized: state.initialized,
-        readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
-        activeFeed: state.activeFeed,
-        readLaterItems: Array.isArray(state.readLaterItems) ? state.readLaterItems : Array.from(state.readLaterItems || []),
-        // Audio state
-        volume: state.volume,
-        isMuted: state.isMuted,
-        isMinimized: state.isMinimized,
-      }),
-      onRehydrateStorage: () => (state) => {
-        if (state && typeof window !== 'undefined') {
-          try {
-            // Initialize readItems as Set
-            if (!state.readItems) {
-              state.readItems = new Set();
-            } else if (Array.isArray(state.readItems)) {
-              state.readItems = new Set(state.readItems);
-            } else {
-              Logger.warn('Invalid readItems format, resetting to empty Set');
-              state.readItems = new Set();
-            }
-            
-            // Initialize readLaterItems as Set
-            if (!state.readLaterItems) {
-              state.readLaterItems = new Set();
-            } else if (Array.isArray(state.readLaterItems)) {
-              state.readLaterItems = new Set(state.readLaterItems);
-            } else {
-              Logger.warn('Invalid readLaterItems format, resetting to empty Set');
-              state.readLaterItems = new Set();
-            }
-            
-            hydrated = true;
-            useFeedStore.getState().setHydrated(true);
-            
-            // Ensure the Set conversion actually worked
-            const store = useFeedStore.getState();
-            if (!(store.readItems instanceof Set)) {
-              Logger.warn('readItems is not a Set after rehydration, setting manually');
-              store.readItems = new Set(Array.isArray(state.readItems) ? state.readItems : []);
-            }
-            
-            if (!(store.readLaterItems instanceof Set)) {
-              Logger.warn('readLaterItems is not a Set after rehydration, setting manually');
-              store.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems : []);
-            }
-          } catch (error) {
-            Logger.error('Error during store rehydration', error instanceof Error ? error : undefined);
-            state.readItems = new Set();
-            state.readLaterItems = new Set();
-            useFeedStore.getState().readItems = new Set();
-            useFeedStore.getState().readLaterItems = new Set();
-          }
+
+        hydrated = true
+        const store = getStore()
+        const storeState = store.getState()
+        storeState.setHydrated(true)
+
+        // If feeds are empty but subscriptions exist, seed minimal feeds for URL computation
+        if ((!Array.isArray(storeState.feeds) || storeState.feeds.length === 0) && Array.isArray((state as any).subscriptions)) {
+          const subs = (state as any).subscriptions as Subscription[]
+          // Seed feeds with minimal info (will be replaced by RQ data)
+          const seededFeeds = subs.map(
+            (s) =>
+              ({
+                type: '',
+                guid: '',
+                status: '',
+                siteTitle: s.siteTitle,
+                feedTitle: s.feedTitle,
+                feedUrl: s.feedUrl,
+                description: '',
+                link: '',
+                lastUpdated: '',
+                lastRefreshed: '',
+                published: '',
+                author: null,
+                language: s.language,
+                favicon: s.favicon,
+                categories: '',
+              }) as unknown as Feed
+          )
+
+          storeState.setFeeds(seededFeeds)
         }
-      },
+
+        // Ensure the Set conversion actually worked
+        if (!(storeState.readItems instanceof Set)) {
+          Logger.warn('readItems is not a Set after rehydration, setting manually')
+          storeState.readItems = new Set(Array.isArray(state.readItems) ? state.readItems : [])
+        }
+
+        if (!(storeState.readLaterItems instanceof Set)) {
+          Logger.warn('readLaterItems is not a Set after rehydration, setting manually')
+          storeState.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems : [])
+        }
+      } catch (error) {
+        Logger.error('Error during store rehydration', error instanceof Error ? error : undefined)
+        state.readItems = new Set()
+        state.readLaterItems = new Set()
+        const store = getStore()
+        const storeState = store.getState()
+        storeState.readItems = new Set()
+        storeState.readLaterItems = new Set()
+      }
     }
-  )
+  },
+})
+
+const feedStoreInitializer = persist(
+  composeFeedStoreSlices,
+  createFeedStorePersistOptions(() => useFeedStore)
 )
+
+const preparedFeedStoreInitializer =
+  process.env.NODE_ENV === 'development'
+    ? withPerformanceMonitoring(feedStoreInitializer, 'FeedStore')
+    : feedStoreInitializer
+
+export const useFeedStore = create<FeedState>()(preparedFeedStoreInitializer)
 
 // Helper function for using the store with hydration
 export const useHydratedStore = <T>(selector: (state: FeedState) => T): T => {
