@@ -1,6 +1,6 @@
-import { useState } from "react"
 import { toggleFavoriteAction } from "@/app/actions"
 import { useToast } from "@/hooks/use-toast"
+import { handleShare as handleShareUtil } from "@/utils/content-actions"
 
 /**
  * Shared hook for bookmark and share functionality
@@ -48,40 +48,13 @@ export function useContentActions(contentType: "article" | "podcast") {
       return
     }
 
-    try {
-      // Try native Web Share API first
-      if (typeof navigator !== 'undefined' && navigator.share) {
-        await navigator.share({
-          title: title || `Share ${contentType}`,
-          text: `Check out this ${contentType}`,
-          url: url,
-        })
-        toast({
-          title: "Link shared",
-          description: `The ${contentType} has been shared successfully.`,
-        })
-      } else {
-        // Fallback to clipboard
-        if (typeof navigator !== 'undefined' && navigator.clipboard) {
-          await navigator.clipboard.writeText(url)
-          toast({
-            title: "Share link copied",
-            description: `The link to this ${contentType} has been copied to your clipboard.`,
-          })
-        } else {
-          throw new Error('Sharing not supported')
-        }
-      }
-    } catch (error) {
-      // Only show error if it's not an AbortError (user cancelled share)
-      if (error instanceof Error && error.name !== 'AbortError') {
-        toast({
-          title: "Error",
-          description: `Failed to share the ${contentType}. Please try again.`,
-          variant: "destructive",
-        })
-      }
-    }
+    // Use shared utility for consistent share behavior
+    await handleShareUtil(
+      url,
+      title || `Share ${contentType}`,
+      `Check out this ${contentType}`,
+      contentType
+    )
   }
 
   return {

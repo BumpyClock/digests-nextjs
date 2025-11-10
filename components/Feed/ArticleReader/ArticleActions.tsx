@@ -3,7 +3,7 @@
 import React from "react";
 import { Share2, ExternalLink, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { handleShare, showReadLaterToast } from "@/utils/content-actions";
 
 interface ArticleActionsProps {
   /** The article/feed item */
@@ -34,37 +34,13 @@ export const ArticleActions: React.FC<ArticleActionsProps> = ({
   className = "",
   layout = "standard",
 }) => {
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: item.title,
-          text: item.description,
-          url: item.link,
-        });
-      } else {
-        // Fallback: copy to clipboard
-        await navigator.clipboard.writeText(item.link);
-        toast("Share link copied", {
-          description: "The link to this article has been copied to your clipboard.",
-        });
-      }
-    } catch (error) {
-      if (error instanceof Error && error.name !== "AbortError") {
-        toast.error("Error sharing", {
-          description: "Failed to share the article. Please try again.",
-        });
-      }
-    }
+  const onShare = () => {
+    handleShare(item.link, item.title, item.description, "article");
   };
 
-  const handleReadLater = () => {
+  const onReadLaterClick = () => {
     onReadLaterToggle();
-    const message = isInReadLater ? "Removed from Read Later" : "Added to Read Later";
-    const description = isInReadLater
-      ? "The article has been removed from your reading list."
-      : "The article has been added to your reading list.";
-    toast(message, { description });
+    showReadLaterToast(isInReadLater, "article");
   };
 
   const isCompact = layout === "compact";
@@ -76,7 +52,7 @@ export const ArticleActions: React.FC<ArticleActionsProps> = ({
         <Button
           size="icon"
           variant="ghost"
-          onClick={handleReadLater}
+          onClick={onReadLaterClick}
           className="h-8 w-8"
           aria-label={isInReadLater ? "Remove from read later" : "Add to read later"}
         >
@@ -87,7 +63,7 @@ export const ArticleActions: React.FC<ArticleActionsProps> = ({
         <Button
           size="icon"
           variant="ghost"
-          onClick={handleShare}
+          onClick={onShare}
           className="h-8 w-8"
           aria-label="Share article"
         >
@@ -119,7 +95,7 @@ export const ArticleActions: React.FC<ArticleActionsProps> = ({
       <Button
         size="sm"
         variant="ghost"
-        onClick={handleReadLater}
+        onClick={onReadLaterClick}
         aria-label={isInReadLater ? "Remove from read later" : "Add to read later"}
       >
         <Bookmark
@@ -130,7 +106,7 @@ export const ArticleActions: React.FC<ArticleActionsProps> = ({
       <Button
         size="sm"
         variant="ghost"
-        onClick={handleShare}
+        onClick={onShare}
         aria-label="Share article"
       >
         <Share2 className="h-4 w-4 mr-1" />
