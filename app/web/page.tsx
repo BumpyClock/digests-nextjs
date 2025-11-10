@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { FeedGrid } from "@/components/Feed/FeedGrid/FeedGrid";
 import { FeedMasterDetail } from "@/components/Feed/FeedMasterDetail/FeedMasterDetail";
 import { useWebPageData } from "@/hooks/useFeedSelectors";
-import { FeedItem } from "@/types";
+import { Feed, FeedItem } from "@/types";
 
 import { CommandBar } from "@/components/CommandBar/CommandBar";
 import { RefreshButton } from "@/components/RefreshButton";
@@ -20,7 +20,7 @@ import { normalizeUrl } from "@/utils/url";
 
 // React Query imports
 import { useFeedsData, useRefreshFeedsMutation, useFeedBackgroundSync } from "@/hooks/queries";
-import { useFeedStore } from "@/store/useFeedStore";
+import { useHydratedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
 
 /**
@@ -72,13 +72,17 @@ function WebPageContent() {
     setActiveFeed,
   } = useWebPageData();
   
+  const emptyReadItems = useMemo(() => new Set<string>(), []);
+  const emptyReadLater = useMemo(() => new Set<string>(), []);
+
   // Get read items set for unread filtering
-  const readItems = useFeedStore(state => state.readItems);
-  const readLaterSet = useFeedStore(state => state.readLaterItems);
+  const readItems = useHydratedStore((state) => state.readItems, emptyReadItems);
+  const readLaterSet = useHydratedStore((state) => state.readLaterItems, emptyReadLater);
 
   // React Query is now the single source of truth for server state
   const feedItems = useMemo(() => feedsQuery.data?.items ?? [], [feedsQuery.data?.items]);
-  const existingFeeds = useFeedStore(state => state.feeds);
+  const emptyFeeds = useMemo(() => [] as Feed[], []);
+  const existingFeeds = useHydratedStore((state) => state.feeds, emptyFeeds);
   const loading = feedsQuery.isLoading || (!initialized && existingFeeds.length > 0 && feedItems.length === 0);
   const refreshing = refreshMutation.isPending;
   const isLoading = loading || refreshing;

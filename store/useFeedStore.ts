@@ -2,7 +2,7 @@
 import { create, type StateCreator, type StoreApi, type UseBoundStore } from "zustand"
 import { persist, createJSONStorage, type PersistOptions } from "zustand/middleware"
 import localforage from "localforage"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 
 import type { Feed, FeedItem } from "@/types"
 import type { Subscription } from "@/types/subscription"
@@ -222,17 +222,46 @@ export const useFeedStore = create<FeedState>()(preparedFeedStoreInitializer)
 
 feedStoreApi = useFeedStore
 
-// Helper function for using the store with hydration
-export const useHydratedStore = <T>(selector: (state: FeedState) => T): T => {
-  const [hydrationDone, setHydrationDone] = useState(false);
-  
-  useEffect(() => {
-    if (hydrated) {
-      setHydrationDone(true);
-    }
-  }, []);
+/**
+ * Hydration-aware selector hook that returns the fallback until persistence finishes,
+ * then switches to the live store value. Provide a stable/memoized fallback (e.g. via
+ * useMemo) to avoid reference churn; the hook caches the initial fallback internally,
+ * so callers must memoize complex objects they pass in.
+ */
+export const useHydratedStore = <T>(
+  selector: (state: FeedState) => T,
+  fallback?: T
+): T => {
+  const [hydrationDone, setHydrationDone] = useState(() => hydrated)
+  const fallbackRef = useRef<T>(
+    fallback !== undefined ? fallback : selector(useFeedStore.getState())
+  )
 
-  const value = useFeedStore(selector);
-  
-  return hydrationDone ? value : (Array.isArray(value) ? [] as T : undefined as T);
-};
+  useEffect(() => {
+    if (hydrationDone) {
+      return
+    }
+
+    if (hydrated) {
+      setHydrationDone(true)
+      return
+    }
+
+    const unsubscribe = useFeedStore.subscribe(
+      (state) => state.hydrated,
+      (isHydrated) => {
+        if (isHydrated) {
+          setHydrationDone(true)
+        }
+      }
+    )
+
+    return () => {
+      unsubscribe()
+    }
+  }, [hydrationDone])
+
+  const value = useFeedStore(selector)
+
+  return hydrationDone ? value : fallbackRef.current
+}
