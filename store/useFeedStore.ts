@@ -12,6 +12,7 @@ import { createMetadataSlice } from "./slices/metadataSlice"
 import { createAudioSlice, type AudioSlice } from "./slices/audioSlice"
 import { withPerformanceMonitoring } from "./middleware/performanceMiddleware"
 import { Logger } from "@/utils/logger"
+import { deserializeSet } from "@/lib/serializers/set-serializer"
 
 /**
  * The Zustand store shape optimized for React Query integration
@@ -92,13 +93,15 @@ export const useFeedStore = create<FeedState>()(
             Object.assign(state, cleanState);
             // Drop large feeds array from persistence if present
             if (state.feeds) delete state.feeds;
-            state.readItems = new Set(Array.isArray(state.readItems) ? state.readItems :
-              (state.readItems instanceof Set ? Array.from(state.readItems) : []));
-            state.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems :
-              (state.readLaterItems instanceof Set ? Array.from(state.readLaterItems) : []));
+            // Use utility for clean Set deserialization
+            state.readItems = deserializeSet(state.readItems);
+            state.readLaterItems = deserializeSet(state.readLaterItems);
           }
         } catch {
           // Fallback if migration fails
+          Logger.error('[Store] Migration failed, resetting state');
+          state.readItems = new Set();
+          state.readLaterItems = new Set();
         }
         return state;
       },
@@ -197,13 +200,15 @@ export const useFeedStore = create<FeedState>()(
             const { feedItems: _, ...cleanState } = state;
             Object.assign(state, cleanState);
             if (state.feeds) delete state.feeds;
-            state.readItems = new Set(Array.isArray(state.readItems) ? state.readItems :
-              (state.readItems instanceof Set ? Array.from(state.readItems) : []));
-            state.readLaterItems = new Set(Array.isArray(state.readLaterItems) ? state.readLaterItems :
-              (state.readLaterItems instanceof Set ? Array.from(state.readLaterItems) : []));
+            // Use utility for clean Set deserialization
+            state.readItems = deserializeSet(state.readItems);
+            state.readLaterItems = deserializeSet(state.readLaterItems);
           }
         } catch {
           // Fallback if migration fails
+          Logger.error('[Store] Migration failed, resetting state');
+          state.readItems = new Set();
+          state.readLaterItems = new Set();
         }
         return state;
       },

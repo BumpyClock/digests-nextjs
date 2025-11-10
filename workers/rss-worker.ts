@@ -72,25 +72,37 @@ let apiBaseUrl = DEFAULT_API_CONFIG.baseUrl;
  *
  * @param urls - The list of feed URLs to fetch.
  * @param customApiUrl - Optional override for the API base URL.
+ * @param options - Optional configuration object.
+ * @param options.bypassCache - If true, skip cache read and force fresh fetch. Fresh data is still cached.
  * @returns An object containing the fetched feeds and their items.
  *
  * @throws {Error} If the API response is invalid or the HTTP request fails.
  */
-async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
+async function fetchFeeds(
+  urls: string[],
+  customApiUrl?: string,
+  options?: { bypassCache?: boolean }
+): Promise<{ feeds: Feed[]; items: FeedItem[] }> {
   const currentApiUrl = customApiUrl || apiBaseUrl;
+  const { bypassCache = false } = options ?? {};
+
   try {
-    // Generate cache key
-    const cacheKey = `feeds:${urls.sort().join(',')}`;
-    
-    // Check cache first
-    const cached = workerCache.get<{ feeds: Feed[]; items: FeedItem[] }>(cacheKey);
-    if (cached) {
-      Logger.debug('[Worker] Using cached feeds');
-      return cached;
+    // Generate cache key from sorted copy to avoid mutating caller's array
+    const cacheKey = `feeds:${[...urls].sort().join(',')}`;
+
+    // Check cache first (unless bypassed)
+    if (!bypassCache) {
+      const cached = workerCache.get<{ feeds: Feed[]; items: FeedItem[] }>(cacheKey);
+      if (cached) {
+        Logger.debug('[Worker] Using cached feeds');
+        return cached;
+      }
+    } else {
+      Logger.debug('[Worker] Bypassing cache for fresh fetch');
     }
 
     Logger.debug(`[Worker] Fetching feeds for URLs: ${urls.length}`);
-    
+
     const response = await fetch(`${currentApiUrl}/parse`, {
       method: "POST",
       headers: {
@@ -112,7 +124,8 @@ async function fetchFeeds(urls: string[], customApiUrl?: string): Promise<{ feed
     // Transform the response using shared utility
     const result = transformFeedResponse(data);
 
-    // Cache the result
+    // Always cache the fresh result to keep cache updated
+    // bypassCache only controls cache reads, not writes
     workerCache.set(cacheKey, result);
 
     return result;
@@ -174,125 +187,145 @@ async function fetchReaderView(urls: string[], customApiUrl?: string): Promise<R
   }
 }
 
-// Message handler
+// Define handler type
+type MessageHandler = (payload: any) => Promise<WorkerResponse | void> | WorkerResponse | void;
+
+// Create handler registry
+const messageHandlers: Record<string, MessageHandler> = {
+  /**
+   * Set API URL handler
+   */
+  SET_API_URL: ({ url }: { url: string }) => {
+    apiBaseUrl = url;
+    Logger.debug(`[Worker] API URL set to ${apiBaseUrl}`);
+    workerCache.clear();
+  },
+
+  /**
+   * Set cache TTL handler
+   */
+  SET_CACHE_TTL: ({ ttl }: { ttl: number }) => {
+    workerCache.setTTL(ttl);
+    Logger.debug(`[Worker] Cache TTL set to ${ttl}ms`);
+    workerCache.clear();
+  },
+
+  /**
+   * Fetch feeds handler
+   */
+  FETCH_FEEDS: async ({ urls, apiBaseUrl: customApiUrl }: { urls: string[]; apiBaseUrl?: string }) => {
+    try {
+      const { feeds, items } = await fetchFeeds(urls, customApiUrl);
+      return {
+        type: 'FEEDS_RESULT',
+        success: true,
+        feeds,
+        items,
+      } as WorkerResponse;
+    } catch (error) {
+      return {
+        type: 'FEEDS_RESULT',
+        success: false,
+        feeds: [],
+        items: [],
+        message: error instanceof Error ? error.message : 'Failed to fetch feeds'
+      } as WorkerResponse;
+    }
+  },
+
+  /**
+   * Refresh feeds handler - bypasses cache to force fresh fetch
+   */
+  REFRESH_FEEDS: async ({ urls, apiBaseUrl: customApiUrl }: { urls: string[]; apiBaseUrl?: string }) => {
+    try {
+      const { feeds, items } = await fetchFeeds(urls, customApiUrl, { bypassCache: true });
+      return {
+        type: 'FEEDS_RESULT',
+        success: true,
+        feeds,
+        items,
+      } as WorkerResponse;
+    } catch (error) {
+      return {
+        type: 'FEEDS_RESULT',
+        success: false,
+        feeds: [],
+        items: [],
+        message: error instanceof Error ? error.message : 'Failed to refresh feeds'
+      } as WorkerResponse;
+    }
+  },
+
+  /**
+   * Fetch reader view handler
+   */
+  FETCH_READER_VIEW: async ({ urls, apiBaseUrl: customApiUrl }: { urls: string[]; apiBaseUrl?: string }) => {
+    try {
+      const data = await fetchReaderView(urls, customApiUrl);
+      return {
+        type: 'READER_VIEW_RESULT',
+        success: true,
+        data,
+      } as WorkerResponse;
+    } catch (error) {
+      return {
+        type: 'READER_VIEW_RESULT',
+        success: false,
+        data: [],
+        message: error instanceof Error ? error.message : 'Failed to fetch reader view'
+      } as WorkerResponse;
+    }
+  },
+
+  /**
+   * Check updates handler
+   */
+  CHECK_UPDATES: async ({ urls, apiBaseUrl: customApiUrl }: { urls: string[]; apiBaseUrl?: string }) => {
+    try {
+      Logger.debug("[Worker] Checking for updates");
+      workerCache.clear();
+      const { feeds, items } = await fetchFeeds(urls, customApiUrl);
+      return {
+        type: 'FEEDS_RESULT',
+        success: true,
+        feeds,
+        items,
+      } as WorkerResponse;
+    } catch (error) {
+      console.error("[Worker] Error checking for updates:", error);
+      return {
+        type: 'FEEDS_RESULT',
+        success: false,
+        feeds: [],
+        items: [],
+        message: error instanceof Error ? error.message : 'Failed to check for updates'
+      } as WorkerResponse;
+    }
+  },
+};
+
+/**
+ * Main message event listener using handler registry
+ * New handlers can be added to messageHandlers object without modifying this code
+ */
 self.addEventListener('message', async (event) => {
   const message = event.data as WorkerMessage;
-  
-  try {
-    switch (message.type) {
-      case 'SET_API_URL': {
-        const { url } = message.payload;
-        apiBaseUrl = url;
-        Logger.debug(`[Worker] API URL set to ${apiBaseUrl}`);
-        // Clear cache when API URL changes
-        workerCache.clear();
-        break;
-      }
 
-      case 'SET_CACHE_TTL': {
-        const { ttl } = message.payload;
-        workerCache.setTTL(ttl);
-        Logger.debug(`[Worker] Cache TTL set to ${ttl}ms`);
-        // Clear cache when TTL changes
-        workerCache.clear();
-        break;
-      }
-        
-      case 'FETCH_FEEDS': {
-        const { urls, apiBaseUrl: customApiUrl } = message.payload;
-        try {
-          const { feeds, items } = await fetchFeeds(urls, customApiUrl);
-          self.postMessage({
-            type: 'FEEDS_RESULT',
-            success: true,
-            feeds,
-            items,
-          } as WorkerResponse);
-        } catch (error) {
-          self.postMessage({
-            type: 'FEEDS_RESULT',
-            success: false,
-            feeds: [],
-            items: [],
-            message: error instanceof Error ? error.message : 'Failed to fetch feeds'
-          } as WorkerResponse);
-        }
-        break;
-      }
-      
-      case 'REFRESH_FEEDS': {
-        const { urls, apiBaseUrl: customApiUrl } = message.payload;
-        try {
-          const { feeds, items } = await fetchFeeds(urls, customApiUrl);
-          self.postMessage({
-            type: 'FEEDS_RESULT',
-            success: true,
-            feeds,
-            items,
-          } as WorkerResponse);
-        } catch (error) {
-          self.postMessage({
-            type: 'FEEDS_RESULT',
-            success: false,
-            feeds: [],
-            items: [],
-            message: error instanceof Error ? error.message : 'Failed to refresh feeds'
-          } as WorkerResponse);
-        }
-        break;
-      }
-      
-      case 'FETCH_READER_VIEW': {
-        const { urls, apiBaseUrl: customApiUrl } = message.payload;
-        try {
-          const data = await fetchReaderView(urls, customApiUrl);
-          self.postMessage({
-            type: 'READER_VIEW_RESULT',
-            success: true,
-            data,
-          } as WorkerResponse);
-        } catch (error) {
-          self.postMessage({
-            type: 'READER_VIEW_RESULT',
-            success: false,
-            data: [],
-            message: error instanceof Error ? error.message : 'Failed to fetch reader view'
-          } as WorkerResponse);
-        }
-        break;
-      }
-      
-      case 'CHECK_UPDATES': {
-        const { urls, apiBaseUrl: customApiUrl } = message.payload;
-        try {
-          Logger.debug("[Worker] Checking for updates");
-          // Clear cache to ensure fresh data
-          workerCache.clear();
-          const { feeds, items } = await fetchFeeds(urls, customApiUrl);
-          self.postMessage({
-            type: 'FEEDS_RESULT',
-            success: true,
-            feeds,
-            items,
-          } as WorkerResponse);
-        } catch (error) {
-          console.error("[Worker] Error checking for updates:", error);
-          self.postMessage({
-            type: 'FEEDS_RESULT',
-            success: false,
-            feeds: [],
-            items: [],
-            message: error instanceof Error ? error.message : 'Failed to check for updates'
-          } as WorkerResponse);
-        }
-        break;
-      }
-      
-      default:
-        self.postMessage({
-          type: 'ERROR',
-          message: `Unknown message type: ${(message as any).type}`
-        } as WorkerResponse);
+  try {
+    const handler = messageHandlers[message.type];
+
+    if (!handler) {
+      self.postMessage({
+        type: 'ERROR',
+        message: `Unknown message type: ${message.type}`
+      } as WorkerResponse);
+      return;
+    }
+
+    // Execute handler and send response if any
+    const response = await handler(message.payload);
+    if (response) {
+      self.postMessage(response);
     }
   } catch (error) {
     self.postMessage({

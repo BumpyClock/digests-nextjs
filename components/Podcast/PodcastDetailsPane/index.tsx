@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { EmptyState } from "@/components/Feed/ArticleReader/ArticleReader";
+import { EmptyState } from "@/components/Feed/ArticleReader";
 import { useFeedStore } from "@/store/useFeedStore";
 import { type FeedItem } from "@/types";
 import { PodcastDetailsContent } from "../shared/PodcastDetailsContent";
