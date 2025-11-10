@@ -44,7 +44,6 @@ class WorkerService {
   private shadowWorker: Worker | null = null;
   private messageHandlers: Map<string, Set<(data: any) => void>> = new Map();
   private isInitialized = false;
-  private fallbackMode = false;
   private cacheTtl = DEFAULT_CACHE_TTL;
   private readonly WORKER_TIMEOUT_MS = 30000; // 30 seconds
   private fallbackFetcher: IFeedFetcher; // NEW
@@ -91,7 +90,6 @@ class WorkerService {
     } catch (error) {
       Logger.error('WorkerService: Failed to initialize workers', error instanceof Error ? error : undefined);
       // Ensure service can still work without workers
-      this.fallbackMode = true;
     }
   }
   
