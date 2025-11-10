@@ -39,8 +39,9 @@ export const ArticleActions: React.FC<ArticleActionsProps> = ({
   };
 
   const onReadLaterClick = () => {
+    const wasInReadLater = isInReadLater; // Capture state before toggle
     onReadLaterToggle();
-    showReadLaterToast(isInReadLater, "article");
+    showReadLaterToast(wasInReadLater, "article");
   };
 
   const isCompact = layout === "compact";

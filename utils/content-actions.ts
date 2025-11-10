@@ -43,14 +43,14 @@ export async function handleShare(
  * Shared utility for handling read later toggle actions
  * Provides consistent toast messaging
  *
- * @param isInReadLater - Current read later state
+ * @param wasInReadLater - The read later state BEFORE the toggle (true = was in list, false = was not in list)
  * @param contentType - Type of content being saved (for toast messages)
  */
 export function showReadLaterToast(
-  isInReadLater: boolean,
+  wasInReadLater: boolean,
   contentType: "article" | "podcast" = "article"
 ): void {
-  if (isInReadLater) {
+  if (wasInReadLater) {
     toast("Removed from Read Later", {
       description: `The ${contentType} has been removed from your reading list.`,
     });
