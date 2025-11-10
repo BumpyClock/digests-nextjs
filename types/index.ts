@@ -4,7 +4,6 @@
 
 export * from './feed'
 export * from './api'
-export * from './storage'
 
 // Add any shared types here
 export interface Timestamp {
