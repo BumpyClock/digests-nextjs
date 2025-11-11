@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Bookmark, Share2 } from "lucide-react"
 import { useFeedsData } from "@/hooks/queries"
+import { fetchFeedsAction } from "@/app/actions"
 import type { FeedItem } from "@/types/feed"
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 import { ContentPageSkeleton } from "@/components/ContentPageSkeleton"
@@ -21,21 +22,57 @@ export default function PodcastPage() {
   // Use React Query to get feeds data (single source of truth)
   const feedsQuery = useFeedsData()
 
+  // Fallback state for cold-start navigation (when item not in React Query cache)
+  const [fallbackPodcast, setFallbackPodcast] = useState<FeedItem | null>(null)
+  const [fallbackLoading, setFallbackLoading] = useState(false)
+  const [fallbackAttempted, setFallbackAttempted] = useState(false)
+
   // Find the podcast from feeds data
   const id = params?.id as string | undefined
-  const podcast = feedsQuery.data?.items?.find((item: FeedItem) => item.id === id && item.type === "podcast")
+  const cachedPodcast = feedsQuery.data?.items?.find((item: FeedItem) => item.id === id && item.type === "podcast")
+
+  // Use cached podcast if available, otherwise use fallback
+  const podcast = cachedPodcast || fallbackPodcast
 
   // Derive bookmark state directly from React Query data
   // Local state is only for optimistic UI updates
   const [optimisticBookmark, setOptimisticBookmark] = useState<boolean | null>(null)
   const isBookmarked = optimisticBookmark ?? (podcast?.favorite || false)
 
+  // Fallback fetch when item not in cache (e.g., cold-start direct navigation)
+  useEffect(() => {
+    async function fetchFallback() {
+      if (!id || cachedPodcast || fallbackAttempted || feedsQuery.isLoading) return
+
+      setFallbackLoading(true)
+      setFallbackAttempted(true)
+
+      const { success, items } = await fetchFeedsAction(id)
+
+      if (success && items) {
+        const foundPodcast = items.find((item: FeedItem) => item.id === id && item.type === "podcast")
+        if (foundPodcast) {
+          setFallbackPodcast(foundPodcast)
+        }
+      }
+
+      setFallbackLoading(false)
+    }
+
+    fetchFallback()
+  }, [id, cachedPodcast, fallbackAttempted, feedsQuery.isLoading])
+
   const handleBookmark = async () => {
     if (!podcast) return
-    await bookmarkAction(podcast.id, isBookmarked, setOptimisticBookmark)
+    try {
+      await bookmarkAction(podcast.id, isBookmarked, setOptimisticBookmark)
+    } finally {
+      // Clear optimistic state so React Query becomes source of truth
+      setOptimisticBookmark(null)
+    }
   }
 
-  if (feedsQuery.isLoading) {
+  if (feedsQuery.isLoading || fallbackLoading) {
     return <ContentPageSkeleton />
   }
 

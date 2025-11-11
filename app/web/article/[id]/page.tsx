@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, use } from "react";
+import { useState, useEffect, use } from "react";
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Bookmark, Share2, ExternalLink } from "lucide-react"
@@ -8,6 +8,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { FeedItem } from "@/types"
 import { useFeedsData, useReaderViewQuery } from "@/hooks/queries"
+import { fetchFeedsAction } from "@/app/actions"
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 import { ContentPageSkeleton } from "@/components/ContentPageSkeleton"
 import { ContentNotFound } from "@/components/ContentNotFound"
@@ -21,8 +22,16 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
   // Use React Query to get feeds data
   const feedsQuery = useFeedsData()
 
+  // Fallback state for cold-start navigation (when item not in React Query cache)
+  const [fallbackArticle, setFallbackArticle] = useState<FeedItem | null>(null)
+  const [fallbackLoading, setFallbackLoading] = useState(false)
+  const [fallbackAttempted, setFallbackAttempted] = useState(false)
+
   // Find the article from feeds data (single source of truth)
-  const article = feedsQuery.data?.items?.find((item: FeedItem) => item.id === params.id && item.type === "article")
+  const cachedArticle = feedsQuery.data?.items?.find((item: FeedItem) => item.id === params.id && item.type === "article")
+
+  // Use cached article if available, otherwise use fallback
+  const article = cachedArticle || fallbackArticle
 
   // Use React Query to get reader view data
   const readerViewQuery = useReaderViewQuery(article?.link || "")
@@ -32,12 +41,40 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
   const [optimisticBookmark, setOptimisticBookmark] = useState<boolean | null>(null)
   const isBookmarked = optimisticBookmark ?? (article?.favorite || false)
 
+  // Fallback fetch when item not in cache (e.g., cold-start direct navigation)
+  useEffect(() => {
+    async function fetchFallback() {
+      if (!params.id || cachedArticle || fallbackAttempted || feedsQuery.isLoading) return
+
+      setFallbackLoading(true)
+      setFallbackAttempted(true)
+
+      const { success, items } = await fetchFeedsAction(params.id)
+
+      if (success && items) {
+        const foundArticle = items.find((item: FeedItem) => item.id === params.id && item.type === "article")
+        if (foundArticle) {
+          setFallbackArticle(foundArticle)
+        }
+      }
+
+      setFallbackLoading(false)
+    }
+
+    fetchFallback()
+  }, [params.id, cachedArticle, fallbackAttempted, feedsQuery.isLoading])
+
   const handleBookmark = async () => {
     if (!article) return
-    await bookmarkAction(article.id, isBookmarked, setOptimisticBookmark)
+    try {
+      await bookmarkAction(article.id, isBookmarked, setOptimisticBookmark)
+    } finally {
+      // Clear optimistic state so React Query becomes source of truth
+      setOptimisticBookmark(null)
+    }
   }
 
-  if (feedsQuery.isLoading || readerViewQuery.isLoading) {
+  if (feedsQuery.isLoading || readerViewQuery.isLoading || fallbackLoading) {
     return <ContentPageSkeleton />
   }
 
