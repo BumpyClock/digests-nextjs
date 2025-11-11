@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, use } from "react";
+import { useState, use } from "react";
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Bookmark, Share2, ExternalLink } from "lucide-react"
@@ -15,30 +15,26 @@ import { useContentActions } from "@/hooks/use-content-actions"
 
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
-  const [article, setArticle] = useState<FeedItem | null>(null)
-  const [isBookmarked, setIsBookmarked] = useState(false)
   const router = useRouter()
   const { handleBookmark: bookmarkAction, handleShare } = useContentActions("article")
 
   // Use React Query to get feeds data
   const feedsQuery = useFeedsData()
 
-  // Find the article from feeds data
-  const foundArticle = feedsQuery.data?.items?.find((item: FeedItem) => item.id === params.id && item.type === "article")
+  // Find the article from feeds data (single source of truth)
+  const article = feedsQuery.data?.items?.find((item: FeedItem) => item.id === params.id && item.type === "article")
 
   // Use React Query to get reader view data
-  const readerViewQuery = useReaderViewQuery(foundArticle?.link || "")
+  const readerViewQuery = useReaderViewQuery(article?.link || "")
 
-  useEffect(() => {
-    if (foundArticle) {
-      setArticle(foundArticle)
-      setIsBookmarked(foundArticle.favorite || false)
-    }
-  }, [foundArticle])
+  // Derive bookmark state directly from React Query data
+  // Local state is only for optimistic UI updates
+  const [optimisticBookmark, setOptimisticBookmark] = useState<boolean | null>(null)
+  const isBookmarked = optimisticBookmark ?? (article?.favorite || false)
 
   const handleBookmark = async () => {
     if (!article) return
-    await bookmarkAction(article.id, isBookmarked, setIsBookmarked)
+    await bookmarkAction(article.id, isBookmarked, setOptimisticBookmark)
   }
 
   if (feedsQuery.isLoading || readerViewQuery.isLoading) {

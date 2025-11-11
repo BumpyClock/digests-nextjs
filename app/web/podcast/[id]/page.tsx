@@ -1,69 +1,41 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Bookmark, Share2 } from "lucide-react"
-import { fetchFeedsAction } from "@/app/actions"
-import { useAudioActions } from "@/hooks/useFeedSelectors"
-import Image from "next/image"
+import { useFeedsData } from "@/hooks/queries"
 import type { FeedItem } from "@/types/feed"
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 import { ContentPageSkeleton } from "@/components/ContentPageSkeleton"
 import { ContentNotFound } from "@/components/ContentNotFound"
 import { useContentActions } from "@/hooks/use-content-actions"
 import { useRouter, useParams } from "next/navigation"
+import { PodcastPlayButton } from "@/components/Podcast/shared/PodcastPlayButton"
+import { PodcastArtwork } from "@/components/Podcast/PodcastArtwork"
 
 export default function PodcastPage() {
   const params = useParams();
-  const [podcast, setPodcast] = useState<FeedItem | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [isBookmarked, setIsBookmarked] = useState(false)
   const router = useRouter()
-  const { playAudio } = useAudioActions()
   const { handleBookmark: bookmarkAction, handleShare } = useContentActions("podcast")
 
-  useEffect(() => {
-    async function loadPodcast() {
-      const id = params?.id as string | undefined
-      if (!id) return
+  // Use React Query to get feeds data (single source of truth)
+  const feedsQuery = useFeedsData()
 
-      setLoading(true)
+  // Find the podcast from feeds data
+  const id = params?.id as string | undefined
+  const podcast = feedsQuery.data?.items?.find((item: FeedItem) => item.id === id && item.type === "podcast")
 
-      const { success, items } = await fetchFeedsAction(id)
-
-      if (success && items) {
-        const foundPodcast = items.find((item: FeedItem) => item.id === id && item.type === "podcast")
-
-        if (foundPodcast) {
-          setPodcast(foundPodcast)
-          setIsBookmarked(foundPodcast.favorite || false)
-        }
-      }
-
-      setLoading(false)
-    }
-
-    loadPodcast()
-  }, [params])
+  // Derive bookmark state directly from React Query data
+  // Local state is only for optimistic UI updates
+  const [optimisticBookmark, setOptimisticBookmark] = useState<boolean | null>(null)
+  const isBookmarked = optimisticBookmark ?? (podcast?.favorite || false)
 
   const handleBookmark = async () => {
     if (!podcast) return
-    await bookmarkAction(podcast.id, isBookmarked, setIsBookmarked)
+    await bookmarkAction(podcast.id, isBookmarked, setOptimisticBookmark)
   }
 
-  const handlePlay = () => {
-    if (podcast) {
-      playAudio({
-        id: podcast.id,
-        title: podcast.title,
-        source: podcast.link,
-        audioUrl: podcast.link || "https://example.com/podcast.mp3",
-        image: podcast.thumbnail,
-      })
-    }
-  }
-
-  if (loading) {
+  if (feedsQuery.isLoading) {
     return <ContentPageSkeleton />
   }
 
@@ -79,22 +51,20 @@ export default function PodcastPage() {
           Back
         </Button>
         <div className="flex flex-col md:flex-row gap-6 mb-6">
-          <div className="relative w-full md:w-1/3 aspect-square overflow-hidden rounded-lg">
-            <Image
-              src={podcast.thumbnail || "/placeholder-podcast.svg"}
-              alt={podcast.title}
-              className="object-cover"
-              fill
-              sizes="(max-width: 768px) 100vw, 33vw"
-            />
-          </div>
+          <PodcastArtwork
+            src={podcast.thumbnail}
+            alt={podcast.title}
+            size="xl"
+            className="w-full md:w-1/3"
+            priority
+          />
           <div className="flex-1">
             <h1 className="text-3xl font-bold mb-2">{podcast.title}</h1>
             <div className="flex items-center mb-4">
               <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center mr-2">
-                {podcast.link.charAt(0).toUpperCase()}
+                {podcast.siteTitle?.charAt(0).toUpperCase() || podcast.link.charAt(0).toUpperCase()}
               </div>
-              <p className="font-medium">{podcast.link}</p>
+              <p className="font-medium">{podcast.siteTitle || podcast.link}</p>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               {new Date(podcast.published).toLocaleDateString(undefined, {
@@ -105,7 +75,7 @@ export default function PodcastPage() {
               • {podcast.duration || "45 min"}
             </p>
             <div className="flex space-x-2 mb-6">
-              <Button onClick={handlePlay}>Play Episode</Button>
+              <PodcastPlayButton podcast={podcast} showLabel />
               <Button variant="outline" onClick={handleBookmark}>
                 <Bookmark className={`mr-2 h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
                 {isBookmarked ? "Saved" : "Save"}

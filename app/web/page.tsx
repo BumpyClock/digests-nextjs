@@ -23,22 +23,7 @@ import { useFeedsData, useRefreshFeedsMutation, useFeedBackgroundSync } from "@/
 import { useHydratedStore } from "@/store/useFeedStore";
 import { toast } from "sonner";
 
-/**
- * If your store has a "hydrated" field, we can track if it's
- * fully loaded, or just remove if you don't need it.
- */
-const useHydration = () => {
-  const [hydrated, setHydrated] = useState(false);
-  const { hydrated: storeHydrated } = useWebPageData();
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setHydrated(true);
-    }
-  }, []);
-
-  return hydrated && storeHydrated;
-};
+// Removed duplicate useHydration hook - useHydratedStore already handles hydration gating
 
 /**
  * Renders the main feed reader interface with tabbed navigation, search, filtering, and view mode toggling.
@@ -46,7 +31,8 @@ const useHydration = () => {
  * Displays feed items organized into tabs for all items, unread, articles, podcasts, and read-later lists. Supports filtering by feed, searching, refreshing feeds, and switching between grid and master-detail views. Maintains UI state in sync with URL parameters and feed store hydration.
  */
 function WebPageContent() {
-  const isHydrated = useHydration();
+  // Use shared hydration check from store
+  const isHydrated = useHydratedStore((state) => state.hydrated, false);
   const [searchQuery, setSearchQuery] = useState("");
   const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("unread");

@@ -6,6 +6,7 @@ import { Ambilight } from "@/components/ui/ambilight"
 import { cn } from "@/lib/utils"
 import { getImageProps } from "@/utils/image-config"
 import { ProgressiveImage } from "@/components/ui/progressive-image"
+import { isValidUrl } from "@/utils/url"
 
 interface PodcastArtworkProps {
   src?: string
@@ -39,16 +40,6 @@ export function PodcastArtwork({
 }: PodcastArtworkProps) {
   const [imageError, setImageError] = useState(false)
   const [imageLoading, setImageLoading] = useState(true)
-
-  const isValidUrl = (url: string | undefined): boolean => {
-    if (!url) return false
-    try {
-      new URL(url)
-      return true
-    } catch {
-      return false
-    }
-  }
 
   const shouldShowImage = !imageError && src && isValidUrl(src)
   const imageSrc = shouldShowImage ? src : "/placeholder-podcast.svg"
