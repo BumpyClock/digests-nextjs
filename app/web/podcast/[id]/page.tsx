@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Bookmark, Share2 } from "lucide-react"
 import { useFeedsData } from "@/hooks/queries"
-import { fetchFeedsAction } from "@/app/actions"
+import { refreshFeedsAction } from "@/app/actions"
 import type { FeedItem } from "@/types/feed"
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 import { ContentPageSkeleton } from "@/components/ContentPageSkeleton"
@@ -13,6 +13,7 @@ import { useContentActions } from "@/hooks/use-content-actions"
 import { useRouter, useParams } from "next/navigation"
 import { PodcastPlayButton } from "@/components/Podcast/shared/PodcastPlayButton"
 import { PodcastArtwork } from "@/components/Podcast/PodcastArtwork"
+import { useFeedStore } from "@/store/useFeedStore"
 
 export default function PodcastPage() {
   const params = useParams();
@@ -39,15 +40,23 @@ export default function PodcastPage() {
   const [optimisticBookmark, setOptimisticBookmark] = useState<boolean | null>(null)
   const isBookmarked = optimisticBookmark ?? (podcast?.favorite || false)
 
+  // Get subscriptions from store for fallback fetch
+  const subscriptions = useFeedStore((state) => state.subscriptions)
+
   // Fallback fetch when item not in cache (e.g., cold-start direct navigation)
   useEffect(() => {
     async function fetchFallback() {
       if (!id || cachedPodcast || fallbackAttempted || feedsQuery.isLoading) return
 
+      // Wait for subscriptions to be available (store hydration)
+      if (!subscriptions || subscriptions.length === 0) return
+
       setFallbackLoading(true)
       setFallbackAttempted(true)
 
-      const { success, items } = await fetchFeedsAction(id)
+      // Fetch all subscribed feeds to find the podcast
+      const feedUrls = subscriptions.map((sub) => sub.feedUrl)
+      const { success, items } = await refreshFeedsAction(feedUrls)
 
       if (success && items) {
         const foundPodcast = items.find((item: FeedItem) => item.id === id && item.type === "podcast")
@@ -60,7 +69,7 @@ export default function PodcastPage() {
     }
 
     fetchFallback()
-  }, [id, cachedPodcast, fallbackAttempted, feedsQuery.isLoading])
+  }, [id, cachedPodcast, fallbackAttempted, feedsQuery.isLoading, subscriptions])
 
   const handleBookmark = async () => {
     if (!podcast) return

@@ -8,11 +8,12 @@ import Link from "next/link"
 import Image from "next/image"
 import { FeedItem } from "@/types"
 import { useFeedsData, useReaderViewQuery } from "@/hooks/queries"
-import { fetchFeedsAction } from "@/app/actions"
+import { refreshFeedsAction } from "@/app/actions"
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 import { ContentPageSkeleton } from "@/components/ContentPageSkeleton"
 import { ContentNotFound } from "@/components/ContentNotFound"
 import { useContentActions } from "@/hooks/use-content-actions"
+import { useFeedStore } from "@/store/useFeedStore"
 
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
@@ -41,15 +42,23 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
   const [optimisticBookmark, setOptimisticBookmark] = useState<boolean | null>(null)
   const isBookmarked = optimisticBookmark ?? (article?.favorite || false)
 
+  // Get subscriptions from store for fallback fetch
+  const subscriptions = useFeedStore((state) => state.subscriptions)
+
   // Fallback fetch when item not in cache (e.g., cold-start direct navigation)
   useEffect(() => {
     async function fetchFallback() {
       if (!params.id || cachedArticle || fallbackAttempted || feedsQuery.isLoading) return
 
+      // Wait for subscriptions to be available (store hydration)
+      if (!subscriptions || subscriptions.length === 0) return
+
       setFallbackLoading(true)
       setFallbackAttempted(true)
 
-      const { success, items } = await fetchFeedsAction(params.id)
+      // Fetch all subscribed feeds to find the article
+      const feedUrls = subscriptions.map((sub) => sub.feedUrl)
+      const { success, items } = await refreshFeedsAction(feedUrls)
 
       if (success && items) {
         const foundArticle = items.find((item: FeedItem) => item.id === params.id && item.type === "article")
@@ -62,7 +71,7 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
     }
 
     fetchFallback()
-  }, [params.id, cachedArticle, fallbackAttempted, feedsQuery.isLoading])
+  }, [params.id, cachedArticle, fallbackAttempted, feedsQuery.isLoading, subscriptions])
 
   const handleBookmark = async () => {
     if (!article) return
