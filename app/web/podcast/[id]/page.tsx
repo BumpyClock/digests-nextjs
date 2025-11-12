@@ -14,6 +14,7 @@ import { useRouter, useParams } from "next/navigation"
 import { PodcastPlayButton } from "@/components/Podcast/shared/PodcastPlayButton"
 import { PodcastArtwork } from "@/components/Podcast/PodcastArtwork"
 import { useFeedStore } from "@/store/useFeedStore"
+import { toast } from "sonner"
 
 export default function PodcastPage() {
   const params = useParams();
@@ -54,18 +55,35 @@ export default function PodcastPage() {
       setFallbackLoading(true)
       setFallbackAttempted(true)
 
-      // Fetch all subscribed feeds to find the podcast
-      const feedUrls = subscriptions.map((sub) => sub.feedUrl)
-      const { success, items } = await refreshFeedsAction(feedUrls)
+      try {
+        // Fetch all subscribed feeds to find the podcast
+        const feedUrls = subscriptions.map((sub) => sub.feedUrl)
+        const result = await refreshFeedsAction(feedUrls)
 
-      if (success && items) {
-        const foundPodcast = items.find((item: FeedItem) => item.id === id && item.type === "podcast")
-        if (foundPodcast) {
-          setFallbackPodcast(foundPodcast)
+        if (!result.success) {
+          console.error('Failed to fetch feeds for podcast:', result.message)
+          toast.error('Failed to load podcast', {
+            description: result.message || 'Could not fetch podcast data. Please try again.',
+          })
+          return
         }
-      }
 
-      setFallbackLoading(false)
+        if (result.items) {
+          const foundPodcast = result.items.find((item: FeedItem) => item.id === id && item.type === "podcast")
+          if (foundPodcast) {
+            setFallbackPodcast(foundPodcast)
+          } else {
+            console.warn('Podcast not found in fetched feeds:', id)
+          }
+        }
+      } catch (error) {
+        console.error('Exception during fallback fetch:', error)
+        toast.error('Network error', {
+          description: 'Failed to load podcast. Please check your connection and try again.',
+        })
+      } finally {
+        setFallbackLoading(false)
+      }
     }
 
     fetchFallback()
