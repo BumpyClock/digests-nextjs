@@ -8,40 +8,100 @@ import Link from "next/link"
 import Image from "next/image"
 import { FeedItem } from "@/types"
 import { useFeedsData, useReaderViewQuery } from "@/hooks/queries"
+import { refreshFeedsAction } from "@/app/actions"
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 import { ContentPageSkeleton } from "@/components/ContentPageSkeleton"
 import { ContentNotFound } from "@/components/ContentNotFound"
 import { useContentActions } from "@/hooks/use-content-actions"
+import { useFeedStore } from "@/store/useFeedStore"
+import { toast } from "sonner"
 
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
-  const [article, setArticle] = useState<FeedItem | null>(null)
-  const [isBookmarked, setIsBookmarked] = useState(false)
   const router = useRouter()
   const { handleBookmark: bookmarkAction, handleShare } = useContentActions("article")
 
   // Use React Query to get feeds data
   const feedsQuery = useFeedsData()
 
-  // Find the article from feeds data
-  const foundArticle = feedsQuery.data?.items?.find((item: FeedItem) => item.id === params.id && item.type === "article")
+  // Fallback state for cold-start navigation (when item not in React Query cache)
+  const [fallbackArticle, setFallbackArticle] = useState<FeedItem | null>(null)
+  const [fallbackLoading, setFallbackLoading] = useState(false)
+  const [fallbackAttempted, setFallbackAttempted] = useState(false)
+
+  // Find the article from feeds data (single source of truth)
+  const cachedArticle = feedsQuery.data?.items?.find((item: FeedItem) => item.id === params.id && item.type === "article")
+
+  // Use cached article if available, otherwise use fallback
+  const article = cachedArticle || fallbackArticle
 
   // Use React Query to get reader view data
-  const readerViewQuery = useReaderViewQuery(foundArticle?.link || "")
+  const readerViewQuery = useReaderViewQuery(article?.link || "")
 
+  // Derive bookmark state directly from React Query data
+  // Local state is only for optimistic UI updates
+  const [optimisticBookmark, setOptimisticBookmark] = useState<boolean | null>(null)
+  const isBookmarked = optimisticBookmark ?? (article?.favorite || false)
+
+  // Get subscriptions from store for fallback fetch
+  const subscriptions = useFeedStore((state) => state.subscriptions)
+
+  // Fallback fetch when item not in cache (e.g., cold-start direct navigation)
   useEffect(() => {
-    if (foundArticle) {
-      setArticle(foundArticle)
-      setIsBookmarked(foundArticle.favorite || false)
+    async function fetchFallback() {
+      if (!params.id || cachedArticle || fallbackAttempted || feedsQuery.isLoading) return
+
+      // Wait for subscriptions to be available (store hydration)
+      if (!subscriptions || subscriptions.length === 0) return
+
+      setFallbackLoading(true)
+      setFallbackAttempted(true)
+
+      try {
+        // Fetch all subscribed feeds to find the article
+        const feedUrls = subscriptions.map((sub) => sub.feedUrl)
+        const result = await refreshFeedsAction(feedUrls)
+
+        if (!result.success) {
+          console.error('Failed to fetch feeds for article:', result.message)
+          toast.error('Failed to load article', {
+            description: result.message || 'Could not fetch article data. Please try again.',
+          })
+          return
+        }
+
+        if (result.items) {
+          const foundArticle = result.items.find((item: FeedItem) => item.id === params.id && item.type === "article")
+          if (foundArticle) {
+            setFallbackArticle(foundArticle)
+          } else {
+            console.warn('Article not found in fetched feeds:', params.id)
+          }
+        }
+      } catch (error) {
+        console.error('Exception during fallback fetch:', error)
+        toast.error('Network error', {
+          description: 'Failed to load article. Please check your connection and try again.',
+        })
+      } finally {
+        setFallbackLoading(false)
+      }
     }
-  }, [foundArticle])
+
+    fetchFallback()
+  }, [params.id, cachedArticle, fallbackAttempted, feedsQuery.isLoading, subscriptions])
 
   const handleBookmark = async () => {
     if (!article) return
-    await bookmarkAction(article.id, isBookmarked, setIsBookmarked)
+    try {
+      await bookmarkAction(article.id, isBookmarked, setOptimisticBookmark)
+    } finally {
+      // Clear optimistic state so React Query becomes source of truth
+      setOptimisticBookmark(null)
+    }
   }
 
-  if (feedsQuery.isLoading || readerViewQuery.isLoading) {
+  if (feedsQuery.isLoading || readerViewQuery.isLoading || fallbackLoading) {
     return <ContentPageSkeleton />
   }
 
