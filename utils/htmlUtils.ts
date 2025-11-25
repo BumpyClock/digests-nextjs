@@ -56,3 +56,12 @@ if (typeof window !== 'undefined') {
     }
   });
 }
+
+/**
+ * Gets the display name for a feed/site with fallback chain: siteName -> siteTitle -> title
+ * @param item - Object containing siteName, siteTitle, and/or title fields
+ * @returns The first non-empty value in the fallback chain, or empty string
+ */
+export const getSiteDisplayName = (item: { siteName?: string; siteTitle?: string; title?: string }): string => {
+  return item.siteName || item.siteTitle || '';
+};

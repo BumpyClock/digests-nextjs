@@ -18,6 +18,7 @@ export interface FeedItem {
     thumbnail: string
     thumbnailColor: thumbnailColor
     thumbnailColorComputed: string
+    siteName: string
     siteTitle: string
     feedTitle: string
     feedUrl: string
@@ -34,7 +35,9 @@ export interface FeedItem {
     type: string
     guid: string
     status: string
+    siteName: string
     siteTitle: string
+    title: string
     feedTitle: string
     feedUrl: string
     description: string

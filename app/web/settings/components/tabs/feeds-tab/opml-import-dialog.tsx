@@ -108,7 +108,7 @@ export function OPMLImportDialog({
               return {
                 ...feed,
                 feed: fetchedFeed,
-                title: fetchedFeed.feedTitle || fetchedFeed.siteTitle || feed.title || feed.url
+                title: fetchedFeed.siteName || fetchedFeed.siteTitle || fetchedFeed.feedTitle || feed.title || feed.url
               }
             }
             return { ...feed, error: "Feed not found in response" }

@@ -62,7 +62,9 @@ export function toSubscription(feed: Feed): Subscription {
   return {
     feedUrl: feed.feedUrl,
     feedTitle: feed.feedTitle || feed.siteTitle,
+    siteName: feed.siteName || '',
     siteTitle: feed.siteTitle || feed.feedTitle,
+    title: feed.title || '',
     favicon: feed.favicon || '',
     language: feed.language || 'en'
   };

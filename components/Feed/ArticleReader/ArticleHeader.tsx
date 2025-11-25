@@ -7,6 +7,7 @@ import type { FeedItem, ReaderViewResponse } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Ambilight } from "@/components/ui/ambilight";
 import { SiteFavicon } from "./SiteFavicon";
+import { getSiteDisplayName } from "@/utils/htmlUtils";
 
 interface ArticleHeaderProps {
   feedItem: FeedItem;
@@ -146,13 +147,13 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                       {feedItem.favicon && (
                         <SiteFavicon
                           favicon={feedItem.favicon}
-                          siteTitle={feedItem.siteTitle}
+                          siteTitle={getSiteDisplayName(feedItem)}
                           size="small"
                           priority={isModal}
                         />
                       )}
-                      <span className="truncate block" title={feedItem.siteTitle}>
-                        {feedItem.siteTitle}
+                      <span className="truncate block" title={getSiteDisplayName(feedItem)}>
+                        {getSiteDisplayName(feedItem)}
                       </span>
 
                       {/* Vertical Divider */}
@@ -215,13 +216,13 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                       {feedItem.favicon && (
                         <SiteFavicon
                           favicon={feedItem.favicon}
-                          siteTitle={feedItem.siteTitle}
+                          siteTitle={getSiteDisplayName(feedItem)}
                           size={isModal ? "medium" : "small"}
                           priority={isModal}
                         />
                       )}
-                      <span className="truncate block" title={feedItem.siteTitle}>
-                        {feedItem.siteTitle}
+                      <span className="truncate block" title={getSiteDisplayName(feedItem)}>
+                        {getSiteDisplayName(feedItem)}
                       </span>
 
                       {/* Vertical Divider */}

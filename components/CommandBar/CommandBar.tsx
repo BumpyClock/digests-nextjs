@@ -35,6 +35,7 @@ import { useCommandBarSearch } from "@/hooks/use-command-bar-search";
 import { useCommandBarShortcuts } from "@/hooks/use-command-bar-shortcuts";
 import { ReaderViewModal } from "@/components/reader-view-modal";
 import Image from 'next/image';
+import { getSiteDisplayName } from "@/utils/htmlUtils";
 
 interface CommandBarProps {
   value: string;
@@ -69,7 +70,7 @@ const SuggestionItem = React.memo(({ icon: Icon, label, onSelect }: {
 SuggestionItem.displayName = 'SuggestionItem';
 
 // Feed Item Component
-const FeedItemComponent = React.memo(({ source, onSelect }: { 
+const FeedItemComponent = React.memo(({ source, onSelect }: {
   source: Feed | Subscription;
   onSelect: (feedUrl: string) => void;
 }) => (
@@ -80,6 +81,7 @@ const FeedItemComponent = React.memo(({ source, onSelect }: {
       (source as Feed).categories,
       (source as Feed).description,
       source.feedUrl,
+      source.siteName,
       source.siteTitle,
       source.feedTitle,
     ].filter(Boolean).join(" ")}
@@ -89,14 +91,14 @@ const FeedItemComponent = React.memo(({ source, onSelect }: {
     {source.favicon && (
       <Image
         src={source.favicon}
-        alt={source.feedTitle || "Untitled Feed"}
+        alt={getSiteDisplayName(source) || "Untitled Feed"}
         width={24}
         height={24}
         className="object-cover"
       />
     )}
     <span className="text-xs font-regular">
-      {source.feedTitle || source.siteTitle || "Unnamed Feed"}
+      {getSiteDisplayName(source) || source.feedTitle || "Unnamed Feed"}
     </span>
   </MemoizedCommandItem>
 ));
