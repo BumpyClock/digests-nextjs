@@ -1,6 +1,6 @@
 import Image from "next/image"
 import type { FeedItem } from "@/types"
-import { cleanupTextContent } from "@/utils/htmlUtils"
+import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils"
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
 import { getImageProps } from "@/utils/image-config"
 import { isValidUrl } from "@/utils/url"
@@ -68,17 +68,17 @@ export function PodcastDetailsContent({
             {podcast.favicon && isValidUrl(podcast.favicon) ? (
               <Image
                 src={podcast.favicon}
-                alt={podcast.siteTitle}
+                alt={getSiteDisplayName(podcast)}
                 className="rounded w-6 h-6"
                 {...(isModal ? getImageProps("icon", "eager") : { width: 24, height: 24 })}
               />
             ) : (
               <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-xs font-medium">
-                {podcast.siteTitle.charAt(0).toUpperCase()}
+                {getSiteDisplayName(podcast).charAt(0).toUpperCase()}
               </div>
             )}
             <p className={`font-medium ${isModal ? 'text-lg' : ''}`}>
-              {cleanupTextContent(podcast.siteTitle)}
+              {cleanupTextContent(getSiteDisplayName(podcast))}
             </p>
           </div>
 

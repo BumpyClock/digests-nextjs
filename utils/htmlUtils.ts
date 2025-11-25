@@ -56,3 +56,33 @@ if (typeof window !== 'undefined') {
     }
   });
 }
+
+interface GetSiteDisplayNameOptions {
+  /** Additional fallback values to try after the standard chain */
+  extraFallbacks?: (string | undefined | null)[];
+}
+
+/**
+ * Gets the display name for a feed/site with fallback chain: siteName -> siteTitle -> title -> extraFallbacks
+ * @param item - Object containing siteName, siteTitle, and/or title fields
+ * @param options - Optional configuration with extra fallback values
+ * @returns The first non-empty value in the fallback chain, or empty string
+ */
+export const getSiteDisplayName = (
+  item: { siteName?: string; siteTitle?: string; title?: string },
+  options?: GetSiteDisplayNameOptions
+): string => {
+  // Primary fallback chain: siteName -> siteTitle -> title
+  const fallbackChain = [
+    item.siteName,
+    item.siteTitle,
+    item.title,
+    ...(options?.extraFallbacks ?? []),
+  ];
+
+  for (const candidate of fallbackChain) {
+    if (candidate) return candidate;
+  }
+
+  return '';
+};

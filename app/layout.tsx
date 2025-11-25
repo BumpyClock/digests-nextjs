@@ -4,7 +4,7 @@ import "./globals.css";
 import "./generated-themes.css";
 import "./typography.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Header } from "@/components/header";
+import { ConditionalHeader } from "@/components/conditional-header";
 import { Toaster } from "@/components/ui/sonner";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { WorkerInitializer } from "@/components/worker-init";
@@ -62,7 +62,7 @@ export default function RootLayout({
                 blur={8}
               />
               <div className="flex min-h-screen flex-col">
-                <Header />
+                <ConditionalHeader />
                 <main className="flex-1 w-full p-4 xs:p-4 md:p-4 xs:max-w-full md:max-w-5xl lg:max-w-full">
                   {children}
                   <SpeedInsights />

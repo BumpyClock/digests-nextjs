@@ -6,6 +6,7 @@ import { BaseModal } from "@/components/base-modal"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { toast } from "sonner"
 import { PodcastDetailsContent } from "../shared/PodcastDetailsContent"
+import { getSiteDisplayName } from "@/utils/htmlUtils"
 
 interface PodcastDetailsModalProps {
   isOpen: boolean
@@ -20,7 +21,7 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast }: PodcastDetails
       if (navigator.share) {
         await navigator.share({
           title: podcast.title,
-          text: `Listen to ${podcast.title} from ${podcast.siteTitle}`,
+          text: `Listen to ${podcast.title} from ${getSiteDisplayName(podcast)}`,
           url: podcast.link,
         })
       } else {

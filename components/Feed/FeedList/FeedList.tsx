@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useIsItemRead } from "@/hooks/useFeedSelectors";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { cleanupTextContent } from "@/utils/htmlUtils";
+import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
 import { isValidUrl } from "@/utils/url";
 dayjs.extend(relativeTime);
 
@@ -70,14 +70,14 @@ const FeedListItem = memo(function FeedListItem({
           {item.favicon && isValidUrl(item.favicon) && (
             <Image
               src={item.favicon}
-              alt={cleanupTextContent(item.siteTitle)}
+              alt={cleanupTextContent(getSiteDisplayName(item))}
               width={16}
               height={16}
               className="rounded w-4 h-4"
             />
           )}
           <span className="text-xs text-muted-foreground truncate">
-            {cleanupTextContent(item.siteTitle)}
+            {cleanupTextContent(getSiteDisplayName(item))}
           </span>
         </div>
         <h3 className="font-semibold text-sm line-clamp-2 mb-1">{cleanupTextContent(item.title)}</h3>

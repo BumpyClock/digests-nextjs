@@ -9,8 +9,11 @@ export interface Subscription {
   feedUrl: string;
   /** Feed title from RSS/Atom */
   feedTitle: string;
+  /** Site name from API response */
+  siteName: string;
   /** Site title or fallback to feedTitle */
   siteTitle: string;
+  title: string;
   /** Site favicon URL */
   favicon: string;
   /** Feed language (ISO code) */

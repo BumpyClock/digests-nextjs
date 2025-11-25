@@ -21,7 +21,7 @@ import { useTheme } from "next-themes";
 import { workerService } from "@/services/worker-service";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsItemRead, useIsInReadLater, useReadLaterActions } from "@/hooks/useFeedSelectors";
-import { cleanupTextContent } from "@/utils/htmlUtils";
+import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
 import { Ambilight } from "@/components/ui/ambilight";
 import { PodcastPlayButton } from "@/components/Podcast/shared/PodcastPlayButton";
 import { isPodcast } from "@/types/podcast";
@@ -294,7 +294,7 @@ export const FeedCard = memo(function FeedCard({
                   {(!faviconError && feedItem.favicon && isValidUrl(feedItem.favicon)) ? (
                     <Image
                       src={feedItem.favicon}
-                      alt={`${cleanupTextContent(feedItem.siteTitle)} favicon`}
+                      alt={`${cleanupTextContent(getSiteDisplayName(feedItem))} favicon`}
                       className="w-6 h-6 bg-white rounded-[4px] "
                       onError={() => handleFaviconError()}
                       width={24}
@@ -302,11 +302,11 @@ export const FeedCard = memo(function FeedCard({
                     />
                   ) : (
                     <div className="w-6 h-6 bg-muted rounded-[4px] flex items-center justify-center text-xs font-medium">
-                      {cleanupTextContent(feedItem.siteTitle).charAt(0).toUpperCase()}
+                      {cleanupTextContent(getSiteDisplayName(feedItem)).charAt(0).toUpperCase()}
                     </div>
                   )}
                   <div className="text-xs  line-clamp-1 font-regular">
-                    {cleanupTextContent(feedItem.siteTitle)}
+                    {cleanupTextContent(getSiteDisplayName(feedItem))}
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground w-fit font-medium">

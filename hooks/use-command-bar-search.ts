@@ -35,9 +35,10 @@ function itemMatchesSearch(item: FeedItem, query: string): { match: boolean; sco
 function feedMatchesSearch(feed: Feed | Subscription, query: string): { match: boolean; score: number } {
   const search = query.toLowerCase();
 
-  // Combine relevant feed fields
+  // Combine relevant feed fields (including siteName for API response compatibility)
   const combined = [
     feed.feedTitle,
+    feed.siteName,
     feed.siteTitle,
     (feed as Feed).description,
     (feed as Feed).categories,
