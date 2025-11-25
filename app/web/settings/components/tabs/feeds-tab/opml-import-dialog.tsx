@@ -18,6 +18,7 @@ import { workerService } from "@/services/worker-service"
 import type { Feed, FeedItem as ApiFeedItem } from "@/types"
 import Image from "next/image"
 import { Skeleton } from "@/components/ui/skeleton"
+import { getSiteDisplayName } from "@/utils/htmlUtils"
 
 interface FeedItem {
   url: string
@@ -108,7 +109,9 @@ export function OPMLImportDialog({
               return {
                 ...feed,
                 feed: fetchedFeed,
-                title: fetchedFeed.siteName || fetchedFeed.siteTitle || fetchedFeed.feedTitle || feed.title || feed.url
+                title: getSiteDisplayName(fetchedFeed, {
+                  extraFallbacks: [fetchedFeed.feedTitle, feed.title, feed.url]
+                })
               }
             }
             return { ...feed, error: "Feed not found in response" }
