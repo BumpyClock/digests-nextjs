@@ -14,7 +14,7 @@ type FeedSlice = {
   removeFeedFromCache: (feedUrl: string) => void;
 };
 
-export const createFeedSlice: StateCreator<any, [], [], FeedSlice> = (set, get) => ({
+export const createFeedSlice: StateCreator<FeedSlice, [], [], FeedSlice> = (set, get) => ({
   feeds: [] as Feed[],
   subscriptions: [] as Subscription[],
 

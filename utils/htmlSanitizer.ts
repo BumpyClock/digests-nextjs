@@ -40,7 +40,7 @@ const SANITIZE_CONFIG = {
   ],
   
   // Block dangerous protocols
-  ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+  ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
   
   // Remove script tags and other dangerous elements
   FORBID_TAGS: ['script', 'object', 'embed', 'link', 'style', 'iframe'],

@@ -34,7 +34,9 @@ export function AudioMiniPlayer() {
   /**
    * Memoized toggle function to avoid recreation
    */
-  const memoizedTogglePlayPause = useCallback(togglePlayPause, [togglePlayPause])
+  const memoizedTogglePlayPause = useCallback(() => {
+    togglePlayPause()
+  }, [togglePlayPause])
 
   /**
    * Handle close button click - stops audio and hides player

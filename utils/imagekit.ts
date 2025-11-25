@@ -83,7 +83,7 @@ function buildTransformationString(options: ImageKitTransformOptions): string {
     transforms.push('pr-true')
   }
   
-  return transforms.length > 1 ? transforms.join(',') + '/' : ''
+  return transforms.length > 1 ? `${transforms.join(',')}/` : ''
 }
 
 /**
@@ -100,7 +100,7 @@ function applyImageKitTransformations(
   
   if (hasTransformations) {
     // Replace existing transformations
-    return url.replace(/\/tr:[^\/]+\//, `/${transformations}`)
+    return url.replace(/\/tr:[^/]+\//, `/${transformations}`)
   } else {
     // Add transformations after the endpoint
     const parts = url.split('/')

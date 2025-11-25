@@ -1,5 +1,5 @@
 export function formatDuration(seconds: number): string {
-  if (isNaN(seconds) || seconds <= 0) {
+  if (Number.isNaN(seconds) || seconds <= 0) {
     return "Unknown duration"
   }
 

@@ -34,7 +34,6 @@
   stroke-width: 1px;
   stroke: #000;
   object-fit: contain;
-  width: -moz-fit-content;
   width: fit-content;
 }
 
@@ -76,12 +75,6 @@
   word-break: break-word;
 }
 
-.reader-view-article li,
-.reader-view-article li a {
-  width: 100%;
-  word-break: break-word;
-}
-
 /* Links */
 .reader-view-article a {
   clear: both;
@@ -89,6 +82,12 @@
   display: contents;
   color: hsl(var(--brand-primary));
   font-weight: 600;
+}
+
+.reader-view-article li,
+.reader-view-article li a {
+  width: 100%;
+  word-break: break-word;
 }
 
 /* Headings spacing */

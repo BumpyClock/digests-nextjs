@@ -1,4 +1,4 @@
-import { FeedItem, ReaderViewResponse } from "@/types";
+import { FeedItem } from "@/types";
 
 export interface ScrollData {
   scrollTop: number;

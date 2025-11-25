@@ -78,7 +78,7 @@ export const useFeeds = () => {
 };
 
 export const useSubscriptions = () => {
-  return useFeedStore((state: any) => state.subscriptions ?? []);
+  return useFeedStore((state) => state.subscriptions ?? []);
 };
 
 

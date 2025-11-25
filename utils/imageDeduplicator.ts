@@ -60,7 +60,7 @@ function extractImageInfo(url: string): ImageInfo {
       height,
       cropArea
     };
-  } catch (error) {
+  } catch (_error) {
     // Fallback for invalid URLs
     return {
       original: url,
@@ -186,8 +186,8 @@ function cleanupMarkdownMetadata(markdown: string, title?: string, author?: stri
   ];
   
   authorExtractionPatterns.forEach(pattern => {
-    let match;
-    while ((match = pattern.exec(markdown)) !== null) {
+    let match: RegExpExecArray | null = pattern.exec(markdown);
+    while (match !== null) {
       const extractedAuthorName = match[1].trim();
       const extractedAuthorLower = extractedAuthorName.toLowerCase();
       if (extractedAuthorName && !extractedAuthor) {
@@ -202,6 +202,8 @@ function cleanupMarkdownMetadata(markdown: string, title?: string, author?: stri
           authorNames.add(nameParts[nameParts.length - 1]); // Last name
         }
       }
+
+      match = pattern.exec(markdown);
     }
   });
   
@@ -252,12 +254,14 @@ export function deduplicateMarkdownImages(markdown: string, thumbnailUrl?: strin
   // Find all markdown images: ![alt](url) or ![alt](url "title")
   const imageRegex = /!\[([^\]]*)\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
   const images: { match: string; alt: string; url: string; info: ImageInfo }[] = [];
-  let match;
+  let match: RegExpExecArray | null = imageRegex.exec(markdown);
   
-  while ((match = imageRegex.exec(markdown)) !== null) {
+  while (match !== null) {
     const [fullMatch, alt, url] = match;
     const info = extractImageInfo(url);
     images.push({ match: fullMatch, alt, url, info });
+
+    match = imageRegex.exec(markdown);
   }
   
   if (images.length === 0) return markdown;

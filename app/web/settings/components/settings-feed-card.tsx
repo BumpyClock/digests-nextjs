@@ -43,6 +43,7 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({ feed, onDelete,
         </div>
         <div className="flex mt-6 pt-2 border-t border-gray-100">
           <button
+            type="button"
             onClick={handleDelete}
             className="p-2 hover:bg-gray-100 rounded-md transition-colors"
             aria-label="Delete feed"
@@ -50,6 +51,7 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({ feed, onDelete,
             <Trash2 size={18} className="text-gray-500" />
           </button>
           <button
+            type="button"
             onClick={handleCopy}
             className="p-2 hover:bg-gray-100 rounded-md transition-colors"
             aria-label="Copy feed URL"

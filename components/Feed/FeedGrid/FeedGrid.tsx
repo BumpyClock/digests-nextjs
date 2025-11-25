@@ -96,7 +96,7 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
       console.warn('Items is not an array:', items)
       return []
     }
-    return items.filter(item => item && item.id)
+    return items.filter(item => item?.id)
   }, [items])
 
   const cacheKey = useMemo(() => `masonry-${memoizedItems.length}`, [memoizedItems.length])

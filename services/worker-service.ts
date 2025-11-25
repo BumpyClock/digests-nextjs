@@ -2,7 +2,6 @@
 import type { Feed, FeedItem, ReaderViewResponse } from '../types';
 import type { IFeedFetcher } from '@/lib/interfaces/feed-fetcher.interface';
 import { createFeedFetcher } from '@/lib/feed-fetcher';
-import { generateCardShadows } from '../utils/shadow';
 import { getApiConfig } from '@/store/useApiConfigStore';
 import { Logger } from '@/utils/logger';
 import { DEFAULT_CACHE_TTL_MS } from '@/lib/config';
@@ -38,7 +37,7 @@ type WorkerResponse =
 class WorkerService {
   private rssWorker: Worker | null = null;
   private shadowWorker: Worker | null = null;
-  private messageHandlers: Map<string, Set<(data: any) => void>> = new Map();
+  private messageHandlers: Map<string, Set<(data: unknown) => void>> = new Map();
   private isInitialized = false;
   private cacheTtl = DEFAULT_CACHE_TTL_MS;
   private readonly WORKER_TIMEOUT_MS = 30000; // 30 seconds
@@ -146,13 +145,13 @@ class WorkerService {
       this.messageHandlers.set(type, new Set());
     }
     
-    this.messageHandlers.get(type)!.add(handler as any);
+    this.messageHandlers.get(type)?.add(handler);
     
     // Return unsubscribe function
     return () => {
       const handlers = this.messageHandlers.get(type);
       if (handlers) {
-        handlers.delete(handler as any);
+        handlers.delete(handler);
         if (handlers.size === 0) {
           this.messageHandlers.delete(type);
         }
@@ -191,7 +190,7 @@ class WorkerService {
     worker: 'rss' | 'shadow',
     message: WorkerMessage,
     expectedResponseType: T['type'],
-    fallbackFn?: () => Promise<any>,
+    fallbackFn?: () => Promise<unknown>,
     responseFilter?: (response: T) => boolean
   ): Promise<T> {
     return new Promise((resolve, reject) => {
@@ -219,7 +218,7 @@ class WorkerService {
       // Cleanup function to ensure all resources are released
       const cleanup = () => {
         if (timeoutId !== null) {
-          clearTimeout(timeoutId as any);
+          clearTimeout(timeoutId as number | NodeJS.Timeout);
           timeoutId = null;
         }
         if (unsubscribe) {
@@ -282,7 +281,7 @@ class WorkerService {
         try {
           const result = await this.fallbackFetcher.fetchFeeds(urls);
           return { success: true, ...result };
-        } catch (error: any) {
+        } catch (error: unknown) {
           const message = error instanceof Error ? error.message : String(error);
           return {
             success: false,
@@ -359,11 +358,11 @@ class WorkerService {
         try {
           const data = await this.fallbackFetcher.fetchReaderView([url]);
           return { success: true, data };
-        } catch (error: any) {
+        } catch (error: unknown) {
           return {
             success: false,
             data: [],
-            message: error.message
+            message: error instanceof Error ? error.message : "Failed to fetch reader view"
           };
         }
       }

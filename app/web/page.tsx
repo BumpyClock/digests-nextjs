@@ -109,6 +109,7 @@ function WebPageContent() {
    * Update stable unread items only when feedItems change (on refresh)
    * This keeps unread page content stable even when items are marked as read
    */
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally snapshot readItems only when feedItems change
   useEffect(() => {
     if (feedItems.length > 0) {
       // Use read items state at the time of refresh, not current reactive state
@@ -126,7 +127,7 @@ function WebPageContent() {
     if (isHydrated && initialized && !refreshedRef.current) {
       refreshedRef.current = true;
     }
-  }, [isHydrated, initialized, currentUnreadItems]);
+  }, [isHydrated, initialized]);
 
   /**
    *  Handler to refresh feeds using React Query
@@ -323,6 +324,7 @@ function WebPageContent() {
           <div className="flex items-center gap-4">
             {feedUrlDecoded && (
               <button
+                type="button"
                 onClick={clearFeedFilter}
                 className="text-sm text-muted-foreground hover:text-primary flex items-center gap-2"
               >

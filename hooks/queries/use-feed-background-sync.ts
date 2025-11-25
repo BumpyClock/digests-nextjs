@@ -30,8 +30,8 @@ export function useFeedBackgroundSync() {
         return;
       }
 
-      const data: any = event.query.state.data;
-      const items = (data?.items ?? []) as { id?: string }[];
+      const data = event.query.state.data as { items?: { id?: string }[] } | undefined;
+      const items = data?.items ?? [];
 
       // Extract item IDs, filtering out any without IDs
       const currentIds = new Set(

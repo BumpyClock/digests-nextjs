@@ -26,7 +26,7 @@ function makeQueryClient() {
   })
 }
 
-let browserQueryClient: QueryClient | undefined = undefined
+let browserQueryClient: QueryClient | undefined 
 
 // Create or return the singleton QueryClient for browser
 export function getQueryClient() {

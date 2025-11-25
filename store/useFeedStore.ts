@@ -95,7 +95,7 @@ const createFeedStorePersistOptions = (
   name: "digests-feed-store",
   version: 3,
   storage: createJSONStorage(() => localforage),
-  migrate: (state: any, from: number) => {
+  migrate: (state: Record<string, unknown>, from: number) => {
     try {
       if (from < 3) {
         // Drop persisted items and normalize Sets
@@ -158,8 +158,8 @@ const createFeedStorePersistOptions = (
         storeState.setHydrated(true)
 
         // If feeds are empty but subscriptions exist, seed minimal feeds for URL computation
-        if ((!Array.isArray(storeState.feeds) || storeState.feeds.length === 0) && Array.isArray((state as any).subscriptions)) {
-          const subs = (state as any).subscriptions as Subscription[]
+        if ((!Array.isArray(storeState.feeds) || storeState.feeds.length === 0) && Array.isArray((state as Record<string, unknown>).subscriptions)) {
+          const subs = (state as Record<string, unknown>).subscriptions as Subscription[]
           // Seed feeds with minimal info (will be replaced by RQ data)
           const seededFeeds = subs.map(
             (s) =>

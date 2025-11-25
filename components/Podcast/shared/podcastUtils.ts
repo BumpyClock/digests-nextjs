@@ -18,7 +18,7 @@ export function parsePodcastDuration(podcast: FeedItem): number | undefined {
 
     // Try to parse as plain number first
     const asNumber = Number(trimmed)
-    if (!isNaN(asNumber) && isFinite(asNumber)) {
+    if (!Number.isNaN(asNumber) && Number.isFinite(asNumber)) {
       return asNumber
     }
 
@@ -34,12 +34,12 @@ export function parsePodcastDuration(podcast: FeedItem): number | undefined {
 
     for (let i = 0; i < segments.length; i++) {
       const value = parseInt(segments[i], 10)
-      if (isNaN(value) || value < 0) {
+      if (Number.isNaN(value) || value < 0) {
         return undefined
       }
 
       // i=0: seconds, i=1: minutes, i=2: hours
-      totalSeconds += value * Math.pow(60, i)
+      totalSeconds += value * 60 ** i
     }
 
     return totalSeconds

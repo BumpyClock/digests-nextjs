@@ -68,7 +68,7 @@ export const useRemoveFeedMutation = () => {
 
       return { previousFeeds, key }
     },
-    onError: (err, feedUrl, context) => {
+    onError: (_err, _feedUrl, context) => {
       // If the mutation fails, roll back
       if (context?.previousFeeds && context?.key) {
         queryClient.setQueryData<CacheData>(context.key, context.previousFeeds)

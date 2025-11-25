@@ -1,19 +1,21 @@
-export class Logger {
-    static debug(message: string, ...args: any[]) {
-      if (process.env.NODE_ENV === 'development') {
-        console.debug(`[DEBUG] ${message}`, ...args)
-      }
+type LogArgs = unknown[]
+
+export const Logger = {
+  debug(message: string, ...args: LogArgs) {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug(`[DEBUG] ${message}`, ...args)
     }
-  
-    static info(message: string, ...args: any[]) {
-      console.info(`[INFO] ${message}`, ...args)
-    }
-  
-    static warn(message: string, ...args: any[]) {
-      console.warn(`[WARN] ${message}`, ...args)
-    }
-  
-    static error(message: string, error?: Error, ...args: any[]) {
-      console.error(`[ERROR] ${message}`, error, ...args)
-    }
-  }
+  },
+
+  info(message: string, ...args: LogArgs) {
+    console.info(`[INFO] ${message}`, ...args)
+  },
+
+  warn(message: string, ...args: LogArgs) {
+    console.warn(`[WARN] ${message}`, ...args)
+  },
+
+  error(message: string, error?: Error, ...args: LogArgs) {
+    console.error(`[ERROR] ${message}`, error, ...args)
+  },
+}
