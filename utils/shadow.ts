@@ -6,13 +6,13 @@ export function adjustColorLuminosity(color: { r: number, g: number, b: number }
   const parsedColor = tinycolor({ r: color.r, g: color.g, b: color.b });
   const hsl = parsedColor.toHsl();
   
-  const MAX_LUMINOSITY_LIGHT_MODE = 0.5;
-  const MAX_LUMINOSITY_DARK_MODE = 0.9;
-  const MIN_LUMINOSITY_LIGHT_MODE = 0.15;
-  const MIN_LUMINOSITY_DARK_MODE = 0.4;  
+  const MaxLuminosityLightMode = 0.5;
+  const MaxLuminosityDarkMode = 0.9;
+  const MinLuminosityLightMode = 0.15;
+  const MinLuminosityDarkMode = 0.4;  
   
-  const maxThreshold = isDarkMode ? MAX_LUMINOSITY_DARK_MODE : MAX_LUMINOSITY_LIGHT_MODE;
-  const minThreshold = isDarkMode ? MIN_LUMINOSITY_DARK_MODE : MIN_LUMINOSITY_LIGHT_MODE;
+  const maxThreshold = isDarkMode ? MaxLuminosityDarkMode : MaxLuminosityLightMode;
+  const minThreshold = isDarkMode ? MinLuminosityDarkMode : MinLuminosityLightMode;
   
   if (hsl.l > maxThreshold) {
     hsl.l = maxThreshold;
