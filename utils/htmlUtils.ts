@@ -73,15 +73,15 @@ export const getSiteDisplayName = (
   options?: GetSiteDisplayNameOptions
 ): string => {
   // Primary fallback chain: siteName -> siteTitle -> title
-  if (item.siteName) return item.siteName;
-  if (item.siteTitle) return item.siteTitle;
-  if (item.title) return item.title;
+  const fallbackChain = [
+    item.siteName,
+    item.siteTitle,
+    item.title,
+    ...(options?.extraFallbacks ?? []),
+  ];
 
-  // Extra fallbacks if provided
-  if (options?.extraFallbacks) {
-    for (const fallback of options.extraFallbacks) {
-      if (fallback) return fallback;
-    }
+  for (const candidate of fallbackChain) {
+    if (candidate) return candidate;
   }
 
   return '';
