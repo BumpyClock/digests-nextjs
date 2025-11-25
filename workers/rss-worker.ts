@@ -20,7 +20,7 @@ type WorkerResponse =
 
 // Cache implementation for the worker
 class WorkerCache {
-  private cache = new Map<string, { data: any; timestamp: number }>();
+  private cache = new Map<string, { data: unknown; timestamp: number }>();
   private ttl: number;
 
   constructor(ttl: number = DEFAULT_CACHE_TTL_MS) {
@@ -31,7 +31,7 @@ class WorkerCache {
     this.ttl = ttl;
   }
 
-  set(key: string, data: any): void {
+  set<T>(key: string, data: T): void {
     this.cache.set(key, { data, timestamp: Date.now() });
   }
 
@@ -182,7 +182,7 @@ async function fetchReaderView(urls: string[], customApiUrl?: string): Promise<R
 }
 
 // Define handler type
-type MessageHandler = (payload: any) => Promise<WorkerResponse | void> | WorkerResponse | void;
+type MessageHandler = (payload: unknown) => Promise<WorkerResponse | undefined> | WorkerResponse | undefined;
 
 // Create handler registry
 const messageHandlers: Record<string, MessageHandler> = {

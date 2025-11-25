@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useMemo, useRef, useEffect, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useEffect, useState, type KeyboardEvent } from "react";
 import { FeedItem } from "@/types";
 import Image from "next/image";
 import { Heart } from "lucide-react";
@@ -33,15 +33,26 @@ const FeedListItem = memo(function FeedListItem({
   const formattedDate = useMemo(() => {
     return item.published ? dayjs(item.published).fromNow() : "Date unknown";
   }, [item.published]);
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onSelect();
+      }
+    },
+    [onSelect]
+  );
 
   return (
-    <div
-      className={`p-4 border-b cursor-pointer transition-colors flex gap-3 ${
+    <button
+      type="button"
+      className={`p-4 border-b cursor-pointer transition-colors flex gap-3 text-left w-full ${
         isSelected
           ? "bg-primary/10 border-l-4 border-l-primary"
           : "hover:bg-secondary/20"
       } ${isRead ? "opacity-70" : ""}`}
       onClick={onSelect}
+      onKeyDown={handleKeyDown}
     >
       {item.thumbnail && isValidUrl(item.thumbnail) && (
         <div className="shrink-0">
@@ -75,7 +86,7 @@ const FeedListItem = memo(function FeedListItem({
           {item.favorite && <Heart className="h-3 w-3 fill-red-500 text-red-500" />}
         </div>
       </div>
-    </div>
+    </button>
   );
 });
 
@@ -109,23 +120,26 @@ export function FeedList({
     [onItemSelect, currentScrollTop]
   );
 
+  const skeletonKeys = useMemo(
+    () => Array.from({ length: 10 }, (_, i) => `skeleton-${i}`),
+    []
+  );
+
   const renderSkeletons = useCallback(() => {
-    return Array(10)
-      .fill(0)
-      .map((_, i) => (
-        <div key={i} className="p-4 border-b animate-pulse">
-          <div className="flex gap-3">
-            <div className="bg-secondary h-[70px] w-[70px] rounded-md"></div>
-            <div className="grow">
-              <div className="h-2 bg-secondary rounded w-16 mb-2"></div>
-              <div className="h-4 bg-secondary rounded w-full mb-2"></div>
-              <div className="h-4 bg-secondary rounded w-3/4 mb-2"></div>
-              <div className="h-2 bg-secondary rounded w-20 mt-2"></div>
-            </div>
+    return skeletonKeys.map((key) => (
+      <div key={key} className="p-4 border-b animate-pulse">
+        <div className="flex gap-3">
+          <div className="bg-secondary h-[70px] w-[70px] rounded-md"></div>
+          <div className="grow">
+            <div className="h-2 bg-secondary rounded w-16 mb-2"></div>
+            <div className="h-4 bg-secondary rounded w-full mb-2"></div>
+            <div className="h-4 bg-secondary rounded w-3/4 mb-2"></div>
+            <div className="h-2 bg-secondary rounded w-20 mt-2"></div>
           </div>
         </div>
-      ));
-  }, []);
+      </div>
+    ));
+  }, [skeletonKeys]);
 
   if (isLoading) {
     return (

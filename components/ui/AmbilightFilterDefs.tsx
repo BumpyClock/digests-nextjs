@@ -1,7 +1,5 @@
 "use client";
 
-import React from "react";
-
 interface AmbilightFilterDefsProps {
   /**
    * Feed card-specific parameters for the ambient light
@@ -25,7 +23,8 @@ export function AmbilightFilterDefs({
   blur = 8,
 }: AmbilightFilterDefsProps) {
   return (
-    <svg width="0" height="0" style={{ position: "absolute" }}>
+    <svg width="0" height="0" style={{ position: "absolute" }} aria-hidden="true">
+      <title>Ambilight filter definitions</title>
       <defs>
         <filter
           id="feedCardAmbilight-filter"

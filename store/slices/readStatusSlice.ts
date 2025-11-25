@@ -24,7 +24,7 @@ type ReadStatusSlice = {
   getReadLaterItems: (items: FeedItem[]) => FeedItem[];
 };
 
-export const createReadStatusSlice: StateCreator<any, [], [], ReadStatusSlice> = (set, get) => ({
+export const createReadStatusSlice: StateCreator<ReadStatusSlice, [], [], ReadStatusSlice> = (set, get) => ({
   readItems: new Set<string>(),
   readLaterItems: new Set<string>(),
 
@@ -39,7 +39,7 @@ export const createReadStatusSlice: StateCreator<any, [], [], ReadStatusSlice> =
       
       // Use a "structural equality" check to avoid unnecessary rerenders
       // Only update the store if the readItems set actually changed
-      set((state: any) => {
+      set((_state) => {
         // This ensures components that don't depend on readItems won't re-render
         return { readItems: newReadItems };
       }, false); // false means don't replace the entire state, just merge

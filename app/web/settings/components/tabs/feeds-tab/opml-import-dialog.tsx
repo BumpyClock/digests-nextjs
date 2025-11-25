@@ -180,8 +180,8 @@ export function OPMLImportDialog({
           </div>
           <div className="flex-1 overflow-y-auto pr-2 space-y-2">
             {loading ? (
-              Array.from({ length: initialFeeds.length }).map((_, index) => (
-                <div key={index} className="flex items-start space-x-2 p-2 rounded-lg">
+              initialFeeds.map((feed) => (
+                <div key={feed.url} className="flex items-start space-x-2 p-2 rounded-lg">
                   <Skeleton className="h-5 w-5 mt-1" />
                   <Skeleton className="h-10 w-10" />
                   <div className="flex-1 space-y-2">

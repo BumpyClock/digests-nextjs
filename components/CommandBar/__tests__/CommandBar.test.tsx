@@ -1,7 +1,5 @@
 // ABOUTME: Unit tests for the CommandBar component with React Query integration
 // ABOUTME: Tests prop vs store fallback behavior and component functionality
-
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
@@ -16,7 +14,7 @@ import { FeedItem, Feed } from '@/types';
 function createFeed(partial: Partial<Feed>): Feed {
   return {
     type: 'rss',
-    guid: partial.guid ?? 'guid-' + Math.random().toString(36).slice(2),
+    guid: partial.guid ?? `guid-${Math.random().toString(36).slice(2)}`,
     status: partial.status ?? 'active',
     siteTitle: partial.siteTitle ?? partial.feedTitle ?? 'Site Title',
     feedTitle: partial.feedTitle ?? 'Feed Title',
@@ -37,7 +35,7 @@ function createFeed(partial: Partial<Feed>): Feed {
 function createFeedItem(partial: Partial<FeedItem>): FeedItem {
   return {
     type: partial.type ?? 'article',
-    id: partial.id ?? 'id-' + Math.random().toString(36).slice(2),
+    id: partial.id ?? `id-${Math.random().toString(36).slice(2)}`,
     title: partial.title ?? 'Untitled',
     description: partial.description ?? 'Desc',
     link: partial.link ?? 'https://example.com/item',
@@ -81,7 +79,7 @@ jest.mock('@/components/reader-view-modal', () => {
     ReaderViewModal: ({ isOpen, onClose, feedItem }: ReaderViewModalProps) =>
       isOpen ? (
         <div data-testid="reader-modal">
-          <button onClick={onClose}>Close</button>
+          <button type="button" onClick={onClose}>Close</button>
           <div>{feedItem?.title}</div>
         </div>
       ) : null,

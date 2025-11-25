@@ -19,8 +19,8 @@ import type { Feed, FeedItem } from '@/types';
  */
 export function useFeedsData() {
   const feeds = useFeedStore((s) => s.feeds)
-  const subs = useFeedStore((s: any) => s.subscriptions ?? []) as { feedUrl: string }[]
-  const feedUrls = (feeds?.length ? feeds : subs).map((f: any) => f.feedUrl)
+  const subs = useFeedStore((s) => s.subscriptions ?? []) as { feedUrl: string }[]
+  const feedUrls = (feeds?.length ? feeds : subs).map((f) => f.feedUrl)
 
   return useQuery({
     queryKey: feedsKeys.list(feedUrls),

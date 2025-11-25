@@ -68,12 +68,15 @@ export function ProgressiveImage({
   }, [src, initialSrc, width, height, onLoad, onError])
 
   return (
-    <img
-      ref={imgRef}
-      alt={alt}
-      className={cn(className, "w-full h-full object-cover")}
-      style={style}
-      loading="eager"
-    />
+    <>
+      {/* biome-ignore lint/performance/noImgElement: uses native progressive JPEG loading */}
+      <img
+        ref={imgRef}
+        alt={alt}
+        className={cn(className, "w-full h-full object-cover")}
+        style={style}
+        loading="eager"
+      />
+    </>
   )
 }

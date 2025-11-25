@@ -17,8 +17,8 @@ import type { Subscription } from '@/types/subscription';
  */
 export function sortByDateDesc(a: FeedItem, b: FeedItem): number {
   // Handle multiple date field formats (published, pubDate)
-  const dateA = new Date(a.published || (a as any).pubDate || 0).getTime();
-  const dateB = new Date(b.published || (b as any).pubDate || 0).getTime();
+  const dateA = new Date(a.published ?? (a as { pubDate?: string }).pubDate ?? 0).getTime();
+  const dateB = new Date(b.published ?? (b as { pubDate?: string }).pubDate ?? 0).getTime();
   return dateB - dateA; // Newest first
 }
 

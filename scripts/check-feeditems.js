@@ -9,7 +9,7 @@
  */
 
 const { execSync } = require('child_process');
-const path = require('path');
+const _path = require('path');
 
 const RED = '\x1b[31m';
 const GREEN = '\x1b[32m';

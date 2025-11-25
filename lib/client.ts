@@ -21,10 +21,10 @@ export class APIClient {
   }
 
   static getInstance(): APIClient {
-    if (!this.instance) {
-      this.instance = new APIClient()
+    if (!APIClient.instance) {
+      APIClient.instance = new APIClient()
     }
-    return this.instance
+    return APIClient.instance
   }
 
   async fetch<T>(

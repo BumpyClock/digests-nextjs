@@ -47,7 +47,9 @@ const FrostedGlass: React.FC<FrostedGlassProps> = ({
         <svg
           className="absolute inset-0 w-full h-full"
           preserveAspectRatio="none"
+          aria-hidden="true"
         >
+          <title>Frosted glass mask</title>
           <defs>
             <mask id={maskId}>
               <rect

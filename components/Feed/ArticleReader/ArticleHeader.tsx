@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useState } from "react";
+import { memo, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import type { FeedItem, ReaderViewResponse } from "@/types";
@@ -80,6 +80,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                     isActive={true}
                     opacity={{ rest: 0.5, hover: 0.7 }}
                   >
+                    {/* biome-ignore lint/performance/noImgElement: motion.img keeps animation + layout control here */}
                     <motion.img
                       src={feedItem.thumbnail}
                       alt={feedItem.title}

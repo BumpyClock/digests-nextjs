@@ -13,7 +13,7 @@ interface ApiConfigState {
 
 export const useApiConfigStore = create<ApiConfigState>()(
   persist(
-    (set, get) => ({
+    (set, _get) => ({
       // Initial state
       config: DEFAULT_API_CONFIG,
 
@@ -48,7 +48,7 @@ export const useApiConfigStore = create<ApiConfigState>()(
         try {
           new URL(url.startsWith('http') ? url : `https://${url}`);
           return true;
-        } catch (error) {
+        } catch (_error) {
           return false;
         }
       }

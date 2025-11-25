@@ -268,7 +268,6 @@
     font-weight: var(--font-weight-medium);
     font-size: 20px;
     margin: 0 auto;
-    overflow-y: auto;
     background-color: rgba(0, 0, 0, 0.7);
     z-index: 1000;
     overflow-y: auto;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useMemo } from "react";
+import { memo, useMemo } from "react";
 import Image from "next/image";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -39,7 +39,7 @@ function calculateReadingTime(content: string): string {
     .replace(/<[^>]*>/g, "") // Remove HTML tags
     .replace(/!\[.*?\]\(.*?\)/g, "") // Remove markdown images FIRST
     .replace(/\[.*?\]\(.*?\)/g, "") // Remove markdown links SECOND
-    .replace(/[#*_`~\[\]()]/g, "") // Then remove remaining markdown characters
+    .replace(/[#*_`~[\]()]/g, "") // Then remove remaining markdown characters
     .trim();
 
   const wordCount = cleanText.split(/\s+/).filter(Boolean).length;

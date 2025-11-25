@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useEffect } from "react";
+import { memo, useEffect } from "react";
 import "./ArticleReader.css";
 import type { FeedItem, ReaderViewResponse } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
