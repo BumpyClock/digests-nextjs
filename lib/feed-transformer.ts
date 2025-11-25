@@ -107,7 +107,7 @@ export function transformFeedResponse(data: FetchFeedsResponse): { feeds: Feed[]
         thumbnailColor: item.thumbnailColor,
         thumbnailColorComputed: item.thumbnailColorComputed,
         // Inherit feed metadata for easy access at item level
-        siteName: feed.siteName || feed.title || feed.feedTitle,
+        siteName: feed.siteName || feed.siteTitle || feed.title || feed.feedTitle,
         siteTitle: feed.siteTitle || feed.title || feed.feedTitle,
         feedTitle: feed.feedTitle || feed.title,
         feedUrl: feed.feedUrl,

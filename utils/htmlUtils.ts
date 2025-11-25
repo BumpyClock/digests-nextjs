@@ -63,7 +63,7 @@ interface GetSiteDisplayNameOptions {
 }
 
 /**
- * Gets the display name for a feed/site with fallback chain: siteName -> siteTitle -> extraFallbacks
+ * Gets the display name for a feed/site with fallback chain: siteName -> siteTitle -> title -> extraFallbacks
  * @param item - Object containing siteName, siteTitle, and/or title fields
  * @param options - Optional configuration with extra fallback values
  * @returns The first non-empty value in the fallback chain, or empty string
@@ -72,9 +72,10 @@ export const getSiteDisplayName = (
   item: { siteName?: string; siteTitle?: string; title?: string },
   options?: GetSiteDisplayNameOptions
 ): string => {
-  // Primary fallback chain
+  // Primary fallback chain: siteName -> siteTitle -> title
   if (item.siteName) return item.siteName;
   if (item.siteTitle) return item.siteTitle;
+  if (item.title) return item.title;
 
   // Extra fallbacks if provided
   if (options?.extraFallbacks) {
