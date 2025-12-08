@@ -1,55 +1,57 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, Bookmark, Share2 } from "lucide-react"
-import { fetchFeedsAction } from "@/app/actions"
-import { useAudioActions } from "@/hooks/useFeedSelectors"
-import Image from "next/image"
-import type { FeedItem } from "@/types/feed"
-import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
-import { ContentPageSkeleton } from "@/components/ContentPageSkeleton"
-import { ContentNotFound } from "@/components/ContentNotFound"
-import { useContentActions } from "@/hooks/use-content-actions"
-import { useRouter, useParams } from "next/navigation"
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Bookmark, Share2 } from "lucide-react";
+import { fetchFeedsAction } from "@/app/actions";
+import { useAudioActions } from "@/hooks/useFeedSelectors";
+import Image from "next/image";
+import type { FeedItem } from "@/types/feed";
+import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
+import { ContentPageSkeleton } from "@/components/ContentPageSkeleton";
+import { ContentNotFound } from "@/components/ContentNotFound";
+import { useContentActions } from "@/hooks/use-content-actions";
+import { useRouter, useParams } from "next/navigation";
 
 export default function PodcastPage() {
   const params = useParams();
-  const [podcast, setPodcast] = useState<FeedItem | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [isBookmarked, setIsBookmarked] = useState(false)
-  const router = useRouter()
-  const { playAudio } = useAudioActions()
-  const { handleBookmark: bookmarkAction, handleShare } = useContentActions("podcast")
+  const [podcast, setPodcast] = useState<FeedItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const router = useRouter();
+  const { playAudio } = useAudioActions();
+  const { handleBookmark: bookmarkAction, handleShare } = useContentActions("podcast");
 
   useEffect(() => {
     async function loadPodcast() {
-      const id = params?.id as string | undefined
-      if (!id) return
+      const id = params?.id as string | undefined;
+      if (!id) return;
 
-      setLoading(true)
+      setLoading(true);
 
-      const { success, items } = await fetchFeedsAction(id)
+      const { success, items } = await fetchFeedsAction(id);
 
       if (success && items) {
-        const foundPodcast = items.find((item: FeedItem) => item.id === id && item.type === "podcast")
+        const foundPodcast = items.find(
+          (item: FeedItem) => item.id === id && item.type === "podcast"
+        );
 
         if (foundPodcast) {
-          setPodcast(foundPodcast)
-          setIsBookmarked(foundPodcast.favorite || false)
+          setPodcast(foundPodcast);
+          setIsBookmarked(foundPodcast.favorite || false);
         }
       }
 
-      setLoading(false)
+      setLoading(false);
     }
 
-    loadPodcast()
-  }, [params])
+    loadPodcast();
+  }, [params]);
 
   const handleBookmark = async () => {
-    if (!podcast) return
-    await bookmarkAction(podcast.id, isBookmarked, setIsBookmarked)
-  }
+    if (!podcast) return;
+    await bookmarkAction(podcast.id, isBookmarked, setIsBookmarked);
+  };
 
   const handlePlay = () => {
     if (podcast) {
@@ -59,16 +61,16 @@ export default function PodcastPage() {
         source: podcast.link,
         audioUrl: podcast.link || "https://example.com/podcast.mp3",
         image: podcast.thumbnail,
-      })
+      });
     }
-  }
+  };
 
   if (loading) {
-    return <ContentPageSkeleton />
+    return <ContentPageSkeleton />;
   }
 
   if (!podcast) {
-    return <ContentNotFound contentType="Podcast" />
+    return <ContentNotFound contentType="Podcast" />;
   }
 
   return (
@@ -118,12 +120,16 @@ export default function PodcastPage() {
             <div className="space-y-4">
               <h2 className="text-xl font-bold">Episode Description</h2>
               <div className="prose prose-sm dark:prose-invert">
-                <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(podcast.content || podcast.description || '') }} />
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: sanitizeReaderContent(podcast.content || podcast.description || ""),
+                  }}
+                />
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

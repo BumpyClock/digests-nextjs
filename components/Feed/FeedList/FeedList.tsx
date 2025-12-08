@@ -47,9 +47,7 @@ const FeedListItem = memo(function FeedListItem({
     <button
       type="button"
       className={`p-4 border-b cursor-pointer transition-colors flex gap-3 text-left w-full ${
-        isSelected
-          ? "bg-primary/10 border-l-4 border-l-primary"
-          : "hover:bg-secondary/20"
+        isSelected ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-secondary/20"
       } ${isRead ? "opacity-70" : ""}`}
       onClick={onSelect}
       onKeyDown={handleKeyDown}
@@ -80,7 +78,9 @@ const FeedListItem = memo(function FeedListItem({
             {cleanupTextContent(getSiteDisplayName(item))}
           </span>
         </div>
-        <h3 className="font-semibold text-sm line-clamp-2 mb-1">{cleanupTextContent(item.title)}</h3>
+        <h3 className="font-semibold text-sm line-clamp-2 mb-1">
+          {cleanupTextContent(item.title)}
+        </h3>
         <div className="flex justify-between items-center text-xs text-muted-foreground">
           <span>{formattedDate}</span>
           {item.favorite && <Heart className="h-3 w-3 fill-red-500 text-red-500" />}
@@ -112,7 +112,6 @@ export function FeedList({
     setCurrentScrollTop(target.scrollTop);
   }, []);
 
-
   const handleItemSelect = useCallback(
     (item: FeedItem) => {
       onItemSelect(item, currentScrollTop);
@@ -120,10 +119,7 @@ export function FeedList({
     [onItemSelect, currentScrollTop]
   );
 
-  const skeletonKeys = useMemo(
-    () => Array.from({ length: 10 }, (_, i) => `skeleton-${i}`),
-    []
-  );
+  const skeletonKeys = useMemo(() => Array.from({ length: 10 }, (_, i) => `skeleton-${i}`), []);
 
   const renderSkeletons = useCallback(() => {
     return skeletonKeys.map((key) => (
@@ -144,10 +140,7 @@ export function FeedList({
   if (isLoading) {
     return (
       <div className="border rounded-md overflow-hidden h-full">
-        <ScrollArea 
-          variant="list"
-          className="h-full"
-        >
+        <ScrollArea variant="list" className="h-full">
           {renderSkeletons()}
         </ScrollArea>
       </div>
@@ -164,7 +157,7 @@ export function FeedList({
 
   return (
     <div className="border rounded-md overflow-hidden h-full">
-      <ScrollArea 
+      <ScrollArea
         variant="list"
         className="h-full"
         onScroll={handleScroll}
@@ -181,4 +174,4 @@ export function FeedList({
       </ScrollArea>
     </div>
   );
-} 
+}

@@ -11,7 +11,10 @@ type MetadataSlice = {
   setActiveFeed: (feedUrl: string | null) => void;
 };
 
-export const createMetadataSlice: StateCreator<MetadataSlice, [], [], MetadataSlice> = (set, _get) => ({
+export const createMetadataSlice: StateCreator<MetadataSlice, [], [], MetadataSlice> = (
+  set,
+  _get
+) => ({
   initialized: false,
   hydrated: false,
   activeFeed: null as string | null,

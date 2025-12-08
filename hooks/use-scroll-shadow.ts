@@ -7,7 +7,7 @@ export function useScrollShadow() {
   const rafId = useRef<number | null>(null);
   const lastScrollTop = useRef(0);
   const lastBottomVisible = useRef(false);
-  
+
   const handleScroll = useCallback(({ scrollTop, scrollHeight, clientHeight }: ScrollData) => {
     // Throttle updates to next animation frame
     if (rafId.current !== null) {
@@ -19,7 +19,7 @@ export function useScrollShadow() {
         lastScrollTop.current = scrollTop;
         setScrollTop(scrollTop);
       }
-      
+
       if (scrollHeight && clientHeight) {
         const bottomThreshold = 20;
         const isAtBottom = scrollHeight - (scrollTop + clientHeight) <= bottomThreshold;
@@ -30,14 +30,14 @@ export function useScrollShadow() {
         }
       }
     });
-    
+
     return scrollTop;
   }, []);
-  
+
   return {
     scrollTop,
     isBottomVisible,
     handleScroll,
-    hasScrolled: scrollTop > 0
+    hasScrolled: scrollTop > 0,
   };
 }

@@ -1,23 +1,23 @@
 // ABOUTME: Play/pause button for podcast feed items integrating with audio store.
 // ABOUTME: Handles marking items as read and toggling playback state.
-"use client"
+"use client";
 
-import { memo, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Play, Pause } from "lucide-react"
-import { useAudioActions, useIsAudioPlaying, useReadActions } from "@/hooks/useFeedSelectors"
-import { cn } from "@/lib/utils"
-import type { FeedItem } from "@/types"
-import { getPodcastAudioUrl } from "@/types/podcast"
+import { memo, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Play, Pause } from "lucide-react";
+import { useAudioActions, useIsAudioPlaying, useReadActions } from "@/hooks/useFeedSelectors";
+import { cn } from "@/lib/utils";
+import type { FeedItem } from "@/types";
+import { getPodcastAudioUrl } from "@/types/podcast";
 
 interface PodcastPlayButtonProps {
-  podcast: FeedItem
+  podcast: FeedItem;
   // Align with underlying Button variants; accept string to avoid tight coupling if button adds more.
-  variant?: "default" | "ghost" | "outline" | "secondary" | "destructive" | "link"
-  size?: "default" | "sm" | "lg" | "icon"
-  className?: string
-  showLabel?: boolean
-  onPlayStart?: () => void
+  variant?: "default" | "ghost" | "outline" | "secondary" | "destructive" | "link";
+  size?: "default" | "sm" | "lg" | "icon";
+  className?: string;
+  showLabel?: boolean;
+  onPlayStart?: () => void;
 }
 
 export const PodcastPlayButton = memo(function PodcastPlayButton({
@@ -28,40 +28,43 @@ export const PodcastPlayButton = memo(function PodcastPlayButton({
   showLabel = false,
   onPlayStart,
 }: PodcastPlayButtonProps) {
-  const { playAudio } = useAudioActions()
-  const { markAsRead } = useReadActions()
-  const isCurrentlyPlaying = useIsAudioPlaying(podcast.id)
+  const { playAudio } = useAudioActions();
+  const { markAsRead } = useReadActions();
+  const isCurrentlyPlaying = useIsAudioPlaying(podcast.id);
 
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation()
-    
-    // Validate podcast has audio
-    const audioUrl = getPodcastAudioUrl(podcast)
-    if (!audioUrl) {
-      console.error("No audio URL found for podcast:", podcast.title)
-      return
-    }
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
 
-    // Mark as read when playing
-    if (!isCurrentlyPlaying) {
-      setTimeout(() => {
-        markAsRead(podcast.id)
-      }, 0)
-      onPlayStart?.()
-    }
+      // Validate podcast has audio
+      const audioUrl = getPodcastAudioUrl(podcast);
+      if (!audioUrl) {
+        console.error("No audio URL found for podcast:", podcast.title);
+        return;
+      }
 
-    // Play/pause audio
-    playAudio({
-      id: podcast.id,
-      title: podcast.title,
-      source: podcast.siteTitle,
-      audioUrl,
-      image: podcast.thumbnail || podcast.favicon,
-    })
-  }, [podcast, playAudio, markAsRead, isCurrentlyPlaying, onPlayStart])
+      // Mark as read when playing
+      if (!isCurrentlyPlaying) {
+        setTimeout(() => {
+          markAsRead(podcast.id);
+        }, 0);
+        onPlayStart?.();
+      }
 
-  const label = isCurrentlyPlaying ? "Pause" : "Play"
-  const Icon = isCurrentlyPlaying ? Pause : Play
+      // Play/pause audio
+      playAudio({
+        id: podcast.id,
+        title: podcast.title,
+        source: podcast.siteTitle,
+        audioUrl,
+        image: podcast.thumbnail || podcast.favicon,
+      });
+    },
+    [podcast, playAudio, markAsRead, isCurrentlyPlaying, onPlayStart]
+  );
+
+  const label = isCurrentlyPlaying ? "Pause" : "Play";
+  const Icon = isCurrentlyPlaying ? Pause : Play;
 
   return (
     <Button
@@ -73,11 +76,13 @@ export const PodcastPlayButton = memo(function PodcastPlayButton({
       role="switch"
       aria-checked={isCurrentlyPlaying}
     >
-      <Icon className={cn(
-        size === "icon" ? "h-4 w-4" : "h-5 w-5",
-        !showLabel && size !== "icon" && "mr-0"
-      )} />
+      <Icon
+        className={cn(
+          size === "icon" ? "h-4 w-4" : "h-5 w-5",
+          !showLabel && size !== "icon" && "mr-0"
+        )}
+      />
       {showLabel && <span>{label}</span>}
     </Button>
-  )
-})
+  );
+});

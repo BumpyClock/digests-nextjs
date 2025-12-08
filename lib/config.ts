@@ -20,8 +20,8 @@ export interface APIConfig {
 }
 
 export const DEFAULT_API_CONFIG: APIConfig = {
-  baseUrl: 'https://api.digests.app',
-  isCustom: false
+  baseUrl: "https://api.digests.app",
+  isCustom: false,
 };
 
 /**

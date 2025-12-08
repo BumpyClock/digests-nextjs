@@ -9,7 +9,9 @@ export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
   const [loading, setLoading] = useState(false);
   const [cleanedContent, setCleanedContent] = useState("");
   const [cleanedMarkdown, setCleanedMarkdown] = useState("");
-  const [extractedAuthor, setExtractedAuthor] = useState<{ name: string; image?: string } | undefined>();
+  const [extractedAuthor, setExtractedAuthor] = useState<
+    { name: string; image?: string } | undefined
+  >();
   const { toast } = useToast();
 
   // Reset state when feedItem changes
@@ -26,7 +28,11 @@ export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
   // Process content when readerView changes
   useEffect(() => {
     if (readerView) {
-      const { htmlContent, markdownContent, extractedAuthor: author } = processArticleContent(readerView);
+      const {
+        htmlContent,
+        markdownContent,
+        extractedAuthor: author,
+      } = processArticleContent(readerView);
       setCleanedContent(htmlContent);
       setCleanedMarkdown(markdownContent);
       setExtractedAuthor(author);
@@ -40,16 +46,16 @@ export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
   // Load reader view
   useEffect(() => {
     // Skip if modal is closed or no feedItem
-    if ((isOpen === false) || !feedItem) return;
-    
+    if (isOpen === false || !feedItem) return;
+
     const feedItemLink = feedItem.link;
-    
+
     async function loadReaderView() {
       setLoading(true);
-      
+
       try {
         const result = await workerService.fetchReaderView(feedItemLink);
-        
+
         if (result.success && result.data.length > 0 && result.data[0].status === "ok") {
           setReaderView(result.data[0]);
         } else {
@@ -71,4 +77,4 @@ export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
   }, [feedItem, toast, isOpen]);
 
   return { readerView, loading, cleanedContent, cleanedMarkdown, extractedAuthor };
-} 
+}

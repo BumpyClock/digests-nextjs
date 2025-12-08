@@ -21,20 +21,20 @@ export const useApiConfigStore = create<ApiConfigState>()(
       setApiUrl: (url: string) => {
         // Normalize the URL - ensure it ends with a slash
         let normalizedUrl = url.trim();
-        if (!normalizedUrl.endsWith('/')) {
-          normalizedUrl += '/';
+        if (!normalizedUrl.endsWith("/")) {
+          normalizedUrl += "/";
         }
-        
+
         // Ensure it has the correct protocol
-        if (!normalizedUrl.startsWith('http://') && !normalizedUrl.startsWith('https://')) {
+        if (!normalizedUrl.startsWith("http://") && !normalizedUrl.startsWith("https://")) {
           normalizedUrl = `https://${normalizedUrl}`;
         }
-        
+
         set({
           config: {
             baseUrl: normalizedUrl,
-            isCustom: normalizedUrl !== DEFAULT_API_CONFIG.baseUrl
-          }
+            isCustom: normalizedUrl !== DEFAULT_API_CONFIG.baseUrl,
+          },
         });
       },
 
@@ -46,12 +46,12 @@ export const useApiConfigStore = create<ApiConfigState>()(
       // Check if a URL is valid
       isValidUrl: (url: string) => {
         try {
-          new URL(url.startsWith('http') ? url : `https://${url}`);
+          new URL(url.startsWith("http") ? url : `https://${url}`);
           return true;
         } catch (_error) {
           return false;
         }
-      }
+      },
     }),
     {
       name: "digests-api-config",

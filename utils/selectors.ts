@@ -5,8 +5,8 @@
  * reusable across React Query selectors and other components.
  */
 
-import type { FeedItem, Feed } from '@/types';
-import type { Subscription } from '@/types/subscription';
+import type { FeedItem, Feed } from "@/types";
+import type { Subscription } from "@/types/subscription";
 
 /**
  * Sort feed items by published date (newest first)
@@ -45,10 +45,8 @@ export function filterUnread(items: FeedItem[], read: Set<string>): FeedItem[] {
 export function filterByFeed(items: FeedItem[], normalizedFeedUrl?: string): FeedItem[] {
   if (!normalizedFeedUrl) return items;
 
-  return items.filter((item) =>
-    item?.feedUrl &&
-    item.feedUrl.length > 0 &&
-    item.feedUrl.includes(normalizedFeedUrl)
+  return items.filter(
+    (item) => item?.feedUrl && item.feedUrl.length > 0 && item.feedUrl.includes(normalizedFeedUrl)
   );
 }
 
@@ -62,10 +60,10 @@ export function toSubscription(feed: Feed): Subscription {
   return {
     feedUrl: feed.feedUrl,
     feedTitle: feed.feedTitle || feed.siteTitle,
-    siteName: feed.siteName || '',
+    siteName: feed.siteName || "",
     siteTitle: feed.siteTitle || feed.feedTitle,
-    title: feed.title || '',
-    favicon: feed.favicon || '',
-    language: feed.language || 'en'
+    title: feed.title || "",
+    favicon: feed.favicon || "",
+    language: feed.language || "en",
   };
 }

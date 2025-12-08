@@ -1,28 +1,28 @@
 // ABOUTME: Shared modal component with animated overlay and responsive layout.
 // ABOUTME: Provides consistent modal structure for reader and podcast detail views.
-"use client"
+"use client";
 
-import type React from "react"
-import { useEffect, useState, useRef } from "react"
-import { Logger } from "@/utils/logger"
-import { Dialog } from "@/components/ui/dialog"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { Button } from "@/components/ui/button"
-import { X } from "lucide-react"
-import { motion, AnimatePresence } from "motion/react"
-import { useIsMobile } from "@/hooks/use-media-query"
+import type React from "react";
+import { useEffect, useState, useRef } from "react";
+import { Logger } from "@/utils/logger";
+import { Dialog } from "@/components/ui/dialog";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { useIsMobile } from "@/hooks/use-media-query";
 
 interface BaseModalProps {
-  isOpen: boolean
-  onClose: () => void
-  title?: string
-  children: React.ReactNode
-  className?: string
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  children: React.ReactNode;
+  className?: string;
   /**
    * Optional identifier used by animation/transition systems.
    * Kept optional so existing usages without itemId remain valid.
    */
-  itemId?: string
+  itemId?: string;
 }
 
 /**
@@ -34,55 +34,55 @@ interface BaseModalProps {
  * - Centered modal with proper sizing
  */
 export function BaseModal({ isOpen, onClose, title, children, className }: BaseModalProps) {
-  const isMobile = useIsMobile()
+  const isMobile = useIsMobile();
   // Store the initial mobile state when modal opens to prevent resize issues
-  const [initialIsMobile, setInitialIsMobile] = useState<boolean | null>(null)
-  const isResizing = useRef(false)
-  
+  const [initialIsMobile, setInitialIsMobile] = useState<boolean | null>(null);
+  const isResizing = useRef(false);
+
   useEffect(() => {
     if (isOpen) {
-      Logger.debug(`[BaseModal] title: ${title}`)
+      Logger.debug(`[BaseModal] title: ${title}`);
       // Lock the mobile state when modal opens
       if (initialIsMobile === null) {
-        setInitialIsMobile(isMobile)
+        setInitialIsMobile(isMobile);
       }
     } else {
       // Reset when modal closes
-      setInitialIsMobile(null)
+      setInitialIsMobile(null);
     }
-  }, [isOpen, title, isMobile, initialIsMobile])
+  }, [isOpen, title, isMobile, initialIsMobile]);
 
   // Use the locked mobile state to prevent modal from closing on resize
-  const effectiveIsMobile = initialIsMobile !== null ? initialIsMobile : isMobile
+  const effectiveIsMobile = initialIsMobile !== null ? initialIsMobile : isMobile;
 
   // Custom handler for dialog open change that ignores resize events
   const handleOpenChange = (open: boolean) => {
     // Only close if explicitly requested (not due to resize)
     if (!open && !isResizing.current) {
-      onClose()
+      onClose();
     }
-  }
+  };
 
   // Track window resize events
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) return;
 
-    let resizeTimer: NodeJS.Timeout
+    let resizeTimer: NodeJS.Timeout;
 
     const handleResize = () => {
-      isResizing.current = true
-      clearTimeout(resizeTimer)
+      isResizing.current = true;
+      clearTimeout(resizeTimer);
       resizeTimer = setTimeout(() => {
-        isResizing.current = false
-      }, 200) // Debounce resize flag
-    }
+        isResizing.current = false;
+      }, 200); // Debounce resize flag
+    };
 
-    window.addEventListener('resize', handleResize)
+    window.addEventListener("resize", handleResize);
     return () => {
-      window.removeEventListener('resize', handleResize)
-      clearTimeout(resizeTimer)
-    }
-  }, [isOpen])
+      window.removeEventListener("resize", handleResize);
+      clearTimeout(resizeTimer);
+    };
+  }, [isOpen]);
 
   return (
     <AnimatePresence>
@@ -97,49 +97,52 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
-                style={{ willChange: 'opacity' }}
+                style={{ willChange: "opacity" }}
               />
             </DialogPrimitive.Overlay>
-            
+
             {/* Modal content */}
             <DialogPrimitive.Content asChild>
               <motion.div
-                className={effectiveIsMobile 
-                  ? "fixed z-50 w-full h-full left-0 top-0 overflow-hidden"
-                  : "fixed z-50 w-full max-w-[1050px] h-[90vh] left-1/2 top-1/2 mx-4 overflow-hidden"
+                className={
+                  effectiveIsMobile
+                    ? "fixed z-50 w-full h-full left-0 top-0 overflow-hidden"
+                    : "fixed z-50 w-full max-w-[1050px] h-[90vh] left-1/2 top-1/2 mx-4 overflow-hidden"
                 }
-                initial={{ 
-                  opacity: 0, 
+                initial={{
+                  opacity: 0,
                   scale: 0.9,
                   x: effectiveIsMobile ? 0 : "-50%",
-                  y: effectiveIsMobile ? "100%" : "-50%"
+                  y: effectiveIsMobile ? "100%" : "-50%",
                 }}
-                animate={{ 
-                  opacity: 1, 
+                animate={{
+                  opacity: 1,
                   scale: 1,
                   x: effectiveIsMobile ? 0 : "-50%",
-                  y: effectiveIsMobile ? 0 : "-50%"
+                  y: effectiveIsMobile ? 0 : "-50%",
                 }}
-                exit={{ 
-                  opacity: 0, 
+                exit={{
+                  opacity: 0,
                   scale: 0.9,
                   x: effectiveIsMobile ? 0 : "-50%",
-                  y: effectiveIsMobile ? "100%" : "-50%"
+                  y: effectiveIsMobile ? "100%" : "-50%",
                 }}
-                transition={{ 
-                  duration: 0.25, 
-                  ease: [0.16, 1, 0.3, 1] // Custom ease for smooth feel
+                transition={{
+                  duration: 0.25,
+                  ease: [0.16, 1, 0.3, 1], // Custom ease for smooth feel
                 }}
-                style={{ willChange: 'transform, opacity' }}
+                style={{ willChange: "transform, opacity" }}
               >
-                <div className={`relative w-full h-full bg-background shadow-2xl overflow-hidden ${
-                  effectiveIsMobile ? "rounded-none" : "rounded-[32px]"
-                } ${className || ""}`}>
+                <div
+                  className={`relative w-full h-full bg-background shadow-2xl overflow-hidden ${
+                    effectiveIsMobile ? "rounded-none" : "rounded-[32px]"
+                  } ${className || ""}`}
+                >
                   {/* Invisible title for accessibility */}
                   <DialogPrimitive.Title className="sr-only">
                     {title || "Content"}
                   </DialogPrimitive.Title>
-                  
+
                   {/* Close button */}
                   <motion.div
                     className="absolute top-4 right-4 z-50"
@@ -147,9 +150,9 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.1, duration: 0.2 }}
                   >
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={onClose}
                       className="bg-background/90 backdrop-blur-sm hover:bg-background border border-border/20"
                     >
@@ -159,7 +162,7 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
                   </motion.div>
 
                   {/* Content area with proper scrolling */}
-                  <motion.div 
+                  <motion.div
                     className="h-full w-full overflow-auto"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -174,6 +177,5 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
         </Dialog>
       )}
     </AnimatePresence>
-  )
+  );
 }
-

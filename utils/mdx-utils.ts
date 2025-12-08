@@ -1,11 +1,11 @@
-import fs from 'fs';
-import path from 'path';
-import matter from 'gray-matter';
+import fs from "fs";
+import path from "path";
+import matter from "gray-matter";
 
 // Define content directories
-export const APP_MDX_DIR = path.join(process.cwd(), 'app/pages');
-export const CONTENT_MDX_DIR = path.join(process.cwd(), 'content/pages');
-const DIRECT_MDX_PAGES = ['terms']; // Add direct MDX pages here that aren't in the dynamic route
+export const APP_MDX_DIR = path.join(process.cwd(), "app/pages");
+export const CONTENT_MDX_DIR = path.join(process.cwd(), "content/pages");
+const DIRECT_MDX_PAGES = ["terms"]; // Add direct MDX pages here that aren't in the dynamic route
 
 export interface MdxMetadata {
   title: string;
@@ -24,8 +24,8 @@ export function findMdxFile(slug: string) {
     path.join(CONTENT_MDX_DIR, `${slug}.mdx`),
     path.join(CONTENT_MDX_DIR, `${slug}.md`),
   ];
-  
-  return possiblePaths.find(p => fs.existsSync(p));
+
+  return possiblePaths.find((p) => fs.existsSync(p));
 }
 
 /**
@@ -33,9 +33,9 @@ export function findMdxFile(slug: string) {
  */
 export function formatTitle(slug: string) {
   return slug
-    .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 /**
@@ -46,18 +46,18 @@ export function getMdxMetadata(slug: string): MdxMetadata {
     const filePath = findMdxFile(slug);
     if (!filePath) {
       console.warn(`No MDX file found for slug: ${slug}`);
-      return { 
+      return {
         title: formatTitle(slug),
-        description: '',
-        content: ''
+        description: "",
+        content: "",
       };
     }
-    
+
     try {
-      const fileContent = fs.readFileSync(filePath, 'utf8');
+      const fileContent = fs.readFileSync(filePath, "utf8");
       if (!fileContent) {
         console.error(`Empty file content for slug: ${slug}`);
-        throw new Error('Empty file content');
+        throw new Error("Empty file content");
       }
 
       try {
@@ -68,9 +68,9 @@ export function getMdxMetadata(slug: string): MdxMetadata {
 
         return {
           title: data?.title || formatTitle(slug),
-          description: data?.description || '',
-          content: content || '',
-          ...data
+          description: data?.description || "",
+          content: content || "",
+          ...data,
         };
       } catch (matterError) {
         console.error(`Error parsing frontmatter for slug: ${slug}`, matterError);
@@ -82,10 +82,10 @@ export function getMdxMetadata(slug: string): MdxMetadata {
     }
   } catch (error) {
     console.error(`Error in getMdxMetadata for slug: ${slug}`, error);
-    return { 
+    return {
       title: formatTitle(slug),
-      description: '',
-      content: ''
+      description: "",
+      content: "",
     };
   }
 }
@@ -95,19 +95,19 @@ export function getMdxMetadata(slug: string): MdxMetadata {
  */
 export function getAllMdxPages() {
   const pages = new Set();
-  
-  [APP_MDX_DIR, CONTENT_MDX_DIR].forEach(dir => {
+
+  [APP_MDX_DIR, CONTENT_MDX_DIR].forEach((dir) => {
     if (fs.existsSync(dir)) {
       fs.readdirSync(dir)
-        .filter(file => file.endsWith('.mdx') || file.endsWith('.md'))
-        .forEach(file => pages.add(file.replace(/\.mdx?$/, '')));
+        .filter((file) => file.endsWith(".mdx") || file.endsWith(".md"))
+        .forEach((file) => pages.add(file.replace(/\.mdx?$/, "")));
     }
   });
-  
-  DIRECT_MDX_PAGES.forEach(page => pages.add(page));
-  
-  return Array.from(pages).map(slug => ({
+
+  DIRECT_MDX_PAGES.forEach((page) => pages.add(page));
+
+  return Array.from(pages).map((slug) => ({
     slug: String(slug),
-    ...getMdxMetadata(String(slug))
+    ...getMdxMetadata(String(slug)),
   }));
 }

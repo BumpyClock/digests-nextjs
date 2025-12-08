@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import { useMemo } from "react"
-import { Calendar, Clock, User } from "lucide-react"
-import { formatDuration } from "@/utils/formatDuration"
-import { cn } from "@/lib/utils"
-import dayjs from "dayjs"
-import relativeTime from "dayjs/plugin/relativeTime"
+import { useMemo } from "react";
+import { Calendar, Clock, User } from "lucide-react";
+import { formatDuration } from "@/utils/formatDuration";
+import { cn } from "@/lib/utils";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 
-dayjs.extend(relativeTime)
+dayjs.extend(relativeTime);
 
 interface PodcastMetadataProps {
-  published?: string
-  duration?: number
-  author?: string
-  variant?: "default" | "compact"
-  className?: string
-  iconSize?: "sm" | "md"
+  published?: string;
+  duration?: number;
+  author?: string;
+  variant?: "default" | "compact";
+  className?: string;
+  iconSize?: "sm" | "md";
 }
 
 const iconSizes = {
   sm: "h-3 w-3",
   md: "h-4 w-4",
-}
+};
 
 export function PodcastMetadata({
   published,
@@ -32,14 +32,14 @@ export function PodcastMetadata({
   iconSize = "md",
 }: PodcastMetadataProps) {
   const formattedDate = useMemo(() => {
-    if (!published) return null
-    return dayjs(published).fromNow()
-  }, [published])
+    if (!published) return null;
+    return dayjs(published).fromNow();
+  }, [published]);
 
   const formattedDuration = useMemo(() => {
-    if (!duration) return null
-    return formatDuration(duration)
-  }, [duration])
+    if (!duration) return null;
+    return formatDuration(duration);
+  }, [duration]);
 
   if (variant === "compact") {
     return (
@@ -48,7 +48,7 @@ export function PodcastMetadata({
         {formattedDuration && <span>{formattedDuration}</span>}
         {author && <span>By {author}</span>}
       </div>
-    )
+    );
   }
 
   return (
@@ -72,5 +72,5 @@ export function PodcastMetadata({
         </div>
       )}
     </div>
-  )
+  );
 }

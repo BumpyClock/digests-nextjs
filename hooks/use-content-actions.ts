@@ -1,13 +1,13 @@
-import { toggleFavoriteAction } from "@/app/actions"
-import { useToast } from "@/hooks/use-toast"
-import { handleShare as handleShareUtil } from "@/utils/content-actions"
+import { toggleFavoriteAction } from "@/app/actions";
+import { useToast } from "@/hooks/use-toast";
+import { handleShare as handleShareUtil } from "@/utils/content-actions";
 
 /**
  * Shared hook for bookmark and share functionality
  * Used by article and podcast detail pages
  */
 export function useContentActions(contentType: "article" | "podcast") {
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   const handleBookmark = async (
     itemId: string,
@@ -15,9 +15,9 @@ export function useContentActions(contentType: "article" | "podcast") {
     setIsBookmarked: (value: boolean) => void
   ) => {
     // Optimistic update
-    setIsBookmarked(!isBookmarked)
+    setIsBookmarked(!isBookmarked);
 
-    const result = await toggleFavoriteAction(itemId)
+    const result = await toggleFavoriteAction(itemId);
 
     if (result.success) {
       toast({
@@ -25,18 +25,18 @@ export function useContentActions(contentType: "article" | "podcast") {
         description: isBookmarked
           ? `This ${contentType} has been removed from your bookmarks.`
           : `This ${contentType} has been added to your bookmarks.`,
-      })
+      });
     } else {
       // Revert optimistic update if failed
-      setIsBookmarked(isBookmarked)
+      setIsBookmarked(isBookmarked);
 
       toast({
         title: "Error",
         description: result.message || "Failed to update bookmark status",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const handleShare = async (url?: string, title?: string) => {
     if (!url) {
@@ -44,8 +44,8 @@ export function useContentActions(contentType: "article" | "podcast") {
         title: "Error",
         description: "No URL available to share",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
     // Use shared utility for consistent share behavior
@@ -54,11 +54,11 @@ export function useContentActions(contentType: "article" | "podcast") {
       title || `Share ${contentType}`,
       `Check out this ${contentType}`,
       contentType
-    )
-  }
+    );
+  };
 
   return {
     handleBookmark,
     handleShare,
-  }
+  };
 }

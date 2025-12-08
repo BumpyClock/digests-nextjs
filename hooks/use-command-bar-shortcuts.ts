@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 export function useCommandBarShortcuts(onApplySearch?: (value: string) => void) {
   const [open, setOpen] = useState(false);
@@ -16,11 +16,14 @@ export function useCommandBarShortcuts(onApplySearch?: (value: string) => void) 
     return () => document.removeEventListener("keydown", down);
   }, []);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent, value: string) => {
-    if (e.key === 'Enter' && onApplySearch) {
-      onApplySearch(value);
-    }
-  }, [onApplySearch]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent, value: string) => {
+      if (e.key === "Enter" && onApplySearch) {
+        onApplySearch(value);
+      }
+    },
+    [onApplySearch]
+  );
 
   const handleClose = useCallback(() => {
     setOpen(false);
@@ -30,6 +33,6 @@ export function useCommandBarShortcuts(onApplySearch?: (value: string) => void) 
     open,
     setOpen,
     handleKeyDown,
-    handleClose
+    handleClose,
   };
 }

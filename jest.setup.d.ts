@@ -4,13 +4,13 @@
 /// <reference types="jest" />
 
 // Extend Jest matchers from Testing Library
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
 
 // Ensure TypeScript is aware of extended jest-dom matchers
 declare global {
-	namespace jest {
-		interface Matchers<R> {
-			toBeInTheDocument(): R;
-		}
-	}
+  namespace jest {
+    interface Matchers<R> {
+      toBeInTheDocument(): R;
+    }
+  }
 }

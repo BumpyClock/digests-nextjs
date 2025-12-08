@@ -1,52 +1,54 @@
-"use client"
+"use client";
 
 import { useState, useEffect, use } from "react";
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, Bookmark, Share2, ExternalLink } from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
-import { FeedItem } from "@/types"
-import { useFeedsData, useReaderViewQuery } from "@/hooks/queries"
-import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
-import { ContentPageSkeleton } from "@/components/ContentPageSkeleton"
-import { ContentNotFound } from "@/components/ContentNotFound"
-import { useContentActions } from "@/hooks/use-content-actions"
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Bookmark, Share2, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { FeedItem } from "@/types";
+import { useFeedsData, useReaderViewQuery } from "@/hooks/queries";
+import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
+import { ContentPageSkeleton } from "@/components/ContentPageSkeleton";
+import { ContentNotFound } from "@/components/ContentNotFound";
+import { useContentActions } from "@/hooks/use-content-actions";
 
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
-  const [article, setArticle] = useState<FeedItem | null>(null)
-  const [isBookmarked, setIsBookmarked] = useState(false)
-  const router = useRouter()
-  const { handleBookmark: bookmarkAction, handleShare } = useContentActions("article")
+  const [article, setArticle] = useState<FeedItem | null>(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const router = useRouter();
+  const { handleBookmark: bookmarkAction, handleShare } = useContentActions("article");
 
   // Use React Query to get feeds data
-  const feedsQuery = useFeedsData()
+  const feedsQuery = useFeedsData();
 
   // Find the article from feeds data
-  const foundArticle = feedsQuery.data?.items?.find((item: FeedItem) => item.id === params.id && item.type === "article")
+  const foundArticle = feedsQuery.data?.items?.find(
+    (item: FeedItem) => item.id === params.id && item.type === "article"
+  );
 
   // Use React Query to get reader view data
-  const readerViewQuery = useReaderViewQuery(foundArticle?.link || "")
+  const readerViewQuery = useReaderViewQuery(foundArticle?.link || "");
 
   useEffect(() => {
     if (foundArticle) {
-      setArticle(foundArticle)
-      setIsBookmarked(foundArticle.favorite || false)
+      setArticle(foundArticle);
+      setIsBookmarked(foundArticle.favorite || false);
     }
-  }, [foundArticle])
+  }, [foundArticle]);
 
   const handleBookmark = async () => {
-    if (!article) return
-    await bookmarkAction(article.id, isBookmarked, setIsBookmarked)
-  }
+    if (!article) return;
+    await bookmarkAction(article.id, isBookmarked, setIsBookmarked);
+  };
 
   if (feedsQuery.isLoading || readerViewQuery.isLoading) {
-    return <ContentPageSkeleton />
+    return <ContentPageSkeleton />;
   }
 
   if (!article) {
-    return <ContentNotFound contentType="Article" />
+    return <ContentNotFound contentType="Article" />;
   }
 
   return (
@@ -84,7 +86,11 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
               <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
               <span className="sr-only">Bookmark</span>
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => handleShare(article.link, article.title)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleShare(article.link, article.title)}
+            >
               <Share2 className="h-4 w-4" />
               <span className="sr-only">Share</span>
             </Button>
@@ -110,12 +116,20 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
 
         <div className="prose prose-sm sm:prose dark:prose-invert w-full md:max-w-4xl">
           {readerViewQuery.data ? (
-            <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(readerViewQuery.data.content) }} />
+            <div
+              dangerouslySetInnerHTML={{
+                __html: sanitizeReaderContent(readerViewQuery.data.content),
+              }}
+            />
           ) : (
-            <div dangerouslySetInnerHTML={{ __html: sanitizeReaderContent(article.content || article.description || '') }} />
+            <div
+              dangerouslySetInnerHTML={{
+                __html: sanitizeReaderContent(article.content || article.description || ""),
+              }}
+            />
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }

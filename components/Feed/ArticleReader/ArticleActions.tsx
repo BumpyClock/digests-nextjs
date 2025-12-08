@@ -57,9 +57,7 @@ export const ArticleActions: React.FC<ArticleActionsProps> = ({
           className="h-8 w-8"
           aria-label={isInReadLater ? "Remove from read later" : "Add to read later"}
         >
-          <Bookmark
-            className={`h-4 w-4 ${isInReadLater ? "fill-red-500 text-red-500" : ""}`}
-          />
+          <Bookmark className={`h-4 w-4 ${isInReadLater ? "fill-red-500 text-red-500" : ""}`} />
         </Button>
         <Button
           size="icon"
@@ -70,12 +68,7 @@ export const ArticleActions: React.FC<ArticleActionsProps> = ({
         >
           <Share2 className="h-4 w-4" />
         </Button>
-        <Button
-          size="icon"
-          variant="ghost"
-          asChild
-          className="h-8 w-8"
-        >
+        <Button size="icon" variant="ghost" asChild className="h-8 w-8">
           <a
             href={item.link}
             title="Open in new tab"
@@ -99,31 +92,15 @@ export const ArticleActions: React.FC<ArticleActionsProps> = ({
         onClick={onReadLaterClick}
         aria-label={isInReadLater ? "Remove from read later" : "Add to read later"}
       >
-        <Bookmark
-          className={`h-4 w-4 mr-1 ${isInReadLater ? "fill-red-500 text-red-500" : ""}`}
-        />
+        <Bookmark className={`h-4 w-4 mr-1 ${isInReadLater ? "fill-red-500 text-red-500" : ""}`} />
         {isInReadLater ? "Saved" : "Read Later"}
       </Button>
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={onShare}
-        aria-label="Share article"
-      >
+      <Button size="sm" variant="ghost" onClick={onShare} aria-label="Share article">
         <Share2 className="h-4 w-4 mr-1" />
         Share
       </Button>
-      <Button
-        size="sm"
-        variant="ghost"
-        asChild
-      >
-        <a
-          href={item.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Open in new tab"
-        >
+      <Button size="sm" variant="ghost" asChild>
+        <a href={item.link} target="_blank" rel="noopener noreferrer" aria-label="Open in new tab">
           <ExternalLink className="h-4 w-4 mr-1" />
           Open
         </a>

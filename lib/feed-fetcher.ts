@@ -1,6 +1,6 @@
-import type { Feed, FeedItem, ReaderViewResponse } from '@/types';
-import type { IFeedFetcher, FeedFetcherConfig } from './interfaces/feed-fetcher.interface';
-import { fetchFeeds as fetchFeedsFromApi, fetchReaderView as fetchReaderViewFromApi } from './rss';
+import type { Feed, FeedItem, ReaderViewResponse } from "@/types";
+import type { IFeedFetcher, FeedFetcherConfig } from "./interfaces/feed-fetcher.interface";
+import { fetchFeeds as fetchFeedsFromApi, fetchReaderView as fetchReaderViewFromApi } from "./rss";
 
 /**
  * Standard feed fetcher implementation using HTTP API

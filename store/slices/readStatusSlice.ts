@@ -24,7 +24,10 @@ type ReadStatusSlice = {
   getReadLaterItems: (items: FeedItem[]) => FeedItem[];
 };
 
-export const createReadStatusSlice: StateCreator<ReadStatusSlice, [], [], ReadStatusSlice> = (set, get) => ({
+export const createReadStatusSlice: StateCreator<ReadStatusSlice, [], [], ReadStatusSlice> = (
+  set,
+  get
+) => ({
   readItems: new Set<string>(),
   readLaterItems: new Set<string>(),
 
@@ -32,11 +35,11 @@ export const createReadStatusSlice: StateCreator<ReadStatusSlice, [], [], ReadSt
     const { readItems } = get();
     // Ensure we're working with a Set
     const newReadItems = new Set(readItems instanceof Set ? readItems : []);
-    
+
     // Check if the item is already marked as read to prevent unnecessary updates
     if (!newReadItems.has(itemId)) {
       newReadItems.add(itemId);
-      
+
       // Use a "structural equality" check to avoid unnecessary rerenders
       // Only update the store if the readItems set actually changed
       set((_state) => {
@@ -75,9 +78,10 @@ export const createReadStatusSlice: StateCreator<ReadStatusSlice, [], [], ReadSt
 
   isInReadLater: (itemId: string) => {
     const { readLaterItems } = get();
-    const set = readLaterItems instanceof Set
-      ? readLaterItems
-      : new Set(Array.isArray(readLaterItems) ? readLaterItems : []);
+    const set =
+      readLaterItems instanceof Set
+        ? readLaterItems
+        : new Set(Array.isArray(readLaterItems) ? readLaterItems : []);
     return set.has(itemId);
   },
 

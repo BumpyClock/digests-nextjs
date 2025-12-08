@@ -31,15 +31,9 @@ export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
 
   return (
     <div className="h-full border rounded-md overflow-hidden bg-card">
-      <ScrollArea
-        className="h-full w-full"
-      >
+      <ScrollArea className="h-full w-full">
         <div className="p-6">
-          <PodcastDetailsContent
-            podcast={feedItem}
-            showAmbilight={true}
-            variant="pane"
-          />
+          <PodcastDetailsContent podcast={feedItem} showAmbilight={true} variant="pane" />
         </div>
       </ScrollArea>
     </div>

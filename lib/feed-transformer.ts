@@ -1,4 +1,4 @@
-import type { Feed, FeedItem, FetchFeedsResponse } from '@/types'
+import type { Feed, FeedItem, FetchFeedsResponse } from "@/types";
 
 /**
  * Creates a deterministic hash from a string using SHA-256
@@ -14,7 +14,7 @@ function hashString(input: string): string {
   let hash = 0;
   for (let i = 0; i < input.length; i++) {
     const char = input.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
+    hash = (hash << 5) - hash + char;
     hash = hash & hash; // Convert to 32-bit integer
   }
   // Convert to base36 string for compact representation
@@ -31,11 +31,13 @@ function generateFeedGuid(feed: Feed): string {
   if (feed.guid) return feed.guid;
   if (feed.link) return hashString(feed.link);
   // Fallback: hash a stable representation of the feed
-  return hashString(JSON.stringify({
-    feedUrl: feed.feedUrl,
-    feedTitle: feed.feedTitle,
-    siteTitle: feed.siteTitle
-  }));
+  return hashString(
+    JSON.stringify({
+      feedUrl: feed.feedUrl,
+      feedTitle: feed.feedTitle,
+      siteTitle: feed.siteTitle,
+    })
+  );
 }
 
 /**
@@ -48,7 +50,7 @@ function generateFeedGuid(feed: Feed): string {
 function generateItemId(item: FeedItem, feedGuid: string): string {
   if (item.id) return item.id;
   // Use feed GUID + item link or title for deterministic ID
-  const itemKey = item.link || item.title || '';
+  const itemKey = item.link || item.title || "";
   return hashString(`${feedGuid}:${itemKey}`);
 }
 
@@ -66,7 +68,10 @@ function generateItemId(item: FeedItem, feedGuid: string): string {
  * const { feeds, items } = transformFeedResponse(data);
  * ```
  */
-export function transformFeedResponse(data: FetchFeedsResponse): { feeds: Feed[]; items: FeedItem[] } {
+export function transformFeedResponse(data: FetchFeedsResponse): {
+  feeds: Feed[];
+  items: FeedItem[];
+} {
   const feeds: Feed[] = data.feeds.map((feed: Feed) => {
     // Generate stable GUID for the feed
     const feedGuid = generateFeedGuid(feed);
@@ -89,36 +94,38 @@ export function transformFeedResponse(data: FetchFeedsResponse): { feeds: Feed[]
       language: feed.language,
       favicon: feed.favicon,
       categories: feed.categories,
-      items: Array.isArray(feed.items) ? feed.items.map((item: FeedItem) => ({
-        type: item.type,
-        // Generate stable ID using feed GUID and item properties
-        id: generateItemId(item, feedGuid),
-        title: item.title,
-        description: item.description,
-        link: item.link,
-        author: item.author,
-        published: item.published,
-        content: item.content,
-        created: item.created,
-        content_encoded: item.content_encoded,
-        categories: item.categories,
-        enclosures: item.enclosures,
-        thumbnail: item.thumbnail,
-        thumbnailColor: item.thumbnailColor,
-        thumbnailColorComputed: item.thumbnailColorComputed,
-        // Inherit feed metadata for easy access at item level
-        siteName: feed.siteName || feed.siteTitle || feed.title || feed.feedTitle,
-        siteTitle: feed.siteTitle || feed.title || feed.feedTitle,
-        feedTitle: feed.feedTitle || feed.title,
-        feedUrl: feed.feedUrl,
-        favicon: feed.favicon,
-        favorite: false,
-      })) : [],
+      items: Array.isArray(feed.items)
+        ? feed.items.map((item: FeedItem) => ({
+            type: item.type,
+            // Generate stable ID using feed GUID and item properties
+            id: generateItemId(item, feedGuid),
+            title: item.title,
+            description: item.description,
+            link: item.link,
+            author: item.author,
+            published: item.published,
+            content: item.content,
+            created: item.created,
+            content_encoded: item.content_encoded,
+            categories: item.categories,
+            enclosures: item.enclosures,
+            thumbnail: item.thumbnail,
+            thumbnailColor: item.thumbnailColor,
+            thumbnailColorComputed: item.thumbnailColorComputed,
+            // Inherit feed metadata for easy access at item level
+            siteName: feed.siteName || feed.siteTitle || feed.title || feed.feedTitle,
+            siteTitle: feed.siteTitle || feed.title || feed.feedTitle,
+            feedTitle: feed.feedTitle || feed.title,
+            feedUrl: feed.feedUrl,
+            favicon: feed.favicon,
+            favorite: false,
+          }))
+        : [],
     };
   });
 
   // Flatten all items from all feeds into a single array
-  const items: FeedItem[] = feeds.flatMap(feed => feed.items || [])
+  const items: FeedItem[] = feeds.flatMap((feed) => feed.items || []);
 
-  return { feeds, items }
+  return { feeds, items };
 }

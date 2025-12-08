@@ -1,22 +1,22 @@
-import Image from "next/image"
-import type { FeedItem } from "@/types"
-import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils"
-import { sanitizeReaderContent } from "@/utils/htmlSanitizer"
-import { getImageProps } from "@/utils/image-config"
-import { isValidUrl } from "@/utils/url"
-import { PodcastArtwork } from "../PodcastArtwork"
-import { PodcastMetadata } from "../PodcastMetadata"
-import { PodcastPlayButton } from "./PodcastPlayButton"
-import { parsePodcastDuration } from "./podcastUtils"
+import Image from "next/image";
+import type { FeedItem } from "@/types";
+import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
+import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
+import { getImageProps } from "@/utils/image-config";
+import { isValidUrl } from "@/utils/url";
+import { PodcastArtwork } from "../PodcastArtwork";
+import { PodcastMetadata } from "../PodcastMetadata";
+import { PodcastPlayButton } from "./PodcastPlayButton";
+import { parsePodcastDuration } from "./podcastUtils";
 
 interface PodcastDetailsContentProps {
-  podcast: FeedItem
+  podcast: FeedItem;
   /** Additional action buttons to display (e.g., share, download) */
-  actionButtons?: React.ReactNode
+  actionButtons?: React.ReactNode;
   /** Whether to show ambilight effect on artwork */
-  showAmbilight?: boolean
+  showAmbilight?: boolean;
   /** Layout variant */
-  variant?: "modal" | "pane"
+  variant?: "modal" | "pane";
 }
 
 /**
@@ -27,20 +27,25 @@ export function PodcastDetailsContent({
   podcast,
   actionButtons,
   showAmbilight = false,
-  variant = "pane"
+  variant = "pane",
 }: PodcastDetailsContentProps) {
-  const isModal = variant === "modal"
+  const isModal = variant === "modal";
 
   return (
     <>
       {/* Hero Section with Image and Primary Info */}
-      <div className={`flex flex-col gap-6 mb-6 ${isModal ? 'lg:flex-row lg:gap-8' : podcast.thumbnail ? 'lg:flex-row' : ''}`}>
+      <div
+        className={`flex flex-col gap-6 mb-6 ${isModal ? "lg:flex-row lg:gap-8" : podcast.thumbnail ? "lg:flex-row" : ""}`}
+      >
         {/* Podcast Artwork */}
         {podcast.thumbnail && (
-          <div className={isModal
-            ? "w-full max-w-[250px] mx-auto sm:max-w-[300px] lg:max-w-none lg:w-2/5"
-            : "relative w-full lg:w-1/3"
-          }>
+          <div
+            className={
+              isModal
+                ? "w-full max-w-[250px] mx-auto sm:max-w-[300px] lg:max-w-none lg:w-2/5"
+                : "relative w-full lg:w-1/3"
+            }
+          >
             <PodcastArtwork
               src={podcast.thumbnail}
               alt={podcast.title}
@@ -54,12 +59,23 @@ export function PodcastDetailsContent({
         )}
 
         {/* Podcast Info */}
-        <div className={isModal ? "flex-1 flex flex-col justify-center" : (podcast.thumbnail ? "flex-1" : "w-full")}>
+        <div
+          className={
+            isModal
+              ? "flex-1 flex flex-col justify-center"
+              : podcast.thumbnail
+                ? "flex-1"
+                : "w-full"
+          }
+        >
           {/* Podcast Title */}
-          <h1 className={isModal
-            ? "text-2xl md:text-3xl font-bold mb-4 line-clamp-3"
-            : "text-2xl font-bold mb-4"
-          }>
+          <h1
+            className={
+              isModal
+                ? "text-2xl md:text-3xl font-bold mb-4 line-clamp-3"
+                : "text-2xl font-bold mb-4"
+            }
+          >
             {cleanupTextContent(podcast.title)}
           </h1>
 
@@ -77,7 +93,7 @@ export function PodcastDetailsContent({
                 {getSiteDisplayName(podcast).charAt(0).toUpperCase()}
               </div>
             )}
-            <p className={`font-medium ${isModal ? 'text-lg' : ''}`}>
+            <p className={`font-medium ${isModal ? "text-lg" : ""}`}>
               {cleanupTextContent(getSiteDisplayName(podcast))}
             </p>
           </div>
@@ -100,11 +116,7 @@ export function PodcastDetailsContent({
               className={isModal ? "flex-1 sm:flex-initial" : ""}
             />
 
-            {actionButtons && (
-              <div className="flex gap-2">
-                {actionButtons}
-              </div>
-            )}
+            {actionButtons && <div className="flex gap-2">{actionButtons}</div>}
           </div>
         </div>
       </div>
@@ -115,10 +127,10 @@ export function PodcastDetailsContent({
         <div
           className="prose prose-sm dark:prose-invert max-w-none"
           dangerouslySetInnerHTML={{
-            __html: sanitizeReaderContent(podcast.content || podcast.description || '')
+            __html: sanitizeReaderContent(podcast.content || podcast.description || ""),
           }}
         />
       </div>
     </>
-  )
+  );
 }

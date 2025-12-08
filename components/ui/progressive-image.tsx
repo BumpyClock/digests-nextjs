@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef } from "react";
 /* eslint-disable @next/next/no-img-element */
-import { cn } from "@/lib/utils"
-import { getImageKitUrl } from "@/utils/imagekit"
+import { cn } from "@/lib/utils";
+import { getImageKitUrl } from "@/utils/imagekit";
 
 interface ProgressiveImageProps {
-  src: string
-  alt: string
-  className?: string
-  style?: React.CSSProperties
-  onLoad?: () => void
-  onError?: () => void
-  width?: number
-  height?: number
-  initialSrc?: string // Already loaded image URL from FeedCard
+  src: string;
+  alt: string;
+  className?: string;
+  style?: React.CSSProperties;
+  onLoad?: () => void;
+  onError?: () => void;
+  width?: number;
+  height?: number;
+  initialSrc?: string; // Already loaded image URL from FeedCard
 }
 
 /**
@@ -32,40 +32,40 @@ export function ProgressiveImage({
   height = 600,
   initialSrc,
 }: ProgressiveImageProps) {
-  const imgRef = useRef<HTMLImageElement>(null)
-  
+  const imgRef = useRef<HTMLImageElement>(null);
+
   useEffect(() => {
-    if (!imgRef.current || !initialSrc) return
+    if (!imgRef.current || !initialSrc) return;
 
     // Start with the already-loaded FeedCard image
-    imgRef.current.src = initialSrc
+    imgRef.current.src = initialSrc;
 
     // Then load the high-quality progressive JPEG
-    const highResImg = new window.Image()
+    const highResImg = new window.Image();
     highResImg.src = getImageKitUrl(src, {
       width,
       height,
       quality: 90,
       progressive: true, // Enable progressive JPEG encoding
-    })
-    
+    });
+
     highResImg.onload = () => {
       // Switch to high-res version - browser will show progressive loading
       if (imgRef.current) {
-        imgRef.current.src = highResImg.src
-        onLoad?.()
+        imgRef.current.src = highResImg.src;
+        onLoad?.();
       }
-    }
-    
+    };
+
     highResImg.onerror = () => {
-      onError?.()
-    }
+      onError?.();
+    };
 
     return () => {
-      highResImg.onload = null
-      highResImg.onerror = null
-    }
-  }, [src, initialSrc, width, height, onLoad, onError])
+      highResImg.onload = null;
+      highResImg.onerror = null;
+    };
+  }, [src, initialSrc, width, height, onLoad, onError]);
 
   return (
     <>
@@ -78,5 +78,5 @@ export function ProgressiveImage({
         loading="eager"
       />
     </>
-  )
+  );
 }

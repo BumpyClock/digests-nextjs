@@ -36,7 +36,7 @@ export function AmbilightFilterDefs({
         >
           {/* Copy the source for the glow */}
           <feOffset in="SourceGraphic" result="source-copy" />
-          
+
           {/* Saturate the glow colors */}
           <feColorMatrix
             in="source-copy"
@@ -54,19 +54,10 @@ export function AmbilightFilterDefs({
           />
 
           {/* Spread outward */}
-          <feMorphology
-            in="bright-colors"
-            operator="dilate"
-            radius={spread}
-            result="spread"
-          />
+          <feMorphology in="bright-colors" operator="dilate" radius={spread} result="spread" />
 
           {/* Blur the spread area */}
-          <feGaussianBlur
-            in="spread"
-            stdDeviation={blur}
-            result="ambilight-light"
-          />
+          <feGaussianBlur in="spread" stdDeviation={blur} result="ambilight-light" />
 
           {/* Composite: Put the original image on top of the glow */}
           <feOffset in="SourceGraphic" result="source" />

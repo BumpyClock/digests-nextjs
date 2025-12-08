@@ -30,9 +30,8 @@ export function normalizeImageUrl(url: string): string {
   // If it's a protocol-relative URL, prepend https://
   if (url.startsWith("//")) {
     // Prefer https://, or use the current page's protocol if in browser
-    const protocol = typeof window !== "undefined" && window.location.protocol === "http:"
-      ? "http:"
-      : "https:";
+    const protocol =
+      typeof window !== "undefined" && window.location.protocol === "http:" ? "http:" : "https:";
     return `${protocol}${url}`;
   }
 

@@ -51,7 +51,7 @@
   border-radius: 7px;
   margin: 1.5em 12px;
   padding: 1.5em 1.5rem;
-  quotes: '\201C' '\201D' '\2018' '\2019';
+  quotes: "\201C" "\201D" "\2018" "\2019";
 }
 
 .reader-view-article blockquote p {
@@ -125,7 +125,7 @@
   border-radius: 12px;
   margin: 12px auto;
   display: block;
-  aspect-ratio: 16/9;
+  aspect-ratio: 16 / 9;
 }
 
 /* Article container */

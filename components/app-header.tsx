@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { ModeToggle } from "@/components/mode-toggle"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Settings, Rss, Home } from "lucide-react"
-import logo192 from "@/public/logo192.png"
-import Image from "next/image"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { ModeToggle } from "@/components/mode-toggle";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Menu, Settings, Rss, Home } from "lucide-react";
+import logo192 from "@/public/logo192.png";
+import Image from "next/image";
 
 export function AppHeader() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-50 w-full max-w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 px-4">
@@ -72,5 +72,5 @@ export function AppHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }

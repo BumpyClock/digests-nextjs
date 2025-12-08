@@ -93,11 +93,7 @@ export const ArticleReader = memo<ArticleReaderProps>(
           )}
 
           {/* Content Section */}
-          <ArticleContent
-            content={htmlContent}
-            markdown={markdownContent}
-            loading={loading}
-          />
+          <ArticleContent content={htmlContent} markdown={markdownContent} loading={loading} />
         </div>
       </div>
     );
@@ -111,9 +107,7 @@ ArticleReader.displayName = "ArticleReader";
  * @param readerView - Reader view response data
  * @returns Processed content and extracted metadata
  */
-export function processArticleContent(
-  readerView: ReaderViewResponse | null
-): {
+export function processArticleContent(readerView: ReaderViewResponse | null): {
   htmlContent: string;
   markdownContent: string;
   extractedAuthor?: { name: string; image?: string };
@@ -180,9 +174,7 @@ export const EmptyState = memo(() => {
 
   return (
     <div
-      className={`flex flex-col items-center justify-center h-full p-4 ${
-        isMobile ? "p-4" : "p-8"
-      }`}
+      className={`flex flex-col items-center justify-center h-full p-4 ${isMobile ? "p-4" : "p-8"}`}
     >
       <div className={`text-center ${isMobile ? "w-full" : "max-w-md"}`}>
         <h3 className={`font-semibold ${isMobile ? "text-lg" : "text-xl"} mb-2`}>

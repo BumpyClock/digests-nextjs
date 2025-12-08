@@ -1,4 +1,4 @@
-import { normalizeUrl } from '@/utils/url';
+import { normalizeUrl } from "@/utils/url";
 
 /**
  * Creates a stable, sorted key from a list of URLs
@@ -10,5 +10,5 @@ export function stableKey(urls: string[]): string {
     .filter(Boolean) // Remove empty strings
     .filter((url, index, arr) => arr.indexOf(url) === index) // Remove duplicates
     .sort()
-    .join('|');
+    .join("|");
 }

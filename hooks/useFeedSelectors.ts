@@ -14,7 +14,7 @@ import type { FeedItem } from "@/types";
  * @returns boolean indicating if the item is read
  */
 export const useIsItemRead = (itemId: string): boolean => {
-  return useFeedStore(state => {
+  return useFeedStore((state) => {
     const readItems = state.readItems;
     return readItems instanceof Set ? readItems.has(itemId) : false;
   });
@@ -26,7 +26,7 @@ export const useIsItemRead = (itemId: string): boolean => {
  * @returns boolean indicating if the item is in read later
  */
 export const useIsInReadLater = (itemId: string): boolean => {
-  return useFeedStore(state => {
+  return useFeedStore((state) => {
     const readLaterItems = state.readLaterItems;
     return readLaterItems instanceof Set ? readLaterItems.has(itemId) : false;
   });
@@ -42,7 +42,7 @@ export const useReadActions = (): {
   markAllAsRead: (items: FeedItem[]) => void;
 } => {
   return useFeedStore(
-    useShallow(state => ({
+    useShallow((state) => ({
       markAsRead: state.markAsRead,
       markAllAsRead: state.markAllAsRead,
     }))
@@ -59,29 +59,24 @@ export const useReadLaterActions = (): {
   removeFromReadLater: (itemId: string) => void;
 } => {
   return useFeedStore(
-    useShallow(state => ({
+    useShallow((state) => ({
       addToReadLater: state.addToReadLater,
       removeFromReadLater: state.removeFromReadLater,
     }))
   );
 };
 
-
-
-
 /**
  * Hook to get all feeds
  * @returns Array of all feeds
  */
 export const useFeeds = () => {
-  return useFeedStore(state => state.feeds);
+  return useFeedStore((state) => state.feeds);
 };
 
 export const useSubscriptions = () => {
   return useFeedStore((state) => state.subscriptions ?? []);
 };
-
-
 
 /**
  * Hook for the main web page data needs
@@ -90,7 +85,7 @@ export const useSubscriptions = () => {
  */
 export const useWebPageData = () => {
   return useFeedStore(
-    useShallow(state => ({
+    useShallow((state) => ({
       initialized: state.initialized,
       hydrated: state.hydrated,
       setInitialized: state.setInitialized,
@@ -106,9 +101,7 @@ export const useWebPageData = () => {
  * @returns boolean indicating if the audio is currently playing
  */
 export const useIsAudioPlaying = (audioId: string): boolean => {
-  return useFeedStore(state => 
-    state.currentAudio?.id === audioId && state.isPlaying
-  );
+  return useFeedStore((state) => state.currentAudio?.id === audioId && state.isPlaying);
 };
 
 /**
@@ -118,7 +111,7 @@ export const useIsAudioPlaying = (audioId: string): boolean => {
  */
 export const useAudioActions = () => {
   return useFeedStore(
-    useShallow(state => ({
+    useShallow((state) => ({
       playAudio: state.playAudio,
       togglePlayPause: state.togglePlayPause,
       seek: state.seek,
@@ -128,4 +121,3 @@ export const useAudioActions = () => {
     }))
   );
 };
-

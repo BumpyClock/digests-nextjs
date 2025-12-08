@@ -1,32 +1,40 @@
-import tinycolor from 'tinycolor2';
+import tinycolor from "tinycolor2";
 
 const easeInQuad = (x: number) => x * x;
 
-export function adjustColorLuminosity(color: { r: number, g: number, b: number }, isDarkMode: boolean) {
+export function adjustColorLuminosity(
+  color: { r: number; g: number; b: number },
+  isDarkMode: boolean
+) {
   const parsedColor = tinycolor({ r: color.r, g: color.g, b: color.b });
   const hsl = parsedColor.toHsl();
-  
+
   const MAX_LUMINOSITY_LIGHT_MODE = 0.5;
   const MAX_LUMINOSITY_DARK_MODE = 0.9;
   const MIN_LUMINOSITY_LIGHT_MODE = 0.15;
-  const MIN_LUMINOSITY_DARK_MODE = 0.4;  
-  
+  const MIN_LUMINOSITY_DARK_MODE = 0.4;
+
   const maxThreshold = isDarkMode ? MAX_LUMINOSITY_DARK_MODE : MAX_LUMINOSITY_LIGHT_MODE;
   const minThreshold = isDarkMode ? MIN_LUMINOSITY_DARK_MODE : MIN_LUMINOSITY_LIGHT_MODE;
-  
+
   if (hsl.l > maxThreshold) {
     hsl.l = maxThreshold;
   } else if (hsl.l < minThreshold) {
     hsl.l = minThreshold;
   }
-  
+
   return tinycolor(hsl);
 }
 
-export function generateLayeredShadows(color: { r: number, g: number, b: number }, elevation: number = 20, opacity: number = 0.05, isDarkMode: boolean) {
+export function generateLayeredShadows(
+  color: { r: number; g: number; b: number },
+  elevation: number = 20,
+  opacity: number = 0.05,
+  isDarkMode: boolean
+) {
   const adjustedColor = adjustColorLuminosity(color, isDarkMode);
   const hsl = adjustedColor.toHsl();
-  
+
   const state = {
     shadowStyle: "soft",
     layerAmount: 5,
@@ -38,7 +46,7 @@ export function generateLayeredShadows(color: { r: number, g: number, b: number 
   };
 
   const boxShadows = [];
-  
+
   for (let i = 0; i < state.layerAmount; i++) {
     const progress = easeInQuad((i + 1) / state.layerAmount);
     const x = (0 + progress * state.horizontalDistance).toFixed(0);
@@ -55,10 +63,13 @@ export function generateLayeredShadows(color: { r: number, g: number, b: number 
   return boxShadows.join(", ");
 }
 
-export function generateCardShadows(color: { r: number, g: number, b: number }, isDarkMode: boolean) {
+export function generateCardShadows(
+  color: { r: number; g: number; b: number },
+  isDarkMode: boolean
+) {
   return {
     restShadow: generateLayeredShadows(color, 20, 0.05, isDarkMode),
     hoverShadow: generateLayeredShadows(color, 30, 0.15, isDarkMode),
-    pressedShadow: generateLayeredShadows(color, 10, 0.20, isDarkMode)
+    pressedShadow: generateLayeredShadows(color, 10, 0.2, isDarkMode),
   };
 }

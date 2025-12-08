@@ -21,15 +21,7 @@ interface ArticleImageProps {
  * Extracted from ArticleReader to follow SRP
  */
 export const ArticleImage = memo<ArticleImageProps>(
-  ({
-    src,
-    alt,
-    className,
-    style,
-    priority = false,
-    progressive = false,
-    initialSrc,
-  }) => {
+  ({ src, alt, className, style, priority = false, progressive = false, initialSrc }) => {
     // Don't render anything if there's no valid image
     if (!isValidImageUrl(src)) {
       return null;

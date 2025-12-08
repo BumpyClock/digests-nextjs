@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
-import { workerService } from '@/services/worker-service';
-import { useFeedStore } from '@/store/useFeedStore';
-import { feedsKeys } from './feedsKeys';
-import { sortByDateDesc } from '@/utils/selectors';
-import type { Feed, FeedItem } from '@/types';
+import { useQuery } from "@tanstack/react-query";
+import { workerService } from "@/services/worker-service";
+import { useFeedStore } from "@/store/useFeedStore";
+import { feedsKeys } from "./feedsKeys";
+import { sortByDateDesc } from "@/utils/selectors";
+import type { Feed, FeedItem } from "@/types";
 
 /**
  * React Query hook for fetching and managing feeds data
@@ -18,9 +18,9 @@ import type { Feed, FeedItem } from '@/types';
  * - Proper error handling and loading states
  */
 export function useFeedsData() {
-  const feeds = useFeedStore((s) => s.feeds)
-  const subs = useFeedStore((s) => s.subscriptions ?? []) as { feedUrl: string }[]
-  const feedUrls = (feeds?.length ? feeds : subs).map((f) => f.feedUrl)
+  const feeds = useFeedStore((s) => s.feeds);
+  const subs = useFeedStore((s) => s.subscriptions ?? []) as { feedUrl: string }[];
+  const feedUrls = (feeds?.length ? feeds : subs).map((f) => f.feedUrl);
 
   return useQuery({
     queryKey: feedsKeys.list(feedUrls),
@@ -32,21 +32,21 @@ export function useFeedsData() {
       const result = await workerService.refreshFeeds(feedUrls);
 
       if (!result.success) {
-        throw new Error(result.message || 'Failed to fetch feeds');
+        throw new Error(result.message || "Failed to fetch feeds");
       }
 
       return {
         feeds: result.feeds,
-        items: result.items
+        items: result.items,
       };
     },
     select: (data) => ({
       feeds: data.feeds,
-      items: [...data.items].sort(sortByDateDesc) // Sort items by date (newest first)
+      items: [...data.items].sort(sortByDateDesc), // Sort items by date (newest first)
     }),
     staleTime: 15 * 60 * 1000, // 15 minutes - align with worker TTL
-    gcTime: 30 * 60 * 1000,    // 30 minutes - keep in cache longer
-    refetchOnReconnect: true,   // Refetch when coming back online
+    gcTime: 30 * 60 * 1000, // 30 minutes - keep in cache longer
+    refetchOnReconnect: true, // Refetch when coming back online
     refetchOnWindowFocus: false, // Don't refetch on every window focus
     enabled: feedUrls.length > 0, // Only run if we have feeds to fetch
   });

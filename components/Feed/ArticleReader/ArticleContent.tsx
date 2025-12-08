@@ -38,34 +38,22 @@ export const ArticleContent = memo<ArticleContentProps>(
     const components = useMemo<MarkdownComponents>(
       () => ({
         h1: ({ children, ...props }: React.ComponentProps<"h1">) => (
-          <h1
-            {...props}
-            className="text-fluid-3xl font-bold mt-8 mb-6 leading-fluid-tight"
-          >
+          <h1 {...props} className="text-fluid-3xl font-bold mt-8 mb-6 leading-fluid-tight">
             {children}
           </h1>
         ),
         h2: ({ children, ...props }: React.ComponentProps<"h2">) => (
-          <h2
-            {...props}
-            className="text-fluid-2xl font-semibold mt-8 mb-4 leading-fluid-tight"
-          >
+          <h2 {...props} className="text-fluid-2xl font-semibold mt-8 mb-4 leading-fluid-tight">
             {children}
           </h2>
         ),
         h3: ({ children, ...props }: React.ComponentProps<"h3">) => (
-          <h3
-            {...props}
-            className="text-fluid-xl font-semibold mt-6 mb-3 leading-fluid-tight"
-          >
+          <h3 {...props} className="text-fluid-xl font-semibold mt-6 mb-3 leading-fluid-tight">
             {children}
           </h3>
         ),
         h4: ({ children, ...props }: React.ComponentProps<"h4">) => (
-          <h4
-            {...props}
-            className="text-fluid-lg font-semibold mt-4 mb-2 leading-fluid-normal"
-          >
+          <h4 {...props} className="text-fluid-lg font-semibold mt-4 mb-2 leading-fluid-normal">
             {children}
           </h4>
         ),
@@ -132,10 +120,7 @@ export const ArticleContent = memo<ArticleContentProps>(
             </a>
           );
         },
-        blockquote: ({
-          children,
-          ...props
-        }: React.ComponentProps<"blockquote">) => (
+        blockquote: ({ children, ...props }: React.ComponentProps<"blockquote">) => (
           <blockquote
             {...props}
             className="border-l-4 border-primary/30 pl-6 py-2 my-6 italic text-foreground/80 bg-muted/20 rounded-r-lg"
@@ -143,11 +128,7 @@ export const ArticleContent = memo<ArticleContentProps>(
             {children}
           </blockquote>
         ),
-        code: ({
-          children,
-          className,
-          ...props
-        }: React.ComponentProps<"code">) => {
+        code: ({ children, className, ...props }: React.ComponentProps<"code">) => {
           const isInline = !className || !className.includes("language-");
           if (isInline) {
             return (

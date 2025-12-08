@@ -16,18 +16,21 @@ interface ReaderViewModalProps {
   feedItem: FeedItem;
 }
 
-export function ReaderViewModal({
-  feedItem,
-  isOpen,
-  onClose,
-}: ReaderViewModalProps) {
-  const { readerView, loading, cleanedContent, cleanedMarkdown, extractedAuthor } = useReaderView(feedItem, isOpen);
+export function ReaderViewModal({ feedItem, isOpen, onClose }: ReaderViewModalProps) {
+  const { readerView, loading, cleanedContent, cleanedMarkdown, extractedAuthor } = useReaderView(
+    feedItem,
+    isOpen
+  );
   const { isBottomVisible, handleScroll, hasScrolled } = useScrollShadow();
   const { markAsRead } = useFeedStore();
-  
+
   const handleScrollEvent = (e: Event) => {
     const target = e.target as HTMLDivElement;
-    handleScroll({ scrollTop: target.scrollTop, scrollHeight: target.scrollHeight, clientHeight: target.clientHeight });
+    handleScroll({
+      scrollTop: target.scrollTop,
+      scrollHeight: target.scrollHeight,
+      clientHeight: target.clientHeight,
+    });
   };
 
   // Mark as read shortly after opening to avoid grid re-render during animation
@@ -46,12 +49,8 @@ export function ReaderViewModal({
     >
       <div className="relative h-full overflow-hidden">
         <ScrollShadow visible={hasScrolled} position="top" />
-        
-        <ScrollArea 
-          variant="modal"
-          className="h-full"
-          onScroll={handleScrollEvent}
-        > 
+
+        <ScrollArea variant="modal" className="h-full" onScroll={handleScrollEvent}>
           <div className="mx-auto pb-20">
             <ReaderContent
               feedItem={feedItem}

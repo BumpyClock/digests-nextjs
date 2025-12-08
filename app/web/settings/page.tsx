@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { FeedsTab } from "./components/tabs/feeds-tab"
-import { AppearanceTab } from "./components/tabs/appearance-tab"
-import { AccountTab } from "./components/tabs/account-tab"
-import { ApiSettingsTab } from "./components/tabs/api-settings-tab"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FeedsTab } from "./components/tabs/feeds-tab";
+import { AppearanceTab } from "./components/tabs/appearance-tab";
+import { AccountTab } from "./components/tabs/account-tab";
+import { ApiSettingsTab } from "./components/tabs/api-settings-tab";
 
 export default function SettingsPage() {
   return (
@@ -28,15 +28,15 @@ export default function SettingsPage() {
               <TabsContent value="feeds" className="h-full">
                 <FeedsTab />
               </TabsContent>
-              
+
               <TabsContent value="appearance">
                 <AppearanceTab />
               </TabsContent>
-              
+
               <TabsContent value="account">
                 <AccountTab />
               </TabsContent>
-              
+
               <TabsContent value="api">
                 <ApiSettingsTab />
               </TabsContent>
@@ -45,6 +45,5 @@ export default function SettingsPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

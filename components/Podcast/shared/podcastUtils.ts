@@ -1,4 +1,4 @@
-import type { FeedItem } from "@/types"
+import type { FeedItem } from "@/types";
 
 /**
  * Parses podcast duration from various formats (number or time string)
@@ -8,42 +8,42 @@ import type { FeedItem } from "@/types"
  */
 export function parsePodcastDuration(podcast: FeedItem): number | undefined {
   // Return number durations as-is
-  if (typeof podcast.duration === 'number') {
-    return podcast.duration
+  if (typeof podcast.duration === "number") {
+    return podcast.duration;
   }
 
   // Parse string duration
-  if (typeof podcast.duration === 'string') {
-    const trimmed = podcast.duration.trim()
+  if (typeof podcast.duration === "string") {
+    const trimmed = podcast.duration.trim();
 
     // Try to parse as plain number first
-    const asNumber = Number(trimmed)
+    const asNumber = Number(trimmed);
     if (!Number.isNaN(asNumber) && Number.isFinite(asNumber)) {
-      return asNumber
+      return asNumber;
     }
 
     // Parse time format (ss, mm:ss, or hh:mm:ss)
-    const parts = trimmed.split(':')
+    const parts = trimmed.split(":");
     if (parts.length === 0 || parts.length > 3) {
-      return undefined
+      return undefined;
     }
 
     // Parse from right to left: [hours, ]minutes, seconds
-    let totalSeconds = 0
-    const segments = parts.reverse()
+    let totalSeconds = 0;
+    const segments = parts.reverse();
 
     for (let i = 0; i < segments.length; i++) {
-      const value = parseInt(segments[i], 10)
+      const value = parseInt(segments[i], 10);
       if (Number.isNaN(value) || value < 0) {
-        return undefined
+        return undefined;
       }
 
       // i=0: seconds, i=1: minutes, i=2: hours
-      totalSeconds += value * 60 ** i
+      totalSeconds += value * 60 ** i;
     }
 
-    return totalSeconds
+    return totalSeconds;
   }
 
-  return undefined
+  return undefined;
 }

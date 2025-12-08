@@ -66,12 +66,8 @@ function WebPageContent() {
   const { data: backgroundSyncData, clearNotification } = useFeedBackgroundSync();
 
   // Zustand hooks for client state only
-  const {
-    initialized,
-    setInitialized,
-    setActiveFeed,
-  } = useWebPageData();
-  
+  const { initialized, setInitialized, setActiveFeed } = useWebPageData();
+
   const emptyReadItems = useMemo(() => new Set<string>(), []);
   const emptyReadLater = useMemo(() => new Set<string>(), []);
 
@@ -83,7 +79,8 @@ function WebPageContent() {
   const feedItems = useMemo(() => feedsQuery.data?.items ?? [], [feedsQuery.data?.items]);
   const emptyFeeds = useMemo(() => [] as Feed[], []);
   const existingFeeds = useHydratedStore((state) => state.feeds, emptyFeeds);
-  const loading = feedsQuery.isLoading || (!initialized && existingFeeds.length > 0 && feedItems.length === 0);
+  const loading =
+    feedsQuery.isLoading || (!initialized && existingFeeds.length > 0 && feedItems.length === 0);
   const refreshing = refreshMutation.isPending;
   const isLoading = loading || refreshing;
 
@@ -102,7 +99,7 @@ function WebPageContent() {
   const currentUnreadItems = useMemo(() => {
     if (!feedItems.length) return [];
     const readItemsSet = readItems instanceof Set ? readItems : new Set();
-    return feedItems.filter(item => !readItemsSet.has(item.id));
+    return feedItems.filter((item) => !readItemsSet.has(item.id));
   }, [feedItems, readItems]);
 
   /**
@@ -114,7 +111,7 @@ function WebPageContent() {
     if (feedItems.length > 0) {
       // Use read items state at the time of refresh, not current reactive state
       const readItemsAtRefresh = readItems instanceof Set ? readItems : new Set();
-      const unreadAtRefresh = feedItems.filter(item => !readItemsAtRefresh.has(item.id));
+      const unreadAtRefresh = feedItems.filter((item) => !readItemsAtRefresh.has(item.id));
       setStableUnreadItems(unreadAtRefresh);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -138,19 +135,19 @@ function WebPageContent() {
       onSuccess: () => {
         // Stable unread items will be recalculated by the useEffect when React Query data updates
         refreshedRef.current = true;
-        
+
         // Clear new items notification immediately
         clearNotification();
-        
+
         // Dispatch event for other components
         window.dispatchEvent(new CustomEvent(FEED_REFRESHED_EVENT));
-        
+
         toast.success("Feeds refreshed successfully");
       },
       onError: (error) => {
         console.error("Failed to refresh feeds:", error);
         toast.error("Failed to refresh feeds");
-      }
+      },
     });
   }, [refreshMutation, clearNotification]);
 
@@ -160,10 +157,10 @@ function WebPageContent() {
   useEffect(() => {
     if (backgroundSyncData?.hasNewItems) {
       toast("New items available", {
-        description: `${backgroundSyncData.count} new item${backgroundSyncData.count === 1 ? '' : 's'} available`,
+        description: `${backgroundSyncData.count} new item${backgroundSyncData.count === 1 ? "" : "s"} available`,
         action: {
           label: "Refresh",
-          onClick: handleRefresh
+          onClick: handleRefresh,
         },
         duration: 10000, // 10 seconds
       });
@@ -221,7 +218,7 @@ function WebPageContent() {
   }, [searchQuery]);
 
   const toggleViewMode = useCallback(() => {
-    setViewMode(prev => prev === "grid" ? "masterDetail" : "grid");
+    setViewMode((prev) => (prev === "grid" ? "masterDetail" : "grid"));
   }, []);
 
   /**
@@ -276,19 +273,27 @@ function WebPageContent() {
   }, [filteredItems]);
 
   // Reusable filtering function for unread items by type
-  const filterUnreadItemsByType = useCallback((itemType: "article" | "podcast") => {
-    if (!currentUnreadItems || !Array.isArray(currentUnreadItems)) return [];
-    return currentUnreadItems.filter((item) => {
-      if (!item?.id) return false;
-      if (feedUrlDecoded && normalizeUrl(item.feedUrl) !== feedUrlDecoded) return false;
-      if (appliedSearchQuery) {
-        const searchLower = appliedSearchQuery.toLowerCase();
-        if (!(item.title?.toLowerCase().includes(searchLower) || 
-              item.description?.toLowerCase().includes(searchLower))) return false;
-      }
-      return item?.type === itemType;
-    });
-  }, [currentUnreadItems, feedUrlDecoded, appliedSearchQuery]);
+  const filterUnreadItemsByType = useCallback(
+    (itemType: "article" | "podcast") => {
+      if (!currentUnreadItems || !Array.isArray(currentUnreadItems)) return [];
+      return currentUnreadItems.filter((item) => {
+        if (!item?.id) return false;
+        if (feedUrlDecoded && normalizeUrl(item.feedUrl) !== feedUrlDecoded) return false;
+        if (appliedSearchQuery) {
+          const searchLower = appliedSearchQuery.toLowerCase();
+          if (
+            !(
+              item.title?.toLowerCase().includes(searchLower) ||
+              item.description?.toLowerCase().includes(searchLower)
+            )
+          )
+            return false;
+        }
+        return item?.type === itemType;
+      });
+    },
+    [currentUnreadItems, feedUrlDecoded, appliedSearchQuery]
+  );
 
   // For tab counts, use current reactive unread items to show accurate counts
   const currentUnreadArticleItems = useMemo(() => {
@@ -338,8 +343,7 @@ function WebPageContent() {
               </TabsTrigger>
               <TabsTrigger value="unread" className="relative">
                 Unread
-                {currentUnreadArticleItems.length > 0 &&
-                  ` (${currentUnreadArticleItems.length})`}
+                {currentUnreadArticleItems.length > 0 && ` (${currentUnreadArticleItems.length})`}
               </TabsTrigger>
               <TabsTrigger value="articles">
                 Articles
@@ -366,59 +370,40 @@ function WebPageContent() {
               onFeedSelect={handleFeedSelect}
               items={feedItems}
             />
-            <Button 
-              variant="outline" 
-              size="icon" 
+            <Button
+              variant="outline"
+              size="icon"
               onClick={toggleViewMode}
               title={viewMode === "grid" ? "Switch to Master-Detail view" : "Switch to Grid view"}
             >
-              {viewMode === "grid" ? <Columns className="h-4 w-4" /> : <LayoutGrid className="h-4 w-4" />}
+              {viewMode === "grid" ? (
+                <Columns className="h-4 w-4" />
+              ) : (
+                <LayoutGrid className="h-4 w-4" />
+              )}
             </Button>
-            <RefreshButton
-              onClick={handleRefresh}
-              isLoading={refreshing}
-            />
+            <RefreshButton onClick={handleRefresh} isLoading={refreshing} />
           </div>
         </div>
 
         <TabsContent value="all" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent 
-            items={filteredItems}
-            isLoading={isLoading}
-            viewMode={viewMode}
-          />
+          <FeedTabContent items={filteredItems} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
 
         <TabsContent value="unread" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent
-            items={filteredUnreadItems}
-            isLoading={isLoading}
-            viewMode={viewMode}
-          />
+          <FeedTabContent items={filteredUnreadItems} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
 
         <TabsContent value="articles" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent 
-            items={articleItems} 
-            isLoading={isLoading}
-            viewMode={viewMode}
-          />
+          <FeedTabContent items={articleItems} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
 
         <TabsContent value="podcasts" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent 
-            items={podcastItems} 
-            isLoading={isLoading}
-            viewMode={viewMode}
-          />
+          <FeedTabContent items={podcastItems} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
 
         <TabsContent value="readLater" className="h-[calc(100vh-11rem)]">
-          <FeedTabContent 
-            items={readLaterItems} 
-            isLoading={isLoading}
-            viewMode={viewMode}
-          />
+          <FeedTabContent items={readLaterItems} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
       </Tabs>
     </div>
@@ -441,7 +426,7 @@ function FeedTabContent({
   if (!items || items.length === 0) {
     return <EmptyState />;
   }
-  
+
   return viewMode === "grid" ? (
     <FeedGrid items={items} isLoading={false} />
   ) : (

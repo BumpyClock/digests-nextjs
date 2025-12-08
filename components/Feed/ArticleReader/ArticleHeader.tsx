@@ -55,9 +55,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
               {loading ? (
                 // Show skeleton when loading
                 <Skeleton
-                  className={`w-full ${
-                    isModal ? "h-[450px]" : "h-[200px] md:h-[250px]"
-                  }`}
+                  className={`w-full ${isModal ? "h-[450px]" : "h-[200px] md:h-[250px]"}`}
                 />
               ) : feedItem.thumbnail && feedItem.thumbnail.trim() !== "" ? (
                 <>
@@ -273,9 +271,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
               {/* Title */}
               {loading ? (
                 <div className="mb-4">
-                  <Skeleton
-                    className={`h-8 w-full mb-2 ${isModal ? "md:h-10" : ""}`}
-                  />
+                  <Skeleton className={`h-8 w-full mb-2 ${isModal ? "md:h-10" : ""}`} />
                   <Skeleton className={`h-8 w-3/4 ${isModal ? "md:h-10" : ""}`} />
                 </div>
               ) : (

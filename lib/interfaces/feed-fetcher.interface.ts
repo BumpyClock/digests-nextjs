@@ -1,4 +1,4 @@
-import type { Feed, FeedItem, ReaderViewResponse } from '@/types';
+import type { Feed, FeedItem, ReaderViewResponse } from "@/types";
 
 /**
  * Interface for feed fetching implementations

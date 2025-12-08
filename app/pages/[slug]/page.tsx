@@ -1,26 +1,22 @@
-import { getMdxMetadata, APP_MDX_DIR, CONTENT_MDX_DIR } from '@/utils/mdx-utils';
-import fs from 'fs';
-import { notFound } from 'next/navigation';
-import { compileMDX } from 'next-mdx-remote/rsc';
-import { getMDXComponents } from '@/mdx-components';
+import { getMdxMetadata, APP_MDX_DIR, CONTENT_MDX_DIR } from "@/utils/mdx-utils";
+import fs from "fs";
+import { notFound } from "next/navigation";
+import { compileMDX } from "next-mdx-remote/rsc";
+import { getMDXComponents } from "@/mdx-components";
 
-export default async function Page(
-  props: {
-    params: Promise<{ slug: string }>
-  }
-) {
+export default async function Page(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   const slug = params.slug;
   const components = getMDXComponents({});
 
   try {
     const { title, content } = getMdxMetadata(slug);
-    
+
     // Compile the MDX content without frontmatter
     const { content: Content } = await compileMDX({
       source: content,
       components,
-      options: { parseFrontmatter: false }
+      options: { parseFrontmatter: false },
     });
 
     return (
@@ -37,15 +33,15 @@ export default async function Page(
 
 export async function generateStaticParams() {
   const slugs = new Set();
-  
-  [APP_MDX_DIR, CONTENT_MDX_DIR].forEach(dir => {
+
+  [APP_MDX_DIR, CONTENT_MDX_DIR].forEach((dir) => {
     if (fs.existsSync(dir)) {
       fs.readdirSync(dir)
-        .filter(file => file.endsWith('.mdx') || file.endsWith('.md'))
-        .forEach(file => slugs.add({ slug: file.replace(/\.mdx?$/, '') }));
+        .filter((file) => file.endsWith(".mdx") || file.endsWith(".md"))
+        .forEach((file) => slugs.add({ slug: file.replace(/\.mdx?$/, "") }));
     }
   });
-  
+
   return Array.from(slugs);
 }
 

@@ -1,32 +1,42 @@
-"use client"
-import { useCallback, useMemo } from "react"
-import { Button } from "@/components/ui/button"
-import { Slider } from "@/components/ui/slider"
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react"
-import { useFeedStore } from "@/store/useFeedStore"
-import { formatTime } from "@/utils/audio"
+"use client";
+import { useCallback, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
+import { useFeedStore } from "@/store/useFeedStore";
+import { formatTime } from "@/utils/audio";
 
 /**
  * Component that renders audio playback controls
  */
 export function AudioControls() {
-  const { isPlaying, currentTime, duration, volume, isMuted, togglePlayPause, seek, setVolume, toggleMute } = useFeedStore()
+  const {
+    isPlaying,
+    currentTime,
+    duration,
+    volume,
+    isMuted,
+    togglePlayPause,
+    seek,
+    setVolume,
+    toggleMute,
+  } = useFeedStore();
 
   /**
    * Memoized formatted time values to prevent recalculation
    */
-  const formattedCurrentTime = useMemo(() => formatTime(currentTime), [currentTime])
-  const formattedDuration = useMemo(() => formatTime(duration), [duration])
+  const formattedCurrentTime = useMemo(() => formatTime(currentTime), [currentTime]);
+  const formattedDuration = useMemo(() => formatTime(duration), [duration]);
 
   /**
    * Handles seek slider value changes
    */
   const handleSeek = useCallback(
     (value: number[]) => {
-      seek(value[0])
+      seek(value[0]);
     },
     [seek]
-  )
+  );
 
   return (
     <div className="flex items-center space-x-2">
@@ -63,5 +73,5 @@ export function AudioControls() {
         />
       </div>
     </div>
-  )
+  );
 }

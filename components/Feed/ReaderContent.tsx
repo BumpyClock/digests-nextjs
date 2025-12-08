@@ -4,10 +4,7 @@ import { memo } from "react";
 import { FeedItem, ReaderViewResponse } from "@/types";
 import { ReaderLayout } from "@/types/reader";
 import { useIsMobile } from "@/hooks/use-media-query";
-import {
-  ArticleHeader,
-  ArticleContent,
-} from "@/components/Feed/ArticleReader";
+import { ArticleHeader, ArticleContent } from "@/components/Feed/ArticleReader";
 
 interface ReaderContentProps {
   feedItem: FeedItem;
@@ -45,11 +42,7 @@ export const ReaderContent = memo(function ReaderContent({
 
   // Use increased padding for modal layout
   const containerPadding =
-    layout === "modal"
-      ? "px-2 py-2 md:px-6 md:py-2 lg:px-2"
-      : isCompact
-      ? "px-3 py-4"
-      : "p-2";
+    layout === "modal" ? "px-2 py-2 md:px-6 md:py-2 lg:px-2" : isCompact ? "px-3 py-4" : "p-2";
 
   return (
     <div className={`${containerPadding} ${className}`}>

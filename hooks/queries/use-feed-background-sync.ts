@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 /**
  * Hook for tracking new feed items via React Query cache updates
@@ -21,12 +21,12 @@ export function useFeedBackgroundSync() {
   useEffect(() => {
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
       // Only listen to updated events
-      if (event.type !== 'updated') return;
+      if (event.type !== "updated") return;
 
       const key = event.query.queryKey;
 
       // Only track feeds list queries (not details or other query types)
-      if (!(Array.isArray(key) && key[0] === 'feeds' && key[1] === 'list')) {
+      if (!(Array.isArray(key) && key[0] === "feeds" && key[1] === "list")) {
         return;
       }
 
@@ -34,9 +34,7 @@ export function useFeedBackgroundSync() {
       const items = data?.items ?? [];
 
       // Extract item IDs, filtering out any without IDs
-      const currentIds = new Set(
-        items.map((item) => item.id).filter(Boolean) as string[]
-      );
+      const currentIds = new Set(items.map((item) => item.id).filter(Boolean) as string[]);
 
       // On first load, just store the IDs without triggering notification
       if (prevIdsRef.current.size === 0) {
@@ -56,7 +54,7 @@ export function useFeedBackgroundSync() {
       // Update sync state
       setSync({
         hasNewItems: newItemCount > 0,
-        count: newItemCount
+        count: newItemCount,
       });
 
       // Update previous IDs for next comparison

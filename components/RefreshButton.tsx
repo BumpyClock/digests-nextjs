@@ -1,9 +1,9 @@
-import { RefreshCw } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface RefreshButtonProps {
-  onClick: () => void
-  isLoading: boolean
+  onClick: () => void;
+  isLoading: boolean;
 }
 
 export function RefreshButton({ onClick, isLoading }: RefreshButtonProps) {
@@ -12,5 +12,5 @@ export function RefreshButton({ onClick, isLoading }: RefreshButtonProps) {
       <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
       <span className="sr-only">Refresh feeds</span>
     </Button>
-  )
-} 
+  );
+}

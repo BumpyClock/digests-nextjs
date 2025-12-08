@@ -14,7 +14,7 @@ const mockupVariants = cva(
     defaultVariants: {
       type: "responsive",
     },
-  },
+  }
 );
 
 export interface MockupProps
@@ -23,29 +23,22 @@ export interface MockupProps
 
 const Mockup = React.forwardRef<HTMLDivElement, MockupProps>(
   ({ className, type, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(mockupVariants({ type, className }))}
-      {...props}
-    />
-  ),
+    <div ref={ref} className={cn(mockupVariants({ type, className }))} {...props} />
+  )
 );
 Mockup.displayName = "Mockup";
 
-const frameVariants = cva(
-  "bg-accent/5 flex relative z-10 overflow-hidden rounded-2xl",
-  {
-    variants: {
-      size: {
-        small: "p-2",
-        large: "p-4",
-      },
-    },
-    defaultVariants: {
-      size: "small",
+const frameVariants = cva("bg-accent/5 flex relative z-10 overflow-hidden rounded-2xl", {
+  variants: {
+    size: {
+      small: "p-2",
+      large: "p-4",
     },
   },
-);
+  defaultVariants: {
+    size: "small",
+  },
+});
 
 export interface MockupFrameProps
   extends React.HTMLAttributes<HTMLDivElement>,
@@ -53,12 +46,8 @@ export interface MockupFrameProps
 
 const MockupFrame = React.forwardRef<HTMLDivElement, MockupFrameProps>(
   ({ className, size, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(frameVariants({ size, className }))}
-      {...props}
-    />
-  ),
+    <div ref={ref} className={cn(frameVariants({ size, className }))} {...props} />
+  )
 );
 MockupFrame.displayName = "MockupFrame";
 

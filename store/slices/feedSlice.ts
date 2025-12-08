@@ -19,19 +19,20 @@ export const createFeedSlice: StateCreator<FeedSlice, [], [], FeedSlice> = (set,
   subscriptions: [] as Subscription[],
 
   // Setter for feeds also updates lightweight subscriptions (persisted)
-  setFeeds: (feeds: Feed[]) => set({ 
-    feeds, 
-    subscriptions: feeds.map(toSubscription)
-  }),
+  setFeeds: (feeds: Feed[]) =>
+    set({
+      feeds,
+      subscriptions: feeds.map(toSubscription),
+    }),
 
   // Remove feed from local cache (used by React Query mutations for immediate UI updates)
   removeFeedFromCache: (feedUrl: string) => {
     const { feeds } = get();
     // With React Query as source of truth, only update the local subscriptions list here.
-    const nextFeeds = feeds.filter((f: Feed) => f.feedUrl !== feedUrl)
+    const nextFeeds = feeds.filter((f: Feed) => f.feedUrl !== feedUrl);
     set({
       feeds: nextFeeds,
-      subscriptions: nextFeeds.map(toSubscription)
+      subscriptions: nextFeeds.map(toSubscription),
     });
   },
 });

@@ -1,14 +1,10 @@
-import { AppHeader } from "@/components/app-header"
+import { AppHeader } from "@/components/app-header";
 
-export default function WebAppLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function WebAppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AppHeader />
       {children}
     </>
-  )
+  );
 }

@@ -34,7 +34,7 @@ import React from "react";
 import { useCommandBarSearch } from "@/hooks/use-command-bar-search";
 import { useCommandBarShortcuts } from "@/hooks/use-command-bar-shortcuts";
 import { ReaderViewModal } from "@/components/reader-view-modal";
-import Image from 'next/image';
+import Image from "next/image";
 import { getSiteDisplayName } from "@/utils/htmlUtils";
 
 interface CommandBarProps {
@@ -48,85 +48,86 @@ interface CommandBarProps {
 }
 
 const MemoizedCommandItem = React.memo(CommandItem, (prevProps, nextProps) => {
-  return prevProps.onSelect === nextProps.onSelect && 
-         prevProps.children === nextProps.children;
+  return prevProps.onSelect === nextProps.onSelect && prevProps.children === nextProps.children;
 });
-MemoizedCommandItem.displayName = 'MemoizedCommandItem';
+MemoizedCommandItem.displayName = "MemoizedCommandItem";
 
 // Constants
 const MAX_DISPLAY_ITEMS = 5;
 
 // Suggestion components
-const SuggestionItem = React.memo(({ icon: Icon, label, onSelect }: { 
-  icon: React.ElementType;
-  label: string;
-  onSelect: () => void;
-}) => (
-  <CommandItem value={label.toLowerCase()} onSelect={onSelect}>
-    <Icon className="mr-2 h-4 w-4" />
-    <span className="text-xs font-regular">{label}</span>
-  </CommandItem>
-));
-SuggestionItem.displayName = 'SuggestionItem';
+const SuggestionItem = React.memo(
+  ({
+    icon: Icon,
+    label,
+    onSelect,
+  }: {
+    icon: React.ElementType;
+    label: string;
+    onSelect: () => void;
+  }) => (
+    <CommandItem value={label.toLowerCase()} onSelect={onSelect}>
+      <Icon className="mr-2 h-4 w-4" />
+      <span className="text-xs font-regular">{label}</span>
+    </CommandItem>
+  )
+);
+SuggestionItem.displayName = "SuggestionItem";
 
 // Feed Item Component
-const FeedItemComponent = React.memo(({ source, onSelect }: {
-  source: Feed | Subscription;
-  onSelect: (feedUrl: string) => void;
-}) => (
-  <MemoizedCommandItem
-    className="text-xs font-normal"
-    value={[
-      (source as Feed).author,
-      (source as Feed).categories,
-      (source as Feed).description,
-      source.feedUrl,
-      source.siteName,
-      source.siteTitle,
-      source.feedTitle,
-    ].filter(Boolean).join(" ")}
-    key={source.feedUrl}
-    onSelect={() => onSelect(source.feedUrl)}
-  >
-    {source.favicon && (
-      <Image
-        src={source.favicon}
-        alt={getSiteDisplayName(source) || "Untitled Feed"}
-        width={24}
-        height={24}
-        className="object-cover"
-      />
-    )}
-    <span className="text-xs font-regular">
-      {getSiteDisplayName(source) || source.feedTitle || "Unnamed Feed"}
-    </span>
-  </MemoizedCommandItem>
-));
-FeedItemComponent.displayName = 'FeedItemComponent';
+const FeedItemComponent = React.memo(
+  ({ source, onSelect }: { source: Feed | Subscription; onSelect: (feedUrl: string) => void }) => (
+    <MemoizedCommandItem
+      className="text-xs font-normal"
+      value={[
+        (source as Feed).author,
+        (source as Feed).categories,
+        (source as Feed).description,
+        source.feedUrl,
+        source.siteName,
+        source.siteTitle,
+        source.feedTitle,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      key={source.feedUrl}
+      onSelect={() => onSelect(source.feedUrl)}
+    >
+      {source.favicon && (
+        <Image
+          src={source.favicon}
+          alt={getSiteDisplayName(source) || "Untitled Feed"}
+          width={24}
+          height={24}
+          className="object-cover"
+        />
+      )}
+      <span className="text-xs font-regular">
+        {getSiteDisplayName(source) || source.feedTitle || "Unnamed Feed"}
+      </span>
+    </MemoizedCommandItem>
+  )
+);
+FeedItemComponent.displayName = "FeedItemComponent";
 
 // Article Item Component
-const ArticleItemComponent = React.memo(({ item, onSelect }: {
-  item: FeedItem;
-  onSelect: (title: string) => void;
-}) => (
-  <MemoizedCommandItem
-    className="text-md font-normal"
-    value=""
-    key={item.id}
-    onSelect={() => onSelect(item.title || "")}
-  >
-    <Newspaper className="mr-2 h-4 w-4" />
-    <span className="text-md font-regular">
-      {item.title || "Untitled Article"}
-    </span>
-  </MemoizedCommandItem>
-));
-ArticleItemComponent.displayName = 'ArticleItemComponent';
+const ArticleItemComponent = React.memo(
+  ({ item, onSelect }: { item: FeedItem; onSelect: (title: string) => void }) => (
+    <MemoizedCommandItem
+      className="text-md font-normal"
+      value=""
+      key={item.id}
+      onSelect={() => onSelect(item.title || "")}
+    >
+      <Newspaper className="mr-2 h-4 w-4" />
+      <span className="text-md font-regular">{item.title || "Untitled Article"}</span>
+    </MemoizedCommandItem>
+  )
+);
+ArticleItemComponent.displayName = "ArticleItemComponent";
 
 // Podcast Item Component
-const PodcastItemComponent = React.memo(({ podcast }: {
-  podcast: FeedItem;
-}) => (
+const PodcastItemComponent = React.memo(({ podcast }: { podcast: FeedItem }) => (
   <MemoizedCommandItem
     className="text-md font-normal"
     value=" "
@@ -145,112 +146,108 @@ const PodcastItemComponent = React.memo(({ podcast }: {
         unoptimized
       />
     )}
-    <span className="text-md font-regular">
-      {podcast.title || "Untitled Podcast"}
-    </span>
+    <span className="text-md font-regular">{podcast.title || "Untitled Podcast"}</span>
   </MemoizedCommandItem>
 ));
-PodcastItemComponent.displayName = 'PodcastItemComponent';
+PodcastItemComponent.displayName = "PodcastItemComponent";
 
 // Suggestions Section Component
-const SuggestionsSection = React.memo(({ 
-  setOpen, 
-  router,
-  setTheme, 
-  handleRefresh,
-  markAllAsRead,
-  feedItems,
-}: {
-  setOpen: (open: boolean) => void;
-  router: ReturnType<typeof useRouter>;
-  setTheme: (theme: string) => void;
-  handleRefresh: () => void;
-  markAllAsRead: (items: FeedItem[]) => void;
-  feedItems: FeedItem[];
-}) => (
-  <CommandGroup heading="Suggestions" className="text-xs">
-    <SuggestionItem icon={Search} label="Search for feeds/articles" onSelect={() => {}} />
-    <SuggestionItem 
-      icon={Settings} 
-      label="Settings" 
-      onSelect={() => {
-        router.push("/web/settings");
-        setOpen(false);
-      }} 
-    />
-    <SuggestionItem 
-      icon={Podcast} 
-      label="Podcasts" 
-      onSelect={() => {
-        router.push("/web/podcasts");
-        setOpen(false);
-      }} 
-    />
-    <SuggestionItem 
-      icon={Rss} 
-      label="RSS Feeds" 
-      onSelect={() => {
-        router.push("/web/rss");
-        setOpen(false);
-      }} 
-    />
-    <SuggestionItem 
-      icon={RefreshCcw} 
-      label="Refresh" 
-      onSelect={() => {
-        handleRefresh();
-        setOpen(false);
-      }} 
-    />
-    <SuggestionItem 
-      icon={Sun} 
-      label="Light Mode" 
-      onSelect={() => {
-        setTheme("light");
-        setOpen(false);
-      }} 
-    />
-    <SuggestionItem 
-      icon={Moon} 
-      label="Dark Mode" 
-      onSelect={() => {
-        setTheme("dark");
-        setOpen(false);
-      }} 
-    />
-    <SuggestionItem 
-      icon={CheckCircle} 
-      label="Mark All as Read" 
-      onSelect={() => {
-        markAllAsRead(feedItems);
-        setOpen(false);
-      }} 
-    />
-  </CommandGroup>
-));
-SuggestionsSection.displayName = 'SuggestionsSection';
+const SuggestionsSection = React.memo(
+  ({
+    setOpen,
+    router,
+    setTheme,
+    handleRefresh,
+    markAllAsRead,
+    feedItems,
+  }: {
+    setOpen: (open: boolean) => void;
+    router: ReturnType<typeof useRouter>;
+    setTheme: (theme: string) => void;
+    handleRefresh: () => void;
+    markAllAsRead: (items: FeedItem[]) => void;
+    feedItems: FeedItem[];
+  }) => (
+    <CommandGroup heading="Suggestions" className="text-xs">
+      <SuggestionItem icon={Search} label="Search for feeds/articles" onSelect={() => {}} />
+      <SuggestionItem
+        icon={Settings}
+        label="Settings"
+        onSelect={() => {
+          router.push("/web/settings");
+          setOpen(false);
+        }}
+      />
+      <SuggestionItem
+        icon={Podcast}
+        label="Podcasts"
+        onSelect={() => {
+          router.push("/web/podcasts");
+          setOpen(false);
+        }}
+      />
+      <SuggestionItem
+        icon={Rss}
+        label="RSS Feeds"
+        onSelect={() => {
+          router.push("/web/rss");
+          setOpen(false);
+        }}
+      />
+      <SuggestionItem
+        icon={RefreshCcw}
+        label="Refresh"
+        onSelect={() => {
+          handleRefresh();
+          setOpen(false);
+        }}
+      />
+      <SuggestionItem
+        icon={Sun}
+        label="Light Mode"
+        onSelect={() => {
+          setTheme("light");
+          setOpen(false);
+        }}
+      />
+      <SuggestionItem
+        icon={Moon}
+        label="Dark Mode"
+        onSelect={() => {
+          setTheme("dark");
+          setOpen(false);
+        }}
+      />
+      <SuggestionItem
+        icon={CheckCircle}
+        label="Mark All as Read"
+        onSelect={() => {
+          markAllAsRead(feedItems);
+          setOpen(false);
+        }}
+      />
+    </CommandGroup>
+  )
+);
+SuggestionsSection.displayName = "SuggestionsSection";
 
 // Search trigger button component
-const SearchTriggerButton = React.memo(({ value, setOpen }: {
-  value: string;
-  setOpen: (open: boolean) => void;
-}) => (
-  <Button
-    variant="outline"
-    className="w-full max-w-lg justify-start text-muted-foreground sm:w-72 px-3 relative"
-    onClick={() => setOpen(true)}
-  >
-    <Search className="mr-2 h-4 w-4" />
-    <span className="truncate">
-      {value || "Search feeds and articles..."}
-    </span>
-    <kbd className="ml-auto hidden rounded bg-muted px-1.5 text-[10px] font-medium text-muted-foreground sm:inline-flex">
-      ⌘K
-    </kbd>
-  </Button>
-));
-SearchTriggerButton.displayName = 'SearchTriggerButton';  
-
+const SearchTriggerButton = React.memo(
+  ({ value, setOpen }: { value: string; setOpen: (open: boolean) => void }) => (
+    <Button
+      variant="outline"
+      className="w-full max-w-lg justify-start text-muted-foreground sm:w-72 px-3 relative"
+      onClick={() => setOpen(true)}
+    >
+      <Search className="mr-2 h-4 w-4" />
+      <span className="truncate">{value || "Search feeds and articles..."}</span>
+      <kbd className="ml-auto hidden rounded bg-muted px-1.5 text-[10px] font-medium text-muted-foreground sm:inline-flex">
+        ⌘K
+      </kbd>
+    </Button>
+  )
+);
+SearchTriggerButton.displayName = "SearchTriggerButton";
 
 export function CommandBar({
   value,
@@ -268,14 +265,9 @@ export function CommandBar({
   // const unreadCount = useUnreadCount();
   // Prefer prop (React Query data). Do not read items from store.
   const feedItems: FeedItem[] = items ?? [];
-  const { open, setOpen, handleKeyDown, handleClose } =
-    useCommandBarShortcuts(onApplySearch);
+  const { open, setOpen, handleKeyDown, handleClose } = useCommandBarShortcuts(onApplySearch);
 
-  const {
-    filteredSources,
-    filteredItems,
-    handleSeeAllMatches,
-  } = useCommandBarSearch(
+  const { filteredSources, filteredItems, handleSeeAllMatches } = useCommandBarSearch(
     value,
     feedItems,
     feeds,
@@ -284,13 +276,13 @@ export function CommandBar({
     onChange
   );
 
-  const filteredArticles = useMemo(() => 
-    filteredItems.filter(item => item.type === 'article'), 
+  const filteredArticles = useMemo(
+    () => filteredItems.filter((item) => item.type === "article"),
     [filteredItems]
   );
 
-  const filteredPodcasts = useMemo(() => 
-    filteredItems.filter(item => item.type === 'podcast'), 
+  const filteredPodcasts = useMemo(
+    () => filteredItems.filter((item) => item.type === "podcast"),
     [filteredItems]
   );
 
@@ -306,22 +298,37 @@ export function CommandBar({
   const [selectedArticle, setSelectedArticle] = useState<FeedItem | null>(null);
   const [isModalOpen, setModalOpen] = useState(false);
 
-  const handleArticleSelect = useCallback((title: string) => {
-    const article = filteredItems.find(item => item.title === title);
-    if (article) {
-      setSelectedArticle(article);
-      setModalOpen(true);
-    }
-  }, [filteredItems]);
+  const handleArticleSelect = useCallback(
+    (title: string) => {
+      const article = filteredItems.find((item) => item.title === title);
+      if (article) {
+        setSelectedArticle(article);
+        setModalOpen(true);
+      }
+    },
+    [filteredItems]
+  );
 
-  const shouldShowSuggestions = useCallback((searchValue: string) => {
-    const hasMatches = (filteredArticles?.length > 0 || filteredPodcasts?.length > 0);
-    if (!hasMatches) return true;
-    const suggestionKeywords = ['search', 'settings', 'podcasts', 'rss', 'refresh', 'light', 'dark', 'mark all'];
-    return suggestionKeywords.some(keyword => 
-      keyword.toLowerCase().includes(searchValue.toLowerCase())
-    );
-  }, [filteredArticles, filteredPodcasts]);
+  const shouldShowSuggestions = useCallback(
+    (searchValue: string) => {
+      const hasMatches = filteredArticles?.length > 0 || filteredPodcasts?.length > 0;
+      if (!hasMatches) return true;
+      const suggestionKeywords = [
+        "search",
+        "settings",
+        "podcasts",
+        "rss",
+        "refresh",
+        "light",
+        "dark",
+        "mark all",
+      ];
+      return suggestionKeywords.some((keyword) =>
+        keyword.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    },
+    [filteredArticles, filteredPodcasts]
+  );
 
   return (
     <>
@@ -341,7 +348,7 @@ export function CommandBar({
 
             {shouldShowSuggestions(value) && (
               <>
-                <SuggestionsSection 
+                <SuggestionsSection
                   setOpen={setOpen}
                   router={router}
                   setTheme={setTheme}
@@ -359,7 +366,7 @@ export function CommandBar({
                 className="text-xs font-bold text-muted-foreground"
               >
                 {filteredSources.map((source: Feed | Subscription) => (
-                  <FeedItemComponent 
+                  <FeedItemComponent
                     key={source.feedUrl}
                     source={source}
                     onSelect={handleSelectFeed}
@@ -374,11 +381,7 @@ export function CommandBar({
                 className="text-xs font-bold text-muted-foreground"
               >
                 {filteredArticles.slice(0, MAX_DISPLAY_ITEMS).map((item: FeedItem) => (
-                  <ArticleItemComponent 
-                    key={item.id}
-                    item={item}
-                    onSelect={handleArticleSelect}
-                  />
+                  <ArticleItemComponent key={item.id} item={item} onSelect={handleArticleSelect} />
                 ))}
                 <CommandItem
                   key="see-all-articles"

@@ -1,42 +1,50 @@
-"use client"
+"use client";
 
-import { useCallback, useMemo } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Play, Pause, SkipBack, SkipForward, Repeat, X } from "lucide-react"
-import { useFeedStore } from "@/store/useFeedStore"
-import { Slider } from "@/components/ui/slider"
-import Image from "next/image"
-import { formatTime } from "@/utils/audio"
+import { useCallback, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Play, Pause, SkipBack, SkipForward, Repeat, X } from "lucide-react";
+import { useFeedStore } from "@/store/useFeedStore";
+import { Slider } from "@/components/ui/slider";
+import Image from "next/image";
+import { formatTime } from "@/utils/audio";
 
 /**
  * Compact audio player that appears minimized at the bottom of the screen
  */
 export function AudioMiniPlayer() {
-  const { currentAudio, isPlaying, togglePlayPause, currentTime, duration, seek, setShowMiniPlayer } = useFeedStore()
+  const {
+    currentAudio,
+    isPlaying,
+    togglePlayPause,
+    currentTime,
+    duration,
+    seek,
+    setShowMiniPlayer,
+  } = useFeedStore();
 
   /**
    * Memoized formatted times to prevent recalculation
    */
-  const formattedCurrentTime = useMemo(() => formatTime(currentTime), [currentTime])
-  const formattedDuration = useMemo(() => formatTime(duration), [duration])
-  
+  const formattedCurrentTime = useMemo(() => formatTime(currentTime), [currentTime]);
+  const formattedDuration = useMemo(() => formatTime(duration), [duration]);
+
   /**
    * Handles slider change for seeking
    */
   const handleSeek = useCallback(
     (value: number[]) => {
-      seek(value[0])
+      seek(value[0]);
     },
-    [seek],
-  )
+    [seek]
+  );
 
   /**
    * Memoized toggle function to avoid recreation
    */
   const memoizedTogglePlayPause = useCallback(() => {
-    togglePlayPause()
-  }, [togglePlayPause])
+    togglePlayPause();
+  }, [togglePlayPause]);
 
   /**
    * Handle close button click - stops audio and hides player
@@ -44,12 +52,12 @@ export function AudioMiniPlayer() {
   const handleClose = useCallback(() => {
     // Stop the audio playback
     if (isPlaying) {
-      togglePlayPause()
+      togglePlayPause();
     }
-    setShowMiniPlayer(false)
-  }, [setShowMiniPlayer, isPlaying, togglePlayPause])
+    setShowMiniPlayer(false);
+  }, [setShowMiniPlayer, isPlaying, togglePlayPause]);
 
-  if (!currentAudio) return null
+  if (!currentAudio) return null;
 
   return (
     <div className="fixed bottom-4 right-4 w-[640px] z-50 pointer-events-none">
@@ -80,9 +88,9 @@ export function AudioMiniPlayer() {
                 <h2 className="text-md font-bold mb-2 line-clamp-2">{currentAudio.title}</h2>
                 <p className="text-xs opacity-75">{currentAudio.source}</p>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 className="h-8 w-8"
                 onClick={handleClose}
                 aria-label="Close mini player"
@@ -134,5 +142,5 @@ export function AudioMiniPlayer() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

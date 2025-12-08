@@ -1,14 +1,14 @@
-import { memo } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Plus } from "lucide-react"
-import { useSubscriptions } from "@/hooks/useFeedSelectors"
-import { useFeedManagement } from "@/app/web/settings/hooks/use-feed-management"
-import { SettingsFeedGrid } from "@/app/web/settings/settingsFeedGrid"
+import { memo } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Plus } from "lucide-react";
+import { useSubscriptions } from "@/hooks/useFeedSelectors";
+import { useFeedManagement } from "@/app/web/settings/hooks/use-feed-management";
+import { SettingsFeedGrid } from "@/app/web/settings/settingsFeedGrid";
 
 export const FeedList = memo(function FeedList() {
-  const feeds = useSubscriptions()
-  const { handleRemoveFeed, handleCopyFeed } = useFeedManagement()
+  const feeds = useSubscriptions();
+  const { handleRemoveFeed, handleCopyFeed } = useFeedManagement();
 
   if (feeds.length === 0) {
     return (
@@ -21,14 +21,8 @@ export const FeedList = memo(function FeedList() {
           </Button>
         </CardContent>
       </Card>
-    )
+    );
   }
 
-  return (
-    <SettingsFeedGrid
-      feeds={feeds}
-      onDelete={handleRemoveFeed}
-      onCopy={handleCopyFeed}
-    />
-  )
-}) 
+  return <SettingsFeedGrid feeds={feeds} onDelete={handleRemoveFeed} onCopy={handleCopyFeed} />;
+});

@@ -1,35 +1,41 @@
 // services/worker-service.ts
-import type { Feed, FeedItem, ReaderViewResponse } from '../types';
-import type { IFeedFetcher } from '@/lib/interfaces/feed-fetcher.interface';
-import { createFeedFetcher } from '@/lib/feed-fetcher';
-import { getApiConfig } from '@/store/useApiConfigStore';
-import { Logger } from '@/utils/logger';
-import { DEFAULT_CACHE_TTL_MS } from '@/lib/config';
+import type { Feed, FeedItem, ReaderViewResponse } from "../types";
+import type { IFeedFetcher } from "@/lib/interfaces/feed-fetcher.interface";
+import { createFeedFetcher } from "@/lib/feed-fetcher";
+import { getApiConfig } from "@/store/useApiConfigStore";
+import { Logger } from "@/utils/logger";
+import { DEFAULT_CACHE_TTL_MS } from "@/lib/config";
 
-const isClient = typeof window !== 'undefined'
+const isClient = typeof window !== "undefined";
 
 // Define the types for messages to and from the worker
 type WorkerMessage =
-  | { type: 'FETCH_FEEDS'; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: 'FETCH_READER_VIEW'; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: 'REFRESH_FEEDS'; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: 'GENERATE_SHADOWS'; payload: { 
-      id: string;
-      color: { r: number, g: number, b: number }; 
-      isDarkMode: boolean 
-    } }
-  | { type: 'CHECK_UPDATES'; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: 'SET_API_URL'; payload: { url: string } }
-  | { type: 'SET_CACHE_TTL'; payload: { ttl: number } };
+  | { type: "FETCH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: "FETCH_READER_VIEW"; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: "REFRESH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string } }
+  | {
+      type: "GENERATE_SHADOWS";
+      payload: {
+        id: string;
+        color: { r: number; g: number; b: number };
+        isDarkMode: boolean;
+      };
+    }
+  | { type: "CHECK_UPDATES"; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: "SET_API_URL"; payload: { url: string } }
+  | { type: "SET_CACHE_TTL"; payload: { ttl: number } };
 
-type WorkerResponse = 
-  | { type: 'FEEDS_RESULT'; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
-  | { type: 'READER_VIEW_RESULT'; success: boolean; data: ReaderViewResponse[]; message?: string }
-  | { type: 'SHADOWS_RESULT'; payload: { 
-      id: string;
-      shadows: { restShadow: string, hoverShadow: string, pressedShadow: string } 
-    } }
-  | { type: 'ERROR'; message: string };
+type WorkerResponse =
+  | { type: "FEEDS_RESULT"; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
+  | { type: "READER_VIEW_RESULT"; success: boolean; data: ReaderViewResponse[]; message?: string }
+  | {
+      type: "SHADOWS_RESULT";
+      payload: {
+        id: string;
+        shadows: { restShadow: string; hoverShadow: string; pressedShadow: string };
+      };
+    }
+  | { type: "ERROR"; message: string };
 
 /**
  * A service that manages the RSS web worker
@@ -53,51 +59,52 @@ class WorkerService {
    */
   initialize(): void {
     if (this.isInitialized || !isClient) return;
-    
+
     try {
       // Dynamically import workers only on client side
-      this.rssWorker = new Worker(
-        new URL('../workers/rss-worker.ts', import.meta.url), 
-        { type: 'module' }
-      );
-      this.shadowWorker = new Worker(
-        new URL('../workers/shadow-worker.ts', import.meta.url),
-        { type: 'module' }
-      );
-      
+      this.rssWorker = new Worker(new URL("../workers/rss-worker.ts", import.meta.url), {
+        type: "module",
+      });
+      this.shadowWorker = new Worker(new URL("../workers/shadow-worker.ts", import.meta.url), {
+        type: "module",
+      });
+
       // Set up message handlers for both workers
-      this.rssWorker.addEventListener('message', this.handleWorkerMessage);
-      this.shadowWorker.addEventListener('message', this.handleWorkerMessage);
-      
+      this.rssWorker.addEventListener("message", this.handleWorkerMessage);
+      this.shadowWorker.addEventListener("message", this.handleWorkerMessage);
+
       // Initialize RSS worker with current API URL
       const apiConfig = getApiConfig();
       this.rssWorker.postMessage({
-        type: 'SET_API_URL',
-        payload: { url: apiConfig.baseUrl }
+        type: "SET_API_URL",
+        payload: { url: apiConfig.baseUrl },
       });
       this.rssWorker.postMessage({
-        type: 'SET_CACHE_TTL',
-        payload: { ttl: this.cacheTtl }
+        type: "SET_CACHE_TTL",
+        payload: { ttl: this.cacheTtl },
       });
-      
+
       this.isInitialized = true;
-      Logger.debug('WorkerService: Workers initialized');
+      Logger.debug("WorkerService: Workers initialized");
     } catch (error) {
-      Logger.error('WorkerService: Failed to initialize workers', error instanceof Error ? error : undefined);
+      Logger.error(
+        "WorkerService: Failed to initialize workers",
+        error instanceof Error ? error : undefined
+      );
       // Ensure service can still work without workers
     }
   }
-  
+
   /**
    * Updates the API URL in the worker
    */
   updateApiUrl(url: string): void {
     if (!this.isInitialized) this.initialize();
-    
+
     if (this.rssWorker) {
       this.rssWorker.postMessage({
-        type: 'SET_API_URL',
-        payload: { url }
+        type: "SET_API_URL",
+        payload: { url },
       });
     }
   }
@@ -110,8 +117,8 @@ class WorkerService {
     if (!this.isInitialized) this.initialize();
     if (this.rssWorker) {
       this.rssWorker.postMessage({
-        type: 'SET_CACHE_TTL',
-        payload: { ttl }
+        type: "SET_CACHE_TTL",
+        payload: { ttl },
       });
     }
   }
@@ -123,30 +130,30 @@ class WorkerService {
     const response = event.data as WorkerResponse;
 
     // Log errors
-    if (response.type === 'ERROR') {
+    if (response.type === "ERROR") {
       Logger.error(`WorkerService: Error from worker - ${response.message}`);
     }
 
     // Call handlers for this message type
     const handlers = this.messageHandlers.get(response.type);
     if (handlers) {
-      handlers.forEach(handler => handler(response));
+      handlers.forEach((handler) => handler(response));
     }
   };
 
   /**
    * Registers a handler for a message type
    */
-  onMessage<T extends WorkerResponse['type']>(
-    type: T, 
+  onMessage<T extends WorkerResponse["type"]>(
+    type: T,
     handler: (data: Extract<WorkerResponse, { type: T }>) => void
   ): () => void {
     if (!this.messageHandlers.has(type)) {
       this.messageHandlers.set(type, new Set());
     }
-    
+
     this.messageHandlers.get(type)?.add(handler);
-    
+
     // Return unsubscribe function
     return () => {
       const handlers = this.messageHandlers.get(type);
@@ -164,12 +171,12 @@ class WorkerService {
    */
   postMessage(message: WorkerMessage): void {
     if (!this.isInitialized) {
-      Logger.error('WorkerService: Workers not initialized');
+      Logger.error("WorkerService: Workers not initialized");
       return;
     }
 
     // Route messages to appropriate worker
-    if (message.type === 'GENERATE_SHADOWS') {
+    if (message.type === "GENERATE_SHADOWS") {
       this.shadowWorker?.postMessage(message);
     } else {
       this.rssWorker?.postMessage(message);
@@ -187,9 +194,9 @@ class WorkerService {
    * @returns Promise that resolves with the response data or rejects on timeout/error
    */
   private sendWorkerMessage<T extends WorkerResponse>(
-    worker: 'rss' | 'shadow',
+    worker: "rss" | "shadow",
     message: WorkerMessage,
-    expectedResponseType: T['type'],
+    expectedResponseType: T["type"],
     fallbackFn?: () => Promise<unknown>,
     responseFilter?: (response: T) => boolean
   ): Promise<T> {
@@ -198,16 +205,14 @@ class WorkerService {
       if (!this.isInitialized) this.initialize();
 
       // Check if worker is available
-      const workerInstance = worker === 'rss' ? this.rssWorker : this.shadowWorker;
+      const workerInstance = worker === "rss" ? this.rssWorker : this.shadowWorker;
 
       if (!workerInstance) {
         if (fallbackFn) {
-          Logger.warn('WorkerService: Worker not available, using fallback');
-          fallbackFn()
-            .then(resolve)
-            .catch(reject);
+          Logger.warn("WorkerService: Worker not available, using fallback");
+          fallbackFn().then(resolve).catch(reject);
         } else {
-          reject(new Error('Worker not available and no fallback provided'));
+          reject(new Error("Worker not available and no fallback provided"));
         }
         return;
       }
@@ -253,9 +258,9 @@ class WorkerService {
   private async sendFeedsRequest({
     type,
     urls,
-    fallbackLabel
+    fallbackLabel,
   }: {
-    type: 'FETCH_FEEDS' | 'REFRESH_FEEDS' | 'CHECK_UPDATES';
+    type: "FETCH_FEEDS" | "REFRESH_FEEDS" | "CHECK_UPDATES";
     urls: string[];
     fallbackLabel: string;
   }): Promise<{
@@ -266,16 +271,18 @@ class WorkerService {
   }> {
     const apiConfig = getApiConfig();
 
-    const response = await this.sendWorkerMessage<Extract<WorkerResponse, { type: 'FEEDS_RESULT' }>>(
-      'rss',
+    const response = await this.sendWorkerMessage<
+      Extract<WorkerResponse, { type: "FEEDS_RESULT" }>
+    >(
+      "rss",
       {
         type,
         payload: {
           urls,
-          apiBaseUrl: apiConfig.baseUrl
-        }
+          apiBaseUrl: apiConfig.baseUrl,
+        },
       },
-      'FEEDS_RESULT',
+      "FEEDS_RESULT",
       async () => {
         Logger.debug(`[WorkerService] Using fallback fetcher for ${fallbackLabel}`);
         try {
@@ -287,7 +294,7 @@ class WorkerService {
             success: false,
             feeds: [],
             items: [],
-            message
+            message,
           };
         }
       }
@@ -297,7 +304,7 @@ class WorkerService {
       success: response.success,
       feeds: response.feeds,
       items: response.items,
-      message: response.message
+      message: response.message,
     };
   }
 
@@ -311,9 +318,9 @@ class WorkerService {
     message?: string;
   }> {
     return this.sendFeedsRequest({
-      type: 'FETCH_FEEDS',
+      type: "FETCH_FEEDS",
       urls: [url],
-      fallbackLabel: 'fetch'
+      fallbackLabel: "fetch",
     });
   }
 
@@ -327,9 +334,9 @@ class WorkerService {
     message?: string;
   }> {
     return this.sendFeedsRequest({
-      type: 'REFRESH_FEEDS',
+      type: "REFRESH_FEEDS",
       urls,
-      fallbackLabel: 'refresh'
+      fallbackLabel: "refresh",
     });
   }
 
@@ -343,18 +350,20 @@ class WorkerService {
   }> {
     const apiConfig = getApiConfig();
 
-    const response = await this.sendWorkerMessage<Extract<WorkerResponse, { type: 'READER_VIEW_RESULT' }>>(
-      'rss',
+    const response = await this.sendWorkerMessage<
+      Extract<WorkerResponse, { type: "READER_VIEW_RESULT" }>
+    >(
+      "rss",
       {
-        type: 'FETCH_READER_VIEW',
+        type: "FETCH_READER_VIEW",
         payload: {
           urls: [url],
-          apiBaseUrl: apiConfig.baseUrl
-        }
+          apiBaseUrl: apiConfig.baseUrl,
+        },
       },
-      'READER_VIEW_RESULT',
+      "READER_VIEW_RESULT",
       async () => {
-        Logger.debug('[WorkerService] Using fallback fetcher for reader view');
+        Logger.debug("[WorkerService] Using fallback fetcher for reader view");
         try {
           const data = await this.fallbackFetcher.fetchReaderView([url]);
           return { success: true, data };
@@ -362,7 +371,7 @@ class WorkerService {
           return {
             success: false,
             data: [],
-            message: error instanceof Error ? error.message : "Failed to fetch reader view"
+            message: error instanceof Error ? error.message : "Failed to fetch reader view",
           };
         }
       }
@@ -371,27 +380,33 @@ class WorkerService {
     return {
       success: response.success,
       data: response.data,
-      message: response.message
+      message: response.message,
     };
   }
 
   /**
    * Generates card shadows in the worker
    */
-  async generateShadows(id: string, color: { r: number, g: number, b: number }, isDarkMode: boolean): Promise<{
-    restShadow: string,
-    hoverShadow: string,
-    pressedShadow: string
+  async generateShadows(
+    id: string,
+    color: { r: number; g: number; b: number },
+    isDarkMode: boolean
+  ): Promise<{
+    restShadow: string;
+    hoverShadow: string;
+    pressedShadow: string;
   }> {
-    const response = await this.sendWorkerMessage<Extract<WorkerResponse, { type: 'SHADOWS_RESULT' }>>(
-      'shadow',
+    const response = await this.sendWorkerMessage<
+      Extract<WorkerResponse, { type: "SHADOWS_RESULT" }>
+    >(
+      "shadow",
       {
-        type: 'GENERATE_SHADOWS',
-        payload: { id, color, isDarkMode }
+        type: "GENERATE_SHADOWS",
+        payload: { id, color, isDarkMode },
       },
-      'SHADOWS_RESULT',
+      "SHADOWS_RESULT",
       async () => {
-        const { generateCardShadows } = await import('../utils/shadow');
+        const { generateCardShadows } = await import("../utils/shadow");
         return generateCardShadows(color, isDarkMode);
       },
       (response) => response.payload.id === id
@@ -410,9 +425,9 @@ class WorkerService {
     message?: string;
   }> {
     return this.sendFeedsRequest({
-      type: 'CHECK_UPDATES',
+      type: "CHECK_UPDATES",
       urls,
-      fallbackLabel: 'updates'
+      fallbackLabel: "updates",
     });
   }
 
@@ -430,7 +445,7 @@ class WorkerService {
     }
     this.messageHandlers.clear();
     this.isInitialized = false;
-    Logger.debug('WorkerService: Workers terminated');
+    Logger.debug("WorkerService: Workers terminated");
   }
 }
 
