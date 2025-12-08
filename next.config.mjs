@@ -1,13 +1,3 @@
-import createMDX from "@next/mdx";
-import remarkGfm from "remark-gfm";
-const withMDX = createMDX({
-  extension: /\.mdx?$/,
-  options: {
-    remarkPlugins: [remarkGfm],
-    rehypePlugins: [],
-  },
-});
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -27,6 +17,7 @@ const nextConfig = {
       },
     ],
   },
+  turbopack: {},
   webpack: (config) => {
     config.module.rules.push({
       test: /\.lottie$/,
@@ -40,4 +31,4 @@ const nextConfig = {
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
 };
 
-export default withMDX(nextConfig);
+export default nextConfig;

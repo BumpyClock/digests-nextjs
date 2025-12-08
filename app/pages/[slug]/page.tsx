@@ -3,6 +3,7 @@ import fs from "fs";
 import { notFound } from "next/navigation";
 import { compileMDX } from "next-mdx-remote/rsc";
 import { getMDXComponents } from "@/mdx-components";
+import remarkGfm from "remark-gfm";
 
 export default async function Page(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
@@ -16,7 +17,13 @@ export default async function Page(props: { params: Promise<{ slug: string }> })
     const { content: Content } = await compileMDX({
       source: content,
       components,
-      options: { parseFrontmatter: false },
+      options: {
+        parseFrontmatter: false,
+        mdxOptions: {
+          remarkPlugins: [remarkGfm],
+          rehypePlugins: [],
+        },
+      },
     });
 
     return (
