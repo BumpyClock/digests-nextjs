@@ -1,10 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -24,14 +20,10 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     },
     "target": "ES2017",
-    "types": [
-      "node"
-    ]
+    "types": ["node"]
   },
   "include": [
     "next-env.d.ts",
@@ -41,10 +33,5 @@
     "tailwind.config.js",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "node_modules/*",
-    "**/__tests__/**",
-    "tests/**"
-  ]
+  "exclude": ["node_modules", "node_modules/*", "**/__tests__/**", "tests/**"]
 }
