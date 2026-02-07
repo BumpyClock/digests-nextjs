@@ -27,14 +27,14 @@ export function ScrollShadow({ visible, position, heightPx = 64 }: ScrollShadowP
         height,
         // Subtle dim to improve contrast; avoid full brightness filter.
         background: isTop
-          ? "linear-gradient(to bottom, rgba(0,0,0,0.12), rgba(0,0,0,0))"
-          : "linear-gradient(to top, rgba(0,0,0,0.12), rgba(0,0,0,0))",
+          ? "linear-gradient(to bottom, hsl(var(--foreground) / 0.12), hsl(var(--foreground) / 0))"
+          : "linear-gradient(to top, hsl(var(--foreground) / 0.12), hsl(var(--foreground) / 0))",
         // Backdrop blur kept small; many GPUs can composite this smoothly.
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
+        backdropFilter: "blur(var(--backdrop-blur-lg, 12px))",
+        WebkitBackdropFilter: "blur(var(--backdrop-blur-lg, 12px))",
         // Extra mask for smoother fade; cheap compared to large blurs.
-        maskImage: `linear-gradient(to ${isTop ? "bottom" : "top"}, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 40%, rgba(0,0,0,0.4) 75%, rgba(0,0,0,0) 100%)`,
-        WebkitMaskImage: `linear-gradient(to ${isTop ? "bottom" : "top"}, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 40%, rgba(0,0,0,0.4) 75%, rgba(0,0,0,0) 100%)`,
+        maskImage: `linear-gradient(to ${isTop ? "bottom" : "top"}, hsl(var(--foreground) / 1) 0%, hsl(var(--foreground) / 0.85) 40%, hsl(var(--foreground) / 0.4) 75%, hsl(var(--foreground) / 0) 100%)`,
+        WebkitMaskImage: `linear-gradient(to ${isTop ? "bottom" : "top"}, hsl(var(--foreground) / 1) 0%, hsl(var(--foreground) / 0.85) 40%, hsl(var(--foreground) / 0.4) 75%, hsl(var(--foreground) / 0) 100%)`,
         opacity: visible ? 1 : 0,
         willChange: "opacity",
         contain: "layout style paint",

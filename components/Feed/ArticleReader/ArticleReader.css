@@ -30,9 +30,9 @@
   aspect-ratio: auto;
   display: block;
   margin: 12px auto;
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   stroke-width: 1px;
-  stroke: #000;
+  stroke: hsl(var(--foreground));
   object-fit: contain;
   width: fit-content;
 }
@@ -48,7 +48,7 @@
   background: hsl(var(--blockquote-background-color));
   border-left: 8px solid hsl(var(--brand-primary));
   box-shadow: inset 0 0 0 1px hsl(var(--border));
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   margin: 1.5em 12px;
   padding: 1.5em 1.5rem;
   quotes: "\201C" "\201D" "\2018" "\2019";
@@ -62,7 +62,7 @@
   font-weight: 400;
   line-height: 1.8 !important;
   font-family: var(--font-family);
-  color: hsl(var(--color));
+  color: hsl(var(--foreground));
   margin-bottom: 1rem;
   margin-left: auto;
   margin-right: auto;
@@ -107,7 +107,7 @@
 .reader-view-article cite p {
   display: block;
   font-size: 1rem;
-  color: hsl(var(--color));
+  color: hsl(var(--foreground));
   opacity: 0.7;
   margin-bottom: 1rem;
   margin-left: auto;
@@ -131,6 +131,6 @@
 /* Article container */
 .reader-view-article-content {
   position: relative;
-  border-radius: 7px;
+  border-radius: var(--radius-md);
   padding: 2rem 4rem;
 }
