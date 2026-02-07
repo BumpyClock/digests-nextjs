@@ -43,7 +43,7 @@ pre[class*="language-"] {
 /* Inline code */
 :not(pre) > code[class*="language-"] {
 	padding: .1em;
-	border-radius: var(--radius-sm, .3em);
+	border-radius: var(--radius-sm, 0.25rem);
 	white-space: normal;
 }
 

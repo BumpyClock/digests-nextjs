@@ -48,7 +48,7 @@ export function Header() {
               </SheetTrigger>
               <SheetContent side="right">
                 <nav className="grid gap-6 text-title">
-                  <Link href="/" className="flex items-center gap-2 text-title">
+                  <Link href="/" className="flex items-center gap-2">
                     <Rss className="h-5 w-5" />
                     <span>Digests</span>
                   </Link>

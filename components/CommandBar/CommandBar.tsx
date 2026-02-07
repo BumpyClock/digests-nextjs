@@ -115,7 +115,7 @@ const ArticleItemComponent = React.memo(
   ({ item, onSelect }: { item: FeedItem; onSelect: (itemId: string) => void }) => (
     <MemoizedCommandItem
       className="text-body"
-      value=""
+      value={`article:${item.id} ${item.title ?? ""}`.trim()}
       key={item.id}
       onSelect={() => onSelect(item.id)}
     >
@@ -130,10 +130,10 @@ ArticleItemComponent.displayName = "ArticleItemComponent";
 const PodcastItemComponent = React.memo(({ podcast }: { podcast: FeedItem }) => (
   <MemoizedCommandItem
     className="text-body"
-    value=" "
+    value={`podcast:${podcast.id} ${podcast.title ?? ""}`.trim()}
     key={podcast.id}
     onSelect={() => {
-      // Handle podcast selection
+      // TODO: Implement podcast selection
     }}
   >
     {podcast.favicon && (
@@ -390,7 +390,7 @@ export function CommandBar({
                 ))}
                 <CommandItem
                   key="see-all-articles"
-                  value=" "
+                  value="action:see-all-articles"
                   className="text-body"
                   onSelect={handleSeeAllMatches}
                 >
@@ -410,7 +410,7 @@ export function CommandBar({
                 <CommandItem
                   key="see-all-podcasts"
                   className="text-body"
-                  value=""
+                  value="action:see-all-podcasts"
                   onSelect={() => {
                     // Handle see all podcasts action
                   }}

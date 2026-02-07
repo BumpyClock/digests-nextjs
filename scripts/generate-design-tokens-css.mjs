@@ -17,5 +17,11 @@ const css = [
   "",
 ].join("\n");
 
-fs.writeFileSync(outputPath, css, "utf8");
-console.log(`✓ Generated design token CSS at ${outputPath}`);
+try {
+  fs.writeFileSync(outputPath, css, "utf8");
+  console.log(`✓ Generated design token CSS at ${outputPath}`);
+} catch (error) {
+  console.error(`Failed to write design token CSS to ${outputPath}`);
+  console.error(error);
+  process.exit(1);
+}

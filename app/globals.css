@@ -156,9 +156,6 @@
 @layer base {
   * {
     @apply border-border;
-    transition-property: background-color, border-color, color, box-shadow;
-    transition-duration: var(--motion-duration-fast, 125ms);
-    transition-timing-function: var(--motion-ease-standard, ease-in-out);
   }
 
   :root {
@@ -240,6 +237,27 @@
     line-height: var(--typography-title-large-line-height);
     font-weight: var(--typography-title-large-weight);
     letter-spacing: var(--typography-title-large-letter-spacing);
+  }
+
+  .text-display {
+    font-size: var(--typography-display-size);
+    line-height: var(--typography-display-line-height);
+    font-weight: var(--typography-display-weight);
+    letter-spacing: var(--typography-display-letter-spacing);
+  }
+
+  .text-display-large {
+    font-size: var(--typography-display-large-size);
+    line-height: var(--typography-display-large-line-height);
+    font-weight: var(--typography-display-large-weight);
+    letter-spacing: var(--typography-display-large-letter-spacing);
+  }
+
+  .text-display-small {
+    font-size: var(--typography-display-small-size);
+    line-height: var(--typography-display-small-line-height);
+    font-weight: var(--typography-display-small-weight);
+    letter-spacing: var(--typography-display-small-letter-spacing);
   }
 
   .text-caption {
@@ -622,23 +640,3 @@
     animation: none !important;
   }
 }
-  .text-display {
-    font-size: var(--typography-display-size);
-    line-height: var(--typography-display-line-height);
-    font-weight: var(--typography-display-weight);
-    letter-spacing: var(--typography-display-letter-spacing);
-  }
-
-  .text-display-large {
-    font-size: var(--typography-display-large-size);
-    line-height: var(--typography-display-large-line-height);
-    font-weight: var(--typography-display-large-weight);
-    letter-spacing: var(--typography-display-large-letter-spacing);
-  }
-
-  .text-display-small {
-    font-size: var(--typography-display-small-size);
-    line-height: var(--typography-display-small-line-height);
-    font-weight: var(--typography-display-small-weight);
-    letter-spacing: var(--typography-display-small-letter-spacing);
-  }

@@ -33,8 +33,7 @@ const FrostedGlass: React.FC<FrostedGlassProps> = ({
         <div
           className="absolute inset-16 transition-token-filter"
           style={{
-            backgroundColor: bgColor,
-            opacity: bgOpacity / 100,
+            backgroundColor: `color-mix(in srgb, ${bgColor} ${bgOpacity}%, transparent)`,
             borderRadius: rounded,
             backdropFilter: `blur(${blurAmount}px)`,
             WebkitBackdropFilter: `blur(${blurAmount}px)`,

@@ -329,28 +329,78 @@ const messageHandlers: WorkerHandlerMap = {
   },
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
+const hasUrlsPayload = (payload: unknown): payload is { urls: string[]; apiBaseUrl?: string } => {
+  if (!isRecord(payload)) {
+    return false;
+  }
+
+  return (
+    Array.isArray(payload.urls) &&
+    payload.urls.every((url: unknown) => typeof url === "string") &&
+    (payload.apiBaseUrl === undefined || typeof payload.apiBaseUrl === "string")
+  );
+};
+
+const isWorkerMessage = (value: unknown): value is WorkerMessage => {
+  if (!isRecord(value) || typeof value.type !== "string" || !isRecord(value.payload)) {
+    return false;
+  }
+
+  switch (value.type) {
+    case "FETCH_FEEDS":
+    case "FETCH_READER_VIEW":
+    case "REFRESH_FEEDS":
+    case "CHECK_UPDATES":
+      return hasUrlsPayload(value.payload);
+    case "SET_API_URL":
+      return typeof value.payload.url === "string";
+    case "SET_CACHE_TTL":
+      return typeof value.payload.ttl === "number";
+    default:
+      return false;
+  }
+};
+
+const dispatchMessage = (
+  message: WorkerMessage
+): Promise<WorkerResponse | undefined> | WorkerResponse | undefined => {
+  switch (message.type) {
+    case "FETCH_FEEDS":
+      return messageHandlers.FETCH_FEEDS(message.payload);
+    case "FETCH_READER_VIEW":
+      return messageHandlers.FETCH_READER_VIEW(message.payload);
+    case "REFRESH_FEEDS":
+      return messageHandlers.REFRESH_FEEDS(message.payload);
+    case "CHECK_UPDATES":
+      return messageHandlers.CHECK_UPDATES(message.payload);
+    case "SET_API_URL":
+      return messageHandlers.SET_API_URL(message.payload);
+    case "SET_CACHE_TTL":
+      return messageHandlers.SET_CACHE_TTL(message.payload);
+  }
+};
+
 /**
  * Main message event listener using handler registry
  * New handlers can be added to messageHandlers object without modifying this code
  */
 self.addEventListener("message", async (event) => {
-  const message = event.data as WorkerMessage;
+  const message = event.data as unknown;
 
   try {
-    const handler = messageHandlers[message.type as WorkerMessage["type"]];
-
-    if (!handler) {
+    if (!isWorkerMessage(message)) {
       self.postMessage({
         type: "ERROR",
-        message: `Unknown message type: ${message.type}`,
+        message: "Invalid worker message payload",
       } as WorkerResponse);
       return;
     }
 
     // Execute handler and send response if any
-    const response = await (
-      handler as (payload: unknown) => Promise<WorkerResponse | undefined> | WorkerResponse | undefined
-    )(message.payload);
+    const response = await dispatchMessage(message);
     if (response) {
       self.postMessage(response);
     }

@@ -5,7 +5,7 @@
   "packageManager": "bun@1.2.19",
   "scripts": {
     "dev": "next dev ",
-    "build": "bun run check:migration && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
@@ -16,7 +16,7 @@
     "test": "node scripts/pretest.js && node --test tests/*.js",
     "check:migration": "node scripts/check-feeditems.js",
     "lint:migration": "bun run check:migration && bun run lint",
-    "prebuild": "bun run check:migration"
+    "prebuild": "bun run check:migration && bun run generate:design-tokens"
   },
   "dependencies": {
     "@mdx-js/react": "^3.1.1",
