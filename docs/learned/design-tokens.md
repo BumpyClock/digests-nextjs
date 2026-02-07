@@ -39,6 +39,7 @@ read_when: touching token source-of-truth, CSS var generation, global layout imp
 
 - Added semantic typography tokens in `lib/design-tokens.ts`:
   - `typography.bodySmall`, `body`, `bodyLarge`, `subtitle`, `title`, `titleLarge`, `caption`, `label`, `overline`, `code`
+- Expanded tokenized type scale to include `fontSize.5xl` and `fontSize.6xl` so large marketing headings remain token-driven too.
 - Generated CSS now includes `--typography-*-*` variables in `app/generated-design-tokens.css`
 - Added semantic text role aliases in `app/globals.css`:
   - `--text-color-primary`, `secondary`, `tertiary`, `link`, `primary-on-accent`, `secondary-on-accent`
@@ -47,3 +48,11 @@ read_when: touching token source-of-truth, CSS var generation, global layout imp
   - Color: `.text-primary-content`, `.text-secondary-content`, `.text-tertiary-content`, `.text-primary-on-accent`, `.text-secondary-on-accent`, `.text-link-content`
 - `app/typography.css` now consumes semantic text tokens instead of raw theme color vars where possible.
 - `tailwind.config.ts` now maps `fontFamily` and `fontWeight` to token variables, so legacy utilities (`font-medium`, `font-semibold`, `font-mono`, etc.) still resolve through token source-of-truth.
+- Added semantic display typography tokens/utilities:
+  - Tokens: `typography.display`, `typography.displaySmall`, `typography.displayLarge`
+  - Utilities: `.text-display`, `.text-display-small`, `.text-display-large`
+- Reader modal baseline styles in `app/globals.css` now use token values for blur, font size, line-height, and backdrop color.
+- Current migration sweep:
+  - No `text-sm/text-xs/text-muted-foreground/text-gray-*` in `app/**/*.tsx`
+  - No `text-sm/text-xs/text-muted-foreground/text-gray-*` in `components/**/*.tsx`
+  - No `transition-all` or invalid `z-2` in `app/**/*.tsx`

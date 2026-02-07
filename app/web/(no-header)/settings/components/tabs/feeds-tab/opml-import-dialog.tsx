@@ -229,12 +229,14 @@ export function OPMLImportDialog({
                     <FeedIcon feed={feed.feed} error={feed.error} />
                     <div className="flex-1 min-w-0">
                       <Label htmlFor={feed.url} className="flex flex-col space-y-1">
-                        <span className="font-medium truncate">{feed.title}</span>
-                        <span className="text-sm text-muted-foreground truncate">{feed.url}</span>
+                        <span className="text-subtitle text-primary-content truncate">{feed.title}</span>
+                        <span className="text-body-small text-secondary-content truncate">
+                          {feed.url}
+                        </span>
                       </Label>
                       {feed.error && (
                         <Alert variant="destructive" className="mt-1 py-1">
-                          <AlertDescription className="text-xs">{feed.error}</AlertDescription>
+                          <AlertDescription className="text-caption">{feed.error}</AlertDescription>
                         </Alert>
                       )}
                       {feed.isSubscribed && (

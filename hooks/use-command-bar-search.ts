@@ -9,21 +9,32 @@ import { useDebounce } from "use-debounce";
 function itemMatchesSearch(item: FeedItem, query: string): { match: boolean; score: number } {
   const search = query.toLowerCase();
 
-  // Combine relevant fields into one string
-  const combined = [item.title, item.author, item.description, item.content, item.categories]
-    .filter(Boolean) // remove null/undefined
-    .join(" "); // combine with a space
+  // Early-exit on short fields first to avoid expensive content join
+  const shortFields = [item.title, item.author, item.description, item.categories]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 
-  const fullMatch =
-    combined.toLowerCase().includes(` ${search} `) ||
-    combined.toLowerCase().startsWith(search) ||
-    combined.toLowerCase().endsWith(search);
-  const partialMatch = combined.toLowerCase().includes(search);
+  const shortFull =
+    shortFields.includes(` ${search} `) ||
+    shortFields.startsWith(search) ||
+    shortFields.endsWith(search);
+  if (shortFull) return { match: true, score: 2 };
 
-  return {
-    match: fullMatch || partialMatch,
-    score: fullMatch ? 2 : partialMatch ? 1 : 0, // Full match gets higher score
-  };
+  if (shortFields.includes(search)) return { match: true, score: 1 };
+
+  // Fall back to content only if short fields didn't match
+  if (item.content) {
+    const contentLower = item.content.toLowerCase();
+    const contentFull =
+      contentLower.includes(` ${search} `) ||
+      contentLower.startsWith(search) ||
+      contentLower.endsWith(search);
+    if (contentFull) return { match: true, score: 2 };
+    if (contentLower.includes(search)) return { match: true, score: 1 };
+  }
+
+  return { match: false, score: 0 };
 }
 
 /**
@@ -35,7 +46,6 @@ function feedMatchesSearch(
 ): { match: boolean; score: number } {
   const search = query.toLowerCase();
 
-  // Combine relevant feed fields (including siteName for API response compatibility)
   const combined = [
     feed.feedTitle,
     feed.siteName,
@@ -45,18 +55,17 @@ function feedMatchesSearch(
     (feed as Feed).author,
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(" ")
+    .toLowerCase();
 
   const fullMatch =
-    combined.toLowerCase().includes(` ${search} `) ||
-    combined.toLowerCase().startsWith(search) ||
-    combined.toLowerCase().endsWith(search);
-  const partialMatch = combined.toLowerCase().includes(search);
+    combined.includes(` ${search} `) ||
+    combined.startsWith(search) ||
+    combined.endsWith(search);
 
-  return {
-    match: fullMatch || partialMatch,
-    score: fullMatch ? 2 : partialMatch ? 1 : 0, // Full match gets higher score
-  };
+  if (fullMatch) return { match: true, score: 2 };
+  if (combined.includes(search)) return { match: true, score: 1 };
+  return { match: false, score: 0 };
 }
 
 export function useCommandBarSearch(
@@ -114,15 +123,7 @@ export function useCommandBarSearch(
     return filteredItems;
   }, [feedItems, searchValue]);
 
-  const totalMatchCount = useMemo(() => {
-    if (!searchValue) return 0;
-    const searchLower = searchValue.toLowerCase();
-    return feedItems.filter(
-      (item) =>
-        item.title?.toLowerCase().includes(searchLower) ||
-        item.description?.toLowerCase().includes(searchLower)
-    ).length;
-  }, [feedItems, searchValue]);
+  const totalMatchCount = filteredItems.length;
 
   const handleSeeAllMatches = useCallback(() => {
     onSeeAllMatches();

@@ -155,7 +155,7 @@ export const ApiSettingsTab = memo(function ApiSettingsTab() {
                 Test
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-body-small text-secondary-content">
               The base URL of the API endpoint (default: {DEFAULT_API_CONFIG.baseUrl})
             </p>
           </div>

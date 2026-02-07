@@ -82,7 +82,7 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <h1 className="text-3xl font-bold mb-4">
+        <h1 className="mb-4 text-display-small text-primary-content">
           {readerViewQuery.data?.title || foundArticle.title}
         </h1>
         <div className="flex items-center justify-between mb-6">
@@ -97,8 +97,10 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
               />
             )}
             <div>
-              <p className="font-medium">{readerViewQuery.data?.siteName || foundArticle.link}</p>
-              <p className="text-sm text-muted-foreground">{publishedDisplay}</p>
+              <p className="text-subtitle text-primary-content">
+                {readerViewQuery.data?.siteName || foundArticle.link}
+              </p>
+              <p className="text-body-small text-secondary-content">{publishedDisplay}</p>
             </div>
           </div>
           <div className="flex space-x-2">

@@ -98,6 +98,20 @@ const config: Config = {
             letterSpacing: "var(--letter-spacing-4xl, var(--tracking-4xl, -0.02em))",
           },
         ],
+        "5xl": [
+          "var(--font-size-5xl, var(--text-5xl, 3rem))",
+          {
+            lineHeight: "var(--line-height-5xl, var(--text-5xl--line-height, 1))",
+            letterSpacing: "var(--letter-spacing-5xl, var(--tracking-5xl, -0.02em))",
+          },
+        ],
+        "6xl": [
+          "var(--font-size-6xl, var(--text-6xl, 3.75rem))",
+          {
+            lineHeight: "var(--line-height-6xl, var(--text-6xl--line-height, 1))",
+            letterSpacing: "var(--letter-spacing-6xl, var(--tracking-6xl, -0.02em))",
+          },
+        ],
       },
       lineHeight: {
         xs: "var(--line-height-xs, var(--text-xs--line-height, 1rem))",
@@ -108,6 +122,8 @@ const config: Config = {
         "2xl": "var(--line-height-2xl, var(--text-2xl--line-height, 2rem))",
         "3xl": "var(--line-height-3xl, var(--text-3xl--line-height, 2.25rem))",
         "4xl": "var(--line-height-4xl, var(--text-4xl--line-height, 2.5rem))",
+        "5xl": "var(--line-height-5xl, var(--text-5xl--line-height, 1))",
+        "6xl": "var(--line-height-6xl, var(--text-6xl--line-height, 1))",
         tight: "var(--line-height-tight, 1.25)",
         snug: "var(--line-height-snug, 1.375)",
         normal: "var(--line-height-normal, 1.5)",

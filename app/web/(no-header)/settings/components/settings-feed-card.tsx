@@ -49,43 +49,42 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({
   const placeholderImage = isPodcastFeed(feed) ? placeholderPodcast : placeholderRss;
 
   return (
-    <div className="relative group transition-all duration-200 group-hover:scale-105 group-hover:translate-y-[-8px]">
-      <div
-        id={feedCardId}
-        className="relative z-[2] flex h-full flex-col p-5"
-      >
+    <div className="group relative transition-token-transform duration-token-normal ease-token-standard group-hover:-translate-y-2 group-hover:scale-105">
+      <div id={feedCardId} className="relative z-[2] flex h-full flex-col p-5">
         <div className="flex-1">
-          <div className="mb-4 transition-all duration-300 group-hover:translate-y-[-4px]">
+          <div className="mb-4 transition-token-transform duration-token-slow ease-token-standard group-hover:-translate-y-1">
             <Image
               src={feed.favicon || placeholderImage}
               alt={`${getSiteDisplayName(feed)} icon`}
               width={48}
               height={48}
-              className="rounded-sm group-hover:scale-110 transition-all duration-200"
+              className="rounded-sm transition-token-transform duration-token-normal ease-token-standard group-hover:scale-110"
             />
           </div>
-          <h3 className="font-bold text-sm mb-1 line-clamp-2">{getSiteDisplayName(feed)}</h3>
-          {feed.feedTitle && <p className="text-caption text-sm mb-2">{feed.feedTitle}</p>}
-          <p className="text-muted-foreground text-sm break-all opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <h3 className="mb-1 line-clamp-2 text-subtitle text-primary-content">
+            {getSiteDisplayName(feed)}
+          </h3>
+          {feed.feedTitle && <p className="mb-2 text-caption text-secondary-content">{feed.feedTitle}</p>}
+          <p className="break-all text-body-small text-secondary-content opacity-0 transition-token-opacity duration-token-fast group-hover:opacity-100">
             {feed.feedUrl}
           </p>
         </div>
-        <div className="flex mt-6 pt-2 border-t border-gray-100">
+        <div className="mt-6 flex border-t border-border pt-2">
           <button
             type="button"
             onClick={handleDelete}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+            className="rounded-md p-2 text-secondary-content transition-token-colors duration-token-fast hover:bg-muted hover:text-primary-content"
             aria-label="Delete feed"
           >
-            <Trash2 size={18} className="text-gray-500" />
+            <Trash2 size={18} />
           </button>
           <button
             type="button"
             onClick={handleCopy}
-            className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+            className="rounded-md p-2 text-secondary-content transition-token-colors duration-token-fast hover:bg-muted hover:text-primary-content"
             aria-label="Copy feed URL"
           >
-            <Copy size={18} className="text-gray-500" />
+            <Copy size={18} />
           </button>
         </div>
       </div>
@@ -97,11 +96,11 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({
         />
         <div
           id={`${feedCardId}-imageblur`}
-          className="absolute overflow-hidden top-0 left-0 w-full h-full bg-cover bg-center blur-[80px] brightness-80 opacity-15 transition-all duration-200 group-hover:opacity-30 group-hover:blur-[100px] group-hover:brightness-120"
+          className="absolute left-0 top-0 h-full w-full overflow-hidden bg-cover bg-center opacity-15 brightness-80 transition-token-filter duration-token-normal group-hover:opacity-30 group-hover:blur-[100px] group-hover:brightness-120"
           style={{ backgroundImage: `url(${feed.favicon || placeholderImage})` }}
         />
       </div>
-      <div className="absolute top-0 left-0 w-full h-full bg-card border rounded-xl shadow-md z-[-3] group-hover:shadow-xl transition-all duration-200"></div>
+      <div className="absolute left-0 top-0 h-full w-full rounded-xl border border-border bg-card shadow-md transition-token-shadow duration-token-normal group-hover:shadow-xl" />
     </div>
   );
 });

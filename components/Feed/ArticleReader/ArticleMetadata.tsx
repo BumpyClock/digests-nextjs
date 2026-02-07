@@ -83,7 +83,9 @@ export const ArticleMetadata = memo<ArticleMetadataProps>(
               />
             )}
             <div className="flex flex-col">
-              <span className={`font-medium text-primary-content ${isCompact ? "text-body-small" : "text-body"}`}>
+              <span
+                className={`text-primary-content ${isCompact ? "text-subtitle" : "text-title"}`}
+              >
                 {author.name}
               </span>
               {publishedDate && (

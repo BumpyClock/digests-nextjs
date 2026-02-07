@@ -423,14 +423,14 @@
     left: 0;
     height: 100%;
     width: 100%;
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(90px);
+    -webkit-backdrop-filter: blur(var(--backdrop-blur-3xl));
+    backdrop-filter: blur(var(--backdrop-blur-3xl));
     font-family: var(--font-family);
-    line-height: 1.8;
-    font-weight: var(--font-weight-medium);
-    font-size: 20px;
+    line-height: var(--line-height-loose);
+    font-weight: var(--typography-body-large-weight);
+    font-size: var(--typography-body-large-size);
     margin: 0 auto;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: hsl(var(--background) / 0.75);
     z-index: 1000;
     overflow-y: auto;
     display: flex;
@@ -622,3 +622,23 @@
     animation: none !important;
   }
 }
+  .text-display {
+    font-size: var(--typography-display-size);
+    line-height: var(--typography-display-line-height);
+    font-weight: var(--typography-display-weight);
+    letter-spacing: var(--typography-display-letter-spacing);
+  }
+
+  .text-display-large {
+    font-size: var(--typography-display-large-size);
+    line-height: var(--typography-display-large-line-height);
+    font-weight: var(--typography-display-large-weight);
+    letter-spacing: var(--typography-display-large-letter-spacing);
+  }
+
+  .text-display-small {
+    font-size: var(--typography-display-small-size);
+    line-height: var(--typography-display-small-line-height);
+    font-weight: var(--typography-display-small-weight);
+    letter-spacing: var(--typography-display-small-letter-spacing);
+  }

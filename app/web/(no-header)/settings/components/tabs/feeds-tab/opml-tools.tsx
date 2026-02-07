@@ -18,7 +18,7 @@ export const OPMLTools = memo(function OPMLTools() {
   return (
     <>
       <div className="flex justify-between items-center mt-8 mb-4">
-        <h2 className="text-xl font-bold">Your Subscriptions</h2>
+        <h2 className="text-title-large text-primary-content">Your Subscriptions</h2>
         <div className="flex gap-2">
           <input
             type="file"

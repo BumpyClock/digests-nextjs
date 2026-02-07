@@ -276,15 +276,20 @@ export function CommandBar({
     onChange
   );
 
-  const filteredArticles = useMemo(
-    () => filteredItems.filter((item) => item.type === "article"),
-    [filteredItems]
-  );
-
-  const filteredPodcasts = useMemo(
-    () => filteredItems.filter((item) => item.type === "podcast"),
-    [filteredItems]
-  );
+  const { filteredArticles, filteredPodcasts, articlesByTitle } = useMemo(() => {
+    const articles: FeedItem[] = [];
+    const podcasts: FeedItem[] = [];
+    const byTitle = new Map<string, FeedItem>();
+    for (const item of filteredItems) {
+      if (item.type === "article") {
+        articles.push(item);
+        if (item.title) byTitle.set(item.title, item);
+      } else if (item.type === "podcast") {
+        podcasts.push(item);
+      }
+    }
+    return { filteredArticles: articles, filteredPodcasts: podcasts, articlesByTitle: byTitle };
+  }, [filteredItems]);
 
   const handleSelectFeed = useCallback(
     (feedUrl: string) => {
@@ -300,13 +305,13 @@ export function CommandBar({
 
   const handleArticleSelect = useCallback(
     (title: string) => {
-      const article = filteredItems.find((item) => item.title === title);
+      const article = articlesByTitle.get(title);
       if (article) {
         setSelectedArticle(article);
         setModalOpen(true);
       }
     },
-    [filteredItems]
+    [articlesByTitle]
   );
 
   const shouldShowSuggestions = useCallback(
@@ -363,7 +368,7 @@ export function CommandBar({
             {filteredSources && filteredSources.length > 0 && (
               <CommandGroup
                 heading={`Feeds (${filteredSources.length})`}
-                className="text-overline !font-bold text-secondary-content"
+                className="text-overline text-secondary-content"
               >
                 {filteredSources.map((source: Feed | Subscription) => (
                   <FeedItemComponent
@@ -378,7 +383,7 @@ export function CommandBar({
             {filteredArticles && filteredArticles.length > 0 && (
               <CommandGroup
                 heading={`ARTICLES (${filteredArticles.length})`}
-                className="text-overline !font-bold text-secondary-content"
+                className="text-overline text-secondary-content"
               >
                 {filteredArticles.slice(0, MAX_DISPLAY_ITEMS).map((item: FeedItem) => (
                   <ArticleItemComponent key={item.id} item={item} onSelect={handleArticleSelect} />
@@ -397,7 +402,7 @@ export function CommandBar({
             {filteredPodcasts && filteredPodcasts.length > 0 && (
               <CommandGroup
                 heading={`PODCASTS (${filteredPodcasts.length})`}
-                className="text-body !font-bold text-secondary-content"
+                className="text-overline text-secondary-content"
               >
                 {filteredPodcasts.slice(0, MAX_DISPLAY_ITEMS).map((podcast: FeedItem) => (
                   <PodcastItemComponent key={podcast.id} podcast={podcast} />

@@ -26,17 +26,17 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
     return (
       <div ref={ref} className={cn("flex flex-col items-center ", className)} {...props}>
         {eyebrow && (
-          <p className="font-sans uppercase tracking-wider leading-relaxed text-center text-base md:text-lg mt-24 mb-8 text-primary animate-appear opacity-0">
+          <p className="mt-24 mb-8 text-center text-overline text-link-content animate-appear opacity-0 md:text-label">
             {eyebrow}
           </p>
         )}
 
-        <h1 className="text-4xl lg:text-6xl md:text-5xl leading-tight text-center px-4 lg:px-24 text-primary animate-appear opacity-0 delay-100">
+        <h1 className="px-4 text-center text-display text-primary-content animate-appear opacity-0 delay-100 md:text-display lg:px-24 lg:text-display-large">
           {title}
         </h1>
 
         {subtitle && (
-          <p className="text-xl md:text-2xl text-center font-sans font-normal px-4 lg:px-24 mt-6 mb-12 leading-relaxed text-primary animate-appear opacity-0 delay-300">
+          <p className="mt-6 mb-12 px-4 text-center text-body-large text-secondary-content animate-appear opacity-0 delay-300 md:text-title lg:px-24">
             {subtitle}
           </p>
         )}
@@ -45,7 +45,7 @@ const Hero = React.forwardRef<HTMLDivElement, HeroProps>(
           <Link href={ctaLink}>
             <div className="inline-flex items-center bg-secondary text-primary rounded-lg group hover:bg-secondary/90 transition-token-colors font-sans w-56 h-12 animate-appear opacity-0 delay-500">
               <div className="flex items-center justify-between w-full px-5">
-                <span className="text-base">{ctaText}</span>
+                <span className="text-body">{ctaText}</span>
                 <div className="flex items-center gap-3">
                   <div className="w-[36px] h-full relative">
                     <LucideArrowRight className="w-5 h-5 animate-bounce-x" />

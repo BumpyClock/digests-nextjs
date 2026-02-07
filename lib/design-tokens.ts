@@ -18,6 +18,8 @@ export const designTokens = {
     "2xl": rem(1.5),
     "3xl": rem(1.875),
     "4xl": rem(2.25),
+    "5xl": rem(3),
+    "6xl": rem(3.75),
   },
   lineHeight: {
     tight: 1.2,
@@ -40,6 +42,24 @@ export const designTokens = {
     wider: "0.02em",
   },
   typography: {
+    display: {
+      size: "var(--font-size-4xl)",
+      lineHeight: "var(--line-height-tight)",
+      weight: "var(--font-weight-bold)",
+      letterSpacing: "var(--letter-spacing-tighter)",
+    },
+    displayLarge: {
+      size: "var(--font-size-6xl)",
+      lineHeight: "var(--line-height-tight)",
+      weight: "var(--font-weight-bold)",
+      letterSpacing: "var(--letter-spacing-tighter)",
+    },
+    displaySmall: {
+      size: "var(--font-size-3xl)",
+      lineHeight: "var(--line-height-tight)",
+      weight: "var(--font-weight-semibold)",
+      letterSpacing: "var(--letter-spacing-tight)",
+    },
     bodySmall: {
       size: "var(--font-size-sm)",
       lineHeight: "var(--line-height-normal)",

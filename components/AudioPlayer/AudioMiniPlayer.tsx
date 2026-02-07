@@ -85,7 +85,7 @@ export function AudioMiniPlayer() {
             {/* Top Section */}
             <div className="flex items-start justify-between mb-1">
               <div>
-                <h2 className="text-body font-bold mb-2 line-clamp-2">{currentAudio.title}</h2>
+                <h2 className="mb-2 line-clamp-2 text-title text-primary-content">{currentAudio.title}</h2>
                 <p className="text-caption text-tertiary-content">{currentAudio.source}</p>
               </div>
               <Button

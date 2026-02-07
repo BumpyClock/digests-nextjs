@@ -177,7 +177,7 @@ export const ArticleContent = memo<ArticleContentProps>(
     if (loading) {
       return (
         <div
-          className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-primary-content px-6 md:px-8 lg:px-12 ${
+          className={`prose prose-amber text-body prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-primary-content px-6 md:px-8 lg:px-12 ${
             className || "w-full md:max-w-4xl"
           }`}
         >
@@ -229,7 +229,7 @@ export const ArticleContent = memo<ArticleContentProps>(
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: motionTokens.duration.slow, delay: motionTokens.duration.normal }}
-        className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-primary-content px-6 md:px-8 lg:px-12 ${
+        className={`prose prose-amber text-body prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-primary-content px-6 md:px-8 lg:px-12 ${
           className || "w-full md:max-w-4xl"
         }`}
       >

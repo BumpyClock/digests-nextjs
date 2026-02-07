@@ -72,8 +72,8 @@ export function PodcastDetailsContent({
           <h1
             className={
               isModal
-                ? "text-2xl md:text-3xl font-bold mb-4 line-clamp-3"
-                : "text-2xl font-bold mb-4"
+                ? "mb-4 line-clamp-3 text-title-large text-primary-content md:text-display-small"
+                : "mb-4 text-title-large text-primary-content"
             }
           >
             {cleanupTextContent(podcast.title)}
@@ -89,11 +89,11 @@ export function PodcastDetailsContent({
                 {...(isModal ? getImageProps("icon", "eager") : { width: 24, height: 24 })}
               />
             ) : (
-              <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-caption font-medium">
+              <div className="flex h-6 w-6 items-center justify-center rounded bg-muted text-caption text-primary-content">
                 {getSiteDisplayName(podcast).charAt(0).toUpperCase()}
               </div>
             )}
-            <p className={isModal ? "text-title" : "text-body font-medium"}>
+            <p className={isModal ? "text-title text-primary-content" : "text-subtitle text-primary-content"}>
               {cleanupTextContent(getSiteDisplayName(podcast))}
             </p>
           </div>
@@ -123,7 +123,7 @@ export function PodcastDetailsContent({
 
       {/* Episode Description */}
       <div className={isModal ? "border-t pt-8" : "space-y-4"}>
-        <h2 className="text-title-large font-bold mb-4">Episode Description</h2>
+        <h2 className="mb-4 text-title-large text-primary-content">Episode Description</h2>
         <div
           className="prose prose-sm dark:prose-invert max-w-none"
           dangerouslySetInnerHTML={{

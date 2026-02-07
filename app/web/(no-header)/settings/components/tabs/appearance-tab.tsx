@@ -30,7 +30,7 @@ export const AppearanceTab = memo(function AppearanceTab() {
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label htmlFor="theme-select">Theme</Label>
-            <p className="text-sm text-muted-foreground">Choose your preferred theme</p>
+            <p className="text-body-small text-secondary-content">Choose your preferred theme</p>
           </div>
           <Select value={theme} onValueChange={setTheme}>
             <SelectTrigger className="w-[180px]" id="theme-select">
@@ -49,7 +49,7 @@ export const AppearanceTab = memo(function AppearanceTab() {
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label htmlFor="animations">Animations</Label>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-body-small text-secondary-content">
               Enable smooth transitions and animations
             </p>
           </div>
@@ -62,7 +62,7 @@ export const AppearanceTab = memo(function AppearanceTab() {
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label htmlFor="compact-view">Compact View</Label>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-body-small text-secondary-content">
               Display more items in a condensed layout
             </p>
           </div>
@@ -76,7 +76,7 @@ export const AppearanceTab = memo(function AppearanceTab() {
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label htmlFor="font-size">Font Size</Label>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-body-small text-secondary-content">
               Adjust the text size for better readability
             </p>
           </div>
