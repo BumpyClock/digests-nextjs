@@ -26,9 +26,9 @@ const config: Config = {
       animation: {
         "bounce-x": "bounce-x 1s ease-in-out infinite",
         "accordion-down":
-          "accordion-down var(--motion-duration-fast, 0.2s) var(--motion-ease-decelerate, ease-out)",
+          "accordion-down var(--motion-duration-fast, 120ms) var(--motion-ease-decelerate, cubic-bezier(0, 0, 0, 1))",
         "accordion-up":
-          "accordion-up var(--motion-duration-fast, 0.2s) var(--motion-ease-decelerate, ease-out)",
+          "accordion-up var(--motion-duration-fast, 120ms) var(--motion-ease-decelerate, cubic-bezier(0, 0, 0, 1))",
       },
       fontFamily: {
         sans: ["var(--font-family-sans, ui-sans-serif, system-ui, sans-serif)"],

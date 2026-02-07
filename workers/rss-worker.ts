@@ -358,7 +358,11 @@ const isWorkerMessage = (value: unknown): value is WorkerMessage => {
     case "SET_API_URL":
       return typeof value.payload.url === "string";
     case "SET_CACHE_TTL":
-      return typeof value.payload.ttl === "number";
+      return (
+        typeof value.payload.ttl === "number" &&
+        Number.isFinite(value.payload.ttl) &&
+        value.payload.ttl >= 0
+      );
     default:
       return false;
   }

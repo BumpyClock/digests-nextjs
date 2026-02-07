@@ -127,14 +127,13 @@ const ArticleItemComponent = React.memo(
 ArticleItemComponent.displayName = "ArticleItemComponent";
 
 // Podcast Item Component
-const PodcastItemComponent = React.memo(({ podcast }: { podcast: FeedItem }) => (
+const PodcastItemComponent = React.memo(
+  ({ podcast, onSelect }: { podcast: FeedItem; onSelect: (podcastId: string) => void }) => (
   <MemoizedCommandItem
     className="text-body"
     value={`podcast:${podcast.id} ${podcast.title ?? ""}`.trim()}
     key={podcast.id}
-    onSelect={() => {
-      // TODO: Implement podcast selection
-    }}
+    onSelect={() => onSelect(podcast.id)}
   >
     {podcast.favicon && (
       <Image
@@ -150,6 +149,7 @@ const PodcastItemComponent = React.memo(({ podcast }: { podcast: FeedItem }) => 
   </MemoizedCommandItem>
 ));
 PodcastItemComponent.displayName = "PodcastItemComponent";
+
 
 // Suggestions Section Component
 const SuggestionsSection = React.memo(
@@ -314,6 +314,14 @@ export function CommandBar({
     [articlesById]
   );
 
+  const handlePodcastSelect = useCallback(
+    (podcastId: string) => {
+      router.push(`/web/podcast/${podcastId}`);
+      setOpen(false);
+    },
+    [router, setOpen]
+  );
+
   const shouldShowSuggestions = useCallback(
     (searchValue: string) => {
       const hasMatches = filteredArticles?.length > 0 || filteredPodcasts?.length > 0;
@@ -405,7 +413,7 @@ export function CommandBar({
                 className="text-overline text-secondary-content"
               >
                 {filteredPodcasts.slice(0, MAX_DISPLAY_ITEMS).map((podcast: FeedItem) => (
-                  <PodcastItemComponent key={podcast.id} podcast={podcast} />
+                  <PodcastItemComponent key={podcast.id} podcast={podcast} onSelect={handlePodcastSelect} />
                 ))}
                 <CommandItem
                   key="see-all-podcasts"
