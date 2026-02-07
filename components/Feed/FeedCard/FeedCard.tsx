@@ -1,31 +1,38 @@
 "use client";
 
-import type React from "react";
-import { useState, useRef, useCallback, memo, useEffect } from "react";
-import { Card, CardContent, CardFooter as CardFooterUI } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Share2, Bookmark } from "lucide-react";
-// Removed useAudio import - now using integrated audio from store
-import { ReaderViewModal } from "@/components/reader-view-modal";
-import { handleShare, showReadLaterToast } from "@/utils/content-actions";
-import { PodcastDetailsModal } from "@/components/Podcast/PodcastDetailsModal";
-import { formatDuration } from "@/utils/formatDuration";
-import type { FeedItem } from "@/types";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { useTheme } from "next-themes";
-import { workerService } from "@/services/worker-service";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useIsItemRead, useIsInReadLater, useReadLaterActions } from "@/hooks/useFeedSelectors";
-import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
-import { Ambilight } from "@/components/ui/ambilight";
-import { PodcastPlayButton } from "@/components/Podcast/shared/PodcastPlayButton";
-import { isPodcast } from "@/types/podcast";
-import { getImageKitUrl, IMAGE_PRESETS, canUseImageKit } from "@/utils/imagekit";
-import { motion } from "motion/react";
-import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
+import { Bookmark, Share2 } from "lucide-react";
+import { LayoutGroup, motion } from "motion/react";
 import Image from "next/image";
+import { useTheme } from "next-themes";
+import type React from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { PodcastDetailsModal } from "@/components/Podcast/PodcastDetailsModal";
+import { PodcastPlayButton } from "@/components/Podcast/shared/PodcastPlayButton";
+// Removed useAudio import - now using integrated audio from store
+import { ReaderViewModal } from "@/components/reader-view-modal";
+import { Ambilight } from "@/components/ui/ambilight";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter as CardFooterUI } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
+import { useIsInReadLater, useIsItemRead, useReadLaterActions } from "@/hooks/useFeedSelectors";
+import { getFeedAnimationIds } from "@/lib/feed-animation-ids";
+import {
+  getViewTransitionStyle,
+  runWithViewTransition,
+  supportsViewTransitions,
+} from "@/lib/view-transitions";
+import { workerService } from "@/services/worker-service";
+import type { FeedItem } from "@/types";
+import { isPodcast } from "@/types/podcast";
+import { handleShare, showReadLaterToast } from "@/utils/content-actions";
+import { formatDuration } from "@/utils/formatDuration";
+import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
+import { canUseImageKit, getImageKitUrl, IMAGE_PRESETS } from "@/utils/imagekit";
 import { isValidUrl } from "@/utils/url";
+
 dayjs.extend(relativeTime);
 
 interface FeedCardProps {
@@ -121,6 +128,7 @@ function useCardShadow(id: string, color: { r: number; g: number; b: number }) {
 export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps) {
   const [isReaderViewOpen, setIsReaderViewOpen] = useState(false);
   const [isPodcastDetailsOpen, setIsPodcastDetailsOpen] = useState(false);
+  const [viewTransitionsSupported, setViewTransitionsSupported] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const [imageError, setImageError] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
@@ -136,6 +144,14 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
 
   // Animation context
   const { animationEnabled } = useFeedAnimation();
+  const animationIds = getFeedAnimationIds(feedItem.id);
+  const viewTransitionsEnabled = animationEnabled && viewTransitionsSupported;
+  const motionLayoutEnabled = animationEnabled && !viewTransitionsEnabled;
+  const cardViewTransitionEnabled = viewTransitionsEnabled && !isReaderViewOpen;
+
+  useEffect(() => {
+    setViewTransitionsSupported(supportsViewTransitions());
+  }, []);
 
   /**
    * Handles the click event on the card.
@@ -152,11 +168,17 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
         if (isPodcast(feedItem)) {
           setIsPodcastDetailsOpen(true);
         } else {
-          setIsReaderViewOpen(true);
+          if (viewTransitionsEnabled) {
+            runWithViewTransition(() => {
+              setIsReaderViewOpen(true);
+            });
+          } else {
+            setIsReaderViewOpen(true);
+          }
         }
       }
     },
-    [feedItem]
+    [feedItem, viewTransitionsEnabled]
   );
 
   const formatDate = useCallback((dateString: string) => {
@@ -179,7 +201,7 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
   };
 
   return (
-    <>
+    <LayoutGroup id={`feed-layout-${feedItem.id}`}>
       <motion.div
         whileHover={animationEnabled ? { y: -4 } : undefined}
         whileTap={animationEnabled ? { scale: 0.98 } : undefined}
@@ -225,7 +247,11 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
             {/* Card Thumbnail image*/}
             {((!imageError && feedItem.thumbnail && isValidUrl(feedItem.thumbnail)) ||
               showPlaceholder) && (
-              <div className="relative w-full p-2">
+              <motion.div
+                className="relative w-full p-2"
+                layoutId={motionLayoutEnabled ? animationIds.thumbnail : undefined}
+                style={getViewTransitionStyle(cardViewTransitionEnabled, animationIds.thumbnail)}
+              >
                 <Ambilight
                   className="relative w-full aspect-video rounded-[32px] overflow-hidden"
                   parentHovered={isHovered}
@@ -254,7 +280,7 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
                     loading="lazy"
                   />
                 </Ambilight>
-              </div>
+              </motion.div>
             )}
 
             <CardContent className="p-4">
@@ -263,30 +289,55 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
                   id={`feed-card-header-${feedItem.id}`}
                   className="flex flex-wrap items-center justify-between gap-2 font-regular"
                 >
-                  <div className="flex space-between gap-2 align-center items-center">
-                    {!faviconError && feedItem.favicon && isValidUrl(feedItem.favicon) ? (
-                      <Image
-                        src={feedItem.favicon}
-                        alt={`${cleanupTextContent(getSiteDisplayName(feedItem))} favicon`}
-                        className="w-6 h-6 bg-white rounded-[4px] "
-                        onError={() => handleFaviconError()}
-                        width={24}
-                        height={24}
-                      />
-                    ) : (
-                      <div className="w-6 h-6 bg-muted rounded-[4px] flex items-center justify-center text-xs font-medium">
-                        {cleanupTextContent(getSiteDisplayName(feedItem)).charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <div className="text-xs  line-clamp-1 font-regular">
+                  <motion.div
+                    className="flex space-between gap-2 align-center items-center"
+                    layoutId={motionLayoutEnabled ? animationIds.siteMeta : undefined}
+                    style={getViewTransitionStyle(cardViewTransitionEnabled, animationIds.siteMeta)}
+                  >
+                    <motion.div
+                      layoutId={motionLayoutEnabled ? animationIds.favicon : undefined}
+                      style={getViewTransitionStyle(
+                        cardViewTransitionEnabled,
+                        animationIds.favicon
+                      )}
+                    >
+                      {!faviconError && feedItem.favicon && isValidUrl(feedItem.favicon) ? (
+                        <Image
+                          src={feedItem.favicon}
+                          alt={`${cleanupTextContent(getSiteDisplayName(feedItem))} favicon`}
+                          className="w-6 h-6 bg-white rounded-[4px] "
+                          onError={() => handleFaviconError()}
+                          width={24}
+                          height={24}
+                        />
+                      ) : (
+                        <div className="w-6 h-6 bg-muted rounded-[4px] flex items-center justify-center text-xs font-medium">
+                          {cleanupTextContent(getSiteDisplayName(feedItem)).charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </motion.div>
+                    <motion.div
+                      className="text-xs  line-clamp-1 font-regular"
+                      layoutId={motionLayoutEnabled ? animationIds.siteName : undefined}
+                      style={getViewTransitionStyle(
+                        cardViewTransitionEnabled,
+                        animationIds.siteName
+                      )}
+                    >
                       {cleanupTextContent(getSiteDisplayName(feedItem))}
-                    </div>
-                  </div>
+                    </motion.div>
+                  </motion.div>
                   <div className="text-xs text-muted-foreground w-fit font-medium">
                     {formatDate(feedItem.published)}
                   </div>
                 </div>
-                <h3 className="font-medium">{cleanupTextContent(feedItem.title)}</h3>
+                <motion.h3
+                  className="font-medium"
+                  layoutId={motionLayoutEnabled ? animationIds.title : undefined}
+                  style={getViewTransitionStyle(cardViewTransitionEnabled, animationIds.title)}
+                >
+                  {cleanupTextContent(feedItem.title)}
+                </motion.h3>
                 {feedItem.author && (
                   <div className="text-sm text-muted-foreground">
                     By {cleanupTextContent(feedItem.author)}
@@ -314,11 +365,17 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
         <ReaderViewModal
           isOpen={isReaderViewOpen}
           onClose={() => {
-            setIsReaderViewOpen(false);
+            if (viewTransitionsEnabled) {
+              runWithViewTransition(() => {
+                setIsReaderViewOpen(false);
+              });
+            } else {
+              setIsReaderViewOpen(false);
+            }
           }}
           feedItem={feedItem}
         />
       )}
-    </>
+    </LayoutGroup>
   );
 });

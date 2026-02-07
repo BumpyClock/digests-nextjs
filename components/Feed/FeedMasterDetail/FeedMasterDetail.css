@@ -38,19 +38,23 @@
 
 /* Animations for transitions between views */
 .slide-in-right {
-  animation: slideInRight 0.3s forwards;
+  animation: slideInRight 220ms cubic-bezier(0.25, 1, 0.5, 1) both;
+  will-change: transform, opacity;
 }
 
 .slide-out-left {
-  animation: slideOutLeft 0.3s forwards;
+  animation: slideOutLeft 180ms cubic-bezier(0.25, 1, 0.5, 1) both;
+  will-change: transform, opacity;
 }
 
 .slide-in-left {
-  animation: slideInLeft 0.3s forwards;
+  animation: slideInLeft 220ms cubic-bezier(0.25, 1, 0.5, 1) both;
+  will-change: transform, opacity;
 }
 
 .slide-out-right {
-  animation: slideOutRight 0.3s forwards;
+  animation: slideOutRight 180ms cubic-bezier(0.25, 1, 0.5, 1) both;
+  will-change: transform, opacity;
 }
 
 /* Right to left animations (for showing reader) */
@@ -96,5 +100,15 @@
   to {
     transform: translateX(100%);
     opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-in-right,
+  .slide-out-left,
+  .slide-in-left,
+  .slide-out-right {
+    animation: none;
+    will-change: auto;
   }
 }

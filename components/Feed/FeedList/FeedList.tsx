@@ -1,15 +1,16 @@
 "use client";
 
-import { memo, useCallback, useMemo, useRef, useEffect, useState, type KeyboardEvent } from "react";
-import { FeedItem } from "@/types";
-import Image from "next/image";
-import { Heart } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useIsItemRead } from "@/hooks/useFeedSelectors";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { Heart } from "lucide-react";
+import Image from "next/image";
+import { type KeyboardEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useIsItemRead } from "@/hooks/useFeedSelectors";
+import type { FeedItem } from "@/types";
 import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
 import { isValidUrl } from "@/utils/url";
+
 dayjs.extend(relativeTime);
 
 interface FeedListProps {
@@ -52,17 +53,6 @@ const FeedListItem = memo(function FeedListItem({
       onClick={onSelect}
       onKeyDown={handleKeyDown}
     >
-      {item.thumbnail && isValidUrl(item.thumbnail) && (
-        <div className="shrink-0">
-          <Image
-            src={item.thumbnail}
-            alt={cleanupTextContent(item.title)}
-            width={70}
-            height={70}
-            className="rounded-md object-cover h-[70px] w-[70px]"
-          />
-        </div>
-      )}
       <div className="grow min-w-0">
         <div className="flex items-center gap-2 mb-1">
           {item.favicon && isValidUrl(item.favicon) && (
@@ -86,6 +76,17 @@ const FeedListItem = memo(function FeedListItem({
           {item.favorite && <Heart className="h-3 w-3 fill-red-500 text-red-500" />}
         </div>
       </div>
+      {item.thumbnail && isValidUrl(item.thumbnail) && (
+        <div className="shrink-0">
+          <Image
+            src={item.thumbnail}
+            alt={cleanupTextContent(item.title)}
+            width={70}
+            height={70}
+            className="rounded-md object-cover h-[70px] w-[70px]"
+          />
+        </div>
+      )}
     </button>
   );
 });

@@ -1,10 +1,5 @@
-import { AppHeader } from "@/components/app-header";
+import type { ReactNode } from "react";
 
-export default function WebAppLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <AppHeader />
-      {children}
-    </>
-  );
+export default function WebAppLayout({ children }: { children: ReactNode }) {
+  return children;
 }

@@ -3,16 +3,16 @@ import { Noto_Sans } from "next/font/google";
 import "./globals.css";
 import "./generated-themes.css";
 import "./typography.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { ConditionalHeader } from "@/components/conditional-header";
-import { Toaster } from "@/components/ui/sonner";
-import { AudioPlayer } from "@/components/AudioPlayer";
-import { WorkerInitializer } from "@/components/worker-init";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/react";
-import { AmbilightFilterDefs } from "@/components/ui/AmbilightFilterDefs";
-import { FeedAnimationProvider } from "@/contexts/FeedAnimationContext";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { AudioPlayer } from "@/components/AudioPlayer";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { RouteShell } from "@/components/route-shell";
+import { ThemeProvider } from "@/components/theme-provider";
+import { AmbilightFilterDefs } from "@/components/ui/AmbilightFilterDefs";
+import { Toaster } from "@/components/ui/sonner";
+import { WorkerInitializer } from "@/components/worker-init";
+import { FeedAnimationProvider } from "@/contexts/FeedAnimationContext";
 
 const notoSans = Noto_Sans({ subsets: ["latin"] });
 
@@ -47,6 +47,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <link rel="apple-touch-icon" sizes="192x192" href="/logo192.png" />
         <link rel="manifest" href="/manifest.json" />
+        <link rel="stylesheet" href="/prism-tomorrow.css" />
         <meta name="theme-color" content="#43A1AB" />
       </head>
       <body className={notoSans.className}>
@@ -55,14 +56,11 @@ export default function RootLayout({
             <FeedAnimationProvider>
               <WorkerInitializer />
               <AmbilightFilterDefs saturation={1} spread={2} blur={8} />
-              <div className="flex min-h-screen flex-col">
-                <ConditionalHeader />
-                <main className="flex-1 w-full p-4 xs:p-4 md:p-4 xs:max-w-full md:max-w-5xl lg:max-w-full">
-                  {children}
-                  <SpeedInsights />
-                  <Analytics />
-                </main>
-              </div>
+              <RouteShell>
+                {children}
+                <SpeedInsights />
+                <Analytics />
+              </RouteShell>
               <AudioPlayer />
               <Toaster />
             </FeedAnimationProvider>

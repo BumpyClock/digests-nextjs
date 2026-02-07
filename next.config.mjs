@@ -1,6 +1,12 @@
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const projectRoot = dirname(fileURLToPath(import.meta.url));
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  reactCompiler: true,
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -17,7 +23,9 @@ const nextConfig = {
       },
     ],
   },
-  turbopack: {},
+  turbopack: {
+    root: projectRoot,
+  },
   webpack: (config) => {
     config.module.rules.push({
       test: /\.lottie$/,

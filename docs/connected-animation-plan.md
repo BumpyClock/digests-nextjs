@@ -34,7 +34,7 @@ Implement smooth, connected animations between FeedCard and detail modals (Reade
 #### A. Install Dependencies
 
 ```bash
-pnpm add motion
+bun add motion
 ```
 
 #### B. Create Animation Context

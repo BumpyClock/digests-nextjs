@@ -2,15 +2,15 @@
 // ABOUTME: Provides consistent modal structure for reader and podcast detail views.
 "use client";
 
-import type React from "react";
-import { useEffect, useState, useRef } from "react";
-import { Logger } from "@/utils/logger";
-import { Dialog } from "@/components/ui/dialog";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { Logger } from "@/utils/logger";
 
 interface BaseModalProps {
   isOpen: boolean;
@@ -89,10 +89,10 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
       {isOpen && (
         <Dialog open={isOpen} onOpenChange={handleOpenChange}>
           <DialogPrimitive.Portal>
-            {/* Custom backdrop with blur and opacity (smaller blur for performance) */}
+            {/* Custom backdrop with 40px blur + translucent overlay */}
             <DialogPrimitive.Overlay asChild>
               <motion.div
-                className="fixed inset-0 z-50 bg-black/70"
+                className="fixed inset-0 z-50 bg-background/45 backdrop-blur-2xl"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}

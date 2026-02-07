@@ -1,13 +1,16 @@
 "use client";
 
-import { memo, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "motion/react";
-import type { FeedItem, ReaderViewResponse } from "@/types";
-import { Skeleton } from "@/components/ui/skeleton";
+import { memo, useEffect, useState } from "react";
 import { Ambilight } from "@/components/ui/ambilight";
-import { SiteFavicon } from "./SiteFavicon";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
+import { getFeedAnimationIds } from "@/lib/feed-animation-ids";
+import { getViewTransitionStyle, supportsViewTransitions } from "@/lib/view-transitions";
+import type { FeedItem, ReaderViewResponse } from "@/types";
 import { getSiteDisplayName } from "@/utils/htmlUtils";
+import { SiteFavicon } from "./SiteFavicon";
 
 interface ArticleHeaderProps {
   feedItem: FeedItem;
@@ -41,6 +44,16 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
     const isModal = layout === "modal";
     const isCompact = layout === "compact";
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [viewTransitionsSupported, setViewTransitionsSupported] = useState(false);
+    const { animationEnabled } = useFeedAnimation();
+    const animationIds = getFeedAnimationIds(feedItem.id);
+    const modalTitle = readerView?.title || feedItem.title;
+    const viewTransitionsEnabled = animationEnabled && isModal && viewTransitionsSupported;
+    const motionLayoutEnabled = animationEnabled && isModal && !viewTransitionsEnabled;
+
+    useEffect(() => {
+      setViewTransitionsSupported(supportsViewTransitions());
+    }, []);
 
     return (
       <>
@@ -52,13 +65,16 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                 isModal ? "rounded-[24px] max-h-[450px]" : "rounded-lg mt-4"
               }`}
             >
-              {loading ? (
+              {loading && !isModal ? (
                 // Show skeleton when loading
                 <Skeleton
                   className={`w-full ${isModal ? "h-[450px]" : "h-[200px] md:h-[250px]"}`}
                 />
               ) : feedItem.thumbnail && feedItem.thumbnail.trim() !== "" ? (
-                <>
+                <motion.div
+                  layoutId={motionLayoutEnabled ? animationIds.thumbnail : undefined}
+                  style={getViewTransitionStyle(viewTransitionsEnabled, animationIds.thumbnail)}
+                >
                   {/* Skeleton placeholder - positioned behind image */}
                   <AnimatePresence>
                     {!imageLoaded && (
@@ -100,7 +116,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                       transition={{ duration: 0.3 }}
                     />
                   </Ambilight>
-                </>
+                </motion.div>
               ) : null}
             </div>
           </div>
@@ -201,7 +217,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
             <>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
                 <div className="flex items-center gap-2 text-fluid-sm text-muted-foreground flex-1 min-w-0">
-                  {loading ? (
+                  {loading && !isModal ? (
                     <>
                       <Skeleton className="h-5 w-5 rounded" />
                       <Skeleton className="h-4 w-32" />
@@ -212,17 +228,42 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                   ) : (
                     <>
                       {/* Site Info */}
-                      {feedItem.favicon && (
-                        <SiteFavicon
-                          favicon={feedItem.favicon}
-                          siteTitle={getSiteDisplayName(feedItem)}
-                          size={isModal ? "medium" : "small"}
-                          priority={isModal}
-                        />
-                      )}
-                      <span className="truncate block" title={getSiteDisplayName(feedItem)}>
-                        {getSiteDisplayName(feedItem)}
-                      </span>
+                      <motion.div
+                        className="flex items-center gap-2 min-w-0"
+                        layoutId={motionLayoutEnabled ? animationIds.siteMeta : undefined}
+                        style={getViewTransitionStyle(
+                          viewTransitionsEnabled,
+                          animationIds.siteMeta
+                        )}
+                      >
+                        <motion.div
+                          layoutId={motionLayoutEnabled ? animationIds.favicon : undefined}
+                          style={getViewTransitionStyle(
+                            viewTransitionsEnabled,
+                            animationIds.favicon
+                          )}
+                        >
+                          {feedItem.favicon ? (
+                            <SiteFavicon
+                              favicon={feedItem.favicon}
+                              siteTitle={getSiteDisplayName(feedItem)}
+                              size={isModal ? "medium" : "small"}
+                              priority={isModal}
+                            />
+                          ) : null}
+                        </motion.div>
+                        <motion.span
+                          className="truncate block"
+                          title={getSiteDisplayName(feedItem)}
+                          layoutId={motionLayoutEnabled ? animationIds.siteName : undefined}
+                          style={getViewTransitionStyle(
+                            viewTransitionsEnabled,
+                            animationIds.siteName
+                          )}
+                        >
+                          {getSiteDisplayName(feedItem)}
+                        </motion.span>
+                      </motion.div>
 
                       {/* Vertical Divider */}
                       {extractedAuthor && <div className="w-px h-6 bg-border mx-2" />}
@@ -269,17 +310,19 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
               </div>
 
               {/* Title */}
-              {loading ? (
+              {loading && !isModal ? (
                 <div className="mb-4">
                   <Skeleton className={`h-8 w-full mb-2 ${isModal ? "md:h-10" : ""}`} />
                   <Skeleton className={`h-8 w-3/4 ${isModal ? "md:h-10" : ""}`} />
                 </div>
               ) : (
-                readerView?.title && (
+                modalTitle && (
                   <motion.h1
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.1 }}
+                    layoutId={motionLayoutEnabled ? animationIds.title : undefined}
+                    style={getViewTransitionStyle(viewTransitionsEnabled, animationIds.title)}
                     className={
                       isModal
                         ? "text-fluid-3xl font-bold mb-2 text-left leading-fluid-tight"
@@ -287,7 +330,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                     }
                     id={isModal ? "reader-view-title" : undefined}
                   >
-                    {readerView.title}
+                    {modalTitle}
                   </motion.h1>
                 )
               )}

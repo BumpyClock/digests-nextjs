@@ -1,5 +1,14 @@
 # Integration Guide for Connected Animations
 
+## Current Implementation Status (2026-02-07)
+
+- Reader open/close in `FeedCard` now uses `document.startViewTransition()` when supported.
+- React state updates inside the transition callback are wrapped with `flushSync` for stable snapshots.
+- Shared elements (`thumbnail`, `title`, `site meta`, `favicon`, `site name`) now map both:
+  - Motion `layoutId` (fallback path)
+  - CSS `viewTransitionName` (native path)
+- Native shared-element names are generated from sanitized+hashed feed IDs to stay CSS-safe.
+
 ## Specific Integration Points for Your Codebase
 
 ### 1. Working with Radix UI Dialog
@@ -160,7 +169,7 @@ const trackAnimationPerformance = () => {
 
 ### Phase 1: Setup (Non-Breaking)
 
-1. Install motion: `pnpm add motion`
+1. Install motion: `bun add motion`
 2. Create animation context and providers
 3. Add motion config to app layout
 

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.7/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
   "formatter": {
     "enabled": true,
     "indentWidth": 2,
@@ -24,6 +24,7 @@
       "**",
       "!!**/.next",
       "!!**/node_modules",
+      "!!**/compiled-tests",
       "!!**/coverage",
       "!!**/.turbo",
       "!**/pnpm-lock.yaml",

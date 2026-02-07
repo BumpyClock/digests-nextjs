@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { ArrowLeft } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { FeedList } from "@/components/Feed/FeedList/FeedList";
 import { ReaderViewPane } from "@/components/Feed/ReaderViewPane/ReaderViewPane";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { FeedItem } from "@/types";
-import { useIsMobile } from "@/hooks/use-media-query";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { PodcastDetailsPane } from "@/components/Podcast/PodcastDetailsPane";
+import { Button } from "@/components/ui/button";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { useIsMobile } from "@/hooks/use-media-query";
+import { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
 import "./FeedMasterDetail.css";
 
@@ -16,6 +16,8 @@ interface FeedMasterDetailProps {
   items: FeedItem[];
   isLoading: boolean;
 }
+
+const MOBILE_SLIDE_MS = 220;
 
 export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
   const [selectedItem, setSelectedItem] = useState<FeedItem | null>(null);
@@ -45,7 +47,7 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
         setIsAnimating(true);
         setShowList(false);
         // Reset animation state after animation completes
-        setTimeout(() => setIsAnimating(false), 300);
+        setTimeout(() => setIsAnimating(false), MOBILE_SLIDE_MS);
       }
     },
     [isMobile]
@@ -56,7 +58,7 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
     setIsAnimating(true);
     setShowList(true);
     // Reset animation state after animation completes
-    setTimeout(() => setIsAnimating(false), 300);
+    setTimeout(() => setIsAnimating(false), MOBILE_SLIDE_MS);
   }, []);
 
   // Determine animation classes based on direction
@@ -73,7 +75,7 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
   // On mobile: show either the list or the detail view
   if (isMobile) {
     return (
-      <div className="h-[calc(100vh-11rem)] mobile-feed-master-detail" id="feed-master-detail">
+      <div className="h-full mobile-feed-master-detail" id="feed-master-detail">
         {showList ? (
           <div className={`mobile-feed-list ${getAnimationClass()}`}>
             <FeedList
@@ -112,9 +114,9 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
 
   // On desktop: show the resizable panel group
   return (
-    <div className="h-[calc(100vh-11rem)]" id="feed-master-detail">
-      <ResizablePanelGroup direction="horizontal" className="min-h-full rounded-lg border">
-        <ResizablePanel defaultSize={30} minSize={20} maxSize={40}>
+    <div className="h-full min-h-0" id="feed-master-detail">
+      <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 rounded-lg border">
+        <ResizablePanel defaultSize="30%" minSize="300px" maxSize="45%">
           <FeedList
             items={items}
             isLoading={isLoading}
@@ -125,7 +127,7 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
 
         <ResizableHandle withHandle />
 
-        <ResizablePanel defaultSize={70}>
+        <ResizablePanel defaultSize="70%">
           {selectedItem && isPodcast(selectedItem) ? (
             <PodcastDetailsPane feedItem={selectedItem} />
           ) : (
