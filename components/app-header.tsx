@@ -13,7 +13,7 @@ export function AppHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 w-full max-w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 px-4">
+    <header className="sticky top-0 z-sticky w-full max-w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 px-4">
       <div className="container flex h-14 items-center mx-auto">
         <div className="mr-4 flex">
           <Link href="/web" className="flex items-center space-x-2">

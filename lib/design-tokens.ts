@@ -63,6 +63,8 @@ export const designTokens = {
     xl: rem(1),
     "2xl": rem(1.5),
     "3xl": rem(2),
+    "4xl": rem(2.5),
+    "5xl": rem(3),
     full: "9999px",
   },
   shadow: {

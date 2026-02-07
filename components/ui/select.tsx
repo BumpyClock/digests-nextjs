@@ -72,7 +72,7 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 max-h-(--radix-select-content-available-height) min-w-32 overflow-y-auto overflow-x-hidden origin-(--radix-select-content-transform-origin)",
+        "relative z-popover max-h-(--radix-select-content-available-height) min-w-32 overflow-y-auto overflow-x-hidden origin-(--radix-select-content-transform-origin)",
         popoverSurfaceClasses,
         popoverMotionClasses,
         position === "popper" &&

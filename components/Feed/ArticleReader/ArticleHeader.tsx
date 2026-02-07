@@ -62,7 +62,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
           <div className="mb-6">
             <div
               className={`overflow-hidden relative ${
-                isModal ? "rounded-[24px] max-h-[450px]" : "rounded-lg mt-4"
+                isModal ? "rounded-2xl max-h-[450px]" : "rounded-lg mt-4"
               }`}
             >
               {loading && !isModal ? (

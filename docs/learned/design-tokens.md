@@ -24,3 +24,13 @@ read_when: touching token source-of-truth, CSS var generation, global layout imp
 - Keep token keys CSS-variable-safe (no dots/spaces)
 - Keep generator deterministic; preserve object key order
 - Keep generated file committed
+- Keep naming parity with consumers:
+  - `motion.ease.*` => `--motion-ease-*`
+  - `shadow.*` => `--shadow-*`
+  - `z.*` => `--z-*`
+  - `backdropBlur.*` => `--backdrop-blur-*`
+- Audit pass for `components/` + `components/ui/` complete:
+  - removed `transition-all`
+  - removed invalid `text-md` / `font-regular`
+  - replaced arbitrary `rounded-[...]` in shared components with token-backed radius classes
+  - only intentional bespoke values should remain

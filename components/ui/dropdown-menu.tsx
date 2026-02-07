@@ -50,7 +50,7 @@ const DropdownMenuSubContent = React.forwardRef<
   <DropdownMenuPrimitive.SubContent
     ref={ref}
     className={cn(
-      "z-50 min-w-32 overflow-hidden shadow-lg",
+      "z-popover min-w-32 overflow-hidden shadow-lg",
       popoverSurfaceClasses,
       popoverMotionClasses,
       className
@@ -69,7 +69,7 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-32 overflow-y-auto overflow-x-hidden shadow-md",
+        "z-popover max-h-(--radix-dropdown-menu-content-available-height) min-w-32 overflow-y-auto overflow-x-hidden shadow-md",
         popoverSurfaceClasses,
         popoverMotionClasses,
         className

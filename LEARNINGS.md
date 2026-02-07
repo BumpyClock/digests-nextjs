@@ -13,3 +13,4 @@
 - 2026-02-07: settings UX works best as shared tabs content reused in both `/web` modal dialog and `/web/settings` fallback page to avoid duplicated tab wiring/state bugs.
 - 2026-02-07: View Transition API shared-element names must be CSS-safe; sanitize/hash feed IDs for `viewTransitionName`, and wrap state flips in `document.startViewTransition(() => flushSync(...))` for reliable snapshots in React.
 - 2026-02-07: for `/web` header/no-header splits, keep `app/web/layout.tsx` server-only and use route groups (`(with-header)` / `(no-header)`) instead of `usePathname` in layout, so server rendering stays intact.
+- 2026-02-07: TS-first design tokens only work if generated CSS variable names exactly match consumer names (`--motion-ease-*`, `--shadow-*`, `--z-*`, `--backdrop-blur-*`); keep generator output aligned with `tailwind.config.ts` fallback vars and regenerate after token key changes.

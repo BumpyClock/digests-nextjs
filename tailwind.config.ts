@@ -2,7 +2,6 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   darkMode: ["class", "dark"],
-  safeList: ["dark"],
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
@@ -191,6 +190,8 @@ const config: Config = {
         xl: "var(--radius-xl, calc(var(--radius, 0.5rem) + 4px))",
         "2xl": "var(--radius-2xl, calc(var(--radius, 0.5rem) + 8px))",
         "3xl": "var(--radius-3xl, calc(var(--radius, 0.5rem) + 12px))",
+        "4xl": "var(--radius-4xl, calc(var(--radius, 0.5rem) + 20px))",
+        "5xl": "var(--radius-5xl, calc(var(--radius, 0.5rem) + 28px))",
         full: "9999px",
       },
       transitionProperty: {

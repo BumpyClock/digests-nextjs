@@ -90,7 +90,11 @@ const CardFooter = memo(function CardFooter({ feedItem }: { feedItem: FeedItem }
         </Button>
       </div>
       {isPodcast(feedItem) && feedItem.duration && (
-        <div className="text-xs text-muted-foreground">{formatDuration(feedItem.duration)}</div>
+        <div className="text-xs text-muted-foreground">
+          {Number.isFinite(Number(feedItem.duration))
+            ? formatDuration(Number(feedItem.duration))
+            : feedItem.duration}
+        </div>
       )}
     </CardFooterUI>
   );
@@ -215,12 +219,12 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
             {
               boxShadow: getShadowStyle(),
               transition:
-                "opacity 200ms ease-out, box-shadow 100ms ease-out, transform 100ms ease-out",
+                "opacity var(--motion-duration-normal, 200ms) var(--motion-ease-decelerate, ease-out), box-shadow var(--motion-duration-fast, 120ms) var(--motion-ease-decelerate, ease-out), transform var(--motion-duration-fast, 120ms) var(--motion-ease-decelerate, ease-out)",
               transform: isPressed ? "translateY(2px)" : "none",
               opacity: isRead ? 0.8 : 1,
             } as React.CSSProperties
           }
-          className={`card w-full bg-card overflow-hidden cursor-pointer rounded-[40px] relative group ${isRead ? "read-item" : ""}`}
+          className={`card w-full bg-card overflow-hidden cursor-pointer rounded-4xl relative group ${isRead ? "read-item" : ""}`}
           onClick={handleCardClick}
           onMouseLeave={() => {
             setIsHovered(false);
@@ -230,19 +234,6 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
           onMouseDown={() => setIsPressed(true)}
           onMouseUp={() => setIsPressed(false)}
         >
-          {/* <div
-          id={`feed-card-bg-${feedItem.id}`}
-          className="absolute inset-0 overflow-hidden z-0"
-        >
-          <div 
-            className="w-full h-full opacity-10 dark:opacity-15 group-hover:opacity-20 dark:group-hover:opacity-25 transition-all"
-            style={{
-              backgroundColor: feedItem.thumbnailColor ? tinycolor({ r: feedItem.thumbnailColor.r, g: feedItem.thumbnailColor.g, b: feedItem.thumbnailColor.b }).toRgbString() : 'transparent',
-             
-            }}
-          />
-        </div> */}
-
           <div id={`feed-card-image-${feedItem.id}`} className="relative z-10 ">
             {/* Card Thumbnail image*/}
             {((!imageError && feedItem.thumbnail && isValidUrl(feedItem.thumbnail)) ||
@@ -253,11 +244,11 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
                 style={getViewTransitionStyle(cardViewTransitionEnabled, animationIds.thumbnail)}
               >
                 <Ambilight
-                  className="relative w-full aspect-video rounded-[32px] overflow-hidden"
+                  className="relative w-full aspect-video rounded-3xl overflow-hidden"
                   parentHovered={isHovered}
                   opacity={{ rest: 0, hover: 0.7 }}
                 >
-                  {imageLoading && <Skeleton className="absolute inset-0 z-10 rounded-[32px]" />}
+                  {imageLoading && <Skeleton className="absolute inset-0 z-10 rounded-3xl" />}
                   <Image
                     src={
                       showPlaceholder
@@ -271,7 +262,7 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
                     alt={feedItem.title}
                     width={400}
                     height={300}
-                    className={`w-full h-full object-cover rounded-[32px] group-hover:scale-[1.05] transition-all duration-150 ${
+                    className={`w-full h-full object-cover rounded-3xl group-hover:scale-[1.05] transition-token-transform duration-fast ${
                       imageLoading ? "opacity-0" : "opacity-100"
                     }`}
                     onError={() => handleImageError()}
@@ -287,7 +278,7 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
               <div className="space-y-2">
                 <div
                   id={`feed-card-header-${feedItem.id}`}
-                  className="flex flex-wrap items-center justify-between gap-2 font-regular"
+                  className="flex flex-wrap items-center justify-between gap-2 font-normal"
                 >
                   <motion.div
                     className="flex space-between gap-2 align-center items-center"
@@ -305,19 +296,19 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
                         <Image
                           src={feedItem.favicon}
                           alt={`${cleanupTextContent(getSiteDisplayName(feedItem))} favicon`}
-                          className="w-6 h-6 bg-white rounded-[4px] "
+                          className="w-6 h-6 bg-background rounded-sm"
                           onError={() => handleFaviconError()}
                           width={24}
                           height={24}
                         />
                       ) : (
-                        <div className="w-6 h-6 bg-muted rounded-[4px] flex items-center justify-center text-xs font-medium">
+                        <div className="w-6 h-6 bg-muted rounded-sm flex items-center justify-center text-xs font-medium">
                           {cleanupTextContent(getSiteDisplayName(feedItem)).charAt(0).toUpperCase()}
                         </div>
                       )}
                     </motion.div>
                     <motion.div
-                      className="text-xs  line-clamp-1 font-regular"
+                      className="text-xs line-clamp-1 font-normal"
                       layoutId={motionLayoutEnabled ? animationIds.siteName : undefined}
                       style={getViewTransitionStyle(
                         cardViewTransitionEnabled,

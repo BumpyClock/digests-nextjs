@@ -60,15 +60,15 @@ export function AudioMiniPlayer() {
   if (!currentAudio) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 w-[640px] z-50 pointer-events-none">
+    <div className="fixed bottom-4 right-4 w-[640px] z-toast pointer-events-none">
       <Card
         id="audio-mini-player"
-        className="border shadow-2xl rounded-[32px] backdrop-blur-[20px] pointer-events-auto bg-card/70!"
+        className="border shadow-2xl rounded-3xl backdrop-blur-2xl pointer-events-auto bg-card/70"
       >
         <CardContent className="p-4 flex gap-6">
           {/* Album Art - Only render if image exists - efficient conditional rendering */}
           {currentAudio.image && (
-            <div className="w-[180px] h-[180px] overflow-hidden shrink-0 rounded-[16px]">
+            <div className="w-[180px] h-[180px] overflow-hidden shrink-0 rounded-xl">
               <Image
                 src={currentAudio.image || "/placeholder-podcast.svg"}
                 alt={currentAudio.title || "Album cover"}
@@ -85,7 +85,7 @@ export function AudioMiniPlayer() {
             {/* Top Section */}
             <div className="flex items-start justify-between mb-1">
               <div>
-                <h2 className="text-md font-bold mb-2 line-clamp-2">{currentAudio.title}</h2>
+                <h2 className="text-base font-bold mb-2 line-clamp-2">{currentAudio.title}</h2>
                 <p className="text-xs opacity-75">{currentAudio.source}</p>
               </div>
               <Button
@@ -125,7 +125,7 @@ export function AudioMiniPlayer() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-12 w-12 bg-white text-amber-950 rounded-full flex items-center justify-center hover:bg-white/90"
+                className="h-12 w-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center hover:bg-primary/90"
                 onClick={memoizedTogglePlayPause} // Use memoized callback
                 aria-label={isPlaying ? "Pause" : "Play"}
               >
