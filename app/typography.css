@@ -18,6 +18,9 @@
   --tw-prose-pre-bg: hsl(var(--secondary));
   --tw-prose-th-borders: hsl(var(--border));
   --tw-prose-td-borders: hsl(var(--border));
+  font-size: var(--font-size-base, var(--text-base, 1rem));
+  line-height: var(--line-height-relaxed, var(--text-base--line-height, 1.75));
+  letter-spacing: var(--letter-spacing-normal, var(--tracking-normal, 0em));
 }
 
 /* Dark mode prose overrides - applied when using data-theme with dark variants */
@@ -52,6 +55,8 @@ html[data-theme="dracula-dark"] .prose {
 .prose h6 {
   color: hsl(var(--foreground));
   font-weight: 600;
+  line-height: var(--line-height-tight, 1.25);
+  letter-spacing: var(--letter-spacing-tight, var(--tracking-tight, -0.025em));
 }
 
 /* Strong emphasis */
@@ -115,13 +120,16 @@ html[data-theme="dracula-dark"] .prose {
 
 /* Custom prose size variants */
 .prose-sm {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm, var(--text-sm, 0.875rem));
+  line-height: var(--line-height-normal, var(--text-sm--line-height, 1.5));
 }
 
 .prose-lg {
-  font-size: 1.125rem;
+  font-size: var(--font-size-lg, var(--text-lg, 1.125rem));
+  line-height: var(--line-height-relaxed, var(--text-lg--line-height, 1.75));
 }
 
 .prose-xl {
-  font-size: 1.25rem;
+  font-size: var(--font-size-xl, var(--text-xl, 1.25rem));
+  line-height: var(--line-height-relaxed, var(--text-xl--line-height, 1.75));
 }

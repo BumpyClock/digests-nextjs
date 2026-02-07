@@ -1,0 +1,107 @@
+import { ms, px, rem, type TokenTree } from "./token-helpers";
+
+export const designTokens = {
+  typography: {
+    fontFamily: {
+      sans: '"Noto Sans", "Segoe UI", Helvetica, Arial, sans-serif',
+      serif: '"IBM Plex Serif", Georgia, "Times New Roman", serif',
+      mono: '"IBM Plex Mono", "SFMono-Regular", Menlo, monospace',
+    },
+    fontSize: {
+      xs: rem(0.75),
+      sm: rem(0.875),
+      base: rem(1),
+      md: rem(1.125),
+      lg: rem(1.25),
+      xl: rem(1.5),
+      x2l: rem(1.875),
+      x3l: rem(2.25),
+      x4l: rem(3),
+    },
+    lineHeight: {
+      tight: 1.2,
+      snug: 1.35,
+      normal: 1.5,
+      relaxed: 1.65,
+      loose: 1.8,
+    },
+    fontWeight: {
+      regular: 400,
+      medium: 500,
+      semibold: 600,
+      bold: 700,
+    },
+    letterSpacing: {
+      tighter: "-0.02em",
+      tight: "-0.01em",
+      normal: "0em",
+      wide: "0.01em",
+      wider: "0.02em",
+    },
+  },
+  motion: {
+    duration: {
+      instant: ms(0),
+      fast: ms(120),
+      normal: ms(200),
+      slow: ms(320),
+      slower: ms(480),
+    },
+    easing: {
+      standard: "cubic-bezier(0.2, 0, 0, 1)",
+      emphasized: "cubic-bezier(0.2, 0, 0, 1.2)",
+      decelerate: "cubic-bezier(0, 0, 0, 1)",
+      accelerate: "cubic-bezier(0.4, 0, 1, 1)",
+    },
+  },
+  radius: {
+    none: rem(0),
+    xs: rem(0.125),
+    sm: rem(0.25),
+    md: rem(0.5),
+    lg: rem(0.75),
+    xl: rem(1),
+    full: "9999px",
+  },
+  elevation: {
+    0: "none",
+    1: "0 1px 2px 0 rgb(0 0 0 / 0.08)",
+    2: "0 4px 8px -2px rgb(0 0 0 / 0.12)",
+    3: "0 10px 24px -8px rgb(0 0 0 / 0.16)",
+    4: "0 16px 40px -12px rgb(0 0 0 / 0.2)",
+  },
+  zIndex: {
+    base: 0,
+    content: 10,
+    sticky: 100,
+    dropdown: 500,
+    overlay: 800,
+    modal: 1000,
+    toast: 1100,
+    tooltip: 1200,
+  },
+  blur: {
+    none: rem(0),
+    xs: px(2),
+    sm: px(4),
+    md: px(8),
+    lg: px(12),
+    xl: px(20),
+    x2l: px(32),
+  },
+  spacing: {
+    none: rem(0),
+    xxs: rem(0.125),
+    xs: rem(0.25),
+    sm: rem(0.5),
+    md: rem(0.75),
+    lg: rem(1),
+    xl: rem(1.5),
+    x2l: rem(2),
+    x3l: rem(3),
+    x4l: rem(4),
+    x5l: rem(6),
+  },
+} as const satisfies TokenTree;
+
+export type DesignTokens = typeof designTokens;
