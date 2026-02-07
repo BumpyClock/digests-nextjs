@@ -85,8 +85,8 @@ export function AudioMiniPlayer() {
             {/* Top Section */}
             <div className="flex items-start justify-between mb-1">
               <div>
-                <h2 className="text-base font-bold mb-2 line-clamp-2">{currentAudio.title}</h2>
-                <p className="text-xs opacity-75">{currentAudio.source}</p>
+                <h2 className="text-body font-bold mb-2 line-clamp-2">{currentAudio.title}</h2>
+                <p className="text-caption text-tertiary-content">{currentAudio.source}</p>
               </div>
               <Button
                 variant="ghost"
@@ -108,7 +108,7 @@ export function AudioMiniPlayer() {
                 className="mb-1"
                 onValueChange={handleSeek}
               />
-              <div className="flex justify-between text-xs opacity-75">
+              <div className="flex justify-between text-caption text-tertiary-content">
                 <span>{formattedCurrentTime}</span>
                 <span>{formattedDuration}</span>
               </div>

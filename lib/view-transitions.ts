@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 import { flushSync } from "react-dom";
 
-interface DocumentWithViewTransition extends Document {
+interface DocumentWithViewTransition {
   startViewTransition?: (updateCallback: () => void | Promise<void>) => unknown;
 }
 
@@ -21,7 +21,7 @@ export function supportsViewTransitions(): boolean {
     return false;
   }
 
-  const viewTransitionDocument = document as DocumentWithViewTransition;
+  const viewTransitionDocument = document as Document & DocumentWithViewTransition;
   return typeof viewTransitionDocument.startViewTransition === "function";
 }
 
@@ -31,7 +31,7 @@ export function runWithViewTransition(update: () => void): void {
     return;
   }
 
-  const viewTransitionDocument = document as DocumentWithViewTransition;
+  const viewTransitionDocument = document as Document & DocumentWithViewTransition;
   if (typeof viewTransitionDocument.startViewTransition !== "function") {
     update();
     return;

@@ -39,6 +39,69 @@ export const designTokens = {
     wide: "0.01em",
     wider: "0.02em",
   },
+  typography: {
+    bodySmall: {
+      size: "var(--font-size-sm)",
+      lineHeight: "var(--line-height-normal)",
+      weight: "var(--font-weight-regular)",
+      letterSpacing: "var(--letter-spacing-normal)",
+    },
+    body: {
+      size: "var(--font-size-base)",
+      lineHeight: "var(--line-height-relaxed)",
+      weight: "var(--font-weight-regular)",
+      letterSpacing: "var(--letter-spacing-normal)",
+    },
+    bodyLarge: {
+      size: "var(--font-size-lg)",
+      lineHeight: "var(--line-height-relaxed)",
+      weight: "var(--font-weight-regular)",
+      letterSpacing: "var(--letter-spacing-normal)",
+    },
+    subtitle: {
+      size: "var(--font-size-sm)",
+      lineHeight: "var(--line-height-snug)",
+      weight: "var(--font-weight-medium)",
+      letterSpacing: "var(--letter-spacing-normal)",
+    },
+    title: {
+      size: "var(--font-size-lg)",
+      lineHeight: "var(--line-height-tight)",
+      weight: "var(--font-weight-semibold)",
+      letterSpacing: "var(--letter-spacing-tight)",
+    },
+    titleLarge: {
+      size: "var(--font-size-2xl)",
+      lineHeight: "var(--line-height-tight)",
+      weight: "var(--font-weight-semibold)",
+      letterSpacing: "var(--letter-spacing-tight)",
+    },
+    caption: {
+      size: "var(--font-size-xs)",
+      lineHeight: "var(--line-height-normal)",
+      weight: "var(--font-weight-regular)",
+      letterSpacing: "var(--letter-spacing-normal)",
+    },
+    label: {
+      size: "var(--font-size-sm)",
+      lineHeight: "var(--line-height-tight)",
+      weight: "var(--font-weight-medium)",
+      letterSpacing: "var(--letter-spacing-normal)",
+    },
+    overline: {
+      size: "var(--font-size-xs)",
+      lineHeight: "var(--line-height-normal)",
+      weight: "var(--font-weight-semibold)",
+      letterSpacing: "var(--letter-spacing-wide)",
+    },
+    code: {
+      family: "var(--font-family-mono)",
+      size: "var(--font-size-sm)",
+      lineHeight: "var(--line-height-normal)",
+      weight: "var(--font-weight-regular)",
+      letterSpacing: "var(--letter-spacing-normal)",
+    },
+  },
   motion: {
     duration: {
       instant: ms(0),

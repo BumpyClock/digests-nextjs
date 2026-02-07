@@ -160,12 +160,118 @@
     transition-duration: var(--motion-duration-fast, 125ms);
     transition-timing-function: var(--motion-ease-standard, ease-in-out);
   }
+
+  :root {
+    --text-color-primary: var(--foreground);
+    --text-color-secondary: var(--muted-foreground);
+    --text-color-tertiary: var(--muted-foreground);
+    --text-color-link: var(--brand-primary);
+    --text-color-primary-on-accent: var(--accent-foreground);
+    --text-color-secondary-on-accent: var(--accent-foreground);
+  }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
 @layer utilities {
+  .text-primary-content {
+    color: hsl(var(--text-color-primary));
+  }
+
+  .text-secondary-content {
+    color: hsl(var(--text-color-secondary));
+  }
+
+  .text-tertiary-content {
+    color: hsl(var(--text-color-tertiary) / 0.8);
+  }
+
+  .text-primary-on-accent {
+    color: hsl(var(--text-color-primary-on-accent));
+  }
+
+  .text-secondary-on-accent {
+    color: hsl(var(--text-color-secondary-on-accent) / 0.82);
+  }
+
+  .text-link-content {
+    color: hsl(var(--text-color-link));
+  }
+
+  .text-body-small {
+    font-size: var(--typography-body-small-size);
+    line-height: var(--typography-body-small-line-height);
+    font-weight: var(--typography-body-small-weight);
+    letter-spacing: var(--typography-body-small-letter-spacing);
+  }
+
+  .text-body {
+    font-size: var(--typography-body-size);
+    line-height: var(--typography-body-line-height);
+    font-weight: var(--typography-body-weight);
+    letter-spacing: var(--typography-body-letter-spacing);
+  }
+
+  .text-body-large {
+    font-size: var(--typography-body-large-size);
+    line-height: var(--typography-body-large-line-height);
+    font-weight: var(--typography-body-large-weight);
+    letter-spacing: var(--typography-body-large-letter-spacing);
+  }
+
+  .text-subtitle {
+    font-size: var(--typography-subtitle-size);
+    line-height: var(--typography-subtitle-line-height);
+    font-weight: var(--typography-subtitle-weight);
+    letter-spacing: var(--typography-subtitle-letter-spacing);
+  }
+
+  .text-title {
+    font-size: var(--typography-title-size);
+    line-height: var(--typography-title-line-height);
+    font-weight: var(--typography-title-weight);
+    letter-spacing: var(--typography-title-letter-spacing);
+  }
+
+  .text-title-large {
+    font-size: var(--typography-title-large-size);
+    line-height: var(--typography-title-large-line-height);
+    font-weight: var(--typography-title-large-weight);
+    letter-spacing: var(--typography-title-large-letter-spacing);
+  }
+
+  .text-caption {
+    font-size: var(--typography-caption-size);
+    line-height: var(--typography-caption-line-height);
+    font-weight: var(--typography-caption-weight);
+    letter-spacing: var(--typography-caption-letter-spacing);
+  }
+
+  .text-label {
+    font-size: var(--typography-label-size);
+    line-height: var(--typography-label-line-height);
+    font-weight: var(--typography-label-weight);
+    letter-spacing: var(--typography-label-letter-spacing);
+  }
+
+  .text-overline {
+    font-size: var(--typography-overline-size);
+    line-height: var(--typography-overline-line-height);
+    font-weight: var(--typography-overline-weight);
+    letter-spacing: var(--typography-overline-letter-spacing);
+    text-transform: uppercase;
+  }
+
+  .text-code {
+    font-family: var(--typography-code-family);
+    font-size: var(--typography-code-size);
+    line-height: var(--typography-code-line-height);
+    font-weight: var(--typography-code-weight);
+    letter-spacing: var(--typography-code-letter-spacing);
+  }
+
   /* Fluid Typography Utilities */
   .text-fluid-xs {
     font-size: clamp(0.75rem, 2vw, 0.875rem); /* 12px -> 14px */
@@ -303,7 +409,7 @@
   }
   a {
     text-decoration: none;
-    color: var(--color);
+    color: hsl(var(--text-color-link));
     width: 100%;
     height: 100%;
     display: flex;

@@ -8,6 +8,7 @@ import { cleanupModalContent } from "@/utils/htmlUtils";
 import { cleanupMarkdownContent } from "@/utils/imageDeduplicator";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { motion } from "motion/react";
+import { motionTokens } from "@/lib/motion-tokens";
 
 // Import extracted components
 import { ArticleHeader } from "./ArticleHeader";
@@ -79,7 +80,7 @@ export const ArticleReader = memo<ArticleReaderProps>(
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
+              transition={{ duration: motionTokens.duration.slow, delay: motionTokens.duration.normal }}
             >
               <ArticleMetadata
                 author={extractedAuthor}
@@ -180,7 +181,7 @@ export const EmptyState = memo(() => {
         <h3 className={`font-semibold ${isMobile ? "text-lg" : "text-xl"} mb-2`}>
           Select an article
         </h3>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-body-small text-secondary-content">
           Choose an article from the list to view its content here.
         </p>
       </div>

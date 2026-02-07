@@ -21,7 +21,7 @@ export function ContentNotFound({ contentType }: ContentNotFoundProps) {
       </Button>
       <div className="flex flex-col items-center justify-center py-12">
         <h2 className="text-2xl font-bold mb-2">{contentType} not found</h2>
-        <p className="text-muted-foreground mb-6">
+        <p className="text-secondary-content mb-6">
           The {contentType.toLowerCase()} you&apos;re looking for doesn&apos;t exist or has been
           removed.
         </p>

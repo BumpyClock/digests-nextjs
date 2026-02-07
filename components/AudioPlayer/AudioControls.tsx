@@ -41,7 +41,7 @@ export function AudioControls() {
   return (
     <div className="flex items-center space-x-2">
       <div className="flex items-center space-x-2 mx-4 flex-1">
-        <div className="text-xs w-10 text-right">{formattedCurrentTime}</div>
+        <div className="text-caption w-10 text-right">{formattedCurrentTime}</div>
         <Slider
           value={[currentTime]}
           max={duration || 100}
@@ -49,7 +49,7 @@ export function AudioControls() {
           onValueChange={handleSeek}
           className="flex-1"
         />
-        <div className="text-xs w-10">{formattedDuration}</div>
+        <div className="text-caption w-10">{formattedDuration}</div>
       </div>
       <div className="flex items-center space-x-2">
         <Button variant="ghost" size="icon" className="h-8 w-8">

@@ -43,7 +43,7 @@ export function PodcastMetadata({
 
   if (variant === "compact") {
     return (
-      <div className={cn("flex items-center gap-4 text-sm text-muted-foreground", className)}>
+      <div className={cn("flex items-center gap-4 text-body-small text-secondary-content", className)}>
         {formattedDate && <span>{formattedDate}</span>}
         {formattedDuration && <span>{formattedDuration}</span>}
         {author && <span>By {author}</span>}
@@ -54,19 +54,19 @@ export function PodcastMetadata({
   return (
     <div className={cn("space-y-2", className)}>
       {formattedDate && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-body-small text-secondary-content">
           <Calendar className={iconSizes[iconSize]} />
           <time dateTime={published}>{formattedDate}</time>
         </div>
       )}
       {formattedDuration && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-body-small text-secondary-content">
           <Clock className={iconSizes[iconSize]} />
           <span>{formattedDuration}</span>
         </div>
       )}
       {author && (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-body-small text-secondary-content">
           <User className={iconSizes[iconSize]} />
           <span>{author}</span>
         </div>

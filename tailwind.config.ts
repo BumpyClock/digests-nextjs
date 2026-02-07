@@ -30,6 +30,17 @@ const config: Config = {
         "accordion-up":
           "accordion-up var(--motion-duration-fast, 0.2s) var(--motion-ease-decelerate, ease-out)",
       },
+      fontFamily: {
+        sans: ["var(--font-family-sans, ui-sans-serif, system-ui, sans-serif)"],
+        serif: ["var(--font-family-serif, ui-serif, Georgia, serif)"],
+        mono: ["var(--font-family-mono, ui-monospace, SFMono-Regular, Menlo, monospace)"],
+      },
+      fontWeight: {
+        normal: "var(--font-weight-regular, 400)",
+        medium: "var(--font-weight-medium, 500)",
+        semibold: "var(--font-weight-semibold, 600)",
+        bold: "var(--font-weight-bold, 700)",
+      },
       fontSize: {
         xs: [
           "var(--font-size-xs, var(--text-xs, 0.75rem))",

@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
 import { useIsInReadLater, useIsItemRead, useReadLaterActions } from "@/hooks/useFeedSelectors";
 import { getFeedAnimationIds } from "@/lib/feed-animation-ids";
+import { motionTokens } from "@/lib/motion-tokens";
 import {
   getViewTransitionStyle,
   runWithViewTransition,
@@ -90,7 +91,7 @@ const CardFooter = memo(function CardFooter({ feedItem }: { feedItem: FeedItem }
         </Button>
       </div>
       {isPodcast(feedItem) && feedItem.duration && (
-        <div className="text-xs text-muted-foreground">
+        <div className="text-caption text-secondary-content">
           {Number.isFinite(Number(feedItem.duration))
             ? formatDuration(Number(feedItem.duration))
             : feedItem.duration}
@@ -211,7 +212,7 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
         whileTap={animationEnabled ? { scale: 0.98 } : undefined}
         initial={animationEnabled ? { opacity: 0, y: 20 } : undefined}
         animate={animationEnabled ? { opacity: 1, y: 0 } : undefined}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: motionTokens.duration.normal }}
       >
         <Card
           ref={cardRef}
@@ -302,13 +303,13 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
                           height={24}
                         />
                       ) : (
-                        <div className="w-6 h-6 bg-muted rounded-sm flex items-center justify-center text-xs font-medium">
+                        <div className="w-6 h-6 bg-muted rounded-sm flex items-center justify-center text-caption">
                           {cleanupTextContent(getSiteDisplayName(feedItem)).charAt(0).toUpperCase()}
                         </div>
                       )}
                     </motion.div>
                     <motion.div
-                      className="text-xs line-clamp-1 font-normal"
+                      className="text-caption line-clamp-1"
                       layoutId={motionLayoutEnabled ? animationIds.siteName : undefined}
                       style={getViewTransitionStyle(
                         cardViewTransitionEnabled,
@@ -318,23 +319,23 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
                       {cleanupTextContent(getSiteDisplayName(feedItem))}
                     </motion.div>
                   </motion.div>
-                  <div className="text-xs text-muted-foreground w-fit font-medium">
+                  <div className="text-caption text-secondary-content w-fit">
                     {formatDate(feedItem.published)}
                   </div>
                 </div>
                 <motion.h3
-                  className="font-medium"
+                  className="text-subtitle"
                   layoutId={motionLayoutEnabled ? animationIds.title : undefined}
                   style={getViewTransitionStyle(cardViewTransitionEnabled, animationIds.title)}
                 >
                   {cleanupTextContent(feedItem.title)}
                 </motion.h3>
                 {feedItem.author && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-body-small text-secondary-content">
                     By {cleanupTextContent(feedItem.author)}
                   </div>
                 )}
-                <p className="text-sm text-muted-foreground line-clamp-3">
+                <p className="text-body-small text-secondary-content line-clamp-3">
                   {cleanupTextContent(feedItem.description)}
                 </p>
               </div>

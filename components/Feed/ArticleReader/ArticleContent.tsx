@@ -9,6 +9,7 @@ import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motionTokens } from "@/lib/motion-tokens";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
 
 interface ArticleContentProps {
@@ -227,7 +228,7 @@ export const ArticleContent = memo<ArticleContentProps>(
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
+        transition={{ duration: motionTokens.duration.slow, delay: motionTokens.duration.normal }}
         className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-foreground px-6 md:px-8 lg:px-12 ${
           className || "w-full md:max-w-4xl"
         }`}

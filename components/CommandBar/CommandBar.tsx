@@ -68,7 +68,7 @@ const SuggestionItem = React.memo(
   }) => (
     <CommandItem value={label.toLowerCase()} onSelect={onSelect}>
       <Icon className="mr-2 h-4 w-4" />
-      <span className="text-xs font-normal">{label}</span>
+      <span className="text-caption">{label}</span>
     </CommandItem>
   )
 );
@@ -78,7 +78,7 @@ SuggestionItem.displayName = "SuggestionItem";
 const FeedItemComponent = React.memo(
   ({ source, onSelect }: { source: Feed | Subscription; onSelect: (feedUrl: string) => void }) => (
     <MemoizedCommandItem
-      className="text-xs font-normal"
+      className="text-caption"
       value={[
         (source as Feed).author,
         (source as Feed).categories,
@@ -102,7 +102,7 @@ const FeedItemComponent = React.memo(
           className="object-cover"
         />
       )}
-      <span className="text-xs font-normal">
+      <span className="text-caption">
         {getSiteDisplayName(source) || source.feedTitle || "Unnamed Feed"}
       </span>
     </MemoizedCommandItem>
@@ -114,13 +114,13 @@ FeedItemComponent.displayName = "FeedItemComponent";
 const ArticleItemComponent = React.memo(
   ({ item, onSelect }: { item: FeedItem; onSelect: (title: string) => void }) => (
     <MemoizedCommandItem
-      className="text-base font-normal"
+      className="text-body"
       value=""
       key={item.id}
       onSelect={() => onSelect(item.title || "")}
     >
       <Newspaper className="mr-2 h-4 w-4" />
-      <span className="text-base font-normal">{item.title || "Untitled Article"}</span>
+      <span className="text-body">{item.title || "Untitled Article"}</span>
     </MemoizedCommandItem>
   )
 );
@@ -129,7 +129,7 @@ ArticleItemComponent.displayName = "ArticleItemComponent";
 // Podcast Item Component
 const PodcastItemComponent = React.memo(({ podcast }: { podcast: FeedItem }) => (
   <MemoizedCommandItem
-    className="text-base font-normal"
+    className="text-body"
     value=" "
     key={podcast.id}
     onSelect={() => {
@@ -146,7 +146,7 @@ const PodcastItemComponent = React.memo(({ podcast }: { podcast: FeedItem }) => 
         unoptimized
       />
     )}
-    <span className="text-base font-normal">{podcast.title || "Untitled Podcast"}</span>
+    <span className="text-body">{podcast.title || "Untitled Podcast"}</span>
   </MemoizedCommandItem>
 ));
 PodcastItemComponent.displayName = "PodcastItemComponent";
@@ -168,7 +168,7 @@ const SuggestionsSection = React.memo(
     markAllAsRead: (items: FeedItem[]) => void;
     feedItems: FeedItem[];
   }) => (
-    <CommandGroup heading="Suggestions" className="text-xs">
+    <CommandGroup heading="Suggestions" className="text-caption">
       <SuggestionItem icon={Search} label="Search for feeds/articles" onSelect={() => {}} />
       <SuggestionItem
         icon={Settings}
@@ -236,12 +236,12 @@ const SearchTriggerButton = React.memo(
   ({ value, setOpen }: { value: string; setOpen: (open: boolean) => void }) => (
     <Button
       variant="outline"
-      className="w-full max-w-lg justify-start text-muted-foreground sm:w-72 px-3 relative"
+      className="w-full max-w-lg justify-start text-secondary-content sm:w-72 px-3 relative"
       onClick={() => setOpen(true)}
     >
       <Search className="mr-2 h-4 w-4" />
       <span className="truncate">{value || "Search feeds and articles..."}</span>
-      <kbd className="ml-auto hidden rounded bg-muted px-1.5 text-xs font-medium text-muted-foreground sm:inline-flex">
+      <kbd className="ml-auto hidden rounded bg-muted px-1.5 text-caption text-secondary-content sm:inline-flex">
         ⌘K
       </kbd>
     </Button>
@@ -363,7 +363,7 @@ export function CommandBar({
             {filteredSources && filteredSources.length > 0 && (
               <CommandGroup
                 heading={`Feeds (${filteredSources.length})`}
-                className="text-xs font-bold text-muted-foreground"
+                className="text-overline !font-bold text-secondary-content"
               >
                 {filteredSources.map((source: Feed | Subscription) => (
                   <FeedItemComponent
@@ -378,7 +378,7 @@ export function CommandBar({
             {filteredArticles && filteredArticles.length > 0 && (
               <CommandGroup
                 heading={`ARTICLES (${filteredArticles.length})`}
-                className="text-xs font-bold text-muted-foreground"
+                className="text-overline !font-bold text-secondary-content"
               >
                 {filteredArticles.slice(0, MAX_DISPLAY_ITEMS).map((item: FeedItem) => (
                   <ArticleItemComponent key={item.id} item={item} onSelect={handleArticleSelect} />
@@ -386,10 +386,10 @@ export function CommandBar({
                 <CommandItem
                   key="see-all-articles"
                   value=" "
-                  className="text-base font-normal"
+                  className="text-body"
                   onSelect={handleSeeAllMatches}
                 >
-                  <span className="text-base font-normal">See All Articles</span>
+                  <span className="text-body">See All Articles</span>
                 </CommandItem>
               </CommandGroup>
             )}
@@ -397,20 +397,20 @@ export function CommandBar({
             {filteredPodcasts && filteredPodcasts.length > 0 && (
               <CommandGroup
                 heading={`PODCASTS (${filteredPodcasts.length})`}
-                className="text-base font-bold text-muted-foreground"
+                className="text-body !font-bold text-secondary-content"
               >
                 {filteredPodcasts.slice(0, MAX_DISPLAY_ITEMS).map((podcast: FeedItem) => (
                   <PodcastItemComponent key={podcast.id} podcast={podcast} />
                 ))}
                 <CommandItem
                   key="see-all-podcasts"
-                  className="text-base font-normal"
+                  className="text-body"
                   value=""
                   onSelect={() => {
                     // Handle see all podcasts action
                   }}
                 >
-                  <span className="text-base font-normal">See All Podcasts</span>
+                  <span className="text-body">See All Podcasts</span>
                 </CommandItem>
               </CommandGroup>
             )}
