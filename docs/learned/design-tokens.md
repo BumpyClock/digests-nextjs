@@ -46,3 +46,4 @@ read_when: touching token source-of-truth, CSS var generation, global layout imp
   - Typography: `.text-body-small`, `.text-body`, `.text-body-large`, `.text-subtitle`, `.text-title`, `.text-title-large`, `.text-caption`, `.text-label`, `.text-overline`, `.text-code`
   - Color: `.text-primary-content`, `.text-secondary-content`, `.text-tertiary-content`, `.text-primary-on-accent`, `.text-secondary-on-accent`, `.text-link-content`
 - `app/typography.css` now consumes semantic text tokens instead of raw theme color vars where possible.
+- `tailwind.config.ts` now maps `fontFamily` and `fontWeight` to token variables, so legacy utilities (`font-medium`, `font-semibold`, `font-mono`, etc.) still resolve through token source-of-truth.

@@ -15,3 +15,4 @@
 - 2026-02-07: for `/web` header/no-header splits, keep `app/web/layout.tsx` server-only and use route groups (`(with-header)` / `(no-header)`) instead of `usePathname` in layout, so server rendering stays intact.
 - 2026-02-07: TS-first design tokens only work if generated CSS variable names exactly match consumer names (`--motion-ease-*`, `--shadow-*`, `--z-*`, `--backdrop-blur-*`); keep generator output aligned with `tailwind.config.ts` fallback vars and regenerate after token key changes.
 - 2026-02-07: semantic typography tokens (`--typography-*`) + semantic text role aliases (`--text-color-*`) reduce repeated Tailwind class stacks; keep color aliases mapped to theme vars (in `globals.css`) and keep generated token CSS non-theme-specific.
+- 2026-02-07: keep Tailwind fallback utilities token-driven too (`fontFamily`, `fontWeight` in `tailwind.config.ts`) so remaining `font-*` classes inherit token values instead of hardcoded Tailwind defaults.

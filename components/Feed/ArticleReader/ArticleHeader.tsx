@@ -148,7 +148,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
               )}
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
-                <div className="flex items-center gap-2 text-fluid-sm text-muted-foreground flex-1 min-w-0">
+                <div className="flex items-center gap-2 text-fluid-sm text-secondary-content flex-1 min-w-0">
                   {loading ? (
                     <>
                       <Skeleton className="h-5 w-5 rounded" />
@@ -188,7 +188,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                               loading="lazy"
                             />
                           )}
-                          <span className="text-fluid-xs font-medium text-foreground truncate">
+                          <span className="text-fluid-xs font-medium text-primary-content truncate">
                             {extractedAuthor.name}
                           </span>
                         </div>
@@ -220,7 +220,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
           ) : (
             <>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
-                <div className="flex items-center gap-2 text-fluid-sm text-muted-foreground flex-1 min-w-0">
+                <div className="flex items-center gap-2 text-fluid-sm text-secondary-content flex-1 min-w-0">
                   {loading && !isModal ? (
                     <>
                       <Skeleton className="h-5 w-5 rounded" />
@@ -285,7 +285,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                               loading="lazy"
                             />
                           )}
-                          <span className="text-fluid-sm font-medium text-foreground truncate">
+                          <span className="text-fluid-sm font-medium text-primary-content truncate">
                             {extractedAuthor.name}
                           </span>
                         </div>

@@ -66,20 +66,20 @@ export const ArticleContent = memo<ArticleContentProps>(
 
           if (hasImages) {
             return (
-              <div {...props} className="my-4 text-foreground/90">
+              <div {...props} className="my-4 text-primary-content opacity-90">
                 {children}
               </div>
             );
           }
 
           return (
-            <p {...props} className="my-4 text-foreground/90">
+            <p {...props} className="my-4 text-primary-content opacity-90">
               {children}
             </p>
           );
         },
         img: ({ src, alt = "", ...props }: React.ComponentProps<"img">) => {
-          if (!src) return null;
+          if (!src || typeof src !== "string") return null;
           // Try to parse width/height from props (strings or numbers)
           const parseDim = (v: unknown): number | undefined => {
             if (typeof v === "number") return v;
@@ -110,13 +110,13 @@ export const ArticleContent = memo<ArticleContentProps>(
           const url = href ?? "#";
           const isExternal = /^https?:\/\//i.test(url);
           return (
-            <a
-              href={url}
-              target={isExternal ? "_blank" : undefined}
-              rel={isExternal ? "noopener noreferrer" : undefined}
-              className="text-primary underline underline-offset-2"
-              {...props}
-            >
+              <a
+                href={url}
+                target={isExternal ? "_blank" : undefined}
+                rel={isExternal ? "noopener noreferrer" : undefined}
+                className="text-link-content underline underline-offset-2"
+                {...props}
+              >
               {children}
             </a>
           );
@@ -124,7 +124,7 @@ export const ArticleContent = memo<ArticleContentProps>(
         blockquote: ({ children, ...props }: React.ComponentProps<"blockquote">) => (
           <blockquote
             {...props}
-            className="border-l-4 border-primary/30 pl-6 py-2 my-6 italic text-foreground/80 bg-muted/20 rounded-r-lg"
+            className="border-l-4 border-primary/30 pl-6 py-2 my-6 italic text-primary-content opacity-80 bg-muted/20 rounded-r-lg"
           >
             {children}
           </blockquote>
@@ -135,7 +135,7 @@ export const ArticleContent = memo<ArticleContentProps>(
             return (
               <code
                 {...props}
-                className="bg-muted px-2 py-1 rounded text-fluid-sm font-mono text-primary"
+                className="bg-muted px-2 py-1 rounded text-fluid-sm text-code text-link-content"
               >
                 {children}
               </code>
@@ -150,7 +150,7 @@ export const ArticleContent = memo<ArticleContentProps>(
         pre: ({ children, ...props }: React.ComponentProps<"pre">) => (
           <pre
             {...props}
-            className="bg-muted p-4 rounded-lg overflow-x-auto my-6 text-sm font-mono border"
+            className="bg-muted p-4 rounded-lg overflow-x-auto my-6 text-code border"
           >
             {children}
           </pre>
@@ -177,7 +177,7 @@ export const ArticleContent = memo<ArticleContentProps>(
     if (loading) {
       return (
         <div
-          className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-foreground px-6 md:px-8 lg:px-12 ${
+          className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-primary-content px-6 md:px-8 lg:px-12 ${
             className || "w-full md:max-w-4xl"
           }`}
         >
@@ -229,7 +229,7 @@ export const ArticleContent = memo<ArticleContentProps>(
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: motionTokens.duration.slow, delay: motionTokens.duration.normal }}
-        className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-foreground px-6 md:px-8 lg:px-12 ${
+        className={`prose prose-amber text-base prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-primary-content px-6 md:px-8 lg:px-12 ${
           className || "w-full md:max-w-4xl"
         }`}
       >

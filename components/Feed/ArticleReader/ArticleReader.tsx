@@ -178,7 +178,7 @@ export const EmptyState = memo(() => {
       className={`flex flex-col items-center justify-center h-full p-4 ${isMobile ? "p-4" : "p-8"}`}
     >
       <div className={`text-center ${isMobile ? "w-full" : "max-w-md"}`}>
-        <h3 className={`font-semibold ${isMobile ? "text-lg" : "text-xl"} mb-2`}>
+        <h3 className={`${isMobile ? "text-title" : "text-title-large"} mb-2`}>
           Select an article
         </h3>
         <p className="text-body-small text-secondary-content">

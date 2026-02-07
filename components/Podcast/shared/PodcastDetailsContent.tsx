@@ -89,11 +89,11 @@ export function PodcastDetailsContent({
                 {...(isModal ? getImageProps("icon", "eager") : { width: 24, height: 24 })}
               />
             ) : (
-              <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-xs font-medium">
+              <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-caption font-medium">
                 {getSiteDisplayName(podcast).charAt(0).toUpperCase()}
               </div>
             )}
-            <p className={`font-medium ${isModal ? "text-lg" : ""}`}>
+            <p className={isModal ? "text-title" : "text-body font-medium"}>
               {cleanupTextContent(getSiteDisplayName(podcast))}
             </p>
           </div>
@@ -123,7 +123,7 @@ export function PodcastDetailsContent({
 
       {/* Episode Description */}
       <div className={isModal ? "border-t pt-8" : "space-y-4"}>
-        <h2 className="text-xl font-bold mb-4">Episode Description</h2>
+        <h2 className="text-title-large font-bold mb-4">Episode Description</h2>
         <div
           className="prose prose-sm dark:prose-invert max-w-none"
           dangerouslySetInnerHTML={{
