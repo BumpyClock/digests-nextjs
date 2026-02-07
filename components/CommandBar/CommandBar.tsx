@@ -112,12 +112,12 @@ FeedItemComponent.displayName = "FeedItemComponent";
 
 // Article Item Component
 const ArticleItemComponent = React.memo(
-  ({ item, onSelect }: { item: FeedItem; onSelect: (title: string) => void }) => (
+  ({ item, onSelect }: { item: FeedItem; onSelect: (itemId: string) => void }) => (
     <MemoizedCommandItem
       className="text-body"
       value=""
       key={item.id}
-      onSelect={() => onSelect(item.title || "")}
+      onSelect={() => onSelect(item.id)}
     >
       <Newspaper className="mr-2 h-4 w-4" />
       <span className="text-body">{item.title || "Untitled Article"}</span>
@@ -276,19 +276,19 @@ export function CommandBar({
     onChange
   );
 
-  const { filteredArticles, filteredPodcasts, articlesByTitle } = useMemo(() => {
+  const { filteredArticles, filteredPodcasts, articlesById } = useMemo(() => {
     const articles: FeedItem[] = [];
     const podcasts: FeedItem[] = [];
-    const byTitle = new Map<string, FeedItem>();
+    const byId = new Map<string, FeedItem>();
     for (const item of filteredItems) {
       if (item.type === "article") {
         articles.push(item);
-        if (item.title) byTitle.set(item.title, item);
+        byId.set(item.id, item);
       } else if (item.type === "podcast") {
         podcasts.push(item);
       }
     }
-    return { filteredArticles: articles, filteredPodcasts: podcasts, articlesByTitle: byTitle };
+    return { filteredArticles: articles, filteredPodcasts: podcasts, articlesById: byId };
   }, [filteredItems]);
 
   const handleSelectFeed = useCallback(
@@ -304,14 +304,14 @@ export function CommandBar({
   const [isModalOpen, setModalOpen] = useState(false);
 
   const handleArticleSelect = useCallback(
-    (title: string) => {
-      const article = articlesByTitle.get(title);
+    (itemId: string) => {
+      const article = articlesById.get(itemId);
       if (article) {
         setSelectedArticle(article);
         setModalOpen(true);
       }
     },
-    [articlesByTitle]
+    [articlesById]
   );
 
   const shouldShowSuggestions = useCallback(

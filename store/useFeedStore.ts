@@ -81,21 +81,23 @@ type BaseFeedStoreCreator = StateCreator<FeedState, [], [], FeedState>;
 
 const composeFeedStoreSlices: BaseFeedStoreCreator = (set, get, _api) => ({
   // Combine all slices
-  ...createFeedSlice(set, get),
-  ...createReadStatusSlice(set, get),
-  ...createMetadataSlice(set, get),
-  ...createAudioSlice(set, get),
+  ...createFeedSlice(set as never, get as never, _api as never),
+  ...createReadStatusSlice(set as never, get as never, _api as never),
+  ...createMetadataSlice(set as never, get as never, _api as never),
+  ...createAudioSlice(set as never, get as never, _api as never),
 
   // Server state is now handled by React Query
 });
 
 const createFeedStorePersistOptions = (
   getStore: () => UseBoundStore<StoreApi<FeedState>>
-): PersistOptions<FeedState> => ({
+) =>
+  ({
   name: "digests-feed-store",
   version: 3,
   storage: createJSONStorage(() => localforage),
-  migrate: (state: Record<string, unknown>, from: number) => {
+  migrate: (persistedState: unknown, from: number) => {
+    const state = (persistedState ?? {}) as Record<string, unknown>;
     try {
       if (from < 3) {
         // Drop persisted items and normalize Sets
@@ -114,24 +116,25 @@ const createFeedStorePersistOptions = (
       state.readItems = new Set();
       state.readLaterItems = new Set();
     }
-    return state;
+    return state as unknown as FeedState;
   },
-  partialize: (state) => ({
-    // Persist only lightweight subscriptions and client/UI state
-    subscriptions: state.subscriptions,
-    // Do NOT persist feedItems - handled by React Query
-    initialized: state.initialized,
-    readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
-    activeFeed: state.activeFeed,
-    readLaterItems: Array.isArray(state.readLaterItems)
-      ? state.readLaterItems
-      : Array.from(state.readLaterItems || []),
-    // Audio state
-    volume: state.volume,
-    isMuted: state.isMuted,
-    isMinimized: state.isMinimized,
-  }),
-  onRehydrateStorage: () => (state) => {
+  partialize: (state: FeedState) =>
+    ({
+      // Persist only lightweight subscriptions and client/UI state
+      subscriptions: state.subscriptions,
+      // Do NOT persist feedItems - handled by React Query
+      initialized: state.initialized,
+      readItems: Array.isArray(state.readItems) ? state.readItems : Array.from(state.readItems || []),
+      activeFeed: state.activeFeed,
+      readLaterItems: Array.isArray(state.readLaterItems)
+        ? state.readLaterItems
+        : Array.from(state.readLaterItems || []),
+      // Audio state
+      volume: state.volume,
+      isMuted: state.isMuted,
+      isMinimized: state.isMinimized,
+    }) as unknown as Partial<FeedState>,
+  onRehydrateStorage: () => (state: FeedState | undefined) => {
     if (state && typeof window !== "undefined") {
       try {
         // Initialize readItems as Set
@@ -162,9 +165,9 @@ const createFeedStorePersistOptions = (
         // If feeds are empty but subscriptions exist, seed minimal feeds for URL computation
         if (
           (!Array.isArray(storeState.feeds) || storeState.feeds.length === 0) &&
-          Array.isArray((state as Record<string, unknown>).subscriptions)
+          Array.isArray(state.subscriptions)
         ) {
-          const subs = (state as Record<string, unknown>).subscriptions as Subscription[];
+          const subs = state.subscriptions as Subscription[];
           // Seed feeds with minimal info (will be replaced by RQ data)
           const seededFeeds = subs.map(
             (s) =>
@@ -215,7 +218,7 @@ const createFeedStorePersistOptions = (
       }
     }
   },
-});
+  }) as PersistOptions<FeedState>;
 
 const feedStoreInitializer = persist(
   composeFeedStoreSlices,
@@ -253,14 +256,11 @@ export const useHydratedStore = <T>(selector: (state: FeedState) => T, fallback?
       return;
     }
 
-    const unsubscribe = useFeedStore.subscribe(
-      (state) => state.hydrated,
-      (isHydrated) => {
-        if (isHydrated) {
-          setHydrationDone(true);
-        }
+    const unsubscribe = useFeedStore.subscribe((state) => {
+      if (state.hydrated) {
+        setHydrationDone(true);
       }
-    );
+    });
 
     return () => {
       unsubscribe();

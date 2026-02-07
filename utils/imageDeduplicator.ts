@@ -145,7 +145,7 @@ function cleanupMarkdownMetadata(
 
   // Remove common generic patterns (single combined regex)
   const genericPattern =
-    /^\s*\*\*Author:\*\*\s*[^|\n]+\s*\|\s*\*\*Source:\*\*\s*[^.\n]+\s*\n+|^\s*Author:\s*[^|\n]+\s*\|\s*Source:\s*[^.\n]+\s*\n+|^\s*\*\*Author:\*\*\s*[^.\n]+\s*\n+|^\s*\*\*Source:\*\*\s*[^.\n]+\s*\n+|^\s*By\s+[^.\n]+\s*\n+|^\s*Source:\s*[^.\n]+\s*\n+|^\s*Author:\s*[^.\n]+\s*\n+|^\s*Originally\s+published\s+(?:at|on)\s+[^.\n]+\s*\n+|^\s*\*{1,2}Originally\s+published.*?\*{1,2}\s*\n+|^\s*---+\s*\n+/im;
+    /^\s*\*\*Author:\*\*\s*[^|\n]+\s*\|\s*\*\*Source:\*\*\s*[^.\n]+\s*\n+|^\s*Author:\s*[^|\n]+\s*\|\s*Source:\s*[^.\n]+\s*\n+|^\s*\*\*Author:\*\*\s*[^.\n]+\s*\n+|^\s*\*\*Source:\*\*\s*[^.\n]+\s*\n+|^\s*By\s+[^.\n]+\s*\n+|^\s*Source:\s*[^.\n]+\s*\n+|^\s*Author:\s*[^.\n]+\s*\n+|^\s*Originally\s+published\s+(?:at|on)\s+[^.\n]+\s*\n+|^\s*\*{1,2}Originally\s+published.*?\*{1,2}\s*\n+|^\s*---+\s*\n+/gim;
   cleaned = cleaned.replace(genericPattern, "\n");
 
   // Extract author names and images from the original markdown

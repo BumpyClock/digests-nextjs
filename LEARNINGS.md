@@ -19,6 +19,7 @@
 - 2026-02-07: include larger display sizes (`font-size-5xl`, `font-size-6xl`) in token source-of-truth when components use hero-scale headings; otherwise they silently fall back to Tailwind defaults outside token control.
 - 2026-02-07: semantic type tokens work best with a dedicated display tier (`typography.display*`) plus utility classes (`text-display*`) so large marketing/app headings avoid ad-hoc `text-4xl/6xl` stacks.
 - 2026-02-07: for token-migration cleanup sweeps, use grep gates (`text-sm|text-xs|text-muted-foreground|text-gray-|transition-all|z-2`) to quickly confirm legacy class removal across `app/**` and `components/**`.
+- 2026-02-07: for worker request/response typing in strict TS, avoid over-generic callback maps; use a typed wrapper in `onMessage` and return a concrete union (`WorkerResponse`) from transport helpers to prevent contravariance errors.
 - 2026-02-07: `stableKey()` used O(n^2) dedup via `.filter(indexOf)`; replaced with `Set` for O(n log n). Always prefer `new Set()` for array dedup.
 - 2026-02-07: `itemMatchesSearch` called `.toLowerCase()` 4x on same string; cache once. Early-exit on short fields (title/desc) before joining expensive `content`.
 - 2026-02-07: `totalMatchCount` was a redundant O(n) filter using different matching logic than `filteredItems` (title+desc vs all fields) -- was a bug producing mismatched counts. Replaced with `filteredItems.length`.

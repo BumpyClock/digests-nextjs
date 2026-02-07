@@ -183,13 +183,14 @@ async function fetchReaderView(
   }
 }
 
-// Define handler type
-type MessageHandler = (
-  payload: unknown
-) => Promise<WorkerResponse | undefined> | WorkerResponse | undefined;
+type WorkerHandlerMap = {
+  [K in WorkerMessage["type"]]: (
+    payload: Extract<WorkerMessage, { type: K }>["payload"]
+  ) => Promise<WorkerResponse | undefined> | WorkerResponse | undefined;
+};
 
 // Create handler registry
-const messageHandlers: Record<string, MessageHandler> = {
+const messageHandlers: WorkerHandlerMap = {
   /**
    * Set API URL handler
    */
@@ -197,6 +198,7 @@ const messageHandlers: Record<string, MessageHandler> = {
     apiBaseUrl = url;
     Logger.debug(`[Worker] API URL set to ${apiBaseUrl}`);
     workerCache.clear();
+    return undefined;
   },
 
   /**
@@ -206,6 +208,7 @@ const messageHandlers: Record<string, MessageHandler> = {
     workerCache.setTTL(ttl);
     Logger.debug(`[Worker] Cache TTL set to ${ttl}ms`);
     workerCache.clear();
+    return undefined;
   },
 
   /**
@@ -334,7 +337,7 @@ self.addEventListener("message", async (event) => {
   const message = event.data as WorkerMessage;
 
   try {
-    const handler = messageHandlers[message.type];
+    const handler = messageHandlers[message.type as WorkerMessage["type"]];
 
     if (!handler) {
       self.postMessage({
@@ -345,7 +348,9 @@ self.addEventListener("message", async (event) => {
     }
 
     // Execute handler and send response if any
-    const response = await handler(message.payload);
+    const response = await (
+      handler as (payload: unknown) => Promise<WorkerResponse | undefined> | WorkerResponse | undefined
+    )(message.payload);
     if (response) {
       self.postMessage(response);
     }
