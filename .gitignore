@@ -45,3 +45,4 @@ next-env.d.ts
 .env
 .claude/tasks/tasks.md
 .pr-description.md
+.ai_agents/
