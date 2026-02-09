@@ -14,12 +14,12 @@ import Image from "next/image";
  */
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full max-w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 px-4">
+    <header className="sticky top-0 z-sticky w-full max-w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 px-4">
       <div className="container flex h-14 items-center mx-auto">
         <div className="mr-4 flex">
           <Link href="/" className="flex items-center space-x-2">
             <Image src={logo192} alt="Digests" className="h-6 w-6" />
-            <span className="font-medium">Digests</span>
+            <span className="text-subtitle">Digests</span>
           </Link>
         </div>
         <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
@@ -47,8 +47,8 @@ export function Header() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right">
-                <nav className="grid gap-6 text-lg font-medium">
-                  <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
+                <nav className="grid gap-6 text-title">
+                  <Link href="/" className="flex items-center gap-2">
                     <Rss className="h-5 w-5" />
                     <span>Digests</span>
                   </Link>

@@ -5,7 +5,7 @@ import { StateCreator } from "zustand";
 
 // Simplified FeedSlice - server state is now handled by React Query
 // This slice only manages local client state
-type FeedSlice = {
+export type FeedSlice = {
   // Runtime list of full feeds (not persisted)
   feeds: Feed[];
   // Lightweight subscriptions (persisted)

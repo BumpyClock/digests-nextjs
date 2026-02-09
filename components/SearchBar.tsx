@@ -23,7 +23,7 @@ export function SearchBar({ value, onChange }: SearchBarProps) {
 
   return (
     <div className="relative w-full sm:w-auto">
-      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-secondary-content" />
       <Input
         type="search"
         placeholder="Search feeds..."

@@ -65,7 +65,7 @@ export const ArticleMetadata = memo<ArticleMetadataProps>(
     return (
       <div className={`${className}`}>
         {/* Reading Time */}
-        <div className="text-muted-foreground text-fluid-xs mb-1">
+        <div className="text-secondary-content text-fluid-xs mb-1">
           <span>{readingTime}</span>
         </div>
 
@@ -83,11 +83,13 @@ export const ArticleMetadata = memo<ArticleMetadataProps>(
               />
             )}
             <div className="flex flex-col">
-              <span className={`font-medium ${isCompact ? "text-sm" : "text-base"}`}>
+              <span
+                className={`text-primary-content ${isCompact ? "text-subtitle" : "text-title"}`}
+              >
                 {author.name}
               </span>
               {publishedDate && (
-                <span className={`text-muted-foreground ${isCompact ? "text-xs" : "text-sm"}`}>
+                <span className={`text-secondary-content ${isCompact ? "text-caption" : "text-body-small"}`}>
                   {publishedDate}
                 </span>
               )}

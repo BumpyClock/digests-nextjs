@@ -115,67 +115,38 @@ function cleanupMarkdownMetadata(
 
   // Remove title if it appears at the beginning
   if (title) {
-    // Match various title patterns at the start of content
-    const titlePatterns = [
-      new RegExp(`^#{1,6}\\s*${escapeRegExp(title)}\\s*\n+`, "i"),
-      new RegExp(`^\\*\\*${escapeRegExp(title)}\\*\\*\\s*\n+`, "i"),
-      new RegExp(`^${escapeRegExp(title)}\\s*\n[=\\-]{3,}\\s*\n+`, "i"), // Setext headers
-    ];
-
-    titlePatterns.forEach((pattern) => {
-      cleaned = cleaned.replace(pattern, "");
-    });
+    const esc = escapeRegExp(title);
+    const titlePattern = new RegExp(
+      `^#{1,6}\\s*${esc}\\s*\n+|^\\*\\*${esc}\\*\\*\\s*\n+|^${esc}\\s*\n[=\\-]{3,}\\s*\n+`,
+      "i"
+    );
+    cleaned = cleaned.replace(titlePattern, "");
   }
 
-  // Remove author information
+  // Remove author information (single combined regex)
   if (author) {
-    const authorPatterns = [
-      new RegExp(`^\\s*By\\s+\\*\\*?${escapeRegExp(author)}\\*\\*?\\s*\n+`, "im"),
-      new RegExp(`^\\s*Author:\\s*\\*\\*?${escapeRegExp(author)}\\*\\*?\\s*\n+`, "im"),
-      new RegExp(`^\\s*\\*\\*?By\\s+${escapeRegExp(author)}\\*\\*?\\s*\n+`, "im"),
-      new RegExp(`^\\s*\\*${escapeRegExp(author)}\\*\\s*\n+`, "im"),
-      new RegExp(`\\*\\*By\\s+${escapeRegExp(author)}\\*\\*`, "gi"),
-    ];
-
-    authorPatterns.forEach((pattern) => {
-      cleaned = cleaned.replace(pattern, "\n");
-    });
+    const esc = escapeRegExp(author);
+    const authorPattern = new RegExp(
+      `^\\s*By\\s+\\*\\*?${esc}\\*\\*?\\s*\n+|^\\s*Author:\\s*\\*\\*?${esc}\\*\\*?\\s*\n+|^\\s*\\*\\*?By\\s+${esc}\\*\\*?\\s*\n+|^\\s*\\*${esc}\\*\\s*\n+|\\*\\*By\\s+${esc}\\*\\*`,
+      "gim"
+    );
+    cleaned = cleaned.replace(authorPattern, "\n");
   }
 
-  // Remove source/site information
+  // Remove source/site information (single combined regex)
   if (siteName) {
-    const sourcePatterns = [
-      new RegExp(`^\\s*Source:\\s*\\*\\*?${escapeRegExp(siteName)}\\*\\*?\\s*\n+`, "im"),
-      new RegExp(
-        `^\\s*Originally\\s+published\\s+(at|on)\\s+\\*\\*?${escapeRegExp(siteName)}\\*\\*?\\s*\n+`,
-        "im"
-      ),
-      new RegExp(`^\\s*From\\s+\\*\\*?${escapeRegExp(siteName)}\\*\\*?\\s*\n+`, "im"),
-      new RegExp(`\\*\\*${escapeRegExp(siteName)}\\*\\*`, "gi"),
-    ];
-
-    sourcePatterns.forEach((pattern) => {
-      cleaned = cleaned.replace(pattern, "\n");
-    });
+    const esc = escapeRegExp(siteName);
+    const sourcePattern = new RegExp(
+      `^\\s*Source:\\s*\\*\\*?${esc}\\*\\*?\\s*\n+|^\\s*Originally\\s+published\\s+(?:at|on)\\s+\\*\\*?${esc}\\*\\*?\\s*\n+|^\\s*From\\s+\\*\\*?${esc}\\*\\*?\\s*\n+|\\*\\*${esc}\\*\\*`,
+      "gim"
+    );
+    cleaned = cleaned.replace(sourcePattern, "\n");
   }
 
-  // Remove common generic patterns
-  const genericPatterns = [
-    /^\s*\*\*Author:\*\*\s*[^|\n]+\s*\|\s*\*\*Source:\*\*\s*[^.\n]+\s*\n+/im, // "**Author:** Name | **Source:** Site"
-    /^\s*Author:\s*[^|\n]+\s*\|\s*Source:\s*[^.\n]+\s*\n+/im, // "Author: Name | Source: Site"
-    /^\s*\*\*Author:\*\*\s*[^.\n]+\s*\n+/im, // "**Author:** [Name]"
-    /^\s*\*\*Source:\*\*\s*[^.\n]+\s*\n+/im, // "**Source:** [Site]"
-    /^\s*By\s+[^.\n]+\s*\n+/im, // Generic "By [Author]" at start
-    /^\s*Source:\s*[^.\n]+\s*\n+/im, // Generic "Source: [Site]"
-    /^\s*Author:\s*[^.\n]+\s*\n+/im, // Generic "Author: [Name]"
-    /^\s*Originally\s+published\s+(at|on)\s+[^.\n]+\s*\n+/im, // Generic source attribution
-    /^\s*\*{1,2}Originally\s+published.*?\*{1,2}\s*\n+/im, // Bold source attribution
-    /^\s*---+\s*\n+/m, // Horizontal rules at start
-  ];
-
-  genericPatterns.forEach((pattern) => {
-    cleaned = cleaned.replace(pattern, "\n");
-  });
+  // Remove common generic patterns (single combined regex)
+  const genericPattern =
+    /^\s*\*\*Author:\*\*\s*[^|\n]+\s*\|\s*\*\*Source:\*\*\s*[^.\n]+\s*\n+|^\s*Author:\s*[^|\n]+\s*\|\s*Source:\s*[^.\n]+\s*\n+|^\s*\*\*Author:\*\*\s*[^.\n]+\s*\n+|^\s*\*\*Source:\*\*\s*[^.\n]+\s*\n+|^\s*By\s+[^.\n]+\s*\n+|^\s*Source:\s*[^.\n]+\s*\n+|^\s*Author:\s*[^.\n]+\s*\n+|^\s*Originally\s+published\s+(?:at|on)\s+[^.\n]+\s*\n+|^\s*\*{1,2}Originally\s+published.*?\*{1,2}\s*\n+|^\s*---+\s*\n+/gim;
+  cleaned = cleaned.replace(genericPattern, "\n");
 
   // Extract author names and images from the original markdown
   const authorNames = new Set<string>();
@@ -320,11 +291,11 @@ export function deduplicateMarkdownImages(markdown: string, thumbnailUrl?: strin
     }
   });
 
-  // Apply replacements
-  let result = markdown;
-  replacements.forEach((replacement, original) => {
-    result = result.replace(original, replacement);
-  });
+  // Apply all replacements in a single pass
+  if (replacements.size === 0) return markdown;
+  const escapedKeys = Array.from(replacements.keys()).map(escapeRegExp);
+  const combinedPattern = new RegExp(escapedKeys.join("|"), "g");
+  let result = markdown.replace(combinedPattern, (match) => replacements.get(match) ?? match);
 
   // Clean up extra newlines left by removed images
   result = result.replace(/\n\s*\n\s*\n/g, "\n\n");

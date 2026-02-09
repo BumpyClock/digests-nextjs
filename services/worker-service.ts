@@ -43,7 +43,8 @@ type WorkerResponse =
 class WorkerService {
   private rssWorker: Worker | null = null;
   private shadowWorker: Worker | null = null;
-  private messageHandlers: Map<string, Set<(data: unknown) => void>> = new Map();
+  private messageHandlers: Map<WorkerResponse["type"], Set<(data: WorkerResponse) => void>> =
+    new Map();
   private isInitialized = false;
   private cacheTtl = DEFAULT_CACHE_TTL_MS;
   private readonly WORKER_TIMEOUT_MS = 30000; // 30 seconds
@@ -152,13 +153,19 @@ class WorkerService {
       this.messageHandlers.set(type, new Set());
     }
 
-    this.messageHandlers.get(type)?.add(handler);
+    const wrappedHandler = (data: WorkerResponse) => {
+      if (data.type === type) {
+        handler(data as Extract<WorkerResponse, { type: T }>);
+      }
+    };
+
+    this.messageHandlers.get(type)?.add(wrappedHandler);
 
     // Return unsubscribe function
     return () => {
       const handlers = this.messageHandlers.get(type);
       if (handlers) {
-        handlers.delete(handler);
+        handlers.delete(wrappedHandler);
         if (handlers.size === 0) {
           this.messageHandlers.delete(type);
         }
@@ -193,13 +200,13 @@ class WorkerService {
    * @param responseFilter - Optional filter to match specific responses (e.g., for shadow generation by id)
    * @returns Promise that resolves with the response data or rejects on timeout/error
    */
-  private sendWorkerMessage<T extends WorkerResponse>(
+  private sendWorkerMessage(
     worker: "rss" | "shadow",
     message: WorkerMessage,
-    expectedResponseType: T["type"],
-    fallbackFn?: () => Promise<unknown>,
-    responseFilter?: (response: T) => boolean
-  ): Promise<T> {
+    expectedResponseType: WorkerResponse["type"],
+    fallbackFn?: () => Promise<WorkerResponse>,
+    responseFilter?: (response: WorkerResponse) => boolean
+  ): Promise<WorkerResponse> {
     return new Promise((resolve, reject) => {
       // Initialize if not already
       if (!this.isInitialized) this.initialize();
@@ -241,13 +248,13 @@ class WorkerService {
       // Register one-time handler for response
       unsubscribe = this.onMessage(expectedResponseType, (response) => {
         // Apply filter if provided - if false, keep listener active
-        if (responseFilter && !responseFilter(response as T)) {
+        if (responseFilter && !responseFilter(response)) {
           return;
         }
 
         // Filter matched or no filter - clean up and resolve
         cleanup();
-        resolve(response as T);
+        resolve(response);
       });
 
       // Send message to worker
@@ -271,9 +278,7 @@ class WorkerService {
   }> {
     const apiConfig = getApiConfig();
 
-    const response = await this.sendWorkerMessage<
-      Extract<WorkerResponse, { type: "FEEDS_RESULT" }>
-    >(
+    const response = await this.sendWorkerMessage(
       "rss",
       {
         type,
@@ -287,18 +292,28 @@ class WorkerService {
         Logger.debug(`[WorkerService] Using fallback fetcher for ${fallbackLabel}`);
         try {
           const result = await this.fallbackFetcher.fetchFeeds(urls);
-          return { success: true, ...result };
+          return { type: "FEEDS_RESULT" as const, success: true, ...result } as WorkerResponse;
         } catch (error: unknown) {
           const message = error instanceof Error ? error.message : String(error);
           return {
+            type: "FEEDS_RESULT" as const,
             success: false,
-            feeds: [],
-            items: [],
+            feeds: [] as Feed[],
+            items: [] as FeedItem[],
             message,
-          };
+          } as WorkerResponse;
         }
       }
     );
+
+    if (response.type !== "FEEDS_RESULT") {
+      return {
+        success: false,
+        feeds: [],
+        items: [],
+        message: "Unexpected worker response type",
+      };
+    }
 
     return {
       success: response.success,
@@ -350,9 +365,7 @@ class WorkerService {
   }> {
     const apiConfig = getApiConfig();
 
-    const response = await this.sendWorkerMessage<
-      Extract<WorkerResponse, { type: "READER_VIEW_RESULT" }>
-    >(
+    const response = await this.sendWorkerMessage(
       "rss",
       {
         type: "FETCH_READER_VIEW",
@@ -366,16 +379,29 @@ class WorkerService {
         Logger.debug("[WorkerService] Using fallback fetcher for reader view");
         try {
           const data = await this.fallbackFetcher.fetchReaderView([url]);
-          return { success: true, data };
+          return {
+            type: "READER_VIEW_RESULT" as const,
+            success: true,
+            data,
+          } as WorkerResponse;
         } catch (error: unknown) {
           return {
+            type: "READER_VIEW_RESULT" as const,
             success: false,
-            data: [],
+            data: [] as ReaderViewResponse[],
             message: error instanceof Error ? error.message : "Failed to fetch reader view",
-          };
+          } as WorkerResponse;
         }
       }
     );
+
+    if (response.type !== "READER_VIEW_RESULT") {
+      return {
+        success: false,
+        data: [],
+        message: "Unexpected worker response type",
+      };
+    }
 
     return {
       success: response.success,
@@ -396,9 +422,7 @@ class WorkerService {
     hoverShadow: string;
     pressedShadow: string;
   }> {
-    const response = await this.sendWorkerMessage<
-      Extract<WorkerResponse, { type: "SHADOWS_RESULT" }>
-    >(
+    const response = await this.sendWorkerMessage(
       "shadow",
       {
         type: "GENERATE_SHADOWS",
@@ -407,10 +431,18 @@ class WorkerService {
       "SHADOWS_RESULT",
       async () => {
         const { generateCardShadows } = await import("../utils/shadow");
-        return generateCardShadows(color, isDarkMode);
+        const shadows = generateCardShadows(color, isDarkMode);
+        return {
+          type: "SHADOWS_RESULT" as const,
+          payload: { id, shadows },
+        } as WorkerResponse;
       },
-      (response) => response.payload.id === id
+      (response) => response.type === "SHADOWS_RESULT" && response.payload.id === id
     );
+
+    if (response.type !== "SHADOWS_RESULT") {
+      throw new Error("Unexpected worker response type for shadows");
+    }
 
     return response.payload.shadows;
   }

@@ -56,6 +56,7 @@ export function getImageProps(
     height?: number;
     loading?: "lazy" | "eager";
     fetchPriority?: "high";
+    priority?: boolean;
   } = {
     width: size.width,
     sizes: size.sizes,

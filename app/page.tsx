@@ -101,10 +101,10 @@ export default function Home() {
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center justify-center space-y-4 text-center">
             <div className="space-y-2">
-              <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight">
+              <h2 className="text-display-small md:text-display text-primary-content">
                 Available on all your devices
               </h2>
-              <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+              <p className="max-w-[900px] text-secondary-content text-body md:text-body-large">
                 Native Digests apps are on the way for your preferred platform. Windows Alpha is
                 available now. More platforms coming soon.
               </p>
@@ -126,46 +126,6 @@ export default function Home() {
                   animation="on"
                 />
               </div>
-            </div>
-          </div>
-          <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 py-12 md:grid-cols-2 lg:grid-cols-3">
-            <div className="flex flex-col items-center space-y-2">
-              {/* <div className="relative aspect-video w-full overflow-hidden rounded-lg border">
-                <Image
-                  src="/placeholder.svg?height=400&width=600"
-                  width={600}
-                  height={400}
-                  alt="Desktop app screenshot"
-                  className="object-cover"
-                />
-              </div>
-              <h3 className="text-xl font-bold">Desktop</h3>
-            </div>
-            <div className="flex flex-col items-center space-y-2">
-              <div className="relative aspect-9/16 w-[225px] overflow-hidden rounded-lg border">
-                <Image
-                  src="/placeholder.svg?height=400&width=225"
-                  width={225}
-                  height={400}
-                  alt="Mobile app screenshot"
-                  className="object-cover"
-                />
-              </div>
-              <h3 className="text-xl font-bold">Mobile</h3>
-            </div>
-            <div className="flex flex-col items-center space-y-2">
-              <div className="relative aspect-4/3 w-[300px] overflow-hidden rounded-lg border">
-                <Image
-                  src="/placeholder.svg?height=225&width=300"
-                  width={300}
-                  height={225}
-                  alt="Tablet app screenshot"
-                  className="object-cover"
-                />
-              </div> 
-              <h3 className="text-xl font-bold">Tablet</h3>
-            </div> 
-          </div> */}
             </div>
           </div>
         </div>

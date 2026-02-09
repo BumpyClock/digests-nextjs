@@ -2,7 +2,7 @@ import { StateCreator } from "zustand";
 
 // Simplified MetadataSlice - server loading states are now handled by React Query
 // This slice only manages client-side UI state and hydration
-type MetadataSlice = {
+export type MetadataSlice = {
   initialized: boolean;
   hydrated: boolean;
   activeFeed: string | null;

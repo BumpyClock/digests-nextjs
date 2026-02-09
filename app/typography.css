@@ -2,22 +2,26 @@
 
 /* Base prose styles */
 .prose {
-  --tw-prose-body: hsl(var(--foreground));
-  --tw-prose-headings: hsl(var(--foreground));
-  --tw-prose-lead: hsl(var(--foreground));
-  --tw-prose-links: hsl(var(--brand-primary));
-  --tw-prose-bold: hsl(var(--foreground));
-  --tw-prose-counters: hsl(var(--muted-foreground));
-  --tw-prose-bullets: hsl(var(--muted-foreground));
+  --tw-prose-body: hsl(var(--text-color-primary));
+  --tw-prose-headings: hsl(var(--text-color-primary));
+  --tw-prose-lead: hsl(var(--text-color-primary));
+  --tw-prose-links: hsl(var(--text-color-link));
+  --tw-prose-bold: hsl(var(--text-color-primary));
+  --tw-prose-counters: hsl(var(--text-color-secondary));
+  --tw-prose-bullets: hsl(var(--text-color-secondary));
   --tw-prose-hr: hsl(var(--border));
-  --tw-prose-quotes: hsl(var(--foreground));
+  --tw-prose-quotes: hsl(var(--text-color-primary));
   --tw-prose-quote-borders: hsl(var(--border));
-  --tw-prose-captions: hsl(var(--muted-foreground));
-  --tw-prose-code: hsl(var(--foreground));
+  --tw-prose-captions: hsl(var(--text-color-secondary));
+  --tw-prose-code: hsl(var(--text-color-primary));
   --tw-prose-pre-code: hsl(var(--secondary-foreground));
   --tw-prose-pre-bg: hsl(var(--secondary));
   --tw-prose-th-borders: hsl(var(--border));
   --tw-prose-td-borders: hsl(var(--border));
+  font-size: var(--typography-body-size, var(--font-size-base, var(--text-base, 1rem)));
+  line-height: var(--typography-body-line-height, var(--line-height-relaxed, 1.75));
+  letter-spacing: var(--typography-body-letter-spacing, var(--letter-spacing-normal, 0em));
+  font-weight: var(--typography-body-weight, var(--font-weight-regular, 400));
 }
 
 /* Dark mode prose overrides - applied when using data-theme with dark variants */
@@ -25,18 +29,18 @@ html[data-theme="dark"] .prose,
 html[data-theme="flexoki-dark"] .prose,
 html[data-theme="standard-dark"] .prose,
 html[data-theme="dracula-dark"] .prose {
-  --tw-prose-body: hsl(var(--foreground));
-  --tw-prose-headings: hsl(var(--foreground));
-  --tw-prose-lead: hsl(var(--foreground));
-  --tw-prose-links: hsl(var(--brand-primary));
-  --tw-prose-bold: hsl(var(--foreground));
-  --tw-prose-counters: hsl(var(--muted-foreground));
-  --tw-prose-bullets: hsl(var(--muted-foreground));
+  --tw-prose-body: hsl(var(--text-color-primary));
+  --tw-prose-headings: hsl(var(--text-color-primary));
+  --tw-prose-lead: hsl(var(--text-color-primary));
+  --tw-prose-links: hsl(var(--text-color-link));
+  --tw-prose-bold: hsl(var(--text-color-primary));
+  --tw-prose-counters: hsl(var(--text-color-secondary));
+  --tw-prose-bullets: hsl(var(--text-color-secondary));
   --tw-prose-hr: hsl(var(--border));
-  --tw-prose-quotes: hsl(var(--foreground));
+  --tw-prose-quotes: hsl(var(--text-color-primary));
   --tw-prose-quote-borders: hsl(var(--accent));
-  --tw-prose-captions: hsl(var(--muted-foreground));
-  --tw-prose-code: hsl(var(--foreground));
+  --tw-prose-captions: hsl(var(--text-color-secondary));
+  --tw-prose-code: hsl(var(--text-color-primary));
   --tw-prose-pre-code: hsl(var(--secondary-foreground));
   --tw-prose-pre-bg: hsl(var(--secondary));
   --tw-prose-th-borders: hsl(var(--border));
@@ -50,29 +54,32 @@ html[data-theme="dracula-dark"] .prose {
 .prose h4,
 .prose h5,
 .prose h6 {
-  color: hsl(var(--foreground));
-  font-weight: 600;
+  color: hsl(var(--text-color-primary));
+  font-size: var(--typography-title-size, var(--font-size-lg, 1.125rem));
+  font-weight: var(--typography-title-weight, 600);
+  line-height: var(--typography-title-line-height, 1.25);
+  letter-spacing: var(--typography-title-letter-spacing, -0.01em);
 }
 
 /* Strong emphasis */
 .prose strong {
-  color: hsl(var(--foreground));
-  font-weight: 600;
+  color: hsl(var(--text-color-primary));
+  font-weight: var(--font-weight-semibold, 600);
 }
 
 /* Quotes */
 .prose blockquote {
-  color: hsl(var(--foreground));
-  border-left-color: hsl(var(--brand-primary));
+  color: hsl(var(--text-color-primary));
+  border-left-color: hsl(var(--text-color-link));
   background-color: hsl(var(--blockquote-background-color));
   font-style: italic;
 }
 
 /* Links */
 .prose a {
-  color: hsl(var(--brand-primary));
+  color: hsl(var(--text-color-link));
   text-decoration: underline;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium, 500);
 }
 
 .prose a:hover {
@@ -87,11 +94,12 @@ html[data-theme="dracula-dark"] .prose {
 }
 
 .prose code {
-  color: hsl(var(--foreground));
+  color: hsl(var(--text-color-primary));
   background-color: hsl(var(--muted));
   padding: 0.2em 0.4em;
-  border-radius: var(--radius);
+  border-radius: var(--radius-md, var(--radius));
   font-size: 0.875em;
+  font-family: var(--typography-code-family, var(--font-family-mono));
 }
 
 /* Tables */
@@ -105,7 +113,7 @@ html[data-theme="dracula-dark"] .prose {
 }
 
 .prose thead th {
-  color: hsl(var(--foreground));
+  color: hsl(var(--text-color-primary));
 }
 
 .prose tbody tr {
@@ -115,13 +123,19 @@ html[data-theme="dracula-dark"] .prose {
 
 /* Custom prose size variants */
 .prose-sm {
-  font-size: 0.875rem;
+  font-size: var(--typography-body-small-size, var(--font-size-sm, 0.875rem));
+  line-height: var(--typography-body-small-line-height, var(--line-height-normal, 1.5));
+  font-weight: var(--typography-body-small-weight, var(--font-weight-regular, 400));
 }
 
 .prose-lg {
-  font-size: 1.125rem;
+  font-size: var(--typography-body-large-size, var(--font-size-lg, 1.125rem));
+  line-height: var(--typography-body-large-line-height, var(--line-height-relaxed, 1.75));
+  font-weight: var(--typography-body-large-weight, var(--font-weight-regular, 400));
 }
 
 .prose-xl {
-  font-size: 1.25rem;
+  font-size: var(--typography-title-size, var(--font-size-lg, 1.125rem));
+  line-height: var(--typography-title-line-height, var(--line-height-tight, 1.25));
+  font-weight: var(--typography-title-weight, var(--font-weight-semibold, 600));
 }

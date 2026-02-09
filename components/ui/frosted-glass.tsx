@@ -1,4 +1,5 @@
-import React, { ReactNode } from "react";
+import type React from "react";
+import { useId, type ReactNode } from "react";
 
 interface FrostedGlassProps {
   children: ReactNode;
@@ -13,35 +14,31 @@ interface FrostedGlassProps {
 const FrostedGlass: React.FC<FrostedGlassProps> = ({
   children,
   className = "",
-  blurAmount = "24",
+  blurAmount = 24,
   rounded = 24,
   bgOpacity = 10,
-  bgColor = "white",
+  bgColor = "hsl(var(--background))",
   id = "",
 }) => {
-  // Generate unique ID for SVG mask
+  const generatedId = useId();
   const maskId = id
     ? `frosted-glass-mask-${id}`
-    : `frosted-glass-mask-${Math.random().toString(36).substring(2, 11)}`;
-
-  // Map blurAmount to Tailwind blur classes
-  const blurClass = `backdrop-blur-${blurAmount}`;
-
-  // Create background opacity class
-  const bgOpacityClass = `bg-opacity-${bgOpacity}`;
-
-  // Handle bgColor class properly
-  const bgColorClass = bgColor.startsWith("bg-") ? bgColor : `bg-${bgColor}`;
+    : `frosted-glass-mask-${generatedId.replace(/[:]/g, "")}`;
 
   return (
-    <div className={`relative ${className} rounded-[${rounded}px]`}>
+    <div className={`relative overflow-hidden ${className}`} style={{ borderRadius: rounded }}>
       {/* Extended container to allow for blur to consider neighboring pixels */}
       <div className="absolute -inset-16">
         {/* Backdrop element with blur filter */}
         <div
-          className={`absolute inset-16 ${blurClass} ${bgColorClass} ${bgOpacityClass} rounded-[${rounded}px]`}
+          className="absolute inset-16 transition-token-filter"
           style={{
+            backgroundColor: `color-mix(in srgb, ${bgColor} ${bgOpacity}%, transparent)`,
+            borderRadius: rounded,
+            backdropFilter: `blur(${blurAmount}px)`,
+            WebkitBackdropFilter: `blur(${blurAmount}px)`,
             maskImage: `url(#${maskId})`,
+            WebkitMaskImage: `url(#${maskId})`,
           }}
         />
 

@@ -82,7 +82,7 @@ export function PodcastArtwork({
           onError={() => setImageError(true)}
           onLoad={() => setImageLoading(false)}
           loading={imageProps.loading}
-          priority={imageProps.priority}
+          priority={priority}
         />
       )}
     </div>

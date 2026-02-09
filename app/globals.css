@@ -29,7 +29,9 @@
 }
 @utility ambilight-wrapper {
   position: relative;
-  transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition-property: filter, transform;
+  transition-duration: var(--motion-duration-slow, 300ms);
+  transition-timing-function: var(--motion-ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
   will-change: filter, transform;
 }
 @utility ambilight-active {
@@ -37,6 +39,58 @@
 }
 @utility ambilight-inactive {
   filter: none;
+}
+@utility transition-token-colors {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-duration: var(--motion-duration-fast, 150ms);
+  transition-timing-function: var(--motion-ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+@utility transition-token-transform {
+  transition-property: transform;
+  transition-duration: var(--motion-duration-normal, 200ms);
+  transition-timing-function: var(--motion-ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+@utility transition-token-opacity {
+  transition-property: opacity;
+  transition-duration: var(--motion-duration-fast, 150ms);
+  transition-timing-function: var(--motion-ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+@utility transition-token-shadow {
+  transition-property: box-shadow;
+  transition-duration: var(--motion-duration-fast, 150ms);
+  transition-timing-function: var(--motion-ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+@utility transition-token-filter {
+  transition-property: filter, -webkit-backdrop-filter, backdrop-filter;
+  transition-duration: var(--motion-duration-normal, 200ms);
+  transition-timing-function: var(--motion-ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+@utility duration-token-instant {
+  transition-duration: var(--motion-duration-instant, 10ms);
+}
+@utility duration-token-fast {
+  transition-duration: var(--motion-duration-fast, 150ms);
+}
+@utility duration-token-normal {
+  transition-duration: var(--motion-duration-normal, 200ms);
+}
+@utility duration-token-slow {
+  transition-duration: var(--motion-duration-slow, 250ms);
+}
+@utility duration-token-slower {
+  transition-duration: var(--motion-duration-slower, 400ms);
+}
+@utility ease-token-standard {
+  transition-timing-function: var(--motion-ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+@utility ease-token-emphasized {
+  transition-timing-function: var(--motion-ease-emphasized, cubic-bezier(0.2, 0, 0, 1));
+}
+@utility ease-token-decelerate {
+  transition-timing-function: var(--motion-ease-decelerate, cubic-bezier(0, 0, 0.2, 1));
+}
+@utility ease-token-accelerate {
+  transition-timing-function: var(--motion-ease-accelerate, cubic-bezier(0.4, 0, 1, 1));
 }
 
 /* Tailwind CSS Colors */
@@ -102,17 +156,140 @@
 @layer base {
   * {
     @apply border-border;
-    transition:
-      background-color 125ms ease-in-out,
-      border-color 125ms ease-in-out,
-      color 125ms ease-in-out box-shadow 125ms ease-in-out;
   }
+
+  :root {
+    --text-color-primary: var(--foreground);
+    --text-color-secondary: var(--muted-foreground);
+    --text-color-tertiary: var(--muted-foreground);
+    --text-color-link: var(--brand-primary);
+    --text-color-primary-on-accent: var(--accent-foreground);
+    --text-color-secondary-on-accent: var(--accent-foreground);
+  }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
 @layer utilities {
+  .text-primary-content {
+    color: hsl(var(--text-color-primary));
+  }
+
+  .text-secondary-content {
+    color: hsl(var(--text-color-secondary));
+  }
+
+  .text-tertiary-content {
+    color: hsl(var(--text-color-tertiary) / 0.8);
+  }
+
+  .text-primary-on-accent {
+    color: hsl(var(--text-color-primary-on-accent));
+  }
+
+  .text-secondary-on-accent {
+    color: hsl(var(--text-color-secondary-on-accent) / 0.82);
+  }
+
+  .text-link-content {
+    color: hsl(var(--text-color-link));
+  }
+
+  .text-body-small {
+    font-size: var(--typography-body-small-size);
+    line-height: var(--typography-body-small-line-height);
+    font-weight: var(--typography-body-small-weight);
+    letter-spacing: var(--typography-body-small-letter-spacing);
+  }
+
+  .text-body {
+    font-size: var(--typography-body-size);
+    line-height: var(--typography-body-line-height);
+    font-weight: var(--typography-body-weight);
+    letter-spacing: var(--typography-body-letter-spacing);
+  }
+
+  .text-body-large {
+    font-size: var(--typography-body-large-size);
+    line-height: var(--typography-body-large-line-height);
+    font-weight: var(--typography-body-large-weight);
+    letter-spacing: var(--typography-body-large-letter-spacing);
+  }
+
+  .text-subtitle {
+    font-size: var(--typography-subtitle-size);
+    line-height: var(--typography-subtitle-line-height);
+    font-weight: var(--typography-subtitle-weight);
+    letter-spacing: var(--typography-subtitle-letter-spacing);
+  }
+
+  .text-title {
+    font-size: var(--typography-title-size);
+    line-height: var(--typography-title-line-height);
+    font-weight: var(--typography-title-weight);
+    letter-spacing: var(--typography-title-letter-spacing);
+  }
+
+  .text-title-large {
+    font-size: var(--typography-title-large-size);
+    line-height: var(--typography-title-large-line-height);
+    font-weight: var(--typography-title-large-weight);
+    letter-spacing: var(--typography-title-large-letter-spacing);
+  }
+
+  .text-display {
+    font-size: var(--typography-display-size);
+    line-height: var(--typography-display-line-height);
+    font-weight: var(--typography-display-weight);
+    letter-spacing: var(--typography-display-letter-spacing);
+  }
+
+  .text-display-large {
+    font-size: var(--typography-display-large-size);
+    line-height: var(--typography-display-large-line-height);
+    font-weight: var(--typography-display-large-weight);
+    letter-spacing: var(--typography-display-large-letter-spacing);
+  }
+
+  .text-display-small {
+    font-size: var(--typography-display-small-size);
+    line-height: var(--typography-display-small-line-height);
+    font-weight: var(--typography-display-small-weight);
+    letter-spacing: var(--typography-display-small-letter-spacing);
+  }
+
+  .text-caption {
+    font-size: var(--typography-caption-size);
+    line-height: var(--typography-caption-line-height);
+    font-weight: var(--typography-caption-weight);
+    letter-spacing: var(--typography-caption-letter-spacing);
+  }
+
+  .text-label {
+    font-size: var(--typography-label-size);
+    line-height: var(--typography-label-line-height);
+    font-weight: var(--typography-label-weight);
+    letter-spacing: var(--typography-label-letter-spacing);
+  }
+
+  .text-overline {
+    font-size: var(--typography-overline-size);
+    line-height: var(--typography-overline-line-height);
+    font-weight: var(--typography-overline-weight);
+    letter-spacing: var(--typography-overline-letter-spacing);
+    text-transform: uppercase;
+  }
+
+  .text-code {
+    font-family: var(--typography-code-family);
+    font-size: var(--typography-code-size);
+    line-height: var(--typography-code-line-height);
+    font-weight: var(--typography-code-weight);
+    letter-spacing: var(--typography-code-letter-spacing);
+  }
+
   /* Fluid Typography Utilities */
   .text-fluid-xs {
     font-size: clamp(0.75rem, 2vw, 0.875rem); /* 12px -> 14px */
@@ -213,7 +390,9 @@
     border-radius: 0;
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
-    transition: all 0.01s linear;
+    transition-property: transform, filter, height;
+    transition-duration: var(--motion-duration-instant, 10ms);
+    transition-timing-function: var(--motion-ease-linear, linear);
 
     will-change: transform, filter, height;
   }
@@ -223,7 +402,9 @@
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-start;
-    transition: all 0.2s ease-out;
+    transition-property: transform, filter, height;
+    transition-duration: var(--motion-duration-normal, 200ms);
+    transition-timing-function: var(--motion-ease-decelerate, ease-out);
     will-change: transform, filter, height;
   }
 
@@ -246,7 +427,7 @@
   }
   a {
     text-decoration: none;
-    color: var(--color);
+    color: hsl(var(--text-color-link));
     width: 100%;
     height: 100%;
     display: flex;
@@ -260,21 +441,23 @@
     left: 0;
     height: 100%;
     width: 100%;
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(90px);
+    -webkit-backdrop-filter: blur(var(--backdrop-blur-3xl));
+    backdrop-filter: blur(var(--backdrop-blur-3xl));
     font-family: var(--font-family);
-    line-height: 1.8;
-    font-weight: var(--font-weight-medium);
-    font-size: 20px;
+    line-height: var(--line-height-loose);
+    font-weight: var(--typography-body-large-weight);
+    font-size: var(--typography-body-large-size);
     margin: 0 auto;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: hsl(var(--background) / 0.75);
     z-index: 1000;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 1rem;
     opacity: 0;
-    transition: all 0.25s ease-in-out;
+    transition-property: opacity, -webkit-backdrop-filter, backdrop-filter;
+    transition-duration: var(--motion-duration-slow, 250ms);
+    transition-timing-function: var(--motion-ease-standard, ease-in-out);
   }
   .reader-view-modal .noise {
     position: absolute;
@@ -423,7 +606,9 @@
 
 /* Enable transitions only for ready cards */
 [data-masonic-tile] .card.ready {
-  transition: box-shadow 100ms ease-out;
+  transition-property: box-shadow;
+  transition-duration: var(--motion-duration-fast, 100ms);
+  transition-timing-function: var(--motion-ease-decelerate, ease-out);
 }
 
 /* Prevent unwanted transforms and hover effects on cards that aren't ready */
@@ -435,4 +620,23 @@
 [data-masonic-tile] .card * {
   animation: none !important;
   animation-fill-mode: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  ::before,
+  ::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+
+  .modal-content,
+  .animate-appear {
+    animation: none !important;
+  }
 }

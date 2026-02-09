@@ -2,7 +2,7 @@ import type { FeedItem } from "@/types";
 import { Logger } from "@/utils/logger";
 import { StateCreator } from "zustand";
 
-type ReadStatusSlice = {
+export type ReadStatusSlice = {
   readItems: Set<string>;
   readLaterItems: Set<string>;
   markAsRead: (itemId: string) => void;

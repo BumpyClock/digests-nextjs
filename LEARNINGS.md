@@ -13,3 +13,20 @@
 - 2026-02-07: settings UX works best as shared tabs content reused in both `/web` modal dialog and `/web/settings` fallback page to avoid duplicated tab wiring/state bugs.
 - 2026-02-07: View Transition API shared-element names must be CSS-safe; sanitize/hash feed IDs for `viewTransitionName`, and wrap state flips in `document.startViewTransition(() => flushSync(...))` for reliable snapshots in React.
 - 2026-02-07: for `/web` header/no-header splits, keep `app/web/layout.tsx` server-only and use route groups (`(with-header)` / `(no-header)`) instead of `usePathname` in layout, so server rendering stays intact.
+- 2026-02-07: TS-first design tokens only work if generated CSS variable names exactly match consumer names (`--motion-ease-*`, `--shadow-*`, `--z-*`, `--backdrop-blur-*`); keep generator output aligned with `tailwind.config.ts` fallback vars and regenerate after token key changes.
+- 2026-02-07: semantic typography tokens (`--typography-*`) + semantic text role aliases (`--text-color-*`) reduce repeated Tailwind class stacks; keep color aliases mapped to theme vars (in `globals.css`) and keep generated token CSS non-theme-specific.
+- 2026-02-07: keep Tailwind fallback utilities token-driven too (`fontFamily`, `fontWeight` in `tailwind.config.ts`) so remaining `font-*` classes inherit token values instead of hardcoded Tailwind defaults.
+- 2026-02-07: include larger display sizes (`font-size-5xl`, `font-size-6xl`) in token source-of-truth when components use hero-scale headings; otherwise they silently fall back to Tailwind defaults outside token control.
+- 2026-02-07: semantic type tokens work best with a dedicated display tier (`typography.display*`) plus utility classes (`text-display*`) so large marketing/app headings avoid ad-hoc `text-4xl/6xl` stacks.
+- 2026-02-07: for token-migration cleanup sweeps, use grep gates (`text-sm|text-xs|text-muted-foreground|text-gray-|transition-all|z-2`) to quickly confirm legacy class removal across `app/**` and `components/**`.
+- 2026-02-07: for worker request/response typing in strict TS, avoid over-generic callback maps; use a typed wrapper in `onMessage` and return a concrete union (`WorkerResponse`) from transport helpers to prevent contravariance errors.
+- 2026-02-07: `stableKey()` used O(n^2) dedup via `.filter(indexOf)`; replaced with `Set` for O(n log n). Always prefer `new Set()` for array dedup.
+- 2026-02-07: `itemMatchesSearch` called `.toLowerCase()` 4x on same string; cache once. Early-exit on short fields (title/desc) before joining expensive `content`.
+- 2026-02-07: `totalMatchCount` was a redundant O(n) filter using different matching logic than `filteredItems` (title+desc vs all fields) -- was a bug producing mismatched counts. Replaced with `filteredItems.length`.
+- 2026-02-07: `cleanupMarkdownMetadata` had ~20 separate regex replace passes; combined into 4 alternation regexes (~5x fewer scans).
+- 2026-02-07: `deduplicateMarkdownImages` did O(R*L) serial replacements; combined into single-pass regex using `Map` lookup.
+- 2026-02-07: `transformFeedResponse` re-evaluated feed-level fallback chains per item; hoisted outside `.map()`.
+- 2026-02-07: CommandBar had two O(n) filter passes for articles/podcasts; merged into single-pass partition + Map for O(1) article lookup.
+- 2026-02-06: PR55 review pass: useHydratedStore should prefer persist.hasHydrated()/onFinishHydration() over broad subscribe to avoid extra pre-hydration callbacks, and store rehydrate Set repairs should use store.setState(...) (not direct state mutation).
+- 2026-02-06: Token build safety: wire generate:design-tokens into prebuild and keep build as next build to avoid duplicate migration checks while still preventing stale generated token CSS.
+- 2026-02-08: /web card-grid scroll can break when route shell uses overflow-hidden; masonic uses window scroll, so keep /web shell vertically scrollable (e.g., overflow-x-hidden) or migrate grid to container-scroller APIs.

@@ -135,14 +135,14 @@ export default function PodcastPage() {
             />
           </div>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold mb-2">{podcast.title}</h1>
+            <h1 className="mb-2 text-display-small text-primary-content">{podcast.title}</h1>
             <div className="flex items-center mb-4">
               <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center mr-2">
                 {publisherInitial}
               </div>
-              <p className="font-medium">{publisher}</p>
+              <p className="text-subtitle text-primary-content">{publisher}</p>
             </div>
-            <p className="text-sm text-muted-foreground mb-4">
+            <p className="mb-4 text-body-small text-secondary-content">
               {new Date(podcast.published).toLocaleDateString(undefined, {
                 year: "numeric",
                 month: "long",
@@ -162,7 +162,7 @@ export default function PodcastPage() {
               </Button>
             </div>
             <div className="space-y-4">
-              <h2 className="text-xl font-bold">Episode Description</h2>
+              <h2 className="text-title-large text-primary-content">Episode Description</h2>
               <div className="prose prose-sm dark:prose-invert">
                 <div
                   dangerouslySetInnerHTML={{

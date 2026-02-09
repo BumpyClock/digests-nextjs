@@ -35,7 +35,7 @@ const FeedListItem = memo(function FeedListItem({
     return item.published ? dayjs(item.published).fromNow() : "Date unknown";
   }, [item.published]);
   const handleKeyDown = useCallback(
-    (event: KeyboardEvent<HTMLDivElement>) => {
+    (event: KeyboardEvent<HTMLButtonElement>) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
         onSelect();
@@ -64,14 +64,14 @@ const FeedListItem = memo(function FeedListItem({
               className="rounded w-4 h-4"
             />
           )}
-          <span className="text-xs text-muted-foreground truncate">
+          <span className="text-caption text-secondary-content truncate">
             {cleanupTextContent(getSiteDisplayName(item))}
           </span>
         </div>
-        <h3 className="font-semibold text-sm line-clamp-2 mb-1">
+        <h3 className="text-subtitle line-clamp-2 mb-1">
           {cleanupTextContent(item.title)}
         </h3>
-        <div className="flex justify-between items-center text-xs text-muted-foreground">
+        <div className="flex justify-between items-center text-caption text-secondary-content">
           <span>{formattedDate}</span>
           {item.favorite && <Heart className="h-3 w-3 fill-red-500 text-red-500" />}
         </div>
@@ -151,7 +151,7 @@ export function FeedList({
   if (!items || items.length === 0) {
     return (
       <div className="border rounded-md p-8 flex items-center justify-center h-full">
-        <p className="text-muted-foreground">No items found</p>
+        <p className="text-secondary-content">No items found</p>
       </div>
     );
   }

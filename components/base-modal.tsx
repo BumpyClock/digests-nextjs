@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { motionTokens } from "@/lib/motion-tokens";
 import { Logger } from "@/utils/logger";
 
 interface BaseModalProps {
@@ -92,11 +93,11 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
             {/* Custom backdrop with 40px blur + translucent overlay */}
             <DialogPrimitive.Overlay asChild>
               <motion.div
-                className="fixed inset-0 z-50 bg-background/45 backdrop-blur-2xl"
+                className="fixed inset-0 z-overlay bg-background/45 backdrop-blur-3xl"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
+                transition={{ duration: motionTokens.duration.normal, ease: "easeOut" }}
                 style={{ willChange: "opacity" }}
               />
             </DialogPrimitive.Overlay>
@@ -106,8 +107,8 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
               <motion.div
                 className={
                   effectiveIsMobile
-                    ? "fixed z-50 w-full h-full left-0 top-0 overflow-hidden"
-                    : "fixed z-50 w-full max-w-[1050px] h-[90vh] left-1/2 top-1/2 mx-4 overflow-hidden"
+                    ? "fixed z-modal w-full h-full left-0 top-0 overflow-hidden"
+                    : "fixed z-modal w-full max-w-[1050px] h-[90vh] left-1/2 top-1/2 mx-4 overflow-hidden"
                 }
                 initial={{
                   opacity: 0,
@@ -128,14 +129,14 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
                   y: effectiveIsMobile ? "100%" : "-50%",
                 }}
                 transition={{
-                  duration: 0.25,
-                  ease: [0.16, 1, 0.3, 1], // Custom ease for smooth feel
+                  duration: motionTokens.duration.normal,
+                  ease: motionTokens.ease.standard,
                 }}
                 style={{ willChange: "transform, opacity" }}
               >
                 <div
                   className={`relative w-full h-full bg-background shadow-2xl overflow-hidden ${
-                    effectiveIsMobile ? "rounded-none" : "rounded-[32px]"
+                    effectiveIsMobile ? "rounded-none" : "rounded-3xl"
                   } ${className || ""}`}
                 >
                   {/* Invisible title for accessibility */}
@@ -145,10 +146,10 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
 
                   {/* Close button */}
                   <motion.div
-                    className="absolute top-4 right-4 z-50"
+                    className="absolute top-4 right-4 z-modal"
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.1, duration: 0.2 }}
+                    transition={{ delay: motionTokens.duration.fast, duration: motionTokens.duration.normal }}
                   >
                     <Button
                       variant="ghost"
@@ -166,7 +167,7 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
                     className="h-full w-full overflow-auto"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1, duration: 0.25 }}
+                    transition={{ delay: motionTokens.duration.fast, duration: motionTokens.duration.normal }}
                   >
                     {children}
                   </motion.div>

@@ -28,7 +28,7 @@ export default async function Page(props: { params: Promise<{ slug: string }> })
 
     return (
       <article className="prose prose-lg dark:prose-invert max-w-none">
-        {title && <h1 className="text-3xl font-bold mb-6">{title}</h1>}
+        {title && <h1 className="mb-6 text-display-small text-primary-content">{title}</h1>}
         {Content}
       </article>
     );

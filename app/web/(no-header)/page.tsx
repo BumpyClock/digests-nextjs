@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFeedBackgroundSync, useFeedsData, useRefreshFeedsMutation } from "@/hooks/queries";
 import { useWebPageData } from "@/hooks/useFeedSelectors";
 import { useHydratedStore } from "@/store/useFeedStore";
-import { Feed, FeedItem } from "@/types";
+import type { Feed, FeedItem } from "@/types";
 import { Logger } from "@/utils/logger";
 import { normalizeUrl } from "@/utils/url";
 import { WebSettingsTabs } from "./settings/components/web-settings-tabs";
@@ -327,7 +327,7 @@ function WebPageContent() {
               <button
                 type="button"
                 onClick={clearFeedFilter}
-                className="text-sm text-muted-foreground hover:text-primary flex items-center gap-2"
+                className="flex items-center gap-2 text-body-small text-secondary-content transition-token-colors duration-token-fast hover:text-primary-content"
               >
                 <span>×</span> Clear Feed Filter
               </button>
@@ -426,8 +426,8 @@ function WebPageContent() {
           <div className="flex h-full min-h-0 flex-col">
             <div className="flex shrink-0 items-center justify-between border-b bg-card/40 px-4 py-3">
               <div className="flex items-center gap-2">
-                <Settings className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm font-medium">Settings</p>
+                <Settings className="h-4 w-4 text-secondary-content" />
+                <p className="text-label text-primary-content">Settings</p>
               </div>
               <DialogClose asChild>
                 <Button

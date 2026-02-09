@@ -76,6 +76,11 @@ export function transformFeedResponse(data: FetchFeedsResponse): {
     // Generate stable GUID for the feed
     const feedGuid = generateFeedGuid(feed);
 
+    // Compute feed-level derived values once (avoid re-evaluating per item)
+    const derivedSiteName = feed.siteName || feed.siteTitle || feed.title || feed.feedTitle;
+    const derivedSiteTitle = feed.siteTitle || feed.title || feed.feedTitle;
+    const derivedFeedTitle = feed.feedTitle || feed.title;
+
     return {
       type: feed.type,
       guid: feedGuid,
@@ -97,7 +102,6 @@ export function transformFeedResponse(data: FetchFeedsResponse): {
       items: Array.isArray(feed.items)
         ? feed.items.map((item: FeedItem) => ({
             type: item.type,
-            // Generate stable ID using feed GUID and item properties
             id: generateItemId(item, feedGuid),
             title: item.title,
             description: item.description,
@@ -112,10 +116,9 @@ export function transformFeedResponse(data: FetchFeedsResponse): {
             thumbnail: item.thumbnail,
             thumbnailColor: item.thumbnailColor,
             thumbnailColorComputed: item.thumbnailColorComputed,
-            // Inherit feed metadata for easy access at item level
-            siteName: feed.siteName || feed.siteTitle || feed.title || feed.feedTitle,
-            siteTitle: feed.siteTitle || feed.title || feed.feedTitle,
-            feedTitle: feed.feedTitle || feed.title,
+            siteName: derivedSiteName,
+            siteTitle: derivedSiteTitle,
+            feedTitle: derivedFeedTitle,
             feedUrl: feed.feedUrl,
             favicon: feed.favicon,
             favorite: false,

@@ -7,6 +7,7 @@ import { Ambilight } from "@/components/ui/ambilight";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
 import { getFeedAnimationIds } from "@/lib/feed-animation-ids";
+import { motionTokens } from "@/lib/motion-tokens";
 import { getViewTransitionStyle, supportsViewTransitions } from "@/lib/view-transitions";
 import type { FeedItem, ReaderViewResponse } from "@/types";
 import { getSiteDisplayName } from "@/utils/htmlUtils";
@@ -62,7 +63,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
           <div className="mb-6">
             <div
               className={`overflow-hidden relative ${
-                isModal ? "rounded-[24px] max-h-[450px]" : "rounded-lg mt-4"
+                isModal ? "rounded-2xl max-h-[450px]" : "rounded-lg mt-4"
               }`}
             >
               {loading && !isModal ? (
@@ -81,7 +82,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                       <motion.div
                         initial={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
+                        transition={{ duration: motionTokens.duration.slow }}
                         className="absolute inset-0 z-10"
                       >
                         <Skeleton className="w-full h-full" />
@@ -113,7 +114,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                       onLoad={() => setImageLoaded(true)}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: imageLoaded ? 1 : 0 }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ duration: motionTokens.duration.slow }}
                     />
                   </Ambilight>
                 </motion.div>
@@ -138,7 +139,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                   <motion.h1
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
+                    transition={{ duration: motionTokens.duration.slow }}
                     className="text-fluid-xl font-bold mb-2 text-left leading-fluid-tight"
                   >
                     {readerView.title}
@@ -147,7 +148,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
               )}
 
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
-                <div className="flex items-center gap-2 text-fluid-sm text-muted-foreground flex-1 min-w-0">
+                <div className="flex items-center gap-2 text-fluid-sm text-secondary-content flex-1 min-w-0">
                   {loading ? (
                     <>
                       <Skeleton className="h-5 w-5 rounded" />
@@ -187,7 +188,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                               loading="lazy"
                             />
                           )}
-                          <span className="text-fluid-xs font-medium text-foreground truncate">
+                          <span className="text-fluid-xs font-medium text-primary-content truncate">
                             {extractedAuthor.name}
                           </span>
                         </div>
@@ -206,7 +207,10 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3, delay: 0.1 }}
+                    transition={{
+                      duration: motionTokens.duration.slow,
+                      delay: motionTokens.duration.fast,
+                    }}
                   >
                     {actions}
                   </motion.div>
@@ -216,7 +220,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
           ) : (
             <>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
-                <div className="flex items-center gap-2 text-fluid-sm text-muted-foreground flex-1 min-w-0">
+                <div className="flex items-center gap-2 text-fluid-sm text-secondary-content flex-1 min-w-0">
                   {loading && !isModal ? (
                     <>
                       <Skeleton className="h-5 w-5 rounded" />
@@ -281,7 +285,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                               loading="lazy"
                             />
                           )}
-                          <span className="text-fluid-sm font-medium text-foreground truncate">
+                          <span className="text-fluid-sm font-medium text-primary-content truncate">
                             {extractedAuthor.name}
                           </span>
                         </div>
@@ -301,7 +305,10 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3, delay: 0.1 }}
+                    transition={{
+                      duration: motionTokens.duration.slow,
+                      delay: motionTokens.duration.fast,
+                    }}
                     className="flex gap-2"
                   >
                     {actions}
@@ -320,7 +327,10 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                   <motion.h1
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.1 }}
+                    transition={{
+                      duration: motionTokens.duration.slow,
+                      delay: motionTokens.duration.fast,
+                    }}
                     layoutId={motionLayoutEnabled ? animationIds.title : undefined}
                     style={getViewTransitionStyle(viewTransitionsEnabled, animationIds.title)}
                     className={

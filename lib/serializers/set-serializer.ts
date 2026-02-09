@@ -39,11 +39,12 @@ export const setSerializerMiddleware = {
   /**
    * Called during store.persist() - converts Sets to Arrays
    */
-  serialize: <T extends Record<string, unknown>>(state: T, setFields: (keyof T)[]): T => {
-    const serialized = { ...state };
+  serialize: <T extends object>(state: T, setFields: (keyof T)[]): T => {
+    const serialized = { ...state } as T;
     for (const field of setFields) {
-      if (state[field] instanceof Set) {
-        (serialized as Record<string, unknown>)[field] = Array.from(state[field] as Set<unknown>);
+      const value = state[field];
+      if (value instanceof Set) {
+        (serialized as Record<string, unknown>)[field as string] = Array.from(value);
       }
     }
     return serialized;
@@ -52,10 +53,11 @@ export const setSerializerMiddleware = {
   /**
    * Called during store.rehydrate() - converts Arrays back to Sets
    */
-  deserialize: <T extends Record<string, unknown>>(state: T, setFields: (keyof T)[]): T => {
-    const deserialized = { ...state };
+  deserialize: <T extends object>(state: T, setFields: (keyof T)[]): T => {
+    const deserialized = { ...state } as T;
     for (const field of setFields) {
-      deserialized[field] = deserializeSet(state[field as keyof T]);
+      const value = state[field];
+      (deserialized as Record<string, unknown>)[field as string] = deserializeSet(value);
     }
     return deserialized;
   },

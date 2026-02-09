@@ -57,7 +57,9 @@ export function getMDXComponents(components: MDXComponents): MDXComponents {
     },
     h1: ({ children }) => {
       try {
-        return children ? <h1 className="text-3xl font-bold mt-8 mb-4">{children}</h1> : null;
+        return children ? (
+          <h1 className="mt-8 mb-4 text-display-small text-primary-content">{children}</h1>
+        ) : null;
       } catch (error) {
         console.error("Error in MDX h1 component:", error);
         return null;
@@ -65,7 +67,9 @@ export function getMDXComponents(components: MDXComponents): MDXComponents {
     },
     h2: ({ children }) => {
       try {
-        return children ? <h2 className="text-2xl font-bold mt-6 mb-3">{children}</h2> : null;
+        return children ? (
+          <h2 className="mt-6 mb-3 text-title-large text-primary-content">{children}</h2>
+        ) : null;
       } catch (error) {
         console.error("Error in MDX h2 component:", error);
         return null;
@@ -73,7 +77,9 @@ export function getMDXComponents(components: MDXComponents): MDXComponents {
     },
     h3: ({ children }) => {
       try {
-        return children ? <h3 className="text-xl font-bold mt-4 mb-2">{children}</h3> : null;
+        return children ? (
+          <h3 className="mt-4 mb-2 text-title text-primary-content">{children}</h3>
+        ) : null;
       } catch (error) {
         console.error("Error in MDX h3 component:", error);
         return null;
@@ -118,7 +124,9 @@ export function getMDXComponents(components: MDXComponents): MDXComponents {
     code: ({ children }) => {
       try {
         return children ? (
-          <code className="bg-gray-100 rounded px-1 py-0.5 font-mono text-sm">{children}</code>
+          <code className="rounded bg-muted px-1 py-0.5 text-code text-primary-content">
+            {children}
+          </code>
         ) : null;
       } catch (error) {
         console.error("Error in MDX code component:", error);
@@ -128,7 +136,7 @@ export function getMDXComponents(components: MDXComponents): MDXComponents {
     pre: ({ children }) => {
       try {
         return children ? (
-          <pre className="bg-gray-100 rounded p-4 overflow-x-auto my-4 font-mono text-sm">
+          <pre className="my-4 overflow-x-auto rounded bg-muted p-4 text-code text-primary-content">
             {children}
           </pre>
         ) : null;
@@ -140,7 +148,7 @@ export function getMDXComponents(components: MDXComponents): MDXComponents {
     blockquote: ({ children }) => {
       try {
         return children ? (
-          <blockquote className="border-l-4 border-gray-200 pl-4 italic my-4">
+          <blockquote className="my-4 border-l-4 border-border pl-4 italic text-secondary-content">
             {children}
           </blockquote>
         ) : null;

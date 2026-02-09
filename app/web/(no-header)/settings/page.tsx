@@ -11,10 +11,10 @@ export default function SettingsPage() {
       <div className="flex h-full min-h-0 flex-col gap-3 sm:gap-4">
         <div className="flex shrink-0 items-center justify-between rounded-lg border bg-card/40 p-2.5">
           <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4 text-muted-foreground" />
+            <Settings className="h-4 w-4 text-secondary-content" />
             <div>
-              <h1 className="text-xl font-semibold sm:text-2xl">Settings</h1>
-              <p className="text-muted-foreground text-sm">
+              <h1 className="text-title-large text-primary-content">Settings</h1>
+              <p className="text-body-small text-secondary-content">
                 Manage your feeds and application preferences
               </p>
             </div>
