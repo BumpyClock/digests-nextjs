@@ -2,28 +2,45 @@ import { useState, useEffect } from "react";
 import { ReaderViewResponse, FeedItem } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import { workerService } from "@/services/worker-service";
+import { getApiConfig } from "@/store/useApiConfigStore";
 import { processArticleContent } from "@/components/Feed/ArticleReader";
+
+const MAX_CACHE_SIZE = 50;
+const readerViewCache = new Map<string, ReaderViewResponse>();
+
+function setCached(key: string, value: ReaderViewResponse) {
+  if (readerViewCache.size >= MAX_CACHE_SIZE) {
+    // Evict oldest entry
+    const firstKey = readerViewCache.keys().next().value;
+    if (firstKey !== undefined) readerViewCache.delete(firstKey);
+  }
+  readerViewCache.set(key, value);
+}
 
 export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
   const [readerView, setReaderView] = useState<ReaderViewResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
   const [cleanedContent, setCleanedContent] = useState("");
   const [cleanedMarkdown, setCleanedMarkdown] = useState("");
   const [extractedAuthor, setExtractedAuthor] = useState<
     { name: string; image?: string } | undefined
   >();
   const { toast } = useToast();
+  const feedItemLink = feedItem?.link;
 
   // Reset state when feedItem changes
   useEffect(() => {
-    if (!feedItem) {
-      setReaderView(null);
-      setCleanedContent("");
-      setCleanedMarkdown("");
-      setExtractedAuthor(undefined);
+    setReaderView(null);
+    setLoading(false);
+    setHasAttemptedFetch(false);
+    setCleanedContent("");
+    setCleanedMarkdown("");
+    setExtractedAuthor(undefined);
+    if (!feedItemLink) {
       return;
     }
-  }, [feedItem]);
+  }, [feedItemLink]);
 
   // Process content when readerView changes
   useEffect(() => {
@@ -46,22 +63,39 @@ export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
   // Load reader view
   useEffect(() => {
     // Skip if modal is closed or no feedItem
-    if (isOpen === false || !feedItem) return;
+    if (isOpen === false || !feedItemLink) return;
+    const link = feedItemLink;
+    const apiBaseUrl = getApiConfig().baseUrl;
+    const cacheKey = `${apiBaseUrl}::${link}`;
 
-    const feedItemLink = feedItem.link;
+    // Check cache first
+    const cached = readerViewCache.get(cacheKey);
+    if (cached) {
+      setLoading(true);
+      setReaderView(cached);
+      setHasAttemptedFetch(true);
+      Promise.resolve().then(() => setLoading(false));
+      return;
+    }
+
+    let didCancel = false;
 
     async function loadReaderView() {
+      setHasAttemptedFetch(true);
       setLoading(true);
 
       try {
-        const result = await workerService.fetchReaderView(feedItemLink);
+        const result = await workerService.fetchReaderView(link);
 
         if (result.success && result.data.length > 0 && result.data[0].status === "ok") {
+          if (didCancel) return;
+          setCached(cacheKey, result.data[0]);
           setReaderView(result.data[0]);
         } else {
           throw new Error(result.message || "Failed to load reader view");
         }
       } catch (error) {
+        if (didCancel) return;
         console.error("Error fetching reader view:", error);
         toast({
           title: "Error",
@@ -69,12 +103,20 @@ export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
           variant: "destructive",
         });
       } finally {
-        setLoading(false);
+        if (!didCancel) {
+          setLoading(false);
+        }
       }
     }
 
     loadReaderView();
-  }, [feedItem, toast, isOpen]);
+    return () => {
+      didCancel = true;
+    };
+  }, [feedItemLink, toast, isOpen]);
 
-  return { readerView, loading, cleanedContent, cleanedMarkdown, extractedAuthor };
+  const shouldShowLoading =
+    loading || (isOpen !== false && !!feedItem && !readerView && !hasAttemptedFetch);
+
+  return { readerView, loading: shouldShowLoading, cleanedContent, cleanedMarkdown, extractedAuthor };
 }

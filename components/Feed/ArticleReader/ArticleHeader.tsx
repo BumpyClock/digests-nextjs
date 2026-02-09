@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
 import { getFeedAnimationIds } from "@/lib/feed-animation-ids";
 import { motionTokens } from "@/lib/motion-tokens";
-import { getViewTransitionStyle, supportsViewTransitions } from "@/lib/view-transitions";
+import { getViewTransitionStyle, useViewTransitionsSupported } from "@/lib/view-transitions";
 import type { FeedItem, ReaderViewResponse } from "@/types";
 import { getSiteDisplayName } from "@/utils/htmlUtils";
 import { SiteFavicon } from "./SiteFavicon";
@@ -23,6 +23,8 @@ interface ArticleHeaderProps {
   className?: string;
   loading?: boolean;
   extractedAuthor?: { name: string; image?: string };
+  disableTransitionEffectsDuringWindow?: boolean;
+  disableEntranceAnimations?: boolean;
 }
 
 /**
@@ -41,20 +43,40 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
     className,
     loading = false,
     extractedAuthor,
+    disableTransitionEffectsDuringWindow = false,
+    disableEntranceAnimations = false,
   }) => {
     const isModal = layout === "modal";
     const isCompact = layout === "compact";
     const [imageLoaded, setImageLoaded] = useState(false);
-    const [viewTransitionsSupported, setViewTransitionsSupported] = useState(false);
+    const [ambilightReady, setAmbilightReady] = useState(!isModal);
+    const [isTransitionWindow, setIsTransitionWindow] = useState(false);
     const { animationEnabled } = useFeedAnimation();
     const animationIds = getFeedAnimationIds(feedItem.id);
     const modalTitle = readerView?.title || feedItem.title;
-    const viewTransitionsEnabled = animationEnabled && isModal && viewTransitionsSupported;
+    const vtSupported = useViewTransitionsSupported();
+    const viewTransitionsEnabled = animationEnabled && isModal && vtSupported;
     const motionLayoutEnabled = animationEnabled && isModal && !viewTransitionsEnabled;
+    const disableHeavyEffects = disableTransitionEffectsDuringWindow && isTransitionWindow;
+    const disableMountAnimations = disableEntranceAnimations && isModal;
+
+    // Defer ambilight activation in modal to avoid expensive paint during entrance
+    useEffect(() => {
+      if (!isModal) return;
+      const t = setTimeout(() => setAmbilightReady(true), 350);
+      return () => clearTimeout(t);
+    }, [isModal]);
 
     useEffect(() => {
-      setViewTransitionsSupported(supportsViewTransitions());
-    }, []);
+      if (!isModal || !disableTransitionEffectsDuringWindow) {
+        setIsTransitionWindow(false);
+        return;
+      }
+
+      setIsTransitionWindow(true);
+      const t = setTimeout(() => setIsTransitionWindow(false), 450);
+      return () => clearTimeout(t);
+    }, [isModal, disableTransitionEffectsDuringWindow]);
 
     return (
       <>
@@ -93,7 +115,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                   {/* Actual image with Ambilight - always in position */}
                   <Ambilight
                     className="w-full h-full"
-                    isActive={true}
+                    isActive={ambilightReady && !disableHeavyEffects}
                     opacity={{ rest: 0.5, hover: 0.7 }}
                   >
                     {/* biome-ignore lint/performance/noImgElement: motion.img keeps animation + layout control here */}
@@ -112,9 +134,13 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                       }
                       loading={isModal ? "eager" : "lazy"}
                       onLoad={() => setImageLoaded(true)}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: imageLoaded ? 1 : 0 }}
-                      transition={{ duration: motionTokens.duration.slow }}
+                      initial={disableHeavyEffects ? false : { opacity: 0 }}
+                      animate={disableHeavyEffects ? undefined : { opacity: imageLoaded ? 1 : 0 }}
+                      transition={
+                        disableHeavyEffects
+                          ? undefined
+                          : { duration: motionTokens.duration.slow }
+                      }
                     />
                   </Ambilight>
                 </motion.div>
@@ -137,9 +163,13 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
               ) : (
                 readerView?.title && (
                   <motion.h1
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: motionTokens.duration.slow }}
+                    initial={disableMountAnimations ? false : { opacity: 0 }}
+                    animate={disableMountAnimations ? undefined : { opacity: 1 }}
+                    transition={
+                      disableMountAnimations
+                        ? { duration: 0 }
+                        : { duration: motionTokens.duration.slow }
+                    }
                     className="text-fluid-xl font-bold mb-2 text-left leading-fluid-tight"
                   >
                     {readerView.title}
@@ -205,12 +235,16 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                   </div>
                 ) : (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{
-                      duration: motionTokens.duration.slow,
-                      delay: motionTokens.duration.fast,
-                    }}
+                    initial={disableMountAnimations ? false : { opacity: 0 }}
+                    animate={disableMountAnimations ? undefined : { opacity: 1 }}
+                    transition={
+                      disableMountAnimations
+                        ? { duration: 0 }
+                        : {
+                            duration: motionTokens.duration.slow,
+                            delay: motionTokens.duration.fast,
+                          }
+                    }
                   >
                     {actions}
                   </motion.div>
@@ -232,21 +266,8 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                   ) : (
                     <>
                       {/* Site Info */}
-                      <motion.div
-                        className="flex items-center gap-2 min-w-0"
-                        layoutId={motionLayoutEnabled ? animationIds.siteMeta : undefined}
-                        style={getViewTransitionStyle(
-                          viewTransitionsEnabled,
-                          animationIds.siteMeta
-                        )}
-                      >
-                        <motion.div
-                          layoutId={motionLayoutEnabled ? animationIds.favicon : undefined}
-                          style={getViewTransitionStyle(
-                            viewTransitionsEnabled,
-                            animationIds.favicon
-                          )}
-                        >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div>
                           {feedItem.favicon ? (
                             <SiteFavicon
                               favicon={feedItem.favicon}
@@ -255,19 +276,11 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                               priority={isModal}
                             />
                           ) : null}
-                        </motion.div>
-                        <motion.span
-                          className="truncate block"
-                          title={getSiteDisplayName(feedItem)}
-                          layoutId={motionLayoutEnabled ? animationIds.siteName : undefined}
-                          style={getViewTransitionStyle(
-                            viewTransitionsEnabled,
-                            animationIds.siteName
-                          )}
-                        >
+                        </div>
+                        <span className="truncate block" title={getSiteDisplayName(feedItem)}>
                           {getSiteDisplayName(feedItem)}
-                        </motion.span>
-                      </motion.div>
+                        </span>
+                      </div>
 
                       {/* Vertical Divider */}
                       {extractedAuthor && <div className="w-px h-6 bg-border mx-2" />}
@@ -303,12 +316,16 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                   </div>
                 ) : (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{
-                      duration: motionTokens.duration.slow,
-                      delay: motionTokens.duration.fast,
-                    }}
+                    initial={disableMountAnimations ? false : { opacity: 0 }}
+                    animate={disableMountAnimations ? undefined : { opacity: 1 }}
+                    transition={
+                      disableMountAnimations
+                        ? { duration: 0 }
+                        : {
+                            duration: motionTokens.duration.slow,
+                            delay: motionTokens.duration.fast,
+                          }
+                    }
                     className="flex gap-2"
                   >
                     {actions}
@@ -325,12 +342,16 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
               ) : (
                 modalTitle && (
                   <motion.h1
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: motionTokens.duration.slow,
-                      delay: motionTokens.duration.fast,
-                    }}
+                    initial={disableMountAnimations ? false : { opacity: 0, y: 10 }}
+                    animate={disableMountAnimations ? undefined : { opacity: 1, y: 0 }}
+                    transition={
+                      disableMountAnimations
+                        ? { duration: 0 }
+                        : {
+                            duration: motionTokens.duration.slow,
+                            delay: motionTokens.duration.fast,
+                          }
+                    }
                     layoutId={motionLayoutEnabled ? animationIds.title : undefined}
                     style={getViewTransitionStyle(viewTransitionsEnabled, animationIds.title)}
                     className={

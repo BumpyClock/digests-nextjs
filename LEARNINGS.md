@@ -30,3 +30,4 @@
 - 2026-02-06: PR55 review pass: useHydratedStore should prefer persist.hasHydrated()/onFinishHydration() over broad subscribe to avoid extra pre-hydration callbacks, and store rehydrate Set repairs should use store.setState(...) (not direct state mutation).
 - 2026-02-06: Token build safety: wire generate:design-tokens into prebuild and keep build as next build to avoid duplicate migration checks while still preventing stale generated token CSS.
 - 2026-02-08: /web card-grid scroll can break when route shell uses overflow-hidden; masonic uses window scroll, so keep /web shell vertically scrollable (e.g., overflow-x-hidden) or migrate grid to container-scroller APIs.
+- 2026-02-09: Connected card->reader transitions are much smoother when modal open is two-phase (light shell first, heavy article body deferred ~300ms), VT path disables extra motion entrances, and shared elements are limited to thumbnail+title (drop site meta/favicons from shared transition set).

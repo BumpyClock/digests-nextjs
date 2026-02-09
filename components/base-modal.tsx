@@ -24,6 +24,16 @@ interface BaseModalProps {
    * Kept optional so existing usages without itemId remain valid.
    */
   itemId?: string;
+  /**
+   * When true, the browser View Transition API is handling the entrance —
+   * skip Framer Motion scale/translate animations to avoid conflict.
+   */
+  useViewTransition?: boolean;
+  /**
+   * Optional delay for restoring full backdrop blur during VT mode.
+   * If omitted, VT mode keeps a low-cost blur throughout the entrance.
+   */
+  viewTransitionBackdropSettleMs?: number;
 }
 
 /**
@@ -34,10 +44,19 @@ interface BaseModalProps {
  * - Smooth scale and fade animations
  * - Centered modal with proper sizing
  */
-export function BaseModal({ isOpen, onClose, title, children, className }: BaseModalProps) {
+export function BaseModal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  className,
+  useViewTransition,
+  viewTransitionBackdropSettleMs,
+}: BaseModalProps) {
   const isMobile = useIsMobile();
   // Store the initial mobile state when modal opens to prevent resize issues
   const [initialIsMobile, setInitialIsMobile] = useState<boolean | null>(null);
+  const [isBackdropSettled, setIsBackdropSettled] = useState(false);
   const isResizing = useRef(false);
 
   useEffect(() => {
@@ -85,98 +104,151 @@ export function BaseModal({ isOpen, onClose, title, children, className }: BaseM
     };
   }, [isOpen]);
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-          <DialogPrimitive.Portal>
-            {/* Custom backdrop with 40px blur + translucent overlay */}
-            <DialogPrimitive.Overlay asChild>
-              <motion.div
-                className="fixed inset-0 z-overlay bg-background/45 backdrop-blur-3xl"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: motionTokens.duration.normal, ease: "easeOut" }}
-                style={{ willChange: "opacity" }}
-              />
-            </DialogPrimitive.Overlay>
+  useEffect(() => {
+    if (!isOpen || !useViewTransition) {
+      setIsBackdropSettled(false);
+      return;
+    }
 
-            {/* Modal content */}
-            <DialogPrimitive.Content asChild>
+    if (!viewTransitionBackdropSettleMs || viewTransitionBackdropSettleMs <= 0) {
+      setIsBackdropSettled(false);
+      return;
+    }
+
+    setIsBackdropSettled(false);
+    const settleTimer = window.setTimeout(() => {
+      setIsBackdropSettled(true);
+    }, viewTransitionBackdropSettleMs);
+
+    return () => {
+      window.clearTimeout(settleTimer);
+    };
+  }, [isOpen, useViewTransition, viewTransitionBackdropSettleMs]);
+
+  const backdropBlurClass = useViewTransition
+    ? isBackdropSettled
+      ? "backdrop-blur-xl"
+      : "backdrop-blur-sm"
+    : "backdrop-blur-xl";
+
+  const modalContent = (
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogPrimitive.Portal>
+        {/* Custom backdrop with 40px blur + translucent overlay */}
+        <DialogPrimitive.Overlay asChild>
+          <motion.div
+            className={`fixed inset-0 z-overlay bg-background/45 ${backdropBlurClass}`}
+            initial={useViewTransition ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: motionTokens.duration.normal, ease: "easeOut" }}
+            style={{ willChange: "opacity" }}
+          />
+        </DialogPrimitive.Overlay>
+
+        {/* Modal content */}
+        <DialogPrimitive.Content asChild>
+          <motion.div
+            className={
+              effectiveIsMobile
+                ? "fixed z-modal w-full h-full left-0 top-0 overflow-hidden"
+                : "fixed z-modal w-full max-w-[1050px] h-[90vh] left-1/2 top-1/2 mx-4 overflow-hidden"
+            }
+            initial={
+              useViewTransition
+                ? false
+                : {
+                    opacity: 0,
+                    scale: 0.9,
+                    x: effectiveIsMobile ? 0 : "-50%",
+                    y: effectiveIsMobile ? "100%" : "-50%",
+                  }
+            }
+            animate={{
+              opacity: 1,
+              x: effectiveIsMobile ? 0 : "-50%",
+              y: effectiveIsMobile ? 0 : "-50%",
+              ...(useViewTransition
+                ? {}
+                : {
+                    scale: 1,
+                  }),
+            }}
+            exit={
+              useViewTransition
+                ? undefined
+                : {
+                    opacity: 0,
+                    scale: 0.9,
+                    x: effectiveIsMobile ? 0 : "-50%",
+                    y: effectiveIsMobile ? "100%" : "-50%",
+                  }
+            }
+            transition={{
+              ...(useViewTransition
+                ? { duration: 0 }
+                : {
+                    duration: motionTokens.duration.normal,
+                    ease: motionTokens.ease.standard,
+                  }),
+            }}
+            style={{ willChange: "transform, opacity" }}
+          >
+            <div
+              className={`relative w-full h-full bg-background shadow-2xl overflow-hidden ${
+                effectiveIsMobile ? "rounded-none" : "rounded-3xl"
+              } ${className || ""}`}
+            >
+              {/* Invisible title for accessibility */}
+              <DialogPrimitive.Title className="sr-only">
+                {title || "Content"}
+              </DialogPrimitive.Title>
+
+              {/* Close button */}
               <motion.div
-                className={
-                  effectiveIsMobile
-                    ? "fixed z-modal w-full h-full left-0 top-0 overflow-hidden"
-                    : "fixed z-modal w-full max-w-[1050px] h-[90vh] left-1/2 top-1/2 mx-4 overflow-hidden"
+                className="absolute top-4 right-4 z-modal"
+                initial={useViewTransition ? false : { opacity: 0, scale: 0.8 }}
+                animate={useViewTransition ? { opacity: 1 } : { opacity: 1, scale: 1 }}
+                transition={
+                  useViewTransition
+                    ? { duration: 0 }
+                    : { delay: motionTokens.duration.fast, duration: motionTokens.duration.normal }
                 }
-                initial={{
-                  opacity: 0,
-                  scale: 0.9,
-                  x: effectiveIsMobile ? 0 : "-50%",
-                  y: effectiveIsMobile ? "100%" : "-50%",
-                }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  x: effectiveIsMobile ? 0 : "-50%",
-                  y: effectiveIsMobile ? 0 : "-50%",
-                }}
-                exit={{
-                  opacity: 0,
-                  scale: 0.9,
-                  x: effectiveIsMobile ? 0 : "-50%",
-                  y: effectiveIsMobile ? "100%" : "-50%",
-                }}
-                transition={{
-                  duration: motionTokens.duration.normal,
-                  ease: motionTokens.ease.standard,
-                }}
-                style={{ willChange: "transform, opacity" }}
               >
-                <div
-                  className={`relative w-full h-full bg-background shadow-2xl overflow-hidden ${
-                    effectiveIsMobile ? "rounded-none" : "rounded-3xl"
-                  } ${className || ""}`}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClose}
+                  className="bg-background/90 backdrop-blur-sm hover:bg-background border border-border/20"
                 >
-                  {/* Invisible title for accessibility */}
-                  <DialogPrimitive.Title className="sr-only">
-                    {title || "Content"}
-                  </DialogPrimitive.Title>
-
-                  {/* Close button */}
-                  <motion.div
-                    className="absolute top-4 right-4 z-modal"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: motionTokens.duration.fast, duration: motionTokens.duration.normal }}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={onClose}
-                      className="bg-background/90 backdrop-blur-sm hover:bg-background border border-border/20"
-                    >
-                      <X className="h-4 w-4" />
-                      <span className="sr-only">Close</span>
-                    </Button>
-                  </motion.div>
-
-                  {/* Content area with proper scrolling */}
-                  <motion.div
-                    className="h-full w-full overflow-auto"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: motionTokens.duration.fast, duration: motionTokens.duration.normal }}
-                  >
-                    {children}
-                  </motion.div>
-                </div>
+                  <X className="h-4 w-4" />
+                  <span className="sr-only">Close</span>
+                </Button>
               </motion.div>
-            </DialogPrimitive.Content>
-          </DialogPrimitive.Portal>
-        </Dialog>
-      )}
-    </AnimatePresence>
+
+              {/* Content area with proper scrolling */}
+              <motion.div
+                className="h-full w-full overflow-auto"
+                initial={useViewTransition ? false : { opacity: 0, y: 20 }}
+                animate={useViewTransition ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                transition={
+                  useViewTransition
+                    ? { duration: 0 }
+                    : { delay: motionTokens.duration.fast, duration: motionTokens.duration.normal }
+                }
+              >
+                {children}
+              </motion.div>
+            </div>
+          </motion.div>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </Dialog>
   );
+
+  if (useViewTransition) {
+    return isOpen ? modalContent : null;
+  }
+
+  return <AnimatePresence>{isOpen ? modalContent : null}</AnimatePresence>;
 }

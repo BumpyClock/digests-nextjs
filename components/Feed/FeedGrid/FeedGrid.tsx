@@ -61,15 +61,8 @@ const LoadingAnimation = () => {
 export function FeedGrid({ items, isLoading }: FeedGridProps) {
   const [mounted, setMounted] = useState(false);
   const { width: windowWidth } = useWindowSize();
-  const [isMinLoadingComplete, setIsMinLoadingComplete] = useState(false);
-
   useEffect(() => {
     setMounted(true);
-    const timer = setTimeout(() => {
-      setIsMinLoadingComplete(true);
-    }, 1500);
-
-    return () => clearTimeout(timer);
   }, []);
 
   // Background sync is now handled by the main page component using React Query
@@ -109,7 +102,7 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
     return item.id;
   }, []);
 
-  if (!mounted || !isMinLoadingComplete || isLoading || items.length === 0) {
+  if (!mounted || isLoading || items.length === 0) {
     return <LoadingAnimation />;
   }
 

@@ -21,6 +21,8 @@ interface ArticleContentProps {
   className?: string;
   /** Loading state */
   loading?: boolean;
+  /** Disable mount entrance animation for native View Transition paths */
+  disableEntranceAnimation?: boolean;
 }
 
 /**
@@ -29,7 +31,7 @@ interface ArticleContentProps {
  * Extracted from ArticleReader to follow SRP
  */
 export const ArticleContent = memo<ArticleContentProps>(
-  ({ content, markdown, className, loading = false }) => {
+  ({ content, markdown, className, loading = false, disableEntranceAnimation = false }) => {
     // Sanitize HTML once per content change to avoid heavy work on re-renders
     const sanitizedHtml = useMemo(() => {
       return sanitizeReaderContent(content);
@@ -223,29 +225,35 @@ export const ArticleContent = memo<ArticleContentProps>(
 
     // Prefer markdown if available, fallback to HTML content
     const shouldUseMarkdown = markdown && markdown.trim() !== "";
+    const contentClassName = `prose prose-amber text-body prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-primary-content px-6 md:px-8 lg:px-12 ${
+      className || "w-full md:max-w-4xl"
+    }`;
+    const renderedContent = shouldUseMarkdown ? (
+      <ReactMarkdown
+        components={components}
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeRaw, rehypeSanitize]}
+        allowedElements={undefined}
+        disallowedElements={[]}
+      >
+        {markdown}
+      </ReactMarkdown>
+    ) : (
+      <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+    );
+
+    if (disableEntranceAnimation) {
+      return <div className={contentClassName}>{renderedContent}</div>;
+    }
 
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: motionTokens.duration.slow, delay: motionTokens.duration.normal }}
-        className={`prose prose-amber text-body prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-primary-content px-6 md:px-8 lg:px-12 ${
-          className || "w-full md:max-w-4xl"
-        }`}
+        className={contentClassName}
       >
-        {shouldUseMarkdown ? (
-          <ReactMarkdown
-            components={components}
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeRaw, rehypeSanitize]}
-            allowedElements={undefined}
-            disallowedElements={[]}
-          >
-            {markdown}
-          </ReactMarkdown>
-        ) : (
-          <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
-        )}
+        {renderedContent}
       </motion.div>
     );
   }

@@ -23,7 +23,7 @@ import { motionTokens } from "@/lib/motion-tokens";
 import {
   getViewTransitionStyle,
   runWithViewTransition,
-  supportsViewTransitions,
+  useViewTransitionsSupported,
 } from "@/lib/view-transitions";
 import { workerService } from "@/services/worker-service";
 import type { FeedItem } from "@/types";
@@ -35,6 +35,8 @@ import { canUseImageKit, getImageKitUrl, IMAGE_PRESETS } from "@/utils/imagekit"
 import { isValidUrl } from "@/utils/url";
 
 dayjs.extend(relativeTime);
+
+const DEFAULT_THUMBNAIL_COLOR = { r: 0, g: 0, b: 0 };
 
 interface FeedCardProps {
   feed: FeedItem;
@@ -110,16 +112,22 @@ function useCardShadow(id: string, color: { r: number; g: number; b: number }) {
     pressedShadow: "",
   });
 
+  // Stabilize color by value so effect doesn't re-run on reference changes
+  const colorR = color.r;
+  const colorG = color.g;
+  const colorB = color.b;
+
   useEffect(() => {
+    const stableColor = { r: colorR, g: colorG, b: colorB };
     workerService
-      .generateShadows(id, color, isDarkMode)
+      .generateShadows(id, stableColor, isDarkMode)
       .then((newShadows) => {
         setShadows(newShadows);
       })
       .catch((error) => {
         console.error("Error generating shadows:", error);
       });
-  }, [id, color, isDarkMode]);
+  }, [id, colorR, colorG, colorB, isDarkMode]);
 
   return shadows;
 }
@@ -133,7 +141,6 @@ function useCardShadow(id: string, color: { r: number; g: number; b: number }) {
 export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps) {
   const [isReaderViewOpen, setIsReaderViewOpen] = useState(false);
   const [isPodcastDetailsOpen, setIsPodcastDetailsOpen] = useState(false);
-  const [viewTransitionsSupported, setViewTransitionsSupported] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const [imageError, setImageError] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
@@ -142,21 +149,18 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
   const [isPressed, setIsPressed] = useState(false);
   const { restShadow, hoverShadow, pressedShadow } = useCardShadow(
     feedItem.id,
-    feedItem.thumbnailColor || { r: 0, g: 0, b: 0 }
+    feedItem.thumbnailColor || DEFAULT_THUMBNAIL_COLOR
   );
   const [imageLoading, setImageLoading] = useState(true);
   const isRead = useIsItemRead(feedItem.id);
 
   // Animation context
   const { animationEnabled } = useFeedAnimation();
+  const vtSupported = useViewTransitionsSupported();
   const animationIds = getFeedAnimationIds(feedItem.id);
-  const viewTransitionsEnabled = animationEnabled && viewTransitionsSupported;
+  const viewTransitionsEnabled = animationEnabled && vtSupported;
   const motionLayoutEnabled = animationEnabled && !viewTransitionsEnabled;
   const cardViewTransitionEnabled = viewTransitionsEnabled && !isReaderViewOpen;
-
-  useEffect(() => {
-    setViewTransitionsSupported(supportsViewTransitions());
-  }, []);
 
   /**
    * Handles the click event on the card.
@@ -205,8 +209,8 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
     return restShadow;
   };
 
-  return (
-    <LayoutGroup id={`feed-layout-${feedItem.id}`}>
+  const cardAndModal = (
+    <>
       <motion.div
         whileHover={animationEnabled ? { y: -4 } : undefined}
         whileTap={animationEnabled ? { scale: 0.98 } : undefined}
@@ -281,18 +285,8 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
                   id={`feed-card-header-${feedItem.id}`}
                   className="flex flex-wrap items-center justify-between gap-2 font-normal"
                 >
-                  <motion.div
-                    className="flex space-between gap-2 align-center items-center"
-                    layoutId={motionLayoutEnabled ? animationIds.siteMeta : undefined}
-                    style={getViewTransitionStyle(cardViewTransitionEnabled, animationIds.siteMeta)}
-                  >
-                    <motion.div
-                      layoutId={motionLayoutEnabled ? animationIds.favicon : undefined}
-                      style={getViewTransitionStyle(
-                        cardViewTransitionEnabled,
-                        animationIds.favicon
-                      )}
-                    >
+                  <div className="flex space-between gap-2 align-center items-center">
+                    <div>
                       {!faviconError && feedItem.favicon && isValidUrl(feedItem.favicon) ? (
                         <Image
                           src={feedItem.favicon}
@@ -307,18 +301,11 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
                           {cleanupTextContent(getSiteDisplayName(feedItem)).charAt(0).toUpperCase()}
                         </div>
                       )}
-                    </motion.div>
-                    <motion.div
-                      className="text-caption line-clamp-1"
-                      layoutId={motionLayoutEnabled ? animationIds.siteName : undefined}
-                      style={getViewTransitionStyle(
-                        cardViewTransitionEnabled,
-                        animationIds.siteName
-                      )}
-                    >
+                    </div>
+                    <div className="text-caption line-clamp-1">
                       {cleanupTextContent(getSiteDisplayName(feedItem))}
-                    </motion.div>
-                  </motion.div>
+                    </div>
+                  </div>
                   <div className="text-caption text-secondary-content w-fit">
                     {formatDate(feedItem.published)}
                   </div>
@@ -366,8 +353,15 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem }: FeedCardProps
             }
           }}
           feedItem={feedItem}
+          useViewTransition={viewTransitionsEnabled}
         />
       )}
-    </LayoutGroup>
+    </>
+  );
+
+  return motionLayoutEnabled ? (
+    <LayoutGroup id={feedItem.id}>{cardAndModal}</LayoutGroup>
+  ) : (
+    cardAndModal
   );
 });

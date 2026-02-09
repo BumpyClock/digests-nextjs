@@ -224,6 +224,11 @@ function WebPageContent() {
   /**
    * Filtering items by feedUrl (decoded from query param).
    */
+  const searchLower = useMemo(
+    () => (appliedSearchQuery ? appliedSearchQuery.toLowerCase() : ""),
+    [appliedSearchQuery]
+  );
+
   const filteredItems = useMemo(() => {
     if (!feedItems || !Array.isArray(feedItems)) return [];
     return feedItems.filter((item) => {
@@ -235,8 +240,7 @@ function WebPageContent() {
       }
 
       // If there's a typed search query, filter by that as well
-      if (appliedSearchQuery) {
-        const searchLower = appliedSearchQuery.toLowerCase();
+      if (searchLower) {
         return (
           item.title?.toLowerCase().includes(searchLower) ||
           item.description?.toLowerCase().includes(searchLower)
@@ -244,7 +248,7 @@ function WebPageContent() {
       }
       return true;
     });
-  }, [feedItems, feedUrlDecoded, appliedSearchQuery]);
+  }, [feedItems, feedUrlDecoded, searchLower]);
 
   const filteredUnreadItems = useMemo(() => {
     if (!stableUnreadItems || !Array.isArray(stableUnreadItems)) return [];
@@ -253,8 +257,7 @@ function WebPageContent() {
       if (feedUrlDecoded && normalizeUrl(item.feedUrl) !== feedUrlDecoded) {
         return false;
       }
-      if (appliedSearchQuery) {
-        const searchLower = appliedSearchQuery.toLowerCase();
+      if (searchLower) {
         return (
           item.title?.toLowerCase().includes(searchLower) ||
           item.description?.toLowerCase().includes(searchLower)
@@ -262,14 +265,16 @@ function WebPageContent() {
       }
       return true;
     });
-  }, [stableUnreadItems, feedUrlDecoded, appliedSearchQuery]);
+  }, [stableUnreadItems, feedUrlDecoded, searchLower]);
 
-  const articleItems = useMemo(() => {
-    return filteredItems.filter((i) => i?.type === "article");
-  }, [filteredItems]);
-
-  const podcastItems = useMemo(() => {
-    return filteredItems.filter((i) => i?.type === "podcast");
+  const { articleItems, podcastItems } = useMemo(() => {
+    const articles: typeof filteredItems = [];
+    const podcasts: typeof filteredItems = [];
+    for (const item of filteredItems) {
+      if (item?.type === "article") articles.push(item);
+      else if (item?.type === "podcast") podcasts.push(item);
+    }
+    return { articleItems: articles, podcastItems: podcasts };
   }, [filteredItems]);
 
   // Reusable filtering function for unread items by type
@@ -279,8 +284,7 @@ function WebPageContent() {
       return currentUnreadItems.filter((item) => {
         if (!item?.id) return false;
         if (feedUrlDecoded && normalizeUrl(item.feedUrl) !== feedUrlDecoded) return false;
-        if (appliedSearchQuery) {
-          const searchLower = appliedSearchQuery.toLowerCase();
+        if (searchLower) {
           if (
             !(
               item.title?.toLowerCase().includes(searchLower) ||
@@ -292,7 +296,7 @@ function WebPageContent() {
         return item?.type === itemType;
       });
     },
-    [currentUnreadItems, feedUrlDecoded, appliedSearchQuery]
+    [currentUnreadItems, feedUrlDecoded, searchLower]
   );
 
   // For tab counts, use current reactive unread items to show accurate counts

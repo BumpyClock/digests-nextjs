@@ -16,6 +16,8 @@ interface ReaderContentProps {
   layout?: ReaderLayout;
   parallaxOffset?: number;
   className?: string;
+  transitionInProgress?: boolean;
+  useViewTransition?: boolean;
 }
 
 export const ReaderContent = memo(function ReaderContent({
@@ -28,9 +30,12 @@ export const ReaderContent = memo(function ReaderContent({
   className = "",
   cleanedMarkdown,
   extractedAuthor,
+  transitionInProgress = false,
+  useViewTransition = false,
 }: ReaderContentProps) {
   const isMobile = useIsMobile();
   const isCompact = layout === "compact" || (isMobile && layout === "standard");
+  const deferBodyMount = layout === "modal" && transitionInProgress;
 
   if (!readerView && !loading) {
     return (
@@ -54,15 +59,31 @@ export const ReaderContent = memo(function ReaderContent({
           layout={layout}
           loading={loading}
           extractedAuthor={extractedAuthor}
+          disableTransitionEffectsDuringWindow={transitionInProgress}
+          disableEntranceAnimations={layout === "modal" && useViewTransition}
         />
-        <ArticleContent
-          content={cleanedContent}
-          markdown={cleanedMarkdown ?? readerView?.markdown}
-          className={`w-full ${isMobile ? "max-w-full" : "md:max-w-4xl"} ${
-            layout === "modal" ? "no-animation" : ""
-          }`}
-          loading={loading}
-        />
+        {deferBodyMount ? (
+          <div
+            aria-hidden="true"
+            className={`mt-8 space-y-4 ${isMobile ? "max-w-full" : "md:max-w-4xl"}`}
+          >
+            <div className="h-5 w-4/5 rounded-md bg-muted/70" />
+            <div className="h-4 w-full rounded-md bg-muted/60" />
+            <div className="h-4 w-11/12 rounded-md bg-muted/60" />
+            <div className="h-4 w-10/12 rounded-md bg-muted/60" />
+            <div className="h-4 w-9/12 rounded-md bg-muted/60" />
+          </div>
+        ) : (
+          <ArticleContent
+            content={cleanedContent}
+            markdown={cleanedMarkdown ?? readerView?.markdown}
+            className={`w-full ${isMobile ? "max-w-full" : "md:max-w-4xl"} ${
+              layout === "modal" ? "no-animation" : ""
+            }`}
+            loading={loading}
+            disableEntranceAnimation={layout === "modal" && useViewTransition}
+          />
+        )}
       </article>
     </div>
   );
