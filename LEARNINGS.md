@@ -29,3 +29,4 @@
 - 2026-02-07: CommandBar had two O(n) filter passes for articles/podcasts; merged into single-pass partition + Map for O(1) article lookup.
 - 2026-02-06: PR55 review pass: useHydratedStore should prefer persist.hasHydrated()/onFinishHydration() over broad subscribe to avoid extra pre-hydration callbacks, and store rehydrate Set repairs should use store.setState(...) (not direct state mutation).
 - 2026-02-06: Token build safety: wire generate:design-tokens into prebuild and keep build as next build to avoid duplicate migration checks while still preventing stale generated token CSS.
+- 2026-02-08: /web card-grid scroll can break when route shell uses overflow-hidden; masonic uses window scroll, so keep /web shell vertically scrollable (e.g., overflow-x-hidden) or migrate grid to container-scroller APIs.
