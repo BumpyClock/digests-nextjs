@@ -17,7 +17,6 @@ interface ReaderContentProps {
   parallaxOffset?: number;
   className?: string;
   transitionInProgress?: boolean;
-  useViewTransition?: boolean;
 }
 
 export const ReaderContent = memo(function ReaderContent({
@@ -31,7 +30,6 @@ export const ReaderContent = memo(function ReaderContent({
   cleanedMarkdown,
   extractedAuthor,
   transitionInProgress = false,
-  useViewTransition = false,
 }: ReaderContentProps) {
   const isMobile = useIsMobile();
   const isCompact = layout === "compact" || (isMobile && layout === "standard");
@@ -60,7 +58,7 @@ export const ReaderContent = memo(function ReaderContent({
           loading={loading}
           extractedAuthor={extractedAuthor}
           disableTransitionEffectsDuringWindow={transitionInProgress}
-          disableEntranceAnimations={layout === "modal" && useViewTransition}
+          disableEntranceAnimations={layout === "modal"}
         />
         {deferBodyMount ? (
           <div
@@ -81,7 +79,7 @@ export const ReaderContent = memo(function ReaderContent({
               layout === "modal" ? "no-animation" : ""
             }`}
             loading={loading}
-            disableEntranceAnimation={layout === "modal" && useViewTransition}
+            disableEntranceAnimation={layout === "modal"}
           />
         )}
       </article>

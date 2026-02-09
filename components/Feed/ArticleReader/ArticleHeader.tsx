@@ -59,6 +59,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
     const motionLayoutEnabled = animationEnabled && isModal && !viewTransitionsEnabled;
     const disableHeavyEffects = disableTransitionEffectsDuringWindow && isTransitionWindow;
     const disableMountAnimations = disableEntranceAnimations && isModal;
+    const disableImageFadeIn = disableMountAnimations || disableHeavyEffects;
 
     // Defer ambilight activation in modal to avoid expensive paint during entrance
     useEffect(() => {
@@ -102,9 +103,11 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                   <AnimatePresence>
                     {!imageLoaded && (
                       <motion.div
-                        initial={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: motionTokens.duration.slow }}
+                        initial={disableMountAnimations ? false : { opacity: 1 }}
+                        exit={disableMountAnimations ? undefined : { opacity: 0 }}
+                        transition={
+                          disableMountAnimations ? { duration: 0 } : { duration: motionTokens.duration.slow }
+                        }
                         className="absolute inset-0 z-10"
                       >
                         <Skeleton className="w-full h-full" />
@@ -134,10 +137,10 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                       }
                       loading={isModal ? "eager" : "lazy"}
                       onLoad={() => setImageLoaded(true)}
-                      initial={disableHeavyEffects ? false : { opacity: 0 }}
-                      animate={disableHeavyEffects ? undefined : { opacity: imageLoaded ? 1 : 0 }}
+                      initial={disableImageFadeIn ? false : { opacity: 0 }}
+                      animate={disableImageFadeIn ? undefined : { opacity: imageLoaded ? 1 : 0 }}
                       transition={
-                        disableHeavyEffects
+                        disableImageFadeIn
                           ? undefined
                           : { duration: motionTokens.duration.slow }
                       }

@@ -108,7 +108,6 @@ export function ReaderViewModal({ feedItem, isOpen, onClose, useViewTransition }
               extractedAuthor={extractedAuthor}
               layout="modal"
               transitionInProgress={transitionInProgress}
-              useViewTransition={!!useViewTransition}
             />
           </div>
         </ScrollArea>
