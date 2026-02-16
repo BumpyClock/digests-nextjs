@@ -45,6 +45,8 @@ const GREP_TARGET_PATHS = ["app/", "components/", "hooks/", "store/", "utils/", 
 
 const normalizeFilePath = (filePath) => filePath.replace(/\\/g, "/").replace(/^\.\//, "");
 
+const toLiteralPattern = (pattern) => pattern.replace(/\\b/g, "").replace(/\\/g, "");
+
 const parseSearchOutput = (result) => {
   if (!result || !result.trim()) {
     return [];
@@ -126,8 +128,9 @@ const runPatternCheck = (pattern, useRipgrep) => {
   }
 
   try {
+    const literalPattern = toLiteralPattern(pattern);
     const output = execSync(
-      `grep -r -n "${pattern.replace(/\\\\b/g, "")}" ${GREP_TARGET_PATHS.join(" ")}`,
+      `grep -R -nF ${JSON.stringify(literalPattern)} ${GREP_TARGET_PATHS.join(" ")}`,
       {
         encoding: "utf8",
         cwd: process.cwd(),
