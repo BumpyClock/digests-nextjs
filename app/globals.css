@@ -626,6 +626,7 @@ html.reader-vt-active::view-transition-new(root) {
 
 html.reader-vt-active [data-masonic-tile].vt-source-tile {
   z-index: var(--z-modal, 1050) !important;
+  contain: none !important;
 }
 
 /* Prevent layout animations on feed cards when scrolling */
