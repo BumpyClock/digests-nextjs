@@ -355,7 +355,7 @@ const messageHandlers: WorkerHandlerMap = {
         feeds,
         items,
       } as WorkerResponse;
-  } catch (error) {
+    } catch (error) {
       const loggerError = error instanceof Error ? error : undefined;
       Logger.error("[Worker] Error checking for updates:", loggerError);
       return {
