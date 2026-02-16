@@ -278,6 +278,11 @@ class WorkerService {
       // Register one-time handler for response
       unsubscribe = this.onMessage(expectedResponseType, (response) => {
         if (response.requestId !== requestId) {
+          Logger.debug("WorkerService: Ignoring response with mismatched requestId", {
+            expectedRequestId: requestId,
+            receivedRequestId: response.requestId,
+            type: response.type,
+          });
           return;
         }
 

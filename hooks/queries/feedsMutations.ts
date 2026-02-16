@@ -99,7 +99,7 @@ export const useAddFeedMutation = () => {
 
       await queryClient.cancelQueries({ queryKey: previousKey });
 
-      const previousData = queryClient.getQueryData<CacheData>(previousKey);
+      const previousData = getFeedCache(queryClient, previousUrls);
       return { previousSubscriptions, previousKey, previousData };
     },
     onSuccess: (result, _url, context) => {
@@ -161,7 +161,7 @@ export const useRemoveFeedMutation = () => {
       await queryClient.cancelQueries({ queryKey: previousKey });
       await queryClient.cancelQueries({ queryKey: nextKey });
 
-      const previousData = queryClient.getQueryData<CacheData>(previousKey);
+      const previousData = getFeedCache(queryClient, previousUrls);
       const nextData = previousData
         ? {
             feeds: previousData.feeds.filter((feed) => feed.feedUrl !== feedUrl),
@@ -266,22 +266,16 @@ export const useBatchAddFeedsMutation = () => {
 
       for (let i = 0; i < urls.length; i += CONCURRENCY) {
         const batch = urls.slice(i, i + CONCURRENCY);
-        const batchResults = await Promise.allSettled(
-          batch.map(async (url) => {
-            const result = await workerService.fetchFeeds(url);
-            return { url, result };
-          })
-        );
-
-        for (let j = 0; j < batchResults.length; j++) {
-          const r = batchResults[j];
-          if (r.status === "fulfilled" && r.value.result.success) {
-            allFeeds.push(...r.value.result.feeds);
-            allItems.push(...r.value.result.items);
+        try {
+          const result = await workerService.fetchFeeds(batch);
+          if (result.success) {
+            allFeeds.push(...result.feeds);
+            allItems.push(...result.items);
           } else {
-            const failedUrl = r.status === "fulfilled" ? r.value.url : batch[j];
-            failedUrls.push(failedUrl);
+            failedUrls.push(...batch);
           }
+        } catch {
+          failedUrls.push(...batch);
         }
       }
 
@@ -299,7 +293,7 @@ export const useBatchAddFeedsMutation = () => {
       const previousKey = getQueryKey(previousUrls);
 
       await queryClient.cancelQueries({ queryKey: previousKey });
-      const previousData = queryClient.getQueryData<CacheData>(previousKey);
+      const previousData = getFeedCache(queryClient, previousUrls);
       return { previousSubscriptions, previousKey, previousData };
     },
     onSuccess: (data, _url, context) => {

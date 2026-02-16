@@ -39,8 +39,8 @@ export function useFeedsData() {
         items: [...result.items].sort(sortByDateDesc), // Sort once at fetch time
       };
     },
-    staleTime: 15 * 60 * 1000, // 15 minutes - align with worker TTL
-    gcTime: 30 * 60 * 1000, // 30 minutes - keep in cache longer
+    staleTime: 15 * 60 * 1000, // 15 minutes - uses worker cache for dedup within this window
+    gcTime: 30 * 60 * 1000, // 30 minutes - keep in React Query cache after going unused
     refetchOnReconnect: true, // Refetch when coming back online
     refetchOnWindowFocus: false, // Don't refetch on every window focus
     enabled: feedUrls.length > 0, // Only run if we have feeds to fetch

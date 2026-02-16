@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { workerService } from "@/services/worker-service";
 import type { FeedItem as ApiFeedItem, Feed } from "@/types";
 import { getSiteDisplayName } from "@/utils/htmlUtils";
-import { isFeedUrl } from "@/utils/url";
+import { isHttpUrl } from "@/utils/url";
 
 interface FeedItem {
   url: string;
@@ -77,15 +77,15 @@ export function OPMLImportDialog({
       setLoading(true);
       try {
         // Get all feed URLs
-        const feedUrls = initialFeeds.map((feed) => feed.url.trim()).filter(isFeedUrl);
+        const feedUrls = initialFeeds.map((feed) => feed.url.trim()).filter(isHttpUrl);
         const feedErrors = new Set(
-          initialFeeds.map((feed) => feed.url.trim()).filter((url) => !isFeedUrl(url))
+          initialFeeds.map((feed) => feed.url.trim()).filter((url) => !isHttpUrl(url))
         );
 
         if (feedErrors.size > 0) {
           setFeeds((prev) =>
             prev.map((feed) =>
-              isFeedUrl(feed.url.trim())
+              isHttpUrl(feed.url.trim())
                 ? feed
                 : {
                     ...feed,
@@ -212,7 +212,7 @@ export function OPMLImportDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-[600px] w-[95vw] max-h-[90vh] flex flex-col"
+        className="sm:max-w-150 w-[95vw] max-h-[90vh] flex flex-col"
         id="opml-import-dialog"
       >
         <DialogHeader>

@@ -73,6 +73,9 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
     [windowWidth]
   );
 
+  // Stores the cleanup callback (e.g. resetting card active state) for the
+  // currently open item. On rapid re-opens the previous cleanup runs first,
+  // so only one card is ever visually "active" at a time.
   const cleanupRef = useRef<(() => void) | null>(null);
 
   const handleItemOpen = useCallback(

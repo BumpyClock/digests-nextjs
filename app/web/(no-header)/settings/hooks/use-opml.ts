@@ -2,7 +2,7 @@ import { type ChangeEvent, useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useBatchAddFeedsMutation } from "@/hooks/queries";
 import { useSubscriptions } from "@/hooks/useFeedSelectors";
-import { isFeedUrl } from "@/utils/url";
+import { isHttpUrl } from "@/utils/url";
 import { exportOPML } from "../utils/opml";
 
 interface FeedItem {
@@ -56,7 +56,7 @@ export function useOPML() {
           const title =
             outline.getAttribute("title") || outline.getAttribute("text") || feedUrl || "";
           const trimmedFeedUrl = feedUrl?.trim() ?? "";
-          if (isFeedUrl(trimmedFeedUrl)) {
+          if (isHttpUrl(trimmedFeedUrl)) {
             uniqueFeeds.set(trimmedFeedUrl, {
               url: trimmedFeedUrl,
               title,
@@ -93,13 +93,22 @@ export function useOPML() {
 
   const handleImportSelected = useCallback(
     async (selectedUrls: string[]) => {
-      const normalizedUrlsWithPossibleDuplicates = selectedUrls
-        .map((url) => url.trim())
-        .filter(isFeedUrl);
-      const invalidCount = selectedUrls.length - normalizedUrlsWithPossibleDuplicates.length;
-      const normalizedUrlsSet = new Set(normalizedUrlsWithPossibleDuplicates);
+      const normalizedUrlsSet = new Set<string>();
+      let invalidCount = 0;
+      let duplicateCount = 0;
+
+      for (const url of selectedUrls) {
+        const trimmed = url.trim();
+        if (!isHttpUrl(trimmed)) {
+          invalidCount++;
+        } else if (normalizedUrlsSet.has(trimmed)) {
+          duplicateCount++;
+        } else {
+          normalizedUrlsSet.add(trimmed);
+        }
+      }
+
       const normalizedUrls = Array.from(normalizedUrlsSet);
-      const duplicateCount = normalizedUrlsWithPossibleDuplicates.length - normalizedUrls.length;
 
       if (normalizedUrls.length === 0) {
         toast.info("No feeds selected");

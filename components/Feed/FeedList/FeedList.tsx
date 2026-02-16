@@ -84,7 +84,7 @@ const FeedListItem = memo(function FeedListItem({
             alt={cleanupTextContent(item.title)}
             width={70}
             height={70}
-            className="rounded-md object-cover h-[70px] w-[70px]"
+            className="rounded-md object-cover h-17.5 w-17.5"
           />
         </div>
       )}
@@ -116,6 +116,7 @@ export function FeedList({
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scrollableNodeRef.current,
+    // Average height of a FeedListItem: ~70px thumbnail + ~50px text/padding
     estimateSize: () => 120,
     overscan: 5,
   });
@@ -143,7 +144,7 @@ export function FeedList({
     return skeletonKeys.map((key) => (
       <div key={key} className="p-4 border-b animate-pulse">
         <div className="flex gap-3">
-          <div className="bg-secondary h-[70px] w-[70px] rounded-md"></div>
+          <div className="bg-secondary h-17.5 w-17.5 rounded-md"></div>
           <div className="grow">
             <div className="h-2 bg-secondary rounded w-16 mb-2"></div>
             <div className="h-4 bg-secondary rounded w-full mb-2"></div>

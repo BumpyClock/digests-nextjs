@@ -235,16 +235,20 @@ function WebPageContent() {
         continue;
 
       all.push(item);
-      if (item.type === "article") articles.push(item);
-      else if (item.type === "podcast") podcasts.push(item);
+      const isArticle = item.type === "article";
+      const isPodcast = item.type === "podcast";
+      if (isArticle) articles.push(item);
+      else if (isPodcast) podcasts.push(item);
+
+      const isRead = readItems.has(item.id);
       if (readLaterSet.has(item.id)) {
         readLater.push(item);
-        if (!readItems.has(item.id)) unreadReadLaterCount++;
+        if (!isRead) unreadReadLaterCount++;
       }
-      if (!readItems.has(item.id)) {
+      if (!isRead) {
         unreadCount++;
-        if (item.type === "podcast") unreadPodcastCount++;
-        if (item.type === "article") unreadArticleCount++;
+        if (isPodcast) unreadPodcastCount++;
+        if (isArticle) unreadArticleCount++;
       }
     }
     return {

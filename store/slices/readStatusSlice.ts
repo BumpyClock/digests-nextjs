@@ -62,11 +62,8 @@ export const createReadStatusSlice: StateCreator<ReadStatusSlice, [], [], ReadSt
 
   markAllAsRead: (items: FeedItem[]) => {
     const { readItems } = get();
-    const updatedReadItems = new Set(readItems instanceof Set ? readItems : []);
-
-    for (const item of items || []) {
-      updatedReadItems.add(item.id);
-    }
+    const existing = readItems instanceof Set ? readItems : [];
+    const updatedReadItems = new Set([...existing, ...(items || []).map((item) => item.id)]);
 
     set({ readItems: updatedReadItems });
   },

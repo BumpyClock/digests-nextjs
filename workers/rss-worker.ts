@@ -1,6 +1,7 @@
 // workers/rss-worker.ts
 
 import { Logger } from "@/utils/logger";
+import { isHttpUrl } from "@/utils/url";
 import { DEFAULT_API_CONFIG, DEFAULT_CACHE_TTL_MS } from "../lib/config";
 import { transformFeedResponse } from "../lib/feed-transformer";
 import type { Feed, FeedItem, FetchFeedsResponse, ReaderViewResponse } from "../types";
@@ -100,8 +101,8 @@ async function fetchFeeds(
   const { bypassCache = false } = options ?? {};
 
   try {
-    // Generate cache key from sorted copy to avoid mutating caller's array
-    if (!currentApiUrl || !/^https?:\/\//i.test(currentApiUrl)) {
+    // Validate the API base URL before proceeding
+    if (!isHttpUrl(currentApiUrl)) {
       throw new Error(`Invalid API base URL: ${currentApiUrl}`);
     }
 
@@ -421,12 +422,11 @@ const dispatchMessage = (
  */
 self.addEventListener("message", async (event) => {
   const message = event.data as unknown;
-  const requestId =
-    message && typeof message === "object" && "requestId" in (message as Record<string, unknown>)
-      ? typeof (message as Record<string, unknown>).requestId === "string"
-        ? ((message as Record<string, unknown>).requestId as string)
-        : undefined
-      : undefined;
+
+  let requestId: string | undefined;
+  if (isRecord(message) && typeof message.requestId === "string") {
+    requestId = message.requestId;
+  }
 
   try {
     if (!isWorkerMessage(message)) {
