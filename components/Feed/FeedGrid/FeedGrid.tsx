@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Masonry } from "masonic";
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ErrorBoundary from "@/components/error-boundary";
 import { FeedCard } from "@/components/Feed/FeedCard/FeedCard";
 import { PodcastDetailsModal } from "@/components/Podcast/PodcastDetailsModal";
 import { ReaderViewModal } from "@/components/reader-view-modal";
@@ -36,6 +37,14 @@ const LoadingAnimation = () => {
       <div className="relative h-16 w-16">
         <div className="absolute inset-0 rounded-full border-4 border-muted border-t-primary animate-spin" />
       </div>
+    </div>
+  );
+};
+
+const EmptyState = () => {
+  return (
+    <div className="flex items-center justify-center h-[50vh] text-sm text-muted">
+      <p>No items to display</p>
     </div>
   );
 };
@@ -138,56 +147,49 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
       console.warn("Items is not an array:", items);
       return [];
     }
-    return items;
+    return items.filter((item): item is FeedItem => Boolean(item));
   }, [items]);
 
-  const itemKey = useCallback((item: FeedItem, index: number) => {
-    if (!item) {
-      console.warn(`Undefined item at index ${index}`);
-      return `fallback-${index}`;
-    }
-    return item.id;
-  }, []);
+  const itemKey = useCallback((item: FeedItem) => item.id, []);
 
-  if (!mounted || isLoading || items.length === 0) {
+  if (!mounted || isLoading) {
     return <LoadingAnimation />;
+  }
+
+  if (memoizedItems.length === 0) {
+    return <EmptyState />;
   }
 
   const isOpenItemPodcast = openItem ? isPodcast(openItem) : false;
 
-  try {
-    return (
-      <>
-        <motion.div id="feed-grid" className="pt-6" initial={false} animate={false} layout={false}>
-          <Masonry
-            key={filterKey ?? "default"}
-            items={memoizedItems}
-            maxColumnCount={columnCount}
-            columnGutter={columnGutter}
-            columnWidth={columnWidth}
-            render={renderItem}
-            overscanBy={2}
-            itemKey={itemKey}
-          />
-        </motion.div>
+  return (
+    <ErrorBoundary fallback={<div>Error loading feed. Please try refreshing the page.</div>}>
+      <motion.div id="feed-grid" className="pt-6" initial={false} animate={false} layout={false}>
+        <Masonry
+          key={filterKey ?? "default"}
+          items={memoizedItems}
+          maxColumnCount={columnCount}
+          columnGutter={columnGutter}
+          columnWidth={columnWidth}
+          render={renderItem}
+          overscanBy={2}
+          itemKey={itemKey}
+        />
+      </motion.div>
 
-        {openItem && isOpenItemPodcast && (
-          <PodcastDetailsModal isOpen={true} onClose={handleClose} podcast={openItem} />
-        )}
+      {openItem && isOpenItemPodcast && (
+        <PodcastDetailsModal isOpen={true} onClose={handleClose} podcast={openItem} />
+      )}
 
-        {openItem && !isOpenItemPodcast && (
-          <ReaderViewModal
-            isOpen={true}
-            onClose={handleClose}
-            feedItem={openItem}
-            useViewTransition={viewTransitionsEnabled}
-            viewTransitionBackdropSettled={readerTransitionSettled}
-          />
-        )}
-      </>
-    );
-  } catch (error) {
-    console.error("Error rendering FeedGrid:", error);
-    return <div>Error loading feed. Please try refreshing the page.</div>;
-  }
+      {openItem && !isOpenItemPodcast && (
+        <ReaderViewModal
+          isOpen={true}
+          onClose={handleClose}
+          feedItem={openItem}
+          useViewTransition={viewTransitionsEnabled}
+          viewTransitionBackdropSettled={readerTransitionSettled}
+        />
+      )}
+    </ErrorBoundary>
+  );
 }

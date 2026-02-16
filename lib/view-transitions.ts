@@ -120,11 +120,18 @@ export function runWithViewTransition(
     clearTimeoutId = window.setTimeout(finalize, VT_PHASE_CLASS_TIMEOUT_MS);
   }
 
-  const transition = viewTransitionDocument.startViewTransition(() => {
-    flushSync(() => {
-      update();
+  let transition: unknown;
+
+  try {
+    transition = viewTransitionDocument.startViewTransition(() => {
+      flushSync(() => {
+        update();
+      });
     });
-  });
+  } catch (error) {
+    finalize();
+    throw error;
+  }
 
   const maybeFinished =
     transition && typeof transition === "object" && "finished" in transition

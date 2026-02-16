@@ -31,7 +31,7 @@ export function ReaderViewModal({
   viewTransitionBackdropSettled,
 }: ReaderViewModalProps) {
   const { readerView, loading, cleanedContent, cleanedMarkdown, extractedAuthor } = useReaderView(
-    feedItem?.link || "",
+    feedItem.link,
     isOpen
   );
   const [transitionInProgress, setTransitionInProgress] = useState(false);

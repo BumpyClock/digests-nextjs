@@ -33,6 +33,10 @@ dayjs.extend(relativeTime);
 
 const DEFAULT_THUMBNAIL_COLOR = { r: 0, g: 0, b: 0 };
 
+function formatDate(dateString: string) {
+  return dayjs(dateString).fromNow();
+}
+
 export interface FeedCardProps {
   feed: FeedItem;
   onItemOpen?: (item: FeedItem, cleanup?: () => void) => void;
@@ -114,15 +118,14 @@ export const FeedCard = memo(function FeedCard({
   const animationIds = getFeedAnimationIds(feedItem.id);
   const viewTransitionsEnabled = animationEnabled && vtSupported;
   const motionLayoutEnabled = animationEnabled && !viewTransitionsEnabled;
-  const cardViewTransitionEnabled = viewTransitionsEnabled && !isActive;
   const childViewTransitionEnabled = false;
 
   // CSS custom properties for card shadow color
   const thumbnailColor = feedItem.thumbnailColor || DEFAULT_THUMBNAIL_COLOR;
 
-  const handleCardClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
-      const target = e.target as HTMLElement;
+  const handleCardActivation = useCallback(
+    (event: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>) => {
+      const target = event.target as HTMLElement;
       const isShareOrBookmarkButton = target.closest("button");
 
       if (!isShareOrBookmarkButton) {
@@ -130,7 +133,7 @@ export const FeedCard = memo(function FeedCard({
           onItemOpen?.(feedItem);
         } else {
           if (viewTransitionsEnabled) {
-            const sourceTile = (e.currentTarget as HTMLElement).closest(
+            const sourceTile = (event.currentTarget as HTMLElement).closest(
               "[data-masonic-tile]"
             ) as HTMLElement | null;
             if (sourceTile) {
@@ -161,16 +164,31 @@ export const FeedCard = memo(function FeedCard({
     [feedItem, viewTransitionsEnabled, onItemOpen, onItemOpenTransitionComplete]
   );
 
-  const formatDate = useCallback((dateString: string) => {
-    return dayjs(dateString).fromNow();
-  }, []);
+  const handleCardClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      handleCardActivation(event);
+    },
+    [handleCardActivation]
+  );
 
-  const handleImageError = useCallback(() => {
+  const handleCardKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "Enter" || event.key === " " || event.key === "Spacebar") {
+        if (event.key === " " || event.key === "Spacebar") {
+          event.preventDefault();
+        }
+        handleCardActivation(event);
+      }
+    },
+    [handleCardActivation]
+  );
+
+  const handleImageError = useCallback((_?: React.SyntheticEvent<HTMLImageElement>) => {
     setImageError(true);
     setShowPlaceholder(true);
   }, []);
 
-  const handleFaviconError = useCallback(() => {
+  const handleFaviconError = useCallback((_?: React.SyntheticEvent<HTMLImageElement>) => {
     setFaviconError(true);
   }, []);
 
@@ -179,7 +197,8 @@ export const FeedCard = memo(function FeedCard({
     "--card-shadow-g": thumbnailColor.g,
     "--card-shadow-b": thumbnailColor.b,
     opacity: isRead ? 0.8 : 1,
-    ...(getViewTransitionStyle(cardViewTransitionEnabled, animationIds.cardShell) ?? {}),
+    // Keep shell transitions enabled only when not currently active.
+    ...(getViewTransitionStyle(viewTransitionsEnabled && !isActive, animationIds.cardShell) ?? {}),
   } as React.CSSProperties;
 
   const cardContentWithShell = (
@@ -195,6 +214,9 @@ export const FeedCard = memo(function FeedCard({
         isRead ? "read-item" : ""
       }`}
       onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      role="button"
+      tabIndex={0}
     >
       <div id={`feed-card-image-${feedItem.id}`} className="relative z-10 ">
         {((!imageError && feedItem.thumbnail && isValidUrl(feedItem.thumbnail)) ||
@@ -224,6 +246,7 @@ export const FeedCard = memo(function FeedCard({
                 }`}
                 onError={() => handleImageError()}
                 onLoad={() => setImageLoading(false)}
+                onError={handleImageError}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
                 loading="lazy"
               />
@@ -244,7 +267,7 @@ export const FeedCard = memo(function FeedCard({
                       src={feedItem.favicon}
                       alt={`${cleanupTextContent(getSiteDisplayName(feedItem))} favicon`}
                       className="w-6 h-6 bg-background rounded-sm"
-                      onError={() => handleFaviconError()}
+                      onError={handleFaviconError}
                       width={24}
                       height={24}
                     />

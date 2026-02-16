@@ -49,6 +49,9 @@ function WebPageContent() {
   const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState("unread");
   const [viewMode, setViewMode] = useState<"grid" | "masterDetail">("grid");
+  const isMasterDetailMode = viewMode === "masterDetail";
+  const masterDetailContainerClass = isMasterDetailMode ? " h-dvh" : "";
+  const masterDetailTabsClass = isMasterDetailMode ? " h-full min-h-0" : "";
   const [settingsOpen, setSettingsOpen] = useState(false);
   const refreshedRef = useRef(false);
   const [stableUnreadItems, setStableUnreadItems] = useState<FeedItem[]>([]);
@@ -231,6 +234,8 @@ function WebPageContent() {
     const readLater: FeedItem[] = [];
     let unreadCount = 0;
     let unreadPodcastCount = 0;
+    let unreadArticleCount = 0;
+    let unreadReadLaterCount = 0;
 
     for (const item of feedItems) {
       if (!item?.id) continue;
@@ -247,13 +252,26 @@ function WebPageContent() {
       all.push(item);
       if (item.type === "article") articles.push(item);
       else if (item.type === "podcast") podcasts.push(item);
-      if (readLaterSet.has(item.id)) readLater.push(item);
+      if (readLaterSet.has(item.id)) {
+        readLater.push(item);
+        if (!readItems.has(item.id)) unreadReadLaterCount++;
+      }
       if (!readItems.has(item.id)) {
         unreadCount++;
         if (item.type === "podcast") unreadPodcastCount++;
+        if (item.type === "article") unreadArticleCount++;
       }
     }
-    return { all, articles, podcasts, readLater, unreadCount, unreadPodcastCount };
+    return {
+      all,
+      articles,
+      podcasts,
+      readLater,
+      unreadCount,
+      unreadPodcastCount,
+      unreadArticleCount,
+      unreadReadLaterCount,
+    };
   }, [feedItems, feedUrlDecoded, searchLower, readItems, readLaterSet]);
 
   const filteredUnreadItems = useMemo(() => {
@@ -281,11 +299,11 @@ function WebPageContent() {
 
   return (
     <div
-      className={`w-full px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3${viewMode === "masterDetail" ? " h-dvh" : ""}`}
+      className={`w-full px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3${masterDetailContainerClass}`}
     >
       <Tabs
         defaultValue="unread"
-        className={`flex flex-col gap-3 sm:gap-4${viewMode === "masterDetail" ? " h-full min-h-0" : ""}`}
+        className={`flex flex-col gap-3 sm:gap-4${masterDetailTabsClass}`}
         value={selectedTab}
         onValueChange={handleTabChange}
       >
@@ -303,7 +321,7 @@ function WebPageContent() {
             <TabsList className="w-full justify-start overflow-x-auto sm:w-auto">
               <TabsTrigger value="all">
                 All
-                {feedItems.length > 0 && ` (${feedItems.length})`}
+                {filteredUnreadItems.length > 0 && ` (${filteredUnreadItems.length})`}
               </TabsTrigger>
               <TabsTrigger value="unread" className="relative">
                 Unread
@@ -311,7 +329,7 @@ function WebPageContent() {
               </TabsTrigger>
               <TabsTrigger value="articles">
                 Articles
-                {categorized.articles.length > 0 && ` (${categorized.articles.length})`}
+                {categorized.unreadArticleCount > 0 && ` (${categorized.unreadArticleCount})`}
               </TabsTrigger>
               <TabsTrigger value="podcasts">
                 Podcasts
@@ -319,7 +337,7 @@ function WebPageContent() {
               </TabsTrigger>
               <TabsTrigger value="readLater">
                 Read Later
-                {categorized.readLater.length > 0 && ` (${categorized.readLater.length})`}
+                {categorized.unreadReadLaterCount > 0 && ` (${categorized.unreadReadLaterCount})`}
               </TabsTrigger>
             </TabsList>
           </div>

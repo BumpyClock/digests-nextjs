@@ -267,6 +267,9 @@ const config: Config = {
         "2xl": "var(--backdrop-blur-2xl, 24px)",
         "3xl": "var(--backdrop-blur-3xl, 40px)",
       },
+      width: {
+        "select-trigger": "11.25rem",
+      },
     },
   },
   plugins: [

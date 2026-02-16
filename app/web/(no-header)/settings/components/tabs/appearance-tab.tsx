@@ -16,8 +16,8 @@ import { Switch } from "@/components/ui/switch";
 import { themes } from "@/lib/theme-definitions";
 import { FONT_SIZE_MAX, FONT_SIZE_MIN, useUiPreferencesStore } from "@/store/useUiPreferencesStore";
 
-// Width for select trigger (11.25rem = 180px)
-const SELECT_TRIGGER_WIDTH_CLASS = "w-[11.25rem]";
+// Keep theme select trigger aligned in the appearance settings layout.
+const SELECT_TRIGGER_WIDTH_CLASS = "w-select-trigger";
 
 export const AppearanceTab = memo(function AppearanceTab() {
   const { theme, setTheme } = useTheme();

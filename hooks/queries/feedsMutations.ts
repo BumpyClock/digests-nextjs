@@ -31,11 +31,49 @@ const setFeedCache = (queryClient: QueryClient, subscriptionUrls: string[], data
   queryClient.setQueryData<CacheData>(getQueryKey(subscriptionUrls), data);
 };
 
+const getFeedCache = (queryClient: QueryClient, subscriptionUrls: string[]) =>
+  queryClient.getQueryData<CacheData>(getQueryKey(subscriptionUrls));
+
 const invalidateFeedQuery = (queryClient: QueryClient, subscriptionUrls: string[]) => {
   queryClient.invalidateQueries({ queryKey: getQueryKey(subscriptionUrls) });
 };
 
 const toSubscriptionEntries = (feeds: Feed[]) => feeds.map((feed) => toSubscription(feed));
+
+const queryKeysDiffer = (a: QueryKey | undefined, b: QueryKey | undefined) => {
+  if (a === b) {
+    return false;
+  }
+  if (!a || !b || a.length !== b.length) {
+    return true;
+  }
+
+  for (let index = 0; index < a.length; index += 1) {
+    const left = a[index];
+    const right = b[index];
+
+    if (left === right) {
+      continue;
+    }
+
+    if (Array.isArray(left) && Array.isArray(right)) {
+      if (left.length !== right.length) {
+        return true;
+      }
+
+      for (let j = 0; j < left.length; j += 1) {
+        if (left[j] !== right[j]) {
+          return true;
+        }
+      }
+      continue;
+    }
+
+    return true;
+  }
+
+  return false;
+};
 
 // Add single feed mutation
 export const useAddFeedMutation = () => {
@@ -80,8 +118,8 @@ export const useAddFeedMutation = () => {
 
       setFeedCache(queryClient, nextUrls, nextData);
 
-      // Only invalidate if keys actually differ (compare stable string representation)
-      const keysDiffer = JSON.stringify(nextKey) !== JSON.stringify(previousKey);
+      // Only invalidate if keys actually differ
+      const keysDiffer = queryKeysDiffer(nextKey, previousKey);
       if (previousKey && keysDiffer) {
         invalidateFeedQuery(queryClient, getSubscriptionUrls(previousSubscriptions));
       }
@@ -275,15 +313,15 @@ export const useBatchAddFeedsMutation = () => {
       const nextSubscriptions = [...store.subscriptions];
       const nextUrls = getSubscriptionUrls(nextSubscriptions);
       const nextKey = getQueryKey(nextUrls);
-      const nextData = mergeCacheData(context?.previousData, {
+      const nextData = mergeCacheData(getFeedCache(queryClient, nextUrls), {
         feeds: data.feeds,
         items: data.items,
       });
 
       setFeedCache(queryClient, nextUrls, nextData);
 
-      // Only invalidate if keys actually differ (compare stable string representation)
-      const keysDiffer = JSON.stringify(nextKey) !== JSON.stringify(previousKey);
+      // Only invalidate if keys actually differ
+      const keysDiffer = queryKeysDiffer(nextKey, previousKey);
       if (previousKey && keysDiffer) {
         invalidateFeedQuery(queryClient, previousUrls);
       }

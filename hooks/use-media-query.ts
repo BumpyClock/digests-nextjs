@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 
+export const DESKTOP_BREAKPOINT = 1025;
+export const DEFAULT_WINDOW_WIDTH = 1200;
+export const DEFAULT_WINDOW_HEIGHT = 800;
+
 /**
  * Hook to detect if the current viewport matches a media query
  * @param query The media query to match
@@ -42,5 +46,5 @@ export function useIsTablet(): boolean {
  * Predefined media query for desktop screens
  */
 export function useIsDesktop(): boolean {
-  return useMediaQuery("(min-width: 1025px)");
+  return useMediaQuery(`(min-width: ${DESKTOP_BREAKPOINT}px)`);
 }

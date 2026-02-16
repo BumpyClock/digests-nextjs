@@ -134,7 +134,7 @@ describe("useFeedsData", () => {
   });
 
   it("should fetch and return feeds data successfully", async () => {
-    mockedWorkerService.refreshFeeds.mockResolvedValue({
+    mockedWorkerService.fetchFeeds.mockResolvedValue({
       success: true,
       feeds: mockFeeds,
       items: mockFeedItems,
@@ -157,7 +157,7 @@ describe("useFeedsData", () => {
       items: mockFeedItems, // Items should be sorted by date desc
     });
 
-    expect(mockedWorkerService.refreshFeeds).toHaveBeenCalledWith([
+    expect(mockedWorkerService.fetchFeeds).toHaveBeenCalledWith([
       "https://example.com/feed1.xml",
     ]);
   });
@@ -166,7 +166,7 @@ describe("useFeedsData", () => {
     const unsortedItems = [...mockFeedItems]; // Already in desc order
     const reversedItems = [...mockFeedItems].reverse(); // Put in asc order
 
-    mockedWorkerService.refreshFeeds.mockResolvedValue({
+    mockedWorkerService.fetchFeeds.mockResolvedValue({
       success: true,
       feeds: mockFeeds,
       items: reversedItems, // Feed in asc order
@@ -186,7 +186,7 @@ describe("useFeedsData", () => {
   });
 
   it("should handle worker service errors", async () => {
-    mockedWorkerService.refreshFeeds.mockResolvedValue({
+    mockedWorkerService.fetchFeeds.mockResolvedValue({
       success: false,
       feeds: [],
       items: [],
@@ -205,7 +205,7 @@ describe("useFeedsData", () => {
   });
 
   it("should handle worker service rejections", async () => {
-    mockedWorkerService.refreshFeeds.mockRejectedValue(new Error("Network error"));
+    mockedWorkerService.fetchFeeds.mockRejectedValue(new Error("Network error"));
 
     const { result } = renderHook(() => useFeedsData(), {
       wrapper: createWrapper(),
@@ -225,7 +225,7 @@ describe("useFeedsData", () => {
       ),
     } as unknown as ReturnType<typeof useFeedStore>);
 
-    mockedWorkerService.refreshFeeds.mockResolvedValue({
+    mockedWorkerService.fetchFeeds.mockResolvedValue({
       success: true,
       feeds: mockFeeds,
       items: mockFeedItems,
@@ -240,7 +240,7 @@ describe("useFeedsData", () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(mockedWorkerService.refreshFeeds).toHaveBeenCalledWith([
+    expect(mockedWorkerService.fetchFeeds).toHaveBeenCalledWith([
       "https://example.com/feed1.xml",
       "https://example.com/feed2.xml",
     ]);
@@ -258,11 +258,11 @@ describe("useFeedsData", () => {
     // Should not be loading since query is disabled
     expect(result.current.isLoading).toBe(false);
     expect(result.current.isFetching).toBe(false);
-    expect(mockedWorkerService.refreshFeeds).not.toHaveBeenCalled();
+    expect(mockedWorkerService.fetchFeeds).not.toHaveBeenCalled();
   });
 
   it("should have correct cache configuration", async () => {
-    mockedWorkerService.refreshFeeds.mockResolvedValue({
+    mockedWorkerService.fetchFeeds.mockResolvedValue({
       success: true,
       feeds: mockFeeds,
       items: mockFeedItems,

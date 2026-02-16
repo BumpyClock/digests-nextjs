@@ -32,7 +32,7 @@ export const MARKDOWN_COMPONENTS: MarkdownComponents = {
   p: ({ children, ...props }: React.ComponentProps<"p">) => {
     const hasImages = React.Children.toArray(children).some((child) => {
       if (!React.isValidElement(child)) return false;
-      return child.type === "img" || (child.props && "src" in child.props);
+      return child.type === MARKDOWN_COMPONENTS.img || (typeof child.type === "string" && child.type === "img");
     });
 
     if (hasImages) {
@@ -51,6 +51,7 @@ export const MARKDOWN_COMPONENTS: MarkdownComponents = {
   },
   img: ({ src, alt = "", ...props }: React.ComponentProps<"img">) => {
     if (!src || typeof src !== "string") return null;
+
     const parseDim = (v: unknown): number | undefined => {
       if (typeof v === "number") return v;
       if (typeof v === "string") {
@@ -61,19 +62,39 @@ export const MARKDOWN_COMPONENTS: MarkdownComponents = {
     };
 
     const p = props as Record<string, unknown>;
-    const w = parseDim(p.width) ?? 1200;
-    const h = parseDim(p.height) ?? Math.round((w * 9) / 16);
+    const width = parseDim(p.width);
+    const height = parseDim(p.height);
+    const hasExplicitDimensions = typeof width === "number" && typeof height === "number";
+    const aspectRatio = width && height ? `${width} / ${height}` : "16 / 9";
+
+    if (hasExplicitDimensions) {
+      return (
+        <Image
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          className="w-full h-auto object-cover rounded-lg my-8 max-w-full block"
+          loading="lazy"
+          sizes="(max-width: 768px) 100vw, 800px"
+        />
+      );
+    }
 
     return (
-      <Image
-        src={src}
-        alt={alt}
-        width={w}
-        height={h}
-        className="w-full h-auto object-cover rounded-lg my-8 max-w-full block"
-        loading="lazy"
-        sizes="(max-width: 768px) 100vw, 800px"
-      />
+      <div
+        className="relative my-8 w-full max-w-full overflow-hidden rounded-lg block"
+        style={{ aspectRatio }}
+      >
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className="h-full w-full object-cover"
+          loading="lazy"
+          sizes="(max-width: 768px) 100vw, 800px"
+        />
+      </div>
     );
   },
   a: ({ href, children, ...props }: React.ComponentProps<"a">) => {
@@ -154,8 +175,6 @@ export default function ArticleMarkdownRenderer({
         components={MARKDOWN_COMPONENTS}
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw, rehypeSanitize]}
-        allowedElements={undefined}
-        disallowedElements={[]}
       >
         {content}
       </ReactMarkdown>

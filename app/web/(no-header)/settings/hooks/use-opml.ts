@@ -48,18 +48,19 @@ export function useOPML() {
         const outlines = doc.querySelectorAll("outline");
 
         // Get unique feed URLs from OPML
-        const existingUrls = new Set(feeds.map((f: { feedUrl: string }) => f.feedUrl));
+        const existingUrls = new Set(feeds.map((f: { feedUrl: string }) => f.feedUrl.trim()));
         const uniqueFeeds = new Map<string, FeedItem>();
 
         outlines.forEach((outline) => {
           const feedUrl = outline.getAttribute("xmlUrl");
           const title =
             outline.getAttribute("title") || outline.getAttribute("text") || feedUrl || "";
-          if (isFeedUrl(feedUrl)) {
-            uniqueFeeds.set(feedUrl, {
-              url: feedUrl.trim(),
+          const trimmedFeedUrl = feedUrl?.trim() ?? "";
+          if (isFeedUrl(trimmedFeedUrl)) {
+            uniqueFeeds.set(trimmedFeedUrl, {
+              url: trimmedFeedUrl,
               title,
-              isSubscribed: existingUrls.has(feedUrl),
+              isSubscribed: existingUrls.has(trimmedFeedUrl),
             });
           }
         });
@@ -92,17 +93,29 @@ export function useOPML() {
 
   const handleImportSelected = useCallback(
     async (selectedUrls: string[]) => {
-      const normalizedUrls = Array.from(new Set(selectedUrls.map((url) => url.trim()))).filter(
-        isFeedUrl
-      );
+      const normalizedUrlsWithPossibleDuplicates = selectedUrls.map((url) => url.trim()).filter(isFeedUrl);
+      const invalidCount = selectedUrls.length - normalizedUrlsWithPossibleDuplicates.length;
+      const normalizedUrlsSet = new Set(normalizedUrlsWithPossibleDuplicates);
+      const normalizedUrls = Array.from(normalizedUrlsSet);
+      const duplicateCount = normalizedUrlsWithPossibleDuplicates.length - normalizedUrls.length;
 
       if (normalizedUrls.length === 0) {
         toast.info("No feeds selected");
         return;
       }
 
-      if (normalizedUrls.length !== selectedUrls.length) {
-        toast.warning("Some selected feeds were invalid and skipped");
+      if (invalidCount > 0 || duplicateCount > 0) {
+        const messages: string[] = [];
+
+        if (invalidCount > 0) {
+          messages.push(`${invalidCount} invalid feed${invalidCount === 1 ? "" : "s"} skipped`);
+        }
+
+        if (duplicateCount > 0) {
+          messages.push(`${duplicateCount} duplicate feed${duplicateCount === 1 ? "" : "s"} removed`);
+        }
+
+        toast.warning(messages.join(" and "));
       }
 
       try {

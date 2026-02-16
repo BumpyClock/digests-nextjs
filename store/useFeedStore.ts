@@ -73,7 +73,7 @@ const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<Fe
         if (from < 3) {
           // Drop persisted items and normalize Sets
           // Remove old feedItems property (now handled by React Query)
-          delete (state as any).feedItems;
+          delete state.feedItems;
           // Drop large feeds array from persistence if present
           if (state.feeds && Array.isArray(state.feeds)) {
             state.subscriptions = (state.feeds as Array<{ feedUrl?: unknown }>)

@@ -60,13 +60,17 @@ export const useReaderView = (url: string, isOpen?: boolean) => {
       };
     }
 
-    const cached = getCachedReaderContent(cacheKey!);
+    if (!cacheKey) {
+      return processArticleContent(readerView);
+    }
+
+    const cached = getCachedReaderContent(cacheKey);
     if (cached) {
       return cached;
     }
 
     const next = processArticleContent(readerView);
-    setCachedReaderContent(cacheKey!, next);
+    setCachedReaderContent(cacheKey, next);
     return next;
   }, [cacheKey, readerView]);
 

@@ -3,7 +3,7 @@ import type { Feed } from "@/types";
 import type { Subscription } from "@/types/subscription";
 import { toSubscription } from "@/utils/selectors";
 
-type FeedInput = Feed | Subscription;
+export type FeedInput = Feed | Subscription;
 
 // Simplified FeedSlice - server state is now handled by React Query
 // This slice only manages local client state
@@ -22,9 +22,10 @@ export const createFeedSlice: StateCreator<FeedSlice, [], [], FeedSlice> = (set,
     set({
       subscriptions: Array.from(
         new Map(
-          (subscriptions ?? [])
-            .map((entry) => toSubscription(entry))
-            .map((entry) => [entry.feedUrl, entry])
+          (subscriptions ?? []).map((entry) => {
+            const subscription = toSubscription(entry);
+            return [subscription.feedUrl, subscription];
+          })
         ).values()
       ),
     }),

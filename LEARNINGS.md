@@ -28,6 +28,10 @@ Durable repo learnings only. Keep evergreen; drop incident logs.
 - Keep token CSS theme-agnostic; map semantic aliases at the theme layer.
 - Keep Tailwind fallback utilities token-driven (`fontFamily`, `fontWeight`, typography scale, display sizes).
 
+## Tooling and Linting
+
+- For Tailwind CSS v4 files with `@config`/`@utility`, add Stylelint `at-rule-no-unknown` allowlist entries so CSS at-rule parsing stays compatible without rewriting hook usage.
+
 ## Performance Patterns
 
 - Prefer single-pass/linear transforms over repeated full-array scans.

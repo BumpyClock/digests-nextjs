@@ -18,7 +18,7 @@ export function RouteShell({ children }: { children: React.ReactNode }) {
       <main
         className={
           isWebHome
-            ? "flex-1 w-full p-0"
+            ? "flex-1 min-h-0 w-full p-0"
             : "flex-1 w-full p-4 xs:p-4 md:p-4 xs:max-w-full md:max-w-5xl lg:max-w-full"
         }
       >

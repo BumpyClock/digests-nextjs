@@ -35,7 +35,7 @@
   will-change: filter, transform;
 }
 @utility ambilight-active {
-  filter: url(#feedCardAmbilight-filter);
+  filter: url("#feedCardAmbilight-filter");
 }
 @utility ambilight-inactive {
   filter: none;
