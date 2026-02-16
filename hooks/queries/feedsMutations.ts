@@ -313,7 +313,7 @@ export const useBatchAddFeedsMutation = () => {
       const nextSubscriptions = [...store.subscriptions];
       const nextUrls = getSubscriptionUrls(nextSubscriptions);
       const nextKey = getQueryKey(nextUrls);
-      const nextData = mergeCacheData(getFeedCache(queryClient, nextUrls), {
+      const nextData = mergeCacheData(context?.previousData, {
         feeds: data.feeds,
         items: data.items,
       });

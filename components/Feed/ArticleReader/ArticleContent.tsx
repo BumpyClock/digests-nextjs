@@ -5,12 +5,14 @@ import dynamic from "next/dynamic";
 import { memo, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motionTokens } from "@/lib/motion-tokens";
+import { cn } from "@/lib/utils";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
 
 const articleContentClassName = (className?: string) =>
-  `prose prose-amber text-body prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-primary-content px-6 md:px-8 lg:px-12 ${
-    className || "w-full md:max-w-4xl"
-  }`;
+  cn(
+    "prose prose-amber text-body prose-lg dark:prose-invert reader-view-article mb-24 m-auto bg-background text-primary-content px-6 md:px-8 lg:px-12 w-full md:max-w-4xl",
+    className
+  );
 
 interface ArticleContentSkeletonProps {
   /** Show expanded placeholder including image and extra content blocks */

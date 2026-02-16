@@ -212,7 +212,7 @@ export function OPMLImportDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-150 w-[95vw] max-h-[90vh] flex flex-col"
+        className="sm:max-w-[600px] w-[95vw] max-h-[90vh] flex flex-col"
         id="opml-import-dialog"
       >
         <DialogHeader>

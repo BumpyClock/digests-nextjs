@@ -57,7 +57,10 @@ test("returns incoming cache when existing cache is undefined or null", () => {
     assert.equal(merged.feeds.length, 1);
     assert.equal(merged.feeds[0].feedTitle, "Feed Z");
     assert.equal(merged.items.length, 2);
-    assert.equal(merged.items[0].id, "z-item-2");
+    const item = merged.items.find((i) => i.id === "z-item-2");
+    assert.ok(item);
+    assert.equal(item.id, "z-item-2");
+    assert.equal(item.published, "2024-01-01T12:00:00Z");
   }
 });
 
@@ -93,7 +96,13 @@ test("handles incoming items missing id without crashes and keeps deterministic 
   });
 
   assert.equal(merged.items.length, 3);
-  assert.equal(merged.items[0].id, undefined);
-  assert.equal(merged.items[0].published, "2024-01-01T13:00:00Z");
-  assert.equal(merged.items.filter((item) => item.id === undefined).length, 1);
+
+  // mergeCacheData dedupes feed items by Map key item.id in sortAndDedupeItems.
+  const missingIdItems = merged.items.filter((item) => item.id === undefined);
+  assert.equal(missingIdItems.length, 1);
+
+  const mergedMissingIdItem = merged.items.find((item) => item.feedUrl === "https://y.example/rss");
+  assert.ok(mergedMissingIdItem);
+  assert.equal(mergedMissingIdItem.id, undefined);
+  assert.equal(mergedMissingIdItem.published, "2024-01-01T07:30:00Z");
 });

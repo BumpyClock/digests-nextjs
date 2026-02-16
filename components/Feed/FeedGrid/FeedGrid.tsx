@@ -163,7 +163,13 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
   const isOpenItemPodcast = openItem ? isPodcast(openItem) : false;
 
   return (
-    <ErrorBoundary fallback={<div>Error loading feed. Please try refreshing the page.</div>}>
+    <ErrorBoundary
+      fallback={
+        <div className="flex items-center justify-center h-[50vh] text-sm text-muted">
+          Error loading feed. Please try refreshing the page.
+        </div>
+      }
+    >
       <motion.div id="feed-grid" className="pt-6" initial={false} animate={false} layout={false}>
         <Masonry
           key={filterKey ?? "default"}

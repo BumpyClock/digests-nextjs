@@ -68,7 +68,6 @@ export const MARKDOWN_COMPONENTS: MarkdownComponents = {
     const width = parseDim(p.width);
     const height = parseDim(p.height);
     const hasExplicitDimensions = typeof width === "number" && typeof height === "number";
-    const aspectRatio = width && height ? `${width} / ${height}` : "16 / 9";
 
     if (hasExplicitDimensions) {
       return (
@@ -83,6 +82,8 @@ export const MARKDOWN_COMPONENTS: MarkdownComponents = {
         />
       );
     }
+
+    const aspectRatio = width && height ? `${width} / ${height}` : "16 / 9";
 
     return (
       <div

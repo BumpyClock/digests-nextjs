@@ -35,8 +35,8 @@ function WebPageContent() {
   const [selectedTab, setSelectedTab] = useState("unread");
   const [viewMode, setViewMode] = useState<"grid" | "masterDetail">("grid");
   const isMasterDetailMode = viewMode === "masterDetail";
-  const masterDetailContainerClass = isMasterDetailMode ? " h-dvh" : "";
-  const masterDetailTabsClass = isMasterDetailMode ? " h-full min-h-0" : "";
+  const masterDetailContainerClass = isMasterDetailMode ? "h-dvh" : "";
+  const masterDetailTabsClass = isMasterDetailMode ? "h-full min-h-0" : "";
   const [settingsOpen, setSettingsOpen] = useState(false);
   const refreshedRef = useRef(false);
   const [stableUnreadItems, setStableUnreadItems] = useState<FeedItem[]>([]);
@@ -283,10 +283,17 @@ function WebPageContent() {
   }, []);
 
   return (
-    <div className={`w-full px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3${masterDetailContainerClass}`}>
+      <div
+        className={[
+          "w-full px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3",
+          masterDetailContainerClass,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
       <Tabs
         defaultValue="unread"
-        className={`flex flex-col gap-3 sm:gap-4${masterDetailTabsClass}`}
+        className={["flex flex-col gap-3 sm:gap-4", masterDetailTabsClass].filter(Boolean).join(" ")}
         value={selectedTab}
         onValueChange={handleTabChange}
       >
@@ -304,7 +311,7 @@ function WebPageContent() {
             <TabsList className="w-full justify-start overflow-x-auto sm:w-auto">
               <TabsTrigger value="all">
                 All
-                {filteredUnreadItems.length > 0 && ` (${filteredUnreadItems.length})`}
+                {categorized.all.length > 0 && ` (${categorized.all.length})`}
               </TabsTrigger>
               <TabsTrigger value="unread" className="relative">
                 Unread

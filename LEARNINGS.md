@@ -46,4 +46,4 @@ Durable repo learnings only. Keep evergreen; drop incident logs.
 
 ## Tooling
 
-- 2026-02-16: Resolved a full `biome check .` failure by applying formatter/lint updates directly (schema version, import ordering, JSX layout, duplicate prop cleanup, and utility/store formatting updates).
+- When `biome check .` fails, update formatter/lint config, fix import ordering, JSX layout, duplicate props, and utility/store formatting together to restore formatting and lint conformance consistently.

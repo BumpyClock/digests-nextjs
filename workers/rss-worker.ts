@@ -171,7 +171,8 @@ async function fetchReaderView(
   const currentApiUrl = customApiUrl || apiBaseUrl;
   try {
     // Generate cache key
-    const cacheKey = `reader:${JSON.stringify(urls)}`;
+    const sortedUrls = [...urls].sort();
+    const cacheKey = `reader:${JSON.stringify(sortedUrls)}`;
 
     // Check cache first
     const cached = workerCache.get<ReaderViewResponse[]>(cacheKey);

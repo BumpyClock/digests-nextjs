@@ -164,13 +164,6 @@ export const FeedCard = memo(function FeedCard({
     [feedItem, viewTransitionsEnabled, onItemOpen, onItemOpenTransitionComplete]
   );
 
-  const handleCardClick = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
-      handleCardActivation(event);
-    },
-    [handleCardActivation]
-  );
-
   const handleCardKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
       if (event.key === "Enter" || event.key === " " || event.key === "Spacebar") {
@@ -183,12 +176,12 @@ export const FeedCard = memo(function FeedCard({
     [handleCardActivation]
   );
 
-  const handleImageError = useCallback((_?: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleImageError = useCallback(() => {
     setImageError(true);
     setShowPlaceholder(true);
   }, []);
 
-  const handleFaviconError = useCallback((_?: React.SyntheticEvent<HTMLImageElement>) => {
+  const handleFaviconError = useCallback(() => {
     setFaviconError(true);
   }, []);
 
@@ -213,7 +206,7 @@ export const FeedCard = memo(function FeedCard({
       className={`feed-card card w-full bg-card overflow-hidden cursor-pointer rounded-4xl relative group ${
         isRead ? "read-item" : ""
       }`}
-      onClick={handleCardClick}
+      onClick={handleCardActivation}
       onKeyDown={handleCardKeyDown}
       role="button"
       tabIndex={0}
