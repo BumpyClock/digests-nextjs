@@ -71,7 +71,7 @@ const isFeed = (value: unknown): value is Feed => {
 
 const removeLegacyFeedItemsKey = (state: Record<string, unknown>): void => {
   // Legacy persisted key cleanup only; React Query owns server feed data.
-  delete state["feedItems"];
+  delete state.feedItems;
 };
 
 const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<FeedState>>) =>

@@ -9,7 +9,11 @@ import type { Feed, FeedItem, FetchFeedsResponse, ReaderViewResponse } from "../
 // Message types to organize communication
 type WorkerMessage =
   | { type: "FETCH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
-  | { type: "FETCH_READER_VIEW"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
+  | {
+      type: "FETCH_READER_VIEW";
+      payload: { urls: string[]; apiBaseUrl?: string };
+      requestId?: string;
+    }
   | { type: "REFRESH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
   | { type: "CHECK_UPDATES"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
   | { type: "SET_API_URL"; payload: { url: string }; requestId?: string }
@@ -148,7 +152,10 @@ async function fetchFeeds(
 
     return result;
   } catch (error) {
-    Logger.error(`[Worker] Error fetching feeds (api=${currentApiUrl}, urls=${urls.length}):`, error);
+    Logger.error(
+      `[Worker] Error fetching feeds (api=${currentApiUrl}, urls=${urls.length}):`,
+      error
+    );
     throw error;
   }
 }
