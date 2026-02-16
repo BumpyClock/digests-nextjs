@@ -7,8 +7,21 @@ import { processArticleContent } from "@/components/Feed/ArticleReader";
 
 const MAX_CACHE_SIZE = 50;
 const readerViewCache = new Map<string, ReaderViewResponse>();
+const readerContentCache = new Map<
+  string,
+  ReturnType<typeof processArticleContent>
+>();
 
-function setCached(key: string, value: ReaderViewResponse) {
+function setCachedContent(key: string, value: ReturnType<typeof processArticleContent>) {
+  if (readerContentCache.size >= MAX_CACHE_SIZE) {
+    // Evict oldest entry
+    const firstKey = readerContentCache.keys().next().value;
+    if (firstKey !== undefined) readerContentCache.delete(firstKey);
+  }
+  readerContentCache.set(key, value);
+}
+
+function setCachedReaderView(key: string, value: ReaderViewResponse) {
   if (readerViewCache.size >= MAX_CACHE_SIZE) {
     // Evict oldest entry
     const firstKey = readerViewCache.keys().next().value;
@@ -45,14 +58,21 @@ export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
   // Process content when readerView changes
   useEffect(() => {
     if (readerView) {
-      const {
-        htmlContent,
-        markdownContent,
-        extractedAuthor: author,
-      } = processArticleContent(readerView);
-      setCleanedContent(htmlContent);
-      setCleanedMarkdown(markdownContent);
-      setExtractedAuthor(author);
+      const contentCacheKey = `${readerView.url}::${readerView.content.length}::${readerView.markdown.length}`;
+      const cachedContent = readerContentCache.get(contentCacheKey);
+
+      if (cachedContent) {
+        setCleanedContent(cachedContent.htmlContent);
+        setCleanedMarkdown(cachedContent.markdownContent);
+        setExtractedAuthor(cachedContent.extractedAuthor);
+        return;
+      }
+
+      const processed = processArticleContent(readerView);
+      setCachedContent(contentCacheKey, processed);
+      setCleanedContent(processed.htmlContent);
+      setCleanedMarkdown(processed.markdownContent);
+      setExtractedAuthor(processed.extractedAuthor);
     } else {
       setCleanedContent("");
       setCleanedMarkdown("");
@@ -89,7 +109,7 @@ export function useReaderView(feedItem: FeedItem | null, isOpen?: boolean) {
 
         if (result.success && result.data.length > 0 && result.data[0].status === "ok") {
           if (didCancel) return;
-          setCached(cacheKey, result.data[0]);
+          setCachedReaderView(cacheKey, result.data[0]);
           setReaderView(result.data[0]);
         } else {
           throw new Error(result.message || "Failed to load reader view");

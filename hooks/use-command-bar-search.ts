@@ -76,7 +76,7 @@ export function useCommandBarSearch(
   handleClose: () => void,
   onSearchValueChange: (value: string) => void
 ) {
-  const debouncedValue = useDebounce(searchValue, 300);
+  const [debouncedValue] = useDebounce(searchValue, 300);
 
   const uniqueFeedSources = useMemo(() => {
     if (feeds && Array.isArray(feeds)) {
@@ -97,23 +97,23 @@ export function useCommandBarSearch(
   }, [feedItems, feeds]);
 
   const filteredSources = useMemo(() => {
-    if (!searchValue) {
+    if (!debouncedValue) {
       return uniqueFeedSources;
     }
-    const searchLower = searchValue.toLowerCase();
+    const searchLower = debouncedValue.toLowerCase();
     const filtered = (uniqueFeedSources as Array<Feed | Subscription>)
       .map((feed) => ({ feed, ...feedMatchesSearch(feed, searchLower) }))
       .filter(({ match }) => match)
       .sort((a, b) => b.score - a.score);
 
     return filtered.map(({ feed }) => feed); // Return only feeds
-  }, [uniqueFeedSources, searchValue]);
+  }, [uniqueFeedSources, debouncedValue]);
 
   const filteredItems = useMemo(() => {
-    if (!searchValue) {
+    if (!debouncedValue) {
       return [];
     }
-    const searchLower = searchValue.toLowerCase();
+    const searchLower = debouncedValue.toLowerCase();
     const filtered = feedItems
       .map((item) => ({ item, ...itemMatchesSearch(item, searchLower) }))
       .filter(({ match }) => match)
@@ -121,7 +121,7 @@ export function useCommandBarSearch(
 
     const filteredItems = filtered.map(({ item }) => item);
     return filteredItems;
-  }, [feedItems, searchValue]);
+  }, [feedItems, debouncedValue]);
 
   const totalMatchCount = filteredItems.length;
 

@@ -92,8 +92,6 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
     return items;
   }, [items]);
 
-  const cacheKey = useMemo(() => `masonry-${memoizedItems.length}`, [memoizedItems.length]);
-
   const itemKey = useCallback((item: FeedItem, index: number) => {
     if (!item) {
       console.warn(`Undefined item at index ${index}`);
@@ -116,7 +114,6 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
         layout={false}
       >
         <Masonry
-          key={cacheKey}
           items={memoizedItems}
           maxColumnCount={columnCount}
           columnGutter={columnGutter}

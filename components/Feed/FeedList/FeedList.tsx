@@ -4,9 +4,10 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Heart } from "lucide-react";
 import Image from "next/image";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { type KeyboardEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useIsItemRead } from "@/hooks/useFeedSelectors";
+import { useFeedStore } from "@/store/useFeedStore";
 import type { FeedItem } from "@/types";
 import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
 import { isValidUrl } from "@/utils/url";
@@ -25,15 +26,17 @@ const FeedListItem = memo(function FeedListItem({
   item,
   isSelected,
   onSelect,
+  isRead,
 }: {
   item: FeedItem;
   isSelected: boolean;
   onSelect: () => void;
+  isRead: boolean;
 }) {
-  const isRead = useIsItemRead(item.id);
   const formattedDate = useMemo(() => {
     return item.published ? dayjs(item.published).fromNow() : "Date unknown";
   }, [item.published]);
+
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLButtonElement>) => {
       if (event.key === "Enter" || event.key === " ") {
@@ -100,6 +103,15 @@ export function FeedList({
 }: FeedListProps) {
   const scrollableNodeRef = useRef<HTMLDivElement>(null);
   const [currentScrollTop, setCurrentScrollTop] = useState(0);
+  const readItems = useFeedStore((state) => state.readItems);
+
+  const readItemsSet = useMemo(() => {
+    if (readItems instanceof Set) {
+      return readItems;
+    }
+
+    return new Set(Array.isArray(readItems) ? readItems : []);
+  }, [readItems]);
 
   // Restore scroll position when component remounts
   useEffect(() => {
@@ -108,16 +120,28 @@ export function FeedList({
     }
   }, [savedScrollPosition]);
 
+  const virtualizer = useVirtualizer({
+    count: items.length,
+    getScrollElement: () => scrollableNodeRef.current,
+    estimateSize: () => 120,
+    overscan: 5,
+  });
+
   const handleScroll = useCallback((e: Event) => {
     const target = e.target as HTMLDivElement;
     setCurrentScrollTop(target.scrollTop);
   }, []);
 
   const handleItemSelect = useCallback(
-    (item: FeedItem) => {
+    (index: number) => {
+      const item = items[index];
+      if (!item) {
+        return;
+      }
+
       onItemSelect(item, currentScrollTop);
     },
-    [onItemSelect, currentScrollTop]
+    [items, currentScrollTop, onItemSelect]
   );
 
   const skeletonKeys = useMemo(() => Array.from({ length: 10 }, (_, i) => `skeleton-${i}`), []);
@@ -164,14 +188,34 @@ export function FeedList({
         onScroll={handleScroll}
         scrollableNodeRef={scrollableNodeRef}
       >
-        {items.map((item) => (
-          <FeedListItem
-            key={item.id}
-            item={item}
-            isSelected={selectedItem?.id === item.id}
-            onSelect={() => handleItemSelect(item)}
-          />
-        ))}
+        <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
+          {virtualizer.getVirtualItems().map((virtualItem) => {
+            const item = items[virtualItem.index];
+            if (!item) {
+              return null;
+            }
+
+            return (
+              <div
+                key={item.id}
+                style={{
+                  transform: `translateY(${virtualItem.start}px)`,
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                }}
+              >
+                <FeedListItem
+                  item={item}
+                  isSelected={selectedItem?.id === item.id}
+                  isRead={readItemsSet.has(item.id)}
+                  onSelect={() => handleItemSelect(virtualItem.index)}
+                />
+              </div>
+            );
+          })}
+        </div>
       </ScrollArea>
     </div>
   );

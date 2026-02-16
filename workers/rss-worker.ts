@@ -6,16 +6,28 @@ import { transformFeedResponse } from "../lib/feed-transformer";
 
 // Message types to organize communication
 type WorkerMessage =
-  | { type: "FETCH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "FETCH_READER_VIEW"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "REFRESH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "CHECK_UPDATES"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "SET_API_URL"; payload: { url: string } }
-  | { type: "SET_CACHE_TTL"; payload: { ttl: number } };
+  | ({ type: "FETCH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string })
+  | ({ type: "FETCH_READER_VIEW"; payload: { urls: string[]; apiBaseUrl?: string } } & {
+      requestId?: string;
+    })
+  | ({ type: "REFRESH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string } } & {
+      requestId?: string;
+    })
+  | ({ type: "CHECK_UPDATES"; payload: { urls: string[]; apiBaseUrl?: string } } & {
+      requestId?: string;
+    })
+  | ({ type: "SET_API_URL"; payload: { url: string }; requestId?: string })
+  | ({ type: "SET_CACHE_TTL"; payload: { ttl: number }; requestId?: string });
 
 type WorkerResponse =
-  | { type: "FEEDS_RESULT"; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
-  | { type: "READER_VIEW_RESULT"; success: boolean; data: ReaderViewResponse[]; message?: string }
+  | { type: "FEEDS_RESULT"; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string; requestId?: string }
+  | {
+      type: "READER_VIEW_RESULT";
+      success: boolean;
+      data: ReaderViewResponse[];
+      message?: string;
+      requestId?: string;
+    }
   | { type: "ERROR"; message: string };
 
 // Cache implementation for the worker
@@ -403,10 +415,12 @@ self.addEventListener("message", async (event) => {
       return;
     }
 
+    const requestId = (message as { requestId?: string }).requestId;
+
     // Execute handler and send response if any
     const response = await dispatchMessage(message);
     if (response) {
-      self.postMessage(response);
+      self.postMessage(requestId !== undefined ? { ...response, requestId } : response);
     }
   } catch (error) {
     self.postMessage({

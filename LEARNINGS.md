@@ -31,3 +31,8 @@
 - 2026-02-06: Token build safety: wire generate:design-tokens into prebuild and keep build as next build to avoid duplicate migration checks while still preventing stale generated token CSS.
 - 2026-02-08: /web card-grid scroll can break when route shell uses overflow-hidden; masonic uses window scroll, so keep /web shell vertically scrollable (e.g., overflow-x-hidden) or migrate grid to container-scroller APIs.
 - 2026-02-09: Connected card->reader transitions are much smoother when modal open is two-phase (light shell first, heavy article body deferred ~300ms), VT path disables extra motion entrances, and shared elements are limited to thumbnail+title (drop site meta/favicons from shared transition set).
+- 2026-02-16: Completed RSS app perf pass on branch 26-02-16-perf-fixes.
+  - Added request-id correlation for worker/feed calls to stabilize concurrent worker responses.
+  - Kept feed-grid masonry virtual behavior but added react-virtual list virtualization for FeedList to reduce mounted rows.
+  - Added reader-view response/content caching and read-marking guard to prevent repeated state churn.
+  - Switched background feed query to worker fetch path (`fetchFeeds`) to use worker-level cache by default.

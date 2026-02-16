@@ -29,7 +29,7 @@ export function useFeedsData() {
         return { feeds: [], items: [] };
       }
 
-      const result = await workerService.refreshFeeds(feedUrls);
+      const result = await workerService.fetchFeeds(feedUrls);
 
       if (!result.success) {
         throw new Error(result.message || "Failed to fetch feeds");

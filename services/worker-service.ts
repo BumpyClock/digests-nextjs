@@ -10,9 +10,17 @@ const isClient = typeof window !== "undefined";
 
 // Define the types for messages to and from the worker
 type WorkerMessage =
-  | { type: "FETCH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "FETCH_READER_VIEW"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "REFRESH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: "FETCH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
+  | {
+      type: "FETCH_READER_VIEW";
+      payload: { urls: string[]; apiBaseUrl?: string };
+      requestId?: string;
+    }
+  | {
+      type: "REFRESH_FEEDS";
+      payload: { urls: string[]; apiBaseUrl?: string };
+      requestId?: string;
+    }
   | {
       type: "GENERATE_SHADOWS";
       payload: {
@@ -20,22 +28,37 @@ type WorkerMessage =
         color: { r: number; g: number; b: number };
         isDarkMode: boolean;
       };
+      requestId?: string;
     }
-  | { type: "CHECK_UPDATES"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "SET_API_URL"; payload: { url: string } }
-  | { type: "SET_CACHE_TTL"; payload: { ttl: number } };
+  | { type: "CHECK_UPDATES"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
+  | { type: "SET_API_URL"; payload: { url: string }; requestId?: string }
+  | { type: "SET_CACHE_TTL"; payload: { ttl: number }; requestId?: string };
 
 type WorkerResponse =
-  | { type: "FEEDS_RESULT"; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
-  | { type: "READER_VIEW_RESULT"; success: boolean; data: ReaderViewResponse[]; message?: string }
+  | {
+      type: "FEEDS_RESULT";
+      success: boolean;
+      feeds: Feed[];
+      items: FeedItem[];
+      message?: string;
+      requestId?: string;
+    }
+  | {
+      type: "READER_VIEW_RESULT";
+      success: boolean;
+      data: ReaderViewResponse[];
+      message?: string;
+      requestId?: string;
+    }
   | {
       type: "SHADOWS_RESULT";
       payload: {
         id: string;
         shadows: { restShadow: string; hoverShadow: string; pressedShadow: string };
       };
+      requestId?: string;
     }
-  | { type: "ERROR"; message: string };
+  | { type: "ERROR"; message: string; requestId?: string };
 
 /**
  * A service that manages the RSS web worker
@@ -47,6 +70,11 @@ class WorkerService {
     new Map();
   private isInitialized = false;
   private cacheTtl = DEFAULT_CACHE_TTL_MS;
+  private shadowCache = new Map<
+    string,
+    { restShadow: string; hoverShadow: string; pressedShadow: string }
+  >();
+  private requestCounter = 0;
   private readonly WORKER_TIMEOUT_MS = 30000; // 30 seconds
   private fallbackFetcher: IFeedFetcher; // NEW
 
@@ -208,6 +236,7 @@ class WorkerService {
     responseFilter?: (response: WorkerResponse) => boolean
   ): Promise<WorkerResponse> {
     return new Promise((resolve, reject) => {
+      const requestId = `${++this.requestCounter}-${Date.now()}`;
       // Initialize if not already
       if (!this.isInitialized) this.initialize();
 
@@ -247,6 +276,10 @@ class WorkerService {
 
       // Register one-time handler for response
       unsubscribe = this.onMessage(expectedResponseType, (response) => {
+        if (response.requestId !== requestId) {
+          return;
+        }
+
         // Apply filter if provided - if false, keep listener active
         if (responseFilter && !responseFilter(response)) {
           return;
@@ -258,7 +291,7 @@ class WorkerService {
       });
 
       // Send message to worker
-      this.postMessage(message);
+      this.postMessage({ ...message, requestId });
     });
   }
 
@@ -266,10 +299,10 @@ class WorkerService {
     type,
     urls,
     fallbackLabel,
-  }: {
-    type: "FETCH_FEEDS" | "REFRESH_FEEDS" | "CHECK_UPDATES";
-    urls: string[];
-    fallbackLabel: string;
+    }: {
+      type: "FETCH_FEEDS" | "REFRESH_FEEDS" | "CHECK_UPDATES";
+      urls: string[];
+      fallbackLabel: string;
   }): Promise<{
     success: boolean;
     feeds: Feed[];
@@ -326,15 +359,16 @@ class WorkerService {
   /**
    * Fetches feeds from the worker
    */
-  async fetchFeeds(url: string): Promise<{
+  async fetchFeeds(url: string | string[]): Promise<{
     success: boolean;
     feeds: Feed[];
     items: FeedItem[];
     message?: string;
   }> {
+    const urls = Array.isArray(url) ? url : [url];
     return this.sendFeedsRequest({
       type: "FETCH_FEEDS",
-      urls: [url],
+      urls,
       fallbackLabel: "fetch",
     });
   }
@@ -422,6 +456,12 @@ class WorkerService {
     hoverShadow: string;
     pressedShadow: string;
   }> {
+    const cacheKey = `${id}-${isDarkMode}-${color.r}-${color.g}-${color.b}`;
+    const cachedShadows = this.shadowCache.get(cacheKey);
+    if (cachedShadows) {
+      return cachedShadows;
+    }
+
     const response = await this.sendWorkerMessage(
       "shadow",
       {
@@ -440,9 +480,17 @@ class WorkerService {
       (response) => response.type === "SHADOWS_RESULT" && response.payload.id === id
     );
 
-    if (response.type !== "SHADOWS_RESULT") {
+      if (response.type !== "SHADOWS_RESULT") {
       throw new Error("Unexpected worker response type for shadows");
     }
+
+    if (this.shadowCache.size >= 500) {
+      const firstKey = this.shadowCache.keys().next().value;
+      if (firstKey !== undefined) {
+        this.shadowCache.delete(firstKey);
+      }
+    }
+    this.shadowCache.set(cacheKey, response.payload.shadows);
 
     return response.payload.shadows;
   }

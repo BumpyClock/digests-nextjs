@@ -14,14 +14,20 @@ interface ReaderViewPaneProps {
 
 export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
   const { markAsRead } = useFeedStore();
+  const hasMarkedAsReadRef = useRef(false);
   const { readerView, loading, cleanedContent } = useReaderView(feedItem);
   const scrollableNodeRef = useRef<HTMLDivElement>(null);
 
   // Mark as read after viewing
   useEffect(() => {
+    hasMarkedAsReadRef.current = false;
+
     if (feedItem) {
       const timer = setTimeout(() => {
-        markAsRead(feedItem.id);
+        if (!hasMarkedAsReadRef.current) {
+          markAsRead(feedItem.id);
+          hasMarkedAsReadRef.current = true;
+        }
       }, 2000);
 
       return () => clearTimeout(timer);
@@ -32,8 +38,9 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
   const handleScroll = useCallback(
     (e: Event) => {
       const target = e.target as HTMLDivElement;
-      if (target.scrollTop > 100 && feedItem) {
+      if (target.scrollTop > 100 && feedItem && !hasMarkedAsReadRef.current) {
         markAsRead(feedItem.id);
+        hasMarkedAsReadRef.current = true;
       }
     },
     [feedItem, markAsRead]
