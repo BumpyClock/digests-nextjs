@@ -1,12 +1,13 @@
 // store/useFeedStore.ts
 
 import localforage from "localforage";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useSyncExternalStore } from "react";
 import { create, type StateCreator, type StoreApi, type UseBoundStore } from "zustand";
 import { createJSONStorage, type PersistOptions, persist } from "zustand/middleware";
 import { deserializeSet } from "@/lib/serializers/set-serializer";
 import { Logger } from "@/utils/logger";
 import { toSubscription } from "@/utils/selectors";
+import type { Feed } from "@/types";
 import { withPerformanceMonitoring } from "./middleware/performanceMiddleware";
 import { type AudioSlice, createAudioSlice } from "./slices/audioSlice";
 import { createFeedSlice, type FeedSlice } from "./slices/feedSlice";
@@ -18,12 +19,10 @@ import { createReadStatusSlice, type ReadStatusSlice } from "./slices/readStatus
  * Server state is now handled by React Query, this only manages client state
  * @typedef {Object} FeedState
  * @property {boolean} initialized - Initialization state
- * @property {boolean} hydrated - Hydration state
  * @property {Set<string>} readItems - Track read item IDs
  * @property {string | null} activeFeed - Track active feed URL
  * @property {Set<string>} readLaterItems - Track read later item IDs
  * @method setSubscriptions - Replaces lightweight subscription list
- * @method setHydrated - Sets the hydration state
  * @method removeFeedSubscription - Removes a feed subscription
  * @method setInitialized - Sets the initialized state
  * @method markAsRead - Marks a specific feed item as read
@@ -36,9 +35,6 @@ import { createReadStatusSlice, type ReadStatusSlice } from "./slices/readStatus
  * @method getReadLaterItems - Gets all items in the read later list
  */
 interface FeedState extends FeedSlice, ReadStatusSlice, MetadataSlice, AudioSlice {}
-
-// Add hydration flag at top of file
-let hydrated = false;
 
 let feedStoreApi: UseBoundStore<StoreApi<FeedState>> | null = null;
 
@@ -62,6 +58,13 @@ const composeFeedStoreSlices: BaseFeedStoreCreator = (set, get, _api) => ({
   // Server state is now handled by React Query
 });
 
+const isFeed = (value: unknown): value is Feed =>
+  !!value &&
+  typeof value === "object" &&
+  typeof (value as { feedUrl?: unknown }).feedUrl === "string";
+
+const isFeedArray = (value: unknown): value is Feed[] => Array.isArray(value) && value.every(isFeed);
+
 const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<FeedState>>) =>
   ({
     name: "digests-feed-store",
@@ -73,12 +76,12 @@ const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<Fe
         if (from < 3) {
           // Drop persisted items and normalize Sets
           // Remove old feedItems property (now handled by React Query)
-          delete state.feedItems;
+          if ("feedItems" in state) {
+            delete state.feedItems;
+          }
           // Drop large feeds array from persistence if present
-          if (state.feeds && Array.isArray(state.feeds)) {
-            state.subscriptions = (state.feeds as Array<{ feedUrl?: unknown }>)
-              .filter((feed) => typeof feed?.feedUrl === "string")
-              .map((feed) => toSubscription(feed as never));
+          if (isFeedArray(state.feeds)) {
+            state.subscriptions = state.feeds.filter(isFeed).map((feed) => toSubscription(feed));
             delete state.feeds;
           }
           // Use utility for clean Set deserialization
@@ -143,23 +146,17 @@ const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<Fe
             readLaterItems: newReadLaterItems,
           });
 
-          hydrated = true;
           const storeState = store.getState();
-          storeState.setHydrated(true);
-
-          // Ensure the Set conversion actually worked
-          if (!(storeState.readItems instanceof Set)) {
-            Logger.warn("readItems is not a Set after rehydration, setting manually");
+          if (!(storeState.readItems instanceof Set) || !(storeState.readLaterItems instanceof Set)) {
+            Logger.warn("[Store] Rehydration produced invalid read item sets");
             store.setState({
-              readItems: new Set(Array.isArray(state.readItems) ? state.readItems : []),
-            });
-          }
-
-          if (!(storeState.readLaterItems instanceof Set)) {
-            Logger.warn("readLaterItems is not a Set after rehydration, setting manually");
-            store.setState({
+              readItems: new Set(
+                Array.isArray(state.readItems) ? state.readItems : Array.from(newReadItems)
+              ),
               readLaterItems: new Set(
-                Array.isArray(state.readLaterItems) ? state.readLaterItems : []
+                Array.isArray(state.readLaterItems)
+                  ? state.readLaterItems
+                  : Array.from(newReadLaterItems)
               ),
             });
           }
@@ -191,6 +188,14 @@ export const useFeedStore = create<FeedState>()(preparedFeedStoreInitializer);
 
 feedStoreApi = useFeedStore;
 
+const getStoreHydrationState = (): boolean => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return useFeedStore.persist.hasHydrated();
+};
+
 /**
  * Hydration-aware selector hook that returns the fallback until persistence finishes,
  * then switches to the live store value. Provide a stable/memoized fallback (e.g. via
@@ -198,31 +203,14 @@ feedStoreApi = useFeedStore;
  * so callers must memoize complex objects they pass in.
  */
 export const useHydratedStore = <T>(selector: (state: FeedState) => T, fallback?: T): T => {
-  const [hydrationDone, setHydrationDone] = useState(() => hydrated);
+  const hydrationDone = useSyncExternalStore(
+    (onStoreChange) => useFeedStore.persist.onFinishHydration(onStoreChange),
+    getStoreHydrationState,
+    () => false
+  );
   const fallbackRef = useRef<T>(
     fallback !== undefined ? fallback : selector(useFeedStore.getState())
   );
-
-  useEffect(() => {
-    if (hydrationDone) {
-      return;
-    }
-
-    if (hydrated || useFeedStore.persist.hasHydrated()) {
-      hydrated = true;
-      setHydrationDone(true);
-      return;
-    }
-
-    const unsubscribe = useFeedStore.persist.onFinishHydration(() => {
-      hydrated = true;
-      setHydrationDone(true);
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [hydrationDone]);
 
   const value = useFeedStore(selector);
 

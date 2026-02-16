@@ -21,22 +21,7 @@ import { Logger } from "@/utils/logger";
 import { normalizeUrl } from "@/utils/url";
 import { WebSettingsTabs } from "./settings/components/web-settings-tabs";
 
-/**
- * If your store has a "hydrated" field, we can track if it's
- * fully loaded, or just remove if you don't need it.
- */
-const useHydration = () => {
-  const [hydrated, setHydrated] = useState(false);
-  const { hydrated: storeHydrated } = useWebPageData();
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setHydrated(true);
-    }
-  }, []);
-
-  return hydrated && storeHydrated;
-};
+const useHydration = () => useHydratedStore(() => true, false);
 
 /**
  * Renders the main feed reader interface with tabbed navigation, search, filtering, and view mode toggling.

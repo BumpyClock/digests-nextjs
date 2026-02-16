@@ -73,7 +73,6 @@ export const useWebPageData = () => {
   return useFeedStore(
     useShallow((state) => ({
       initialized: state.initialized,
-      hydrated: state.hydrated,
       setInitialized: state.setInitialized,
       setActiveFeed: state.setActiveFeed,
       // Server state now handled by React Query

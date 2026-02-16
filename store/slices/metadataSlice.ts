@@ -4,10 +4,8 @@ import { StateCreator } from "zustand";
 // This slice only manages client-side UI state and hydration
 export type MetadataSlice = {
   initialized: boolean;
-  hydrated: boolean;
   activeFeed: string | null;
   setInitialized: (value: boolean) => void;
-  setHydrated: (state: boolean) => void;
   setActiveFeed: (feedUrl: string | null) => void;
 };
 
@@ -16,10 +14,8 @@ export const createMetadataSlice: StateCreator<MetadataSlice, [], [], MetadataSl
   _get
 ) => ({
   initialized: false,
-  hydrated: false,
   activeFeed: null as string | null,
 
   setInitialized: (value: boolean) => set({ initialized: value }),
-  setHydrated: (state: boolean) => set({ hydrated: state }),
   setActiveFeed: (feedUrl: string | null) => set({ activeFeed: feedUrl }),
 });
