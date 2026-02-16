@@ -9,7 +9,6 @@
 
 /* Article content styling */
 .reader-view-article .prose {
-  max-width: 65ch;
   line-height: 1.75;
 }
 

@@ -106,7 +106,7 @@ export const ArticleContent = memo<ArticleContentProps>(
     const shouldUseMarkdown = markdown && markdown.trim() !== "";
     const contentClassName = articleContentClassName(className);
     const renderedContent = shouldUseMarkdown ? (
-      <ArticleMarkdownRenderer content={markdown} className={contentClassName} />
+      <ArticleMarkdownRenderer content={markdown} />
     ) : (
       <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
     );
