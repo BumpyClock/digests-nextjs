@@ -1,20 +1,11 @@
+import { hashString } from "@/utils/hash";
+
 export interface FeedAnimationIds {
   thumbnail: string;
   title: string;
   siteMeta: string;
   favicon: string;
   siteName: string;
-}
-
-function hashString(value: string): string {
-  let hash = 0;
-
-  for (let i = 0; i < value.length; i++) {
-    hash = (hash << 5) - hash + value.charCodeAt(i);
-    hash |= 0;
-  }
-
-  return Math.abs(hash).toString(36);
 }
 
 function toSafeId(value: string): string {

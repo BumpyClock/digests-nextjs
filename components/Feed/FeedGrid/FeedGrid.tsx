@@ -2,21 +2,18 @@
 
 import { useCallback, useState, useEffect, useMemo } from "react";
 import { Masonry } from "masonic";
+import { useQueryClient } from "@tanstack/react-query";
 import { FeedCard } from "@/components/Feed/FeedCard/FeedCard";
+import { PodcastDetailsModal } from "@/components/Podcast/PodcastDetailsModal";
+import { ReaderViewModal } from "@/components/reader-view-modal";
 import { useWindowSize } from "@/hooks/use-window-size";
+import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
+import { useViewTransitionsSupported, runWithViewTransition } from "@/lib/view-transitions";
+import { readerViewKeys } from "@/hooks/queries/use-reader-view-query";
+import { workerService } from "@/services/worker-service";
 import { FeedItem } from "@/types";
-import dynamic from "next/dynamic";
-import loadingAnimation from "@/public/assets/animations/feed-loading.json";
+import { isPodcast } from "@/types/podcast";
 import { motion } from "motion/react";
-
-const Lottie = dynamic(() => import("lottie-react"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-64 h-64 flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-    </div>
-  ),
-});
 
 // Custom event for feed refresh
 export const FEED_REFRESHED_EVENT = "feed-refreshed";
@@ -31,16 +28,10 @@ interface FeedGridProps {
  * Loading animation component displayed while data is being fetched.
  */
 const LoadingAnimation = () => {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   return (
     <div className="flex items-center justify-center h-[50vh]">
-      <div className="w-64 h-64">
-        {isMounted && <Lottie animationData={loadingAnimation} loop={true} />}
+      <div className="relative h-16 w-16">
+        <div className="absolute inset-0 rounded-full border-4 border-muted border-t-primary animate-spin" />
       </div>
     </div>
   );
@@ -48,25 +39,19 @@ const LoadingAnimation = () => {
 
 /**
  * Displays a responsive masonry grid of feed items with loading and periodic update checking.
- *
- * Shows a loading animation until the component is mounted, a minimum loading time has elapsed, and items are available. Periodically checks for new feed items and notifies the user with a toast if updates are found, allowing manual refresh.
- *
- * @param items - The array of feed items to display.
- * @param isLoading - Whether the feed is currently loading.
- *
- * @returns The rendered feed grid or a loading animation.
- *
- * @remark If new items are detected during periodic checks, a toast notification is shown with an option to refresh the feed.
  */
 export function FeedGrid({ items, isLoading }: FeedGridProps) {
   const [mounted, setMounted] = useState(false);
+  const [openItem, setOpenItem] = useState<FeedItem | null>(null);
   const { width: windowWidth } = useWindowSize();
+  const queryClient = useQueryClient();
+  const { animationEnabled } = useFeedAnimation();
+  const vtSupported = useViewTransitionsSupported();
+  const viewTransitionsEnabled = animationEnabled && vtSupported;
+
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Background sync is now handled by the main page component using React Query
-  // This simplifies the FeedGrid component to focus only on rendering
 
   const columnWidth = 320;
   const columnGutter = 24;
@@ -75,13 +60,42 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
     [windowWidth]
   );
 
+  const handleItemOpen = useCallback((item: FeedItem) => {
+    setOpenItem(item);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    if (viewTransitionsEnabled && openItem && !isPodcast(openItem)) {
+      runWithViewTransition(() => {
+        setOpenItem(null);
+      });
+    } else {
+      setOpenItem(null);
+    }
+  }, [viewTransitionsEnabled, openItem]);
+
+  const handlePrefetch = useCallback(
+    (item: FeedItem) => {
+      if (isPodcast(item)) return;
+      queryClient.prefetchQuery({
+        queryKey: readerViewKeys.byUrl(item.link),
+        queryFn: () => workerService.fetchReaderView(item.link).then((r) => r.data[0]),
+        staleTime: 60 * 60 * 1000,
+      });
+    },
+    [queryClient]
+  );
+
   const renderItem = useCallback(
     ({ data: feed }: { data: FeedItem }) => (
-      <div style={{ contain: "layout style" }}>
-        <FeedCard feed={feed} />
+      <div
+        style={{ contain: "layout style" }}
+        onMouseEnter={() => handlePrefetch(feed)}
+      >
+        <FeedCard feed={feed} onItemOpen={handleItemOpen} />
       </div>
     ),
-    []
+    [handleItemOpen, handlePrefetch]
   );
 
   const memoizedItems = useMemo(() => {
@@ -104,25 +118,46 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
     return <LoadingAnimation />;
   }
 
+  const isOpenItemPodcast = openItem ? isPodcast(openItem) : false;
+
   try {
     return (
-      <motion.div
-        id="feed-grid"
-        className="pt-6 h-screen"
-        initial={false}
-        animate={false}
-        layout={false}
-      >
-        <Masonry
-          items={memoizedItems}
-          maxColumnCount={columnCount}
-          columnGutter={columnGutter}
-          columnWidth={columnWidth}
-          render={renderItem}
-          overscanBy={2}
-          itemKey={itemKey}
-        />
-      </motion.div>
+      <>
+        <motion.div
+          id="feed-grid"
+          className="pt-6"
+          initial={false}
+          animate={false}
+          layout={false}
+        >
+          <Masonry
+            items={memoizedItems}
+            maxColumnCount={columnCount}
+            columnGutter={columnGutter}
+            columnWidth={columnWidth}
+            render={renderItem}
+            overscanBy={2}
+            itemKey={itemKey}
+          />
+        </motion.div>
+
+        {openItem && isOpenItemPodcast && (
+          <PodcastDetailsModal
+            isOpen={true}
+            onClose={handleClose}
+            podcast={openItem}
+          />
+        )}
+
+        {openItem && !isOpenItemPodcast && (
+          <ReaderViewModal
+            isOpen={true}
+            onClose={handleClose}
+            feedItem={openItem}
+            useViewTransition={viewTransitionsEnabled}
+          />
+        )}
+      </>
     );
   } catch (error) {
     console.error("Error rendering FeedGrid:", error);

@@ -1,25 +1,5 @@
 import type { Feed, FeedItem, FetchFeedsResponse } from "@/types";
-
-/**
- * Creates a deterministic hash from a string using SHA-256
- * Returns a base64url-encoded hash for use as a stable identifier
- *
- * @param input - The string to hash
- * @returns A deterministic hash string
- */
-function hashString(input: string): string {
-  // Use a simple but deterministic hash for now
-  // This could be upgraded to SHA-256 if needed, but for ID purposes
-  // a simpler hash is sufficient and faster
-  let hash = 0;
-  for (let i = 0; i < input.length; i++) {
-    const char = input.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  // Convert to base36 string for compact representation
-  return Math.abs(hash).toString(36);
-}
+import { hashString } from "@/utils/hash";
 
 /**
  * Generates a stable GUID for a feed using deterministic hashing

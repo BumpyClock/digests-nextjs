@@ -14,10 +14,7 @@ import type { FeedItem } from "@/types";
  * @returns boolean indicating if the item is read
  */
 export const useIsItemRead = (itemId: string): boolean => {
-  return useFeedStore((state) => {
-    const readItems = state.readItems;
-    return readItems instanceof Set ? readItems.has(itemId) : false;
-  });
+  return useFeedStore((state) => state.readItems.has(itemId));
 };
 
 /**
@@ -26,10 +23,7 @@ export const useIsItemRead = (itemId: string): boolean => {
  * @returns boolean indicating if the item is in read later
  */
 export const useIsInReadLater = (itemId: string): boolean => {
-  return useFeedStore((state) => {
-    const readLaterItems = state.readLaterItems;
-    return readLaterItems instanceof Set ? readLaterItems.has(itemId) : false;
-  });
+  return useFeedStore((state) => state.readLaterItems.has(itemId));
 };
 
 /**
@@ -71,7 +65,7 @@ export const useReadLaterActions = (): {
  * @returns Array of all feeds
  */
 export const useFeeds = () => {
-  return useFeedStore((state) => state.feeds);
+  return useFeedStore((state) => state.subscriptions);
 };
 
 export const useSubscriptions = () => {

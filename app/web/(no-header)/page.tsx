@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFeedBackgroundSync, useFeedsData, useRefreshFeedsMutation } from "@/hooks/queries";
 import { useWebPageData } from "@/hooks/useFeedSelectors";
 import { useHydratedStore } from "@/store/useFeedStore";
-import type { Feed, FeedItem } from "@/types";
+import type { FeedItem } from "@/types";
 import { Logger } from "@/utils/logger";
 import { normalizeUrl } from "@/utils/url";
 import { WebSettingsTabs } from "./settings/components/web-settings-tabs";
@@ -77,10 +77,7 @@ function WebPageContent() {
 
   // React Query is now the single source of truth for server state
   const feedItems = useMemo(() => feedsQuery.data?.items ?? [], [feedsQuery.data?.items]);
-  const emptyFeeds = useMemo(() => [] as Feed[], []);
-  const existingFeeds = useHydratedStore((state) => state.feeds, emptyFeeds);
-  const loading =
-    feedsQuery.isLoading || (!initialized && existingFeeds.length > 0 && feedItems.length === 0);
+  const loading = feedsQuery.isLoading;
   const refreshing = refreshMutation.isPending;
   const isLoading = loading || refreshing;
 
@@ -94,15 +91,6 @@ function WebPageContent() {
   }, [isHydrated, initialized, setInitialized]);
 
   /**
-   * Calculate current unread items (used for tab counts, but not for display on unread tab)
-   */
-  const currentUnreadItems = useMemo(() => {
-    if (!feedItems.length) return [];
-    const readItemsSet = readItems instanceof Set ? readItems : new Set();
-    return feedItems.filter((item) => !readItemsSet.has(item.id));
-  }, [feedItems, readItems]);
-
-  /**
    * Update stable unread items only when feedItems change (on refresh)
    * This keeps unread page content stable even when items are marked as read
    */
@@ -110,8 +98,7 @@ function WebPageContent() {
   useEffect(() => {
     if (feedItems.length > 0) {
       // Use read items state at the time of refresh, not current reactive state
-      const readItemsAtRefresh = readItems instanceof Set ? readItems : new Set();
-      const unreadAtRefresh = feedItems.filter((item) => !readItemsAtRefresh.has(item.id));
+      const unreadAtRefresh = feedItems.filter((item) => !readItems.has(item.id));
       setStableUnreadItems(unreadAtRefresh);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -229,34 +216,44 @@ function WebPageContent() {
     [appliedSearchQuery]
   );
 
-  const filteredItems = useMemo(() => {
-    if (!feedItems || !Array.isArray(feedItems)) return [];
-    return feedItems.filter((item) => {
-      if (!item?.id) return false;
+  /**
+   * Single-pass categorization of feed items.
+   * Replaces separate filteredItems, articleItems, podcastItems, readLaterItems,
+   * and unread count memos with one loop.
+   */
+  const categorized = useMemo(() => {
+    const all: FeedItem[] = [];
+    const articles: FeedItem[] = [];
+    const podcasts: FeedItem[] = [];
+    const readLater: FeedItem[] = [];
+    let unreadCount = 0;
+    let unreadPodcastCount = 0;
 
-      // Check feed URL match
-      if (feedUrlDecoded && normalizeUrl(item.feedUrl) !== feedUrlDecoded) {
-        return false;
-      }
+    for (const item of feedItems) {
+      if (!item?.id) continue;
+      // Feed URL filter
+      if (feedUrlDecoded && normalizeUrl(item.feedUrl) !== feedUrlDecoded) continue;
+      // Search filter
+      if (searchLower && !item.title?.toLowerCase().includes(searchLower)
+          && !item.description?.toLowerCase().includes(searchLower)) continue;
 
-      // If there's a typed search query, filter by that as well
-      if (searchLower) {
-        return (
-          item.title?.toLowerCase().includes(searchLower) ||
-          item.description?.toLowerCase().includes(searchLower)
-        );
+      all.push(item);
+      if (item.type === "article") articles.push(item);
+      else if (item.type === "podcast") podcasts.push(item);
+      if (readLaterSet.has(item.id)) readLater.push(item);
+      if (!readItems.has(item.id)) {
+        unreadCount++;
+        if (item.type === "podcast") unreadPodcastCount++;
       }
-      return true;
-    });
-  }, [feedItems, feedUrlDecoded, searchLower]);
+    }
+    return { all, articles, podcasts, readLater, unreadCount, unreadPodcastCount };
+  }, [feedItems, feedUrlDecoded, searchLower, readItems, readLaterSet]);
 
   const filteredUnreadItems = useMemo(() => {
-    if (!stableUnreadItems || !Array.isArray(stableUnreadItems)) return [];
+    if (!stableUnreadItems.length) return [];
     return stableUnreadItems.filter((item) => {
       if (!item?.id) return false;
-      if (feedUrlDecoded && normalizeUrl(item.feedUrl) !== feedUrlDecoded) {
-        return false;
-      }
+      if (feedUrlDecoded && normalizeUrl(item.feedUrl) !== feedUrlDecoded) return false;
       if (searchLower) {
         return (
           item.title?.toLowerCase().includes(searchLower) ||
@@ -267,48 +264,6 @@ function WebPageContent() {
     });
   }, [stableUnreadItems, feedUrlDecoded, searchLower]);
 
-  const { articleItems, podcastItems } = useMemo(() => {
-    const articles: typeof filteredItems = [];
-    const podcasts: typeof filteredItems = [];
-    for (const item of filteredItems) {
-      if (item?.type === "article") articles.push(item);
-      else if (item?.type === "podcast") podcasts.push(item);
-    }
-    return { articleItems: articles, podcastItems: podcasts };
-  }, [filteredItems]);
-
-  // Reusable filtering function for unread items by type
-  const filterUnreadItemsByType = useCallback(
-    (itemType: "article" | "podcast") => {
-      if (!currentUnreadItems || !Array.isArray(currentUnreadItems)) return [];
-      return currentUnreadItems.filter((item) => {
-        if (!item?.id) return false;
-        if (feedUrlDecoded && normalizeUrl(item.feedUrl) !== feedUrlDecoded) return false;
-        if (searchLower) {
-          if (
-            !(
-              item.title?.toLowerCase().includes(searchLower) ||
-              item.description?.toLowerCase().includes(searchLower)
-            )
-          )
-            return false;
-        }
-        return item?.type === itemType;
-      });
-    },
-    [currentUnreadItems, feedUrlDecoded, searchLower]
-  );
-
-  // For tab counts, use current reactive unread items to show accurate counts
-  const currentUnreadPodcastItems = useMemo(() => {
-    return filterUnreadItemsByType("podcast");
-  }, [filterUnreadItemsByType]);
-
-  const readLaterItems = useMemo(() => {
-    const set = readLaterSet instanceof Set ? readLaterSet : new Set<string>();
-    return (feedItems || []).filter((item) => set.has(item.id));
-  }, [feedItems, readLaterSet]);
-
   const clearFeedFilter = useCallback(() => {
     router.push("/web");
   }, [router]);
@@ -318,10 +273,10 @@ function WebPageContent() {
   }, []);
 
   return (
-    <div className="h-dvh w-full px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3">
+    <div className={`w-full px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3${viewMode === "masterDetail" ? " h-dvh" : ""}`}>
       <Tabs
         defaultValue="unread"
-        className="flex h-full min-h-0 flex-col gap-3 sm:gap-4"
+        className={`flex flex-col gap-3 sm:gap-4${viewMode === "masterDetail" ? " h-full min-h-0" : ""}`}
         value={selectedTab}
         onValueChange={handleTabChange}
       >
@@ -347,15 +302,15 @@ function WebPageContent() {
               </TabsTrigger>
               <TabsTrigger value="articles">
                 Articles
-                {articleItems.length > 0 && ` (${articleItems.length})`}
+                {categorized.articles.length > 0 && ` (${categorized.articles.length})`}
               </TabsTrigger>
               <TabsTrigger value="podcasts">
                 Podcasts
-                {currentUnreadPodcastItems.length > 0 && ` (${currentUnreadPodcastItems.length})`}
+                {categorized.unreadPodcastCount > 0 && ` (${categorized.unreadPodcastCount})`}
               </TabsTrigger>
               <TabsTrigger value="readLater">
                 Read Later
-                {readLaterItems.length > 0 && ` (${readLaterItems.length})`}
+                {categorized.readLater.length > 0 && ` (${categorized.readLater.length})`}
               </TabsTrigger>
             </TabsList>
           </div>
@@ -400,24 +355,24 @@ function WebPageContent() {
           </div>
         </div>
 
-        <TabsContent value="all" className="mt-0 flex-1 min-h-0">
-          <FeedTabContent items={filteredItems} isLoading={isLoading} viewMode={viewMode} />
+        <TabsContent value="all" className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}>
+          <FeedTabContent items={categorized.all} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
 
-        <TabsContent value="unread" className="mt-0 flex-1 min-h-0">
+        <TabsContent value="unread" className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}>
           <FeedTabContent items={filteredUnreadItems} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
 
-        <TabsContent value="articles" className="mt-0 flex-1 min-h-0">
-          <FeedTabContent items={articleItems} isLoading={isLoading} viewMode={viewMode} />
+        <TabsContent value="articles" className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}>
+          <FeedTabContent items={categorized.articles} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
 
-        <TabsContent value="podcasts" className="mt-0 flex-1 min-h-0">
-          <FeedTabContent items={podcastItems} isLoading={isLoading} viewMode={viewMode} />
+        <TabsContent value="podcasts" className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}>
+          <FeedTabContent items={categorized.podcasts} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
 
-        <TabsContent value="readLater" className="mt-0 flex-1 min-h-0">
-          <FeedTabContent items={readLaterItems} isLoading={isLoading} viewMode={viewMode} />
+        <TabsContent value="readLater" className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}>
+          <FeedTabContent items={categorized.readLater} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
       </Tabs>
 

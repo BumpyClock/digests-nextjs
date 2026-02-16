@@ -105,7 +105,9 @@ describe("useFeedsData", () => {
     jest.clearAllMocks();
 
     // Default mock for store
-    mockedUseFeedStore.mockReturnValue(["https://example.com/feed1.xml"]);
+    mockedUseFeedStore.mockReturnValue({
+      subscriptions: [{ feedUrl: "https://example.com/feed1.xml" }],
+    } as unknown as ReturnType<typeof useFeedStore>);
   });
 
   afterEach(() => {
@@ -113,7 +115,9 @@ describe("useFeedsData", () => {
   });
 
   it("should return empty data when no feed URLs are provided", async () => {
-    mockedUseFeedStore.mockReturnValue([]);
+    mockedUseFeedStore.mockReturnValue({
+      subscriptions: [],
+    } as unknown as ReturnType<typeof useFeedStore>);
 
     const { result } = renderHook(() => useFeedsData(), {
       wrapper: createWrapper(),
@@ -215,10 +219,12 @@ describe("useFeedsData", () => {
   });
 
   it("should use proper query key based on feed URLs", async () => {
-    mockedUseFeedStore.mockReturnValue([
+    mockedUseFeedStore.mockReturnValue({
+      subscriptions: [
       "https://example.com/feed1.xml",
       "https://example.com/feed2.xml",
-    ]);
+    ].map((feedUrl) => ({ feedUrl })),
+    } as unknown as ReturnType<typeof useFeedStore>);
 
     mockedWorkerService.refreshFeeds.mockResolvedValue({
       success: true,
@@ -242,7 +248,9 @@ describe("useFeedsData", () => {
   });
 
   it("should not fetch when query is disabled (no feeds)", () => {
-    mockedUseFeedStore.mockReturnValue([]);
+    mockedUseFeedStore.mockReturnValue({
+      subscriptions: [],
+    } as unknown as ReturnType<typeof useFeedStore>);
 
     const { result } = renderHook(() => useFeedsData(), {
       wrapper: createWrapper(),

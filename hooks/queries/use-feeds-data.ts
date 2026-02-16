@@ -18,9 +18,8 @@ import type { Feed, FeedItem } from "@/types";
  * - Proper error handling and loading states
  */
 export function useFeedsData() {
-  const feeds = useFeedStore((s) => s.feeds);
-  const subs = useFeedStore((s) => s.subscriptions ?? []) as { feedUrl: string }[];
-  const feedUrls = (feeds?.length ? feeds : subs).map((f) => f.feedUrl);
+  const subscriptions = useFeedStore((s) => s.subscriptions ?? []);
+  const feedUrls = subscriptions.map((f) => f.feedUrl);
 
   return useQuery({
     queryKey: feedsKeys.list(feedUrls),
@@ -37,13 +36,9 @@ export function useFeedsData() {
 
       return {
         feeds: result.feeds,
-        items: result.items,
+        items: [...result.items].sort(sortByDateDesc), // Sort once at fetch time
       };
     },
-    select: (data) => ({
-      feeds: data.feeds,
-      items: [...data.items].sort(sortByDateDesc), // Sort items by date (newest first)
-    }),
     staleTime: 15 * 60 * 1000, // 15 minutes - align with worker TTL
     gcTime: 30 * 60 * 1000, // 30 minutes - keep in cache longer
     refetchOnReconnect: true, // Refetch when coming back online

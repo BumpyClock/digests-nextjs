@@ -4,7 +4,6 @@ import { persist, createJSONStorage, type PersistOptions } from "zustand/middlew
 import localforage from "localforage";
 import { useState, useEffect, useRef } from "react";
 
-import type { Feed } from "@/types";
 import type { Subscription } from "@/types/subscription";
 import { createFeedSlice, type FeedSlice } from "./slices/feedSlice";
 import { createReadStatusSlice, type ReadStatusSlice } from "./slices/readStatusSlice";
@@ -13,20 +12,20 @@ import { createAudioSlice, type AudioSlice } from "./slices/audioSlice";
 import { withPerformanceMonitoring } from "./middleware/performanceMiddleware";
 import { Logger } from "@/utils/logger";
 import { deserializeSet } from "@/lib/serializers/set-serializer";
+import { toSubscription } from "@/utils/selectors";
 
 /**
  * The Zustand store shape optimized for React Query integration
  * Server state is now handled by React Query, this only manages client state
  * @typedef {Object} FeedState
- * @property {Feed[]} feeds - List of feeds (synced from React Query)
  * @property {boolean} initialized - Initialization state
  * @property {boolean} hydrated - Hydration state
  * @property {Set<string>} readItems - Track read item IDs
  * @property {string | null} activeFeed - Track active feed URL
  * @property {Set<string>} readLaterItems - Track read later item IDs
- * @method setFeeds - Sets the feeds in the store
+ * @method setSubscriptions - Replaces lightweight subscription list
  * @method setHydrated - Sets the hydration state
- * @method removeFeedFromCache - Removes a feed from local cache
+ * @method removeFeedSubscription - Removes a feed subscription
  * @method setInitialized - Sets the initialized state
  * @method markAsRead - Marks a specific feed item as read
  * @method getUnreadItems - Gets all unread feed items
@@ -80,7 +79,12 @@ const createFeedStorePersistOptions = (
         const { feedItems: _, ...cleanState } = state;
         Object.assign(state, cleanState);
         // Drop large feeds array from persistence if present
-        if (state.feeds) delete state.feeds;
+        if (state.feeds && Array.isArray(state.feeds)) {
+          state.subscriptions = (state.feeds as Array<{ feedUrl?: unknown }> )
+            .filter((feed) => typeof feed?.feedUrl === "string")
+            .map((feed) => toSubscription(feed as never));
+          delete state.feeds;
+        }
         // Use utility for clean Set deserialization
         state.readItems = deserializeSet(state.readItems);
         state.readLaterItems = deserializeSet(state.readLaterItems);
@@ -136,39 +140,6 @@ const createFeedStorePersistOptions = (
         const store = getStore();
         const storeState = store.getState();
         storeState.setHydrated(true);
-
-        // If feeds are empty but subscriptions exist, seed minimal feeds for URL computation
-        if (
-          (!Array.isArray(storeState.feeds) || storeState.feeds.length === 0) &&
-          Array.isArray(state.subscriptions)
-        ) {
-          const subs = state.subscriptions as Subscription[];
-          // Seed feeds with minimal info (will be replaced by RQ data)
-          const seededFeeds = subs.map(
-            (s) =>
-              ({
-                type: "",
-                guid: "",
-                status: "",
-                siteName: s.siteName,
-                siteTitle: s.siteTitle,
-                title: s.title,
-                feedTitle: s.feedTitle,
-                feedUrl: s.feedUrl,
-                description: "",
-                link: "",
-                lastUpdated: "",
-                lastRefreshed: "",
-                published: "",
-                author: null,
-                language: s.language,
-                favicon: s.favicon,
-                categories: "",
-              }) as unknown as Feed
-          );
-
-          storeState.setFeeds(seededFeeds);
-        }
 
         // Ensure the Set conversion actually worked
         if (!(storeState.readItems instanceof Set)) {

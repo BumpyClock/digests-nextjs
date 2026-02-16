@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { FeedItem } from "@/types";
 import { BaseModal } from "./base-modal";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useReaderView } from "@/hooks/use-reader-view";
+import { useReaderView } from "@/hooks/queries";
 import { useScrollShadow } from "@/hooks/use-scroll-shadow";
 import { ScrollShadow } from "./ui/scroll-shadow";
 import { ReaderContent } from "@/components/Feed/ReaderContent";
@@ -24,7 +24,7 @@ interface ReaderViewModalProps {
 
 export function ReaderViewModal({ feedItem, isOpen, onClose, useViewTransition }: ReaderViewModalProps) {
   const { readerView, loading, cleanedContent, cleanedMarkdown, extractedAuthor } = useReaderView(
-    feedItem,
+    feedItem?.link || "",
     isOpen
   );
   const [transitionInProgress, setTransitionInProgress] = useState(false);

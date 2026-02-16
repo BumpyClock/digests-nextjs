@@ -51,8 +51,7 @@ export const createReadStatusSlice: StateCreator<ReadStatusSlice, [], [], ReadSt
 
   getUnreadItems: (items: FeedItem[]) => {
     const { readItems } = get();
-    const readItemsSet = readItems instanceof Set ? readItems : new Set();
-    const unreadItems = (items || []).filter((item: FeedItem) => !readItemsSet.has(item.id));
+    const unreadItems = (items || []).filter((item: FeedItem) => !readItems.has(item.id));
     Logger.debug("unreadItems", unreadItems);
     return unreadItems.length > 0 ? unreadItems : [];
   },
@@ -78,16 +77,11 @@ export const createReadStatusSlice: StateCreator<ReadStatusSlice, [], [], ReadSt
 
   isInReadLater: (itemId: string) => {
     const { readLaterItems } = get();
-    const set =
-      readLaterItems instanceof Set
-        ? readLaterItems
-        : new Set(Array.isArray(readLaterItems) ? readLaterItems : []);
-    return set.has(itemId);
+    return readLaterItems.has(itemId);
   },
 
   getReadLaterItems: (items: FeedItem[]) => {
     const { readLaterItems } = get();
-    const readLaterSet = readLaterItems instanceof Set ? readLaterItems : new Set();
-    return (items || []).filter((item: FeedItem) => readLaterSet.has(item.id));
+    return (items || []).filter((item: FeedItem) => readLaterItems.has(item.id));
   },
 });

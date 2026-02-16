@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { EmptyState } from "@/components/Feed/ArticleReader";
 import { ReaderContent } from "@/components/Feed/ReaderContent";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useReaderView } from "@/hooks/use-reader-view";
+import { useReaderView } from "@/hooks/queries";
 import { useFeedStore } from "@/store/useFeedStore";
 import { type FeedItem } from "@/types";
 
@@ -15,7 +15,7 @@ interface ReaderViewPaneProps {
 export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
   const { markAsRead } = useFeedStore();
   const hasMarkedAsReadRef = useRef(false);
-  const { readerView, loading, cleanedContent } = useReaderView(feedItem);
+  const { readerView, loading, cleanedContent } = useReaderView(feedItem?.link || "");
   const scrollableNodeRef = useRef<HTMLDivElement>(null);
 
   // Mark as read after viewing

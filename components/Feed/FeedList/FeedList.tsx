@@ -105,13 +105,8 @@ export function FeedList({
   const [currentScrollTop, setCurrentScrollTop] = useState(0);
   const readItems = useFeedStore((state) => state.readItems);
 
-  const readItemsSet = useMemo(() => {
-    if (readItems instanceof Set) {
-      return readItems;
-    }
-
-    return new Set(Array.isArray(readItems) ? readItems : []);
-  }, [readItems]);
+  // readItems is always a Set post-hydration (guaranteed by onRehydrateStorage)
+  const readItemsSet = readItems;
 
   // Restore scroll position when component remounts
   useEffect(() => {
