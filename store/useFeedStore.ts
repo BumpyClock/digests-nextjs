@@ -183,8 +183,6 @@ const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<Fe
             "Error during store rehydration",
             error instanceof Error ? error : undefined
           );
-          state.readItems = new Set();
-          state.readLaterItems = new Set();
           const store = getStore();
           store.setState({ readItems: new Set(), readLaterItems: new Set() });
         }

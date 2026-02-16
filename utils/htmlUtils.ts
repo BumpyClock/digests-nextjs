@@ -32,11 +32,20 @@ const htmlEntityRegex = /&(?:#x([0-9a-fA-F]+)|#(\d+)|(\w+));/g;
 /**
  * Decodes all HTML entities in a single regex pass.
  * Handles named entities (&amp;), decimal (&#39;), and hex (&#x27;) forms.
+ * Uses fromCodePoint to correctly handle astral-plane code points (emoji, CJK extensions).
  */
 const decodeHtmlEntities = (text: string): string =>
   text.replace(htmlEntityRegex, (match, hex, dec, named) => {
-    if (hex) return String.fromCharCode(parseInt(hex, 16));
-    if (dec) return String.fromCharCode(Number(dec));
+    if (hex) {
+      const codePoint = parseInt(hex, 16);
+      if (codePoint > 0x10ffff || codePoint < 0) return match;
+      return String.fromCodePoint(codePoint);
+    }
+    if (dec) {
+      const codePoint = Number(dec);
+      if (codePoint > 0x10ffff || codePoint < 0) return match;
+      return String.fromCodePoint(codePoint);
+    }
     if (named) return namedEntityMap[named] ?? match;
     return match;
   });
@@ -44,10 +53,10 @@ const decodeHtmlEntities = (text: string): string =>
 // Mojibake patterns: UTF-8 sequences misinterpreted as Latin-1/Windows-1252
 const mojibakeReplacements: TextReplacement[] = [
   [/â€™/g, "'"], // U+2019 right single quote
-  [/â€"/g, "\u2013"], // U+2013 en dash
-  [/â€"/g, "\u2014"], // U+2014 em dash
+  [/â€“/g, "\u2013"], // U+2013 en dash (e2 80 93)
+  [/â€"/g, "\u2014"], // U+2014 em dash (e2 80 94)
   [/â€œ/g, '"'], // U+201C left double quote
-  [/â€/g, '"'], // U+201D right double quote
+  [/â€\x9d/g, '"'], // U+201D right double quote (actual 0x9D byte)
 ];
 
 const applyMojibakeReplacements = (value: string): string =>

@@ -460,7 +460,7 @@ class WorkerService {
 
   /**
    * Generates themed box-shadow CSS values for a feed card via the shadow worker.
-   * Results are cached in-memory (LRU, max 500 entries) keyed by id + color + theme.
+   * Results are cached in-memory (FIFO, max 500 entries) keyed by id + color + theme.
    * @param id - Unique identifier for the card (used to match async responses)
    * @param color - Dominant RGB color extracted from the card's thumbnail
    * @param isDarkMode - Whether the current theme is dark mode

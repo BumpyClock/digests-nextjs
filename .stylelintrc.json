@@ -3,7 +3,7 @@
     "at-rule-no-unknown": [
       true,
       {
-        "ignoreAtRules": ["config", "utility"]
+        "ignoreAtRules": ["config", "utility", "layer", "apply"]
       }
     ],
     "function-url-quotes": "always"

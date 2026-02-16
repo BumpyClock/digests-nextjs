@@ -77,11 +77,6 @@ export function useOPML() {
     async (selectedUrls: string[]) => {
       const { urls: normalizedUrls, invalidCount, duplicateCount } = deduplicateUrls(selectedUrls);
 
-      if (normalizedUrls.length === 0) {
-        toast.info("No feeds selected");
-        return;
-      }
-
       if (invalidCount > 0 || duplicateCount > 0) {
         const messages: string[] = [];
 
@@ -96,6 +91,11 @@ export function useOPML() {
         }
 
         toast.warning(messages.join(" and "));
+      }
+
+      if (normalizedUrls.length === 0) {
+        toast.info("No valid feeds selected");
+        return;
       }
 
       try {

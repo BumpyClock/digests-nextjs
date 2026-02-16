@@ -148,10 +148,7 @@ async function fetchFeeds(
 
     return result;
   } catch (error) {
-    console.error(
-      `[Worker] Error fetching feeds (api=${currentApiUrl}, urls=${urls.length}):`,
-      error
-    );
+    Logger.error(`[Worker] Error fetching feeds (api=${currentApiUrl}, urls=${urls.length}):`, error);
     throw error;
   }
 }
@@ -171,6 +168,11 @@ async function fetchReaderView(
 ): Promise<ReaderViewResponse[]> {
   const currentApiUrl = customApiUrl || apiBaseUrl;
   try {
+    // Validate the API base URL before proceeding
+    if (!isHttpUrl(currentApiUrl)) {
+      throw new Error(`Invalid API base URL: ${currentApiUrl}`);
+    }
+
     // Generate cache key
     const cacheKey = buildSortedUrlCacheKey("reader", urls);
 
@@ -206,7 +208,7 @@ async function fetchReaderView(
 
     return data as ReaderViewResponse[];
   } catch (error) {
-    console.error("[Worker] Error fetching reader view:", error);
+    Logger.error("[Worker] Error fetching reader view:", error);
     throw error;
   }
 }
@@ -345,7 +347,7 @@ const messageHandlers: WorkerHandlerMap = {
         items,
       } as WorkerResponse;
     } catch (error) {
-      console.error("[Worker] Error checking for updates:", error);
+      Logger.error("[Worker] Error checking for updates:", error);
       return {
         type: "FEEDS_RESULT",
         success: false,
@@ -452,7 +454,7 @@ self.addEventListener("message", async (event) => {
 });
 
 self.addEventListener("unhandledrejection", (event) => {
-  console.error("[Worker] Unhandled promise rejection:", event.reason);
+  Logger.error("[Worker] Unhandled promise rejection:", event.reason);
   self.postMessage({
     type: "ERROR",
     message: `Unhandled error in worker: ${event.reason?.message || "Unknown error"}`,

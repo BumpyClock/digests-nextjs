@@ -127,7 +127,7 @@ const runPatternCheck = (pattern, useRipgrep) => {
 
   try {
     const output = execSync(
-      `grep -r -n "${pattern.replace(/\\\\b/g, "")}" ${GREP_TARGET_PATHS.join(" ")} 2>/dev/null || true`,
+      `grep -r -n "${pattern.replace(/\\\\b/g, "")}" ${GREP_TARGET_PATHS.join(" ")}`,
       {
         encoding: "utf8",
         cwd: process.cwd(),
@@ -137,6 +137,10 @@ const runPatternCheck = (pattern, useRipgrep) => {
 
     return { output };
   } catch (error) {
+    // grep exits with status 1 when no matches found
+    if (error.status === 1) {
+      return { output: "" };
+    }
     return { output: "", error };
   }
 };

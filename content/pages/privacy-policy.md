@@ -2,19 +2,19 @@
 title: Privacy Policy
 ---
 
-The privacy policy is simple: no personal data is collected, stored or shared with us. Your data will also never be used by us for any purpose without specific permission. Data is only used to provide the service and is not shared with any third-party. Data sent to the server is not retained by the server and is specified below.
+The privacy policy is simple: no personal data is used for account-level tracking, profiling, or ad targeting. Your data will only be used to provide the service and is not shared with any third party. Data sent to the server is used only for feed retrieval and retention is specified below.
 
 The app engages in no ad targeting, data mining, or other algorithmic targeting that may compromise your privacy, and we do not affiliate ourselves with any third parties that do so.
 
 ## Data collection
 
-- Only the urls of your subscribed feeds are transmitted to the server to retrieve them. No IP address or other personal data is sent with any request or saved. You are free to review the source code of apps & API server to verify this.
+- Only the urls of your subscribed feeds are transmitted to the server to retrieve them. No IP address or other personal data is intentionally sent with any request or saved by design. You are free to review the source code of apps & API server to verify this.
 
 - Google Analytics and Microsoft Clarity are used to collect anonymous usage data, these are opt-in and you can opt-out anytime. Google Analytics & Microsoft Clarity are used to improve the app.
 
 ## Data retention
 
-We do not retain any data from you. Only the data required to provide the service is retained for a period of 30 days, this may change in the future.
+We do not retain personal data from you. Only the data required to provide the service is retained for a period of 30 days, this may change in the future.
 
 - Links to RSS feeds and their cached content are cycled out of the cache after 30 days. This is done to improve performance, avoid processing the same content multiple times and avoid unnecessary requests to the upstream servers.
 

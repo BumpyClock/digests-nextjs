@@ -46,7 +46,13 @@ Durable repo learnings only. Keep evergreen; drop incident logs.
 - Guard idempotent state writes (for example read-marking) to prevent unnecessary churn.
 - Ensure worker cache keys are deterministic for full URL lists and include requestId on ERROR worker responses for better cross-thread correlation.
 
-## Tooling
+## Migration Guardrails
 
 - When `biome check .` fails, update formatter/lint config, fix import ordering, JSX layout, duplicate props, and utility/store formatting together to restore formatting and lint conformance consistently.
 - Migration guardrails that use regex search should include narrow, file+line-scoped allowlists for intentional legacy cleanup paths to avoid false positives without weakening enforcement.
+
+## PR 56 Feedback Response (2026-02-16)
+
+- Fixed review-findings with high confidence: normalized mojibake regexes, URL case handling in feed normalization, deterministic reader cache key hashing, stylelint at-rule allowlist, OPML warning flow, markdown content className pass-through, and Logger-based errors in rss worker.
+- Kept additional low-impact style/heuristic findings as deferred notes unless explicitly prioritized.
+- Added a quick validation pass: `bun run check:migration`, `bun run lint`, `node --test tests/feed-cache-merge.test.js`.

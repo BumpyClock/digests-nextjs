@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { processArticleContent } from "@/components/Feed/ArticleReader";
+import { hashString } from "@/utils/hash";
 import { workerService } from "@/services/worker-service";
 import type { ReaderViewResponse } from "@/types";
 import { getValidReaderViewOrThrow } from "./reader-view-validation";
@@ -49,7 +50,7 @@ export const useReaderView = (url: string, isOpen?: boolean) => {
 
   const cacheKey = useMemo(() => {
     if (!readerView) return null;
-    return `${readerView.url}::${readerView.content.length}::${readerView.markdown.length}`;
+    return hashString(`${readerView.url}::${readerView.content}::${readerView.markdown}`);
   }, [readerView]);
 
   const processed = useMemo(() => {
