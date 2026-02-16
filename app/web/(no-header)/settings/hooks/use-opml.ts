@@ -1,22 +1,23 @@
+// ABOUTME: React hook for OPML import/export orchestration.
+// ABOUTME: Delegates parsing and URL deduplication to ../utils/opml.
+
 import { type ChangeEvent, useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useBatchAddFeedsMutation } from "@/hooks/queries";
 import { useSubscriptions } from "@/hooks/useFeedSelectors";
-import { isHttpUrl } from "@/utils/url";
-import { exportOPML } from "../utils/opml";
-
-interface FeedItem {
-  url: string;
-  title: string;
-  isSubscribed: boolean;
-}
+import {
+  type OPMLFeedItem,
+  deduplicateUrls,
+  exportOPML,
+  parseFeedsFromDocument,
+} from "../utils/opml";
 
 export function useOPML() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const feeds = useSubscriptions();
   const batchAddFeedsMutation = useBatchAddFeedsMutation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [detectedFeeds, setDetectedFeeds] = useState<FeedItem[]>([]);
+  const [detectedFeeds, setDetectedFeeds] = useState<OPMLFeedItem[]>([]);
 
   const handleExportOPML = useCallback(() => {
     exportOPML(feeds);
@@ -45,27 +46,8 @@ export function useOPML() {
           const parserErrorMessage = parserError.textContent?.trim() || "Invalid OPML XML format";
           throw new Error(parserErrorMessage);
         }
-        const outlines = doc.querySelectorAll("outline");
-
-        // Get unique feed URLs from OPML
         const existingUrls = new Set(feeds.map((f: { feedUrl: string }) => f.feedUrl.trim()));
-        const uniqueFeeds = new Map<string, FeedItem>();
-
-        outlines.forEach((outline) => {
-          const feedUrl = outline.getAttribute("xmlUrl");
-          const title =
-            outline.getAttribute("title") || outline.getAttribute("text") || feedUrl || "";
-          const trimmedFeedUrl = feedUrl?.trim() ?? "";
-          if (isHttpUrl(trimmedFeedUrl)) {
-            uniqueFeeds.set(trimmedFeedUrl, {
-              url: trimmedFeedUrl,
-              title,
-              isSubscribed: existingUrls.has(trimmedFeedUrl),
-            });
-          }
-        });
-
-        const feedsList = Array.from(uniqueFeeds.values());
+        const feedsList = parseFeedsFromDocument(doc, existingUrls);
 
         if (feedsList.length === 0) {
           toast.error("No valid feeds found", {
@@ -93,22 +75,7 @@ export function useOPML() {
 
   const handleImportSelected = useCallback(
     async (selectedUrls: string[]) => {
-      const normalizedUrlsSet = new Set<string>();
-      let invalidCount = 0;
-      let duplicateCount = 0;
-
-      for (const url of selectedUrls) {
-        const trimmed = url.trim();
-        if (!isHttpUrl(trimmed)) {
-          invalidCount++;
-        } else if (normalizedUrlsSet.has(trimmed)) {
-          duplicateCount++;
-        } else {
-          normalizedUrlsSet.add(trimmed);
-        }
-      }
-
-      const normalizedUrls = Array.from(normalizedUrlsSet);
+      const { urls: normalizedUrls, invalidCount, duplicateCount } = deduplicateUrls(selectedUrls);
 
       if (normalizedUrls.length === 0) {
         toast.info("No feeds selected");

@@ -40,40 +40,13 @@ const invalidateFeedQuery = (queryClient: QueryClient, subscriptionUrls: string[
 
 const toSubscriptionEntries = (feeds: Feed[]) => feeds.map((feed) => toSubscription(feed));
 
-const queryKeysDiffer = (a: QueryKey | undefined, b: QueryKey | undefined) => {
-  if (a === b) {
-    return false;
-  }
-  if (!a || !b || a.length !== b.length) {
-    return true;
-  }
-
-  for (let index = 0; index < a.length; index += 1) {
-    const left = a[index];
-    const right = b[index];
-
-    if (left === right) {
-      continue;
-    }
-
-    if (Array.isArray(left) && Array.isArray(right)) {
-      if (left.length !== right.length) {
-        return true;
-      }
-
-      for (let j = 0; j < left.length; j += 1) {
-        if (left[j] !== right[j]) {
-          return true;
-        }
-      }
-      continue;
-    }
-
-    return true;
-  }
-
-  return false;
-};
+/**
+ * Compares two query keys for equality.
+ * Keys produced by feedsKeys.list() are 3-element string tuples
+ * (["feeds", "list", stableHash]), so a simple JSON comparison suffices.
+ */
+const queryKeysDiffer = (a: QueryKey | undefined, b: QueryKey | undefined): boolean =>
+  a !== b && JSON.stringify(a) !== JSON.stringify(b);
 
 // Add single feed mutation
 export const useAddFeedMutation = () => {

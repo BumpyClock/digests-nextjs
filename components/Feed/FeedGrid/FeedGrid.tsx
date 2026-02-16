@@ -112,8 +112,13 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
   const handlePrefetch = useCallback(
     (item: FeedItem) => {
       if (isPodcast(item)) return;
+      const key = readerViewKeys.byUrl(item.link);
+      const state = queryClient.getQueryState(key);
+      // Skip if data is already fresh or a fetch is in progress
+      if (state?.status === "success" && state.dataUpdatedAt > Date.now() - 60 * 60 * 1000) return;
+      if (state?.fetchStatus === "fetching") return;
       queryClient.prefetchQuery({
-        queryKey: readerViewKeys.byUrl(item.link),
+        queryKey: key,
         queryFn: () =>
           workerService
             .fetchReaderView(item.link)

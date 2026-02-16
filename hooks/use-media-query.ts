@@ -43,7 +43,7 @@ export function useIsMobile(): boolean {
  */
 export function useIsTablet(): boolean {
   return useMediaQuery(
-    `(min-width: ${TABLET_MIN_BREAKPOINT}px) and (max-width: ${TABLET_MAX_BREAKPOINT}px)`,
+    `(min-width: ${TABLET_MIN_BREAKPOINT}px) and (max-width: ${TABLET_MAX_BREAKPOINT}px)`
   );
 }
 

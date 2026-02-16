@@ -58,10 +58,16 @@ const composeFeedStoreSlices: BaseFeedStoreCreator = (set, get, _api) => ({
   // Server state is now handled by React Query
 });
 
-const isFeed = (value: unknown): value is Feed =>
-  !!value &&
-  typeof value === "object" &&
-  typeof (value as { feedUrl?: unknown }).feedUrl === "string";
+const isFeed = (value: unknown): value is Feed => {
+  if (!value || typeof value !== "object") return false;
+  const obj = value as Record<string, unknown>;
+  return (
+    typeof obj.feedUrl === "string" &&
+    typeof obj.guid === "string" &&
+    typeof obj.feedTitle === "string" &&
+    typeof obj.type === "string"
+  );
+};
 
 const isFeedArray = (value: unknown): value is Feed[] =>
   Array.isArray(value) && value.every(isFeed);

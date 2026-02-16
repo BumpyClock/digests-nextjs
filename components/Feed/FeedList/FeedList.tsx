@@ -14,6 +14,10 @@ import { isValidUrl } from "@/utils/url";
 
 dayjs.extend(relativeTime);
 
+// Approximate height (px) of a single FeedListItem row for the virtualizer.
+// Layout: p-4 (32px vertical padding) + flex row of text vs 70px thumbnail + 1px border.
+const ESTIMATED_ROW_HEIGHT_PX = 120;
+
 interface FeedListProps {
   items: FeedItem[];
   isLoading: boolean;
@@ -116,8 +120,7 @@ export function FeedList({
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scrollableNodeRef.current,
-    // Average height of a FeedListItem: ~70px thumbnail + ~50px text/padding
-    estimateSize: () => 120,
+    estimateSize: () => ESTIMATED_ROW_HEIGHT_PX,
     overscan: 5,
   });
 

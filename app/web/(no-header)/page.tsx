@@ -290,17 +290,16 @@ function WebPageContent() {
     .join(" ");
 
   return (
-      <div
-        className={[
-          "w-full px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3",
-          masterDetailContainerClass,
-        ]
-          .filter(Boolean)
-          .join(" ")}
-      >
+    <div
+      className={["w-full px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3", masterDetailContainerClass]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <Tabs
         defaultValue="unread"
-        className={["flex flex-col gap-3 sm:gap-4", masterDetailTabsClass].filter(Boolean).join(" ")}
+        className={["flex flex-col gap-3 sm:gap-4", masterDetailTabsClass]
+          .filter(Boolean)
+          .join(" ")}
         value={selectedTab}
         onValueChange={handleTabChange}
       >
@@ -379,10 +378,7 @@ function WebPageContent() {
           </div>
         </div>
 
-        <TabsContent
-          value="all"
-          className={tabsContentClassName}
-        >
+        <TabsContent value="all" className={tabsContentClassName}>
           <FeedTabContent
             items={categorized.all}
             isLoading={isLoading}
@@ -391,10 +387,7 @@ function WebPageContent() {
           />
         </TabsContent>
 
-        <TabsContent
-          value="unread"
-          className={tabsContentClassName}
-        >
+        <TabsContent value="unread" className={tabsContentClassName}>
           <FeedTabContent
             items={filteredUnreadItems}
             isLoading={isLoading}
@@ -403,10 +396,7 @@ function WebPageContent() {
           />
         </TabsContent>
 
-        <TabsContent
-          value="articles"
-          className={tabsContentClassName}
-        >
+        <TabsContent value="articles" className={tabsContentClassName}>
           <FeedTabContent
             items={categorized.articles}
             isLoading={isLoading}
@@ -415,10 +405,7 @@ function WebPageContent() {
           />
         </TabsContent>
 
-        <TabsContent
-          value="podcasts"
-          className={tabsContentClassName}
-        >
+        <TabsContent value="podcasts" className={tabsContentClassName}>
           <FeedTabContent
             items={categorized.podcasts}
             isLoading={isLoading}
@@ -427,10 +414,7 @@ function WebPageContent() {
           />
         </TabsContent>
 
-        <TabsContent
-          value="readLater"
-          className={tabsContentClassName}
-        >
+        <TabsContent value="readLater" className={tabsContentClassName}>
           <FeedTabContent
             items={categorized.readLater}
             isLoading={isLoading}

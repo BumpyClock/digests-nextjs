@@ -126,7 +126,8 @@ class WorkerService {
   }
 
   /**
-   * Updates the API URL in the worker
+   * Updates the API URL used by the RSS worker.
+   * @param url - The base URL of the feed API
    */
   updateApiUrl(url: string): void {
     if (!this.isInitialized) this.initialize();
@@ -140,7 +141,8 @@ class WorkerService {
   }
 
   /**
-   * Updates cache TTL in the worker
+   * Updates the cache time-to-live for the RSS worker's internal cache.
+   * @param ttl - Cache duration in milliseconds
    */
   updateCacheTtl(ttl: number): void {
     this.cacheTtl = ttl;
@@ -363,7 +365,9 @@ class WorkerService {
   }
 
   /**
-   * Fetches feeds from the worker
+   * Fetches feeds from the RSS worker (or fallback fetcher).
+   * @param url - A single feed URL or array of feed URLs to fetch
+   * @returns Parsed feeds and their items, with success/failure status
    */
   async fetchFeeds(url: string | string[]): Promise<{
     success: boolean;
@@ -380,7 +384,9 @@ class WorkerService {
   }
 
   /**
-   * Refreshes feeds from the worker
+   * Refreshes feeds by bypassing the worker's internal cache.
+   * @param urls - Feed URLs to refresh
+   * @returns Freshly fetched feeds and items, with success/failure status
    */
   async refreshFeeds(urls: string[]): Promise<{
     success: boolean;
@@ -396,7 +402,9 @@ class WorkerService {
   }
 
   /**
-   * Fetches reader view from the worker
+   * Fetches a reader-friendly rendering of a page via the RSS worker.
+   * @param url - The article URL to extract reader view for
+   * @returns Reader view HTML content, with success/failure status
    */
   async fetchReaderView(url: string): Promise<{
     success: boolean;
@@ -451,7 +459,12 @@ class WorkerService {
   }
 
   /**
-   * Generates card shadows in the worker
+   * Generates themed box-shadow CSS values for a feed card via the shadow worker.
+   * Results are cached in-memory (LRU, max 500 entries) keyed by id + color + theme.
+   * @param id - Unique identifier for the card (used to match async responses)
+   * @param color - Dominant RGB color extracted from the card's thumbnail
+   * @param isDarkMode - Whether the current theme is dark mode
+   * @returns Rest, hover, and pressed shadow CSS strings
    */
   async generateShadows(
     id: string,
@@ -502,7 +515,9 @@ class WorkerService {
   }
 
   /**
-   * Checks for updates without refreshing the store
+   * Checks for feed updates by clearing the worker cache and re-fetching.
+   * @param urls - Feed URLs to check for updates
+   * @returns Updated feeds and items, with success/failure status
    */
   async checkForUpdates(urls: string[]): Promise<{
     success: boolean;

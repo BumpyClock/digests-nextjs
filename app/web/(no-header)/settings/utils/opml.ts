@@ -1,5 +1,15 @@
+// ABOUTME: OPML generation, parsing, export, and feed URL validation utilities.
+// ABOUTME: Used by the settings page for import/export of feed subscriptions.
+
 import type { Feed } from "@/types";
 import type { Subscription } from "@/types/subscription";
+import { isHttpUrl } from "@/utils/url";
+
+export interface OPMLFeedItem {
+  url: string;
+  title: string;
+  isSubscribed: boolean;
+}
 
 function escapeXml(value: string): string {
   return value
@@ -52,4 +62,57 @@ export function downloadBlob(content: string, filename: string, contentType: str
 export function exportOPML(feeds: Array<Feed | Subscription>): void {
   const opml = generateOPML(feeds);
   downloadBlob(opml, "digests-subscriptions.opml", "text/xml");
+}
+
+/**
+ * Extracts and deduplicates feed URLs from a parsed OPML document.
+ * Each feed is marked as already-subscribed when its URL appears in existingUrls.
+ */
+export function parseFeedsFromDocument(doc: Document, existingUrls: Set<string>): OPMLFeedItem[] {
+  const outlines = doc.querySelectorAll("outline");
+  const uniqueFeeds = new Map<string, OPMLFeedItem>();
+
+  outlines.forEach((outline) => {
+    const feedUrl = outline.getAttribute("xmlUrl");
+    const title = outline.getAttribute("title") || outline.getAttribute("text") || feedUrl || "";
+    const trimmedFeedUrl = feedUrl?.trim() ?? "";
+    if (isHttpUrl(trimmedFeedUrl)) {
+      uniqueFeeds.set(trimmedFeedUrl, {
+        url: trimmedFeedUrl,
+        title,
+        isSubscribed: existingUrls.has(trimmedFeedUrl),
+      });
+    }
+  });
+
+  return Array.from(uniqueFeeds.values());
+}
+
+export interface DeduplicateUrlsResult {
+  urls: string[];
+  invalidCount: number;
+  duplicateCount: number;
+}
+
+/**
+ * Validates, trims, and deduplicates a list of URL strings.
+ * Returns the unique valid URLs along with counts of invalid/duplicate entries.
+ */
+export function deduplicateUrls(selectedUrls: string[]): DeduplicateUrlsResult {
+  const seen = new Set<string>();
+  let invalidCount = 0;
+  let duplicateCount = 0;
+
+  for (const url of selectedUrls) {
+    const trimmed = url.trim();
+    if (!isHttpUrl(trimmed)) {
+      invalidCount++;
+    } else if (seen.has(trimmed)) {
+      duplicateCount++;
+    } else {
+      seen.add(trimmed);
+    }
+  }
+
+  return { urls: Array.from(seen), invalidCount, duplicateCount };
 }

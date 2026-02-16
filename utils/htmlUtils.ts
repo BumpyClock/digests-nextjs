@@ -16,17 +16,42 @@ export const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string):
 
 type TextReplacement = [RegExp | string, string];
 
-const htmlTextReplacements: TextReplacement[] = [
-  [/â€™/g, "'"], // Smart single quote
-  [/â€“/g, "\u2013"], // En dash
-  [/â€”/g, "\u2014"], // Em dash
-  [/â€œ/g, '"'], // Smart left double quote
-  [/â€/g, '"'], // Smart right double quote
-  [/&nbsp;/g, " "], // Non-breaking space
+// Named HTML entity lookup map for single-pass decoding
+const namedEntityMap: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: " ",
+};
+
+// Single regex for all HTML entity forms: named (&amp;), decimal (&#39;), hex (&#x27;)
+const htmlEntityRegex = /&(?:#x([0-9a-fA-F]+)|#(\d+)|(\w+));/g;
+
+/**
+ * Decodes all HTML entities in a single regex pass.
+ * Handles named entities (&amp;), decimal (&#39;), and hex (&#x27;) forms.
+ */
+const decodeHtmlEntities = (text: string): string =>
+  text.replace(htmlEntityRegex, (match, hex, dec, named) => {
+    if (hex) return String.fromCharCode(parseInt(hex, 16));
+    if (dec) return String.fromCharCode(Number(dec));
+    if (named) return namedEntityMap[named] ?? match;
+    return match;
+  });
+
+// Mojibake patterns: UTF-8 sequences misinterpreted as Latin-1/Windows-1252
+const mojibakeReplacements: TextReplacement[] = [
+  [/â€™/g, "'"], // U+2019 right single quote
+  [/â€"/g, "\u2013"], // U+2013 en dash
+  [/â€"/g, "\u2014"], // U+2014 em dash
+  [/â€œ/g, '"'], // U+201C left double quote
+  [/â€/g, '"'], // U+201D right double quote
 ];
 
-const applyHtmlTextReplacements = (value: string): string =>
-  htmlTextReplacements.reduce(
+const applyMojibakeReplacements = (value: string): string =>
+  mojibakeReplacements.reduce(
     (cleanText, [pattern, replacement]) => cleanText.replace(pattern, replacement),
     value
   );
@@ -41,18 +66,7 @@ export const cleanupTextContent = (text?: string): string => {
 
   // SSR guard: DOMParser not available on server
   if (typeof window === "undefined" || typeof DOMParser === "undefined") {
-    return applyHtmlTextReplacements(
-      text
-        .replace(/&amp;/g, "&")
-        .replace(/&lt;/g, "<")
-        .replace(/&gt;/g, ">")
-        .replace(/&quot;/g, '"')
-        .replace(/&apos;/g, "'")
-        .replace(/&#039;/g, "'")
-        .replace(/&#x27;/g, "'")
-        .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(Number(num)))
-        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-    );
+    return applyMojibakeReplacements(decodeHtmlEntities(text));
   }
 
   const cached = textCleanupCache.get(text);
@@ -62,8 +76,8 @@ export const cleanupTextContent = (text?: string): string => {
   const doc = new DOMParser().parseFromString(text, "text/html");
   let cleanText = doc.body.textContent || "";
 
-  // Apply all replacements
-  cleanText = applyHtmlTextReplacements(cleanText).trim();
+  // Fix mojibake from misencoded UTF-8 sequences
+  cleanText = applyMojibakeReplacements(cleanText).trim();
 
   textCleanupCache.set(text, cleanText);
   return cleanText;

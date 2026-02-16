@@ -48,5 +48,3 @@ export const isHttpUrl = (url: string | null | undefined): url is string => {
   if (!/^https?:\/\//i.test(normalized)) return false;
   return isValidUrl(normalized);
 };
-
-
