@@ -54,13 +54,21 @@ export const createReadStatusSlice: StateCreator<ReadStatusSlice, [], [], ReadSt
     // Ensure we're working with a Set
     const readItemsSet = new Set(readItems instanceof Set ? readItems : []);
     const unreadItems = (items || []).filter((item: FeedItem) => !readItemsSet.has(item.id));
-    Logger.debug("unreadItems", unreadItems);
-    return unreadItems.length > 0 ? unreadItems : [];
+    if (process.env.NEXT_PUBLIC_DEBUG_STORE === "true") {
+      Logger.debug("unreadItems", unreadItems);
+    }
+    return unreadItems;
   },
 
   markAllAsRead: (items: FeedItem[]) => {
-    const allIds = new Set((items || []).map((item: FeedItem) => item.id));
-    set({ readItems: allIds });
+    const { readItems } = get();
+    const updatedReadItems = new Set(readItems instanceof Set ? readItems : []);
+
+    for (const item of items || []) {
+      updatedReadItems.add(item.id);
+    }
+
+    set({ readItems: updatedReadItems });
   },
 
   addToReadLater: (itemId: string) => {
