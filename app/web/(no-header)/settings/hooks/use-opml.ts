@@ -3,12 +3,21 @@ import { useSubscriptions } from "@/hooks/useFeedSelectors";
 import { useBatchAddFeedsMutation } from "@/hooks/queries";
 import { toast } from "sonner";
 import { exportOPML } from "../utils/opml";
+import { isValidUrl } from "@/utils/url";
 
 interface FeedItem {
   url: string;
   title: string;
   isSubscribed: boolean;
 }
+
+const isFeedUrl = (url: string | null | undefined): url is string => {
+  if (!url) return false;
+  const normalized = url.trim();
+  if (!normalized) return false;
+  if (!/^https?:\/\//i.test(normalized)) return false;
+  return isValidUrl(normalized);
+};
 
 export function useOPML() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -54,9 +63,9 @@ export function useOPML() {
           const feedUrl = outline.getAttribute("xmlUrl");
           const title =
             outline.getAttribute("title") || outline.getAttribute("text") || feedUrl || "";
-          if (feedUrl) {
+          if (isFeedUrl(feedUrl)) {
             uniqueFeeds.set(feedUrl, {
-              url: feedUrl,
+              url: feedUrl.trim(),
               title,
               isSubscribed: existingUrls.has(feedUrl),
             });
@@ -91,13 +100,19 @@ export function useOPML() {
 
   const handleImportSelected = useCallback(
     async (selectedUrls: string[]) => {
-      if (selectedUrls.length === 0) {
+      const normalizedUrls = Array.from(new Set(selectedUrls.map((url) => url.trim()))).filter(isFeedUrl);
+
+      if (normalizedUrls.length === 0) {
         toast.info("No feeds selected");
         return;
       }
 
+      if (normalizedUrls.length !== selectedUrls.length) {
+        toast.warning("Some selected feeds were invalid and skipped");
+      }
+
       try {
-        const result = await batchAddFeedsMutation.mutateAsync(selectedUrls);
+        const result = await batchAddFeedsMutation.mutateAsync(normalizedUrls);
 
         toast.success(`Import complete`, {
           description: `Added ${result.successfulCount} new feeds. ${

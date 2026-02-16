@@ -6,8 +6,7 @@ import { useFeedStore } from "@/store/useFeedStore";
 import type { Subscription } from "@/types/subscription";
 import { feedsKeys } from "./feedsKeys";
 import { sortByDateDesc } from "@/utils/selectors";
-
-type CacheData = { feeds: Feed[]; items: FeedItem[] };
+import { mergeCacheData, type CacheData } from "./feed-cache-utils";
 
 type FeedMutationContext = {
   previousSubscriptions: Subscription[];
@@ -20,33 +19,6 @@ const normalizeUrl = (url: string | undefined) => (url || "").trim().toLowerCase
 
 const getSubscriptionUrls = (subscriptions: Subscription[] | undefined) =>
   Array.from(new Set((subscriptions ?? []).map((s) => normalizeUrl(s.feedUrl)).filter(Boolean)));
-
-const sortAndDedupeItems = (items: FeedItem[]) =>
-  Array.from(new Map(items.map((item) => [item.id, item])).values()).sort(sortByDateDesc);
-
-const mergeCacheData = (existing: CacheData | undefined, incoming: CacheData): CacheData => {
-  if (!existing) {
-    return {
-      feeds: incoming.feeds,
-      items: [...incoming.items].sort(sortByDateDesc),
-    };
-  }
-
-  const feedMap = new Map<string, Feed>();
-  for (const feed of existing.feeds) {
-    feedMap.set(feed.feedUrl, feed);
-  }
-  for (const feed of incoming.feeds) {
-    if (feed.feedUrl) {
-      feedMap.set(feed.feedUrl, feed);
-    }
-  }
-
-  return {
-    feeds: Array.from(feedMap.values()),
-    items: sortAndDedupeItems([...existing.items, ...incoming.items]),
-  };
-};
 
 const getQueryKey = (subscriptionUrls: string[]) => feedsKeys.list(subscriptionUrls);
 
@@ -280,7 +252,7 @@ export const useBatchAddFeedsMutation = () => {
       const previousData = queryClient.getQueryData<CacheData>(previousKey);
       return { previousSubscriptions, previousKey, previousData };
     },
-    onSuccess: (data) => {
+    onSuccess: (data, _url, context) => {
       const store = useFeedStore.getState();
       const previousSubscriptions = [...store.subscriptions];
       const previousKey = getQueryKey(getSubscriptionUrls(previousSubscriptions));
@@ -288,7 +260,7 @@ export const useBatchAddFeedsMutation = () => {
       store.addSubscriptions(toSubscriptionEntries(data.feeds));
       const nextSubscriptions = [...store.subscriptions];
       const nextUrls = getSubscriptionUrls(nextSubscriptions);
-      const nextData = mergeCacheData(undefined, {
+      const nextData = mergeCacheData(context?.previousData, {
         feeds: data.feeds,
         items: data.items,
       });

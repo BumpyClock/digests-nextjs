@@ -35,7 +35,7 @@ const DEFAULT_THUMBNAIL_COLOR = { r: 0, g: 0, b: 0 };
 
 export interface FeedCardProps {
   feed: FeedItem;
-  onItemOpen?: (item: FeedItem) => void;
+  onItemOpen?: (item: FeedItem, cleanup?: () => void) => void;
 }
 
 /**
@@ -101,6 +101,7 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem, onItemOpen }: F
   const [faviconError, setFaviconError] = useState(false);
   const [showPlaceholder, setShowPlaceholder] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [isActive, setIsActive] = useState(false);
   const isRead = useIsItemRead(feedItem.id);
 
   // Animation context
@@ -109,7 +110,7 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem, onItemOpen }: F
   const animationIds = getFeedAnimationIds(feedItem.id);
   const viewTransitionsEnabled = animationEnabled && vtSupported;
   const motionLayoutEnabled = animationEnabled && !viewTransitionsEnabled;
-  const cardViewTransitionEnabled = viewTransitionsEnabled;
+  const cardViewTransitionEnabled = viewTransitionsEnabled && !isActive;
 
   // CSS custom properties for card shadow color
   const thumbnailColor = feedItem.thumbnailColor || DEFAULT_THUMBNAIL_COLOR;
@@ -125,7 +126,8 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem, onItemOpen }: F
         } else {
           if (viewTransitionsEnabled) {
             runWithViewTransition(() => {
-              onItemOpen?.(feedItem);
+              setIsActive(true);
+              onItemOpen?.(feedItem, () => setIsActive(false));
             });
           } else {
             onItemOpen?.(feedItem);

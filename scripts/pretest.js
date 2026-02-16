@@ -3,6 +3,10 @@ const fs = require("fs");
 const path = require("path");
 
 const modules = ["utils/formatDuration.ts", "utils/url.ts"];
+const additionalModules = [
+  "hooks/queries/reader-view-validation.ts",
+  "hooks/queries/feed-cache-utils.ts",
+];
 
 try {
   const outDir = path.join(process.cwd(), "compiled-tests");
@@ -10,7 +14,7 @@ try {
   fs.rmSync(outDir, { recursive: true, force: true });
   fs.mkdirSync(outDir, { recursive: true });
   execSync(
-    `npx tsc ${modules.join(" ")} --module commonjs --target es2017 --skipLibCheck true --outDir compiled-tests`,
+    `npx tsc ${modules.concat(additionalModules).join(" ")} --module commonjs --target es2017 --skipLibCheck true --outDir compiled-tests`,
     { stdio: "inherit" }
   );
 } catch (e) {

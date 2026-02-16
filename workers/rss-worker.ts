@@ -93,6 +93,10 @@ async function fetchFeeds(
 
   try {
     // Generate cache key from sorted copy to avoid mutating caller's array
+    if (!currentApiUrl || !/^https?:\/\//i.test(currentApiUrl)) {
+      throw new Error(`Invalid API base URL: ${currentApiUrl}`);
+    }
+
     const cacheKey = `feeds:${[...urls].sort().join(",")}`;
 
     // Check cache first (unless bypassed)
@@ -135,7 +139,10 @@ async function fetchFeeds(
 
     return result;
   } catch (error) {
-    console.error("[Worker] Error fetching feeds:", error);
+    console.error(
+      `[Worker] Error fetching feeds (api=${currentApiUrl}, urls=${urls.length}):`,
+      error
+    );
     throw error;
   }
 }

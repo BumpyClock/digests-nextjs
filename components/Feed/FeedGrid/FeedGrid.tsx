@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect, useMemo } from "react";
+import { useCallback, useState, useEffect, useMemo, useRef } from "react";
 import { Masonry } from "masonic";
 import { useQueryClient } from "@tanstack/react-query";
 import { FeedCard } from "@/components/Feed/FeedCard/FeedCard";
@@ -14,6 +14,7 @@ import { workerService } from "@/services/worker-service";
 import { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
 import { motion } from "motion/react";
+import { getValidReaderViewOrThrow } from "@/hooks/queries/reader-view-validation";
 
 // Custom event for feed refresh
 export const FEED_REFRESHED_EVENT = "feed-refreshed";
@@ -60,16 +61,24 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
     [windowWidth]
   );
 
-  const handleItemOpen = useCallback((item: FeedItem) => {
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  const handleItemOpen = useCallback((item: FeedItem, cleanup?: () => void) => {
+    cleanupRef.current?.();
+    cleanupRef.current = cleanup || null;
     setOpenItem(item);
   }, []);
 
   const handleClose = useCallback(() => {
     if (viewTransitionsEnabled && openItem && !isPodcast(openItem)) {
       runWithViewTransition(() => {
+        cleanupRef.current?.();
+        cleanupRef.current = null;
         setOpenItem(null);
       });
     } else {
+      cleanupRef.current?.();
+      cleanupRef.current = null;
       setOpenItem(null);
     }
   }, [viewTransitionsEnabled, openItem]);
@@ -79,7 +88,8 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
       if (isPodcast(item)) return;
       queryClient.prefetchQuery({
         queryKey: readerViewKeys.byUrl(item.link),
-        queryFn: () => workerService.fetchReaderView(item.link).then((r) => r.data[0]),
+        queryFn: () =>
+          workerService.fetchReaderView(item.link).then((r) => getValidReaderViewOrThrow(r, item.link)),
         staleTime: 60 * 60 * 1000,
       });
     },

@@ -594,6 +594,15 @@
   /* Ambilight filter */
 }
 
+/* Ensure VT-named elements animate above the rest of the page */
+::view-transition-group(*) {
+  z-index: 100;
+}
+
+::view-transition-group(root) {
+  z-index: 0;
+}
+
 /* Prevent layout animations on feed cards when scrolling */
 [data-masonic-tile] {
   contain: layout style;

@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { workerService } from "@/services/worker-service";
 import type { ReaderViewResponse } from "@/types";
 import { processArticleContent } from "@/components/Feed/ArticleReader";
+import { getValidReaderViewOrThrow } from "./reader-view-validation";
 
 const MAX_CACHE_SIZE = 50;
 const readerContentCache = new Map<string, ReturnType<typeof processArticleContent>>();
@@ -33,10 +34,7 @@ export const useReaderViewQuery = (url: string) => {
     queryKey: readerViewKeys.byUrl(url),
     queryFn: async (): Promise<ReaderViewResponse> => {
       const result = await workerService.fetchReaderView(url);
-      if (!result.success) {
-        throw new Error(result.message || "Failed to fetch reader view");
-      }
-      return result.data[0]; // Single article
+      return getValidReaderViewOrThrow(result, url);
     },
     enabled: !!url, // Only run when URL is provided
     staleTime: 60 * 60 * 1000, // 1 hour - articles don't change often
