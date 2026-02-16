@@ -216,6 +216,9 @@ function WebPageContent() {
     [appliedSearchQuery]
   );
 
+  // Key that changes when feed/search filter changes — forces Masonry remount to clear stale position cache
+  const filterKey = `${feedUrlDecoded}::${searchLower}`;
+
   /**
    * Single-pass categorization of feed items.
    * Replaces separate filteredItems, articleItems, podcastItems, readLaterItems,
@@ -365,35 +368,35 @@ function WebPageContent() {
           value="all"
           className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
         >
-          <FeedTabContent items={categorized.all} isLoading={isLoading} viewMode={viewMode} />
+          <FeedTabContent items={categorized.all} isLoading={isLoading} viewMode={viewMode} filterKey={filterKey} />
         </TabsContent>
 
         <TabsContent
           value="unread"
           className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
         >
-          <FeedTabContent items={filteredUnreadItems} isLoading={isLoading} viewMode={viewMode} />
+          <FeedTabContent items={filteredUnreadItems} isLoading={isLoading} viewMode={viewMode} filterKey={filterKey} />
         </TabsContent>
 
         <TabsContent
           value="articles"
           className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
         >
-          <FeedTabContent items={categorized.articles} isLoading={isLoading} viewMode={viewMode} />
+          <FeedTabContent items={categorized.articles} isLoading={isLoading} viewMode={viewMode} filterKey={filterKey} />
         </TabsContent>
 
         <TabsContent
           value="podcasts"
           className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
         >
-          <FeedTabContent items={categorized.podcasts} isLoading={isLoading} viewMode={viewMode} />
+          <FeedTabContent items={categorized.podcasts} isLoading={isLoading} viewMode={viewMode} filterKey={filterKey} />
         </TabsContent>
 
         <TabsContent
           value="readLater"
           className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
         >
-          <FeedTabContent items={categorized.readLater} isLoading={isLoading} viewMode={viewMode} />
+          <FeedTabContent items={categorized.readLater} isLoading={isLoading} viewMode={viewMode} filterKey={filterKey} />
         </TabsContent>
       </Tabs>
 
@@ -436,10 +439,12 @@ function FeedTabContent({
   items,
   isLoading,
   viewMode,
+  filterKey,
 }: {
   items: FeedItem[];
   isLoading: boolean;
   viewMode: "grid" | "masterDetail";
+  filterKey: string;
 }) {
   if (isLoading) {
     return <FeedGrid items={[]} isLoading />;
@@ -449,7 +454,7 @@ function FeedTabContent({
   }
 
   return viewMode === "grid" ? (
-    <FeedGrid items={items} isLoading={false} />
+    <FeedGrid items={items} isLoading={false} filterKey={filterKey} />
   ) : (
     <FeedMasterDetail items={items} isLoading={false} />
   );

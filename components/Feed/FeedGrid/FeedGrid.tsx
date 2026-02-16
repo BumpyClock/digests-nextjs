@@ -23,6 +23,8 @@ interface FeedGridProps {
   items: FeedItem[];
   isLoading: boolean;
   skeletonCount?: number;
+  /** Changes when feed/search filter changes — forces Masonry remount to clear stale position cache */
+  filterKey?: string;
 }
 
 /**
@@ -41,7 +43,7 @@ const LoadingAnimation = () => {
 /**
  * Displays a responsive masonry grid of feed items with loading and periodic update checking.
  */
-export function FeedGrid({ items, isLoading }: FeedGridProps) {
+export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
   const [mounted, setMounted] = useState(false);
   const [openItem, setOpenItem] = useState<FeedItem | null>(null);
   const [readerTransitionSettled, setReaderTransitionSettled] = useState(false);
@@ -158,6 +160,7 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
       <>
         <motion.div id="feed-grid" className="pt-6" initial={false} animate={false} layout={false}>
           <Masonry
+            key={filterKey ?? "default"}
             items={memoizedItems}
             maxColumnCount={columnCount}
             columnGutter={columnGutter}
