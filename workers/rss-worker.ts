@@ -152,9 +152,10 @@ async function fetchFeeds(
 
     return result;
   } catch (error) {
+    const loggerError = error instanceof Error ? error : undefined;
     Logger.error(
       `[Worker] Error fetching feeds (api=${currentApiUrl}, urls=${urls.length}):`,
-      error
+      loggerError
     );
     throw error;
   }
@@ -215,7 +216,8 @@ async function fetchReaderView(
 
     return data as ReaderViewResponse[];
   } catch (error) {
-    Logger.error("[Worker] Error fetching reader view:", error);
+    const loggerError = error instanceof Error ? error : undefined;
+    Logger.error("[Worker] Error fetching reader view:", loggerError);
     throw error;
   }
 }
@@ -353,8 +355,9 @@ const messageHandlers: WorkerHandlerMap = {
         feeds,
         items,
       } as WorkerResponse;
-    } catch (error) {
-      Logger.error("[Worker] Error checking for updates:", error);
+  } catch (error) {
+      const loggerError = error instanceof Error ? error : undefined;
+      Logger.error("[Worker] Error checking for updates:", loggerError);
       return {
         type: "FEEDS_RESULT",
         success: false,

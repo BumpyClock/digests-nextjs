@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { processArticleContent } from "@/components/Feed/ArticleReader";
-import { hashString } from "@/utils/hash";
 import { workerService } from "@/services/worker-service";
 import type { ReaderViewResponse } from "@/types";
+import { hashString } from "@/utils/hash";
 import { getValidReaderViewOrThrow } from "./reader-view-validation";
 
 const MAX_CACHE_SIZE = 50;
