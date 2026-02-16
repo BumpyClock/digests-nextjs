@@ -93,7 +93,9 @@ export function useOPML() {
 
   const handleImportSelected = useCallback(
     async (selectedUrls: string[]) => {
-      const normalizedUrlsWithPossibleDuplicates = selectedUrls.map((url) => url.trim()).filter(isFeedUrl);
+      const normalizedUrlsWithPossibleDuplicates = selectedUrls
+        .map((url) => url.trim())
+        .filter(isFeedUrl);
       const invalidCount = selectedUrls.length - normalizedUrlsWithPossibleDuplicates.length;
       const normalizedUrlsSet = new Set(normalizedUrlsWithPossibleDuplicates);
       const normalizedUrls = Array.from(normalizedUrlsSet);
@@ -112,7 +114,9 @@ export function useOPML() {
         }
 
         if (duplicateCount > 0) {
-          messages.push(`${duplicateCount} duplicate feed${duplicateCount === 1 ? "" : "s"} removed`);
+          messages.push(
+            `${duplicateCount} duplicate feed${duplicateCount === 1 ? "" : "s"} removed`
+          );
         }
 
         toast.warning(messages.join(" and "));

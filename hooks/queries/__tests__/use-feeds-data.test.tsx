@@ -157,9 +157,7 @@ describe("useFeedsData", () => {
       items: mockFeedItems, // Items should be sorted by date desc
     });
 
-    expect(mockedWorkerService.fetchFeeds).toHaveBeenCalledWith([
-      "https://example.com/feed1.xml",
-    ]);
+    expect(mockedWorkerService.fetchFeeds).toHaveBeenCalledWith(["https://example.com/feed1.xml"]);
   });
 
   it("should sort items by date descending", async () => {

@@ -5,9 +5,9 @@ import { useRef, useSyncExternalStore } from "react";
 import { create, type StateCreator, type StoreApi, type UseBoundStore } from "zustand";
 import { createJSONStorage, type PersistOptions, persist } from "zustand/middleware";
 import { deserializeSet } from "@/lib/serializers/set-serializer";
+import type { Feed } from "@/types";
 import { Logger } from "@/utils/logger";
 import { toSubscription } from "@/utils/selectors";
-import type { Feed } from "@/types";
 import { withPerformanceMonitoring } from "./middleware/performanceMiddleware";
 import { type AudioSlice, createAudioSlice } from "./slices/audioSlice";
 import { createFeedSlice, type FeedSlice } from "./slices/feedSlice";
@@ -63,7 +63,8 @@ const isFeed = (value: unknown): value is Feed =>
   typeof value === "object" &&
   typeof (value as { feedUrl?: unknown }).feedUrl === "string";
 
-const isFeedArray = (value: unknown): value is Feed[] => Array.isArray(value) && value.every(isFeed);
+const isFeedArray = (value: unknown): value is Feed[] =>
+  Array.isArray(value) && value.every(isFeed);
 
 const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<FeedState>>) =>
   ({
@@ -118,7 +119,7 @@ const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<Fe
       if (state && typeof window !== "undefined") {
         try {
           const store = getStore();
-          
+
           // Compute new Set values
           let newReadItems: Set<string>;
           if (!state.readItems) {
@@ -147,7 +148,10 @@ const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<Fe
           });
 
           const storeState = store.getState();
-          if (!(storeState.readItems instanceof Set) || !(storeState.readLaterItems instanceof Set)) {
+          if (
+            !(storeState.readItems instanceof Set) ||
+            !(storeState.readLaterItems instanceof Set)
+          ) {
             Logger.warn("[Store] Rehydration produced invalid read item sets");
             store.setState({
               readItems: new Set(

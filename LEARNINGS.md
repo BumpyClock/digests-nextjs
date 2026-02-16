@@ -43,3 +43,7 @@ Durable repo learnings only. Keep evergreen; drop incident logs.
 - Use request-id correlation plus response/content caching on worker boundaries to stabilize concurrent responses.
 - Guard idempotent state writes (for example read-marking) to prevent unnecessary churn.
 - Ensure worker cache keys are deterministic for full URL lists and include requestId on ERROR worker responses for better cross-thread correlation.
+
+## Tooling
+
+- 2026-02-16: Resolved a full `biome check .` failure by applying formatter/lint updates directly (schema version, import ordering, JSX layout, duplicate prop cleanup, and utility/store formatting updates).

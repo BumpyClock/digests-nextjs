@@ -26,7 +26,10 @@ const htmlTextReplacements: TextReplacement[] = [
 ];
 
 const applyHtmlTextReplacements = (value: string): string =>
-  htmlTextReplacements.reduce((cleanText, [pattern, replacement]) => cleanText.replace(pattern, replacement), value);
+  htmlTextReplacements.reduce(
+    (cleanText, [pattern, replacement]) => cleanText.replace(pattern, replacement),
+    value
+  );
 
 /**
  * Decodes HTML entities and cleans up special characters in text.
@@ -40,15 +43,15 @@ export const cleanupTextContent = (text?: string): string => {
   if (typeof window === "undefined" || typeof DOMParser === "undefined") {
     return applyHtmlTextReplacements(
       text
-      .replace(/&amp;/g, "&")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">")
-      .replace(/&quot;/g, '"')
-      .replace(/&apos;/g, "'")
-      .replace(/&#039;/g, "'")
-      .replace(/&#x27;/g, "'")
-      .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(Number(num)))
-      .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&apos;/g, "'")
+        .replace(/&#039;/g, "'")
+        .replace(/&#x27;/g, "'")
+        .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(Number(num)))
+        .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
     );
   }
 

@@ -283,9 +283,7 @@ function WebPageContent() {
   }, []);
 
   return (
-    <div
-      className={`w-full px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3${masterDetailContainerClass}`}
-    >
+    <div className={`w-full px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3${masterDetailContainerClass}`}>
       <Tabs
         defaultValue="unread"
         className={`flex flex-col gap-3 sm:gap-4${masterDetailTabsClass}`}
@@ -371,35 +369,60 @@ function WebPageContent() {
           value="all"
           className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
         >
-          <FeedTabContent items={categorized.all} isLoading={isLoading} viewMode={viewMode} filterKey={filterKey} />
+          <FeedTabContent
+            items={categorized.all}
+            isLoading={isLoading}
+            viewMode={viewMode}
+            filterKey={filterKey}
+          />
         </TabsContent>
 
         <TabsContent
           value="unread"
           className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
         >
-          <FeedTabContent items={filteredUnreadItems} isLoading={isLoading} viewMode={viewMode} filterKey={filterKey} />
+          <FeedTabContent
+            items={filteredUnreadItems}
+            isLoading={isLoading}
+            viewMode={viewMode}
+            filterKey={filterKey}
+          />
         </TabsContent>
 
         <TabsContent
           value="articles"
           className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
         >
-          <FeedTabContent items={categorized.articles} isLoading={isLoading} viewMode={viewMode} filterKey={filterKey} />
+          <FeedTabContent
+            items={categorized.articles}
+            isLoading={isLoading}
+            viewMode={viewMode}
+            filterKey={filterKey}
+          />
         </TabsContent>
 
         <TabsContent
           value="podcasts"
           className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
         >
-          <FeedTabContent items={categorized.podcasts} isLoading={isLoading} viewMode={viewMode} filterKey={filterKey} />
+          <FeedTabContent
+            items={categorized.podcasts}
+            isLoading={isLoading}
+            viewMode={viewMode}
+            filterKey={filterKey}
+          />
         </TabsContent>
 
         <TabsContent
           value="readLater"
           className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
         >
-          <FeedTabContent items={categorized.readLater} isLoading={isLoading} viewMode={viewMode} filterKey={filterKey} />
+          <FeedTabContent
+            items={categorized.readLater}
+            isLoading={isLoading}
+            viewMode={viewMode}
+            filterKey={filterKey}
+          />
         </TabsContent>
       </Tabs>
 

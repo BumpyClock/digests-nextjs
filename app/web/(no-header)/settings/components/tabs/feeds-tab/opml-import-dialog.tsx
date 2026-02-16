@@ -73,20 +73,22 @@ export function OPMLImportDialog({
     let unsubscribe: (() => void) | undefined;
     let isMounted = true;
 
-	    const fetchFeedDetails = async () => {
-	    setLoading(true);
-	    try {
-	      // Get all feed URLs
-	        const feedUrls = initialFeeds.map((feed) => feed.url.trim()).filter(isFeedUrl);
-	        const feedErrors = new Set(initialFeeds.map((feed) => feed.url.trim()).filter((url) => !isFeedUrl(url)));
+    const fetchFeedDetails = async () => {
+      setLoading(true);
+      try {
+        // Get all feed URLs
+        const feedUrls = initialFeeds.map((feed) => feed.url.trim()).filter(isFeedUrl);
+        const feedErrors = new Set(
+          initialFeeds.map((feed) => feed.url.trim()).filter((url) => !isFeedUrl(url))
+        );
 
-	        if (feedErrors.size > 0) {
-	          setFeeds((prev) =>
-	            prev.map((feed) =>
-	              isFeedUrl(feed.url.trim())
-	                ? feed
-	                : {
-	                    ...feed,
+        if (feedErrors.size > 0) {
+          setFeeds((prev) =>
+            prev.map((feed) =>
+              isFeedUrl(feed.url.trim())
+                ? feed
+                : {
+                    ...feed,
                     error: "Invalid feed URL. Skipped during validation.",
                   }
             )
@@ -126,20 +128,20 @@ export function OPMLImportDialog({
           return;
         }
 
-	        if (result.success) {
-	          // Map the fetched feeds back to our feed items
-	          const updatedFeeds = initialFeeds.map((feed) => {
-	            const trimmedUrl = feed.url.trim();
-	            const fetchedFeed = result.feeds.find((f) => f.feedUrl === trimmedUrl);
-	            if (fetchedFeed) {
-	              return {
-	                ...feed,
-	                feed: fetchedFeed,
-	                title: getSiteDisplayName(fetchedFeed, {
-	                  extraFallbacks: [fetchedFeed.feedTitle, feed.title, trimmedUrl],
-	                }),
-	              };
-	            }
+        if (result.success) {
+          // Map the fetched feeds back to our feed items
+          const updatedFeeds = initialFeeds.map((feed) => {
+            const trimmedUrl = feed.url.trim();
+            const fetchedFeed = result.feeds.find((f) => f.feedUrl === trimmedUrl);
+            if (fetchedFeed) {
+              return {
+                ...feed,
+                feed: fetchedFeed,
+                title: getSiteDisplayName(fetchedFeed, {
+                  extraFallbacks: [fetchedFeed.feedTitle, feed.title, trimmedUrl],
+                }),
+              };
+            }
             return { ...feed, error: "Feed not found in response" };
           });
           setFeeds(updatedFeeds);

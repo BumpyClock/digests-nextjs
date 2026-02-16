@@ -90,7 +90,11 @@ export const ReaderContent = memo(function ReaderContent({
         <ArticleContent
           content={cleanedContent}
           markdown={cleanedMarkdown ?? readerView?.markdown}
-          className={cn("w-full", isMobile ? "max-w-full" : "md:max-w-4xl", layout === "modal" && "no-animation")}
+          className={cn(
+            "w-full",
+            isMobile ? "max-w-full" : "md:max-w-4xl",
+            layout === "modal" && "no-animation"
+          )}
           loading={loading}
           disableEntranceAnimation={layout === "modal"}
         />

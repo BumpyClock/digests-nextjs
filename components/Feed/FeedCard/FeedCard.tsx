@@ -244,7 +244,6 @@ export const FeedCard = memo(function FeedCard({
                 className={`w-full h-full object-cover rounded-3xl group-hover:scale-[1.05] transition-token-transform duration-fast ${
                   imageLoading ? "opacity-0" : "opacity-100"
                 }`}
-                onError={() => handleImageError()}
                 onLoad={() => setImageLoading(false)}
                 onError={handleImageError}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
