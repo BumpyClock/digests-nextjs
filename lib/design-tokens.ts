@@ -195,6 +195,7 @@ export const designTokens = {
     "5xl": rem(6),
   },
   color: {
+    bgCode: "rgb(45 45 45)",
     overlay: "rgb(0 0 0 / 0.8)",
   },
 } as const satisfies TokenTree;

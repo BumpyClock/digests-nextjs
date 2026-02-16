@@ -172,7 +172,7 @@ async function fetchReaderView(
   try {
     // Generate cache key
     const sortedUrls = [...urls].sort();
-    const cacheKey = `reader:${JSON.stringify(sortedUrls)}`;
+    const cacheKey = `reader:${sortedUrls.join(",")}`;
 
     // Check cache first
     const cached = workerCache.get<ReaderViewResponse[]>(cacheKey);

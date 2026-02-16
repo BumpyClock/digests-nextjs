@@ -238,7 +238,7 @@ export function MotionReaderViewModal({ feedItem, isOpen, onClose }: Props) {
         {/* Shared thumbnail with parallax */}
         <motion.div
           layoutId={`thumbnail-container-${feedItem.id}`}
-          className="relative h-[400px] overflow-hidden"
+          className="relative w-full overflow-hidden aspect-[16/9]"
         >
           <motion.img
             layoutId={`thumbnail-${feedItem.id}`}

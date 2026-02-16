@@ -281,6 +281,9 @@ function WebPageContent() {
   const handleTabChange = useCallback((value: string) => {
     setSelectedTab(value);
   }, []);
+  const tabsContentClassName = ["mt-0", viewMode === "masterDetail" && "flex-1 min-h-0"]
+    .filter(Boolean)
+    .join(" ");
 
   return (
       <div
@@ -374,7 +377,7 @@ function WebPageContent() {
 
         <TabsContent
           value="all"
-          className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
+          className={tabsContentClassName}
         >
           <FeedTabContent
             items={categorized.all}
@@ -386,7 +389,7 @@ function WebPageContent() {
 
         <TabsContent
           value="unread"
-          className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
+          className={tabsContentClassName}
         >
           <FeedTabContent
             items={filteredUnreadItems}
@@ -398,7 +401,7 @@ function WebPageContent() {
 
         <TabsContent
           value="articles"
-          className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
+          className={tabsContentClassName}
         >
           <FeedTabContent
             items={categorized.articles}
@@ -410,7 +413,7 @@ function WebPageContent() {
 
         <TabsContent
           value="podcasts"
-          className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
+          className={tabsContentClassName}
         >
           <FeedTabContent
             items={categorized.podcasts}
@@ -422,7 +425,7 @@ function WebPageContent() {
 
         <TabsContent
           value="readLater"
-          className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
+          className={tabsContentClassName}
         >
           <FeedTabContent
             items={categorized.readLater}

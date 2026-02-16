@@ -83,7 +83,7 @@ export const MARKDOWN_COMPONENTS: MarkdownComponents = {
       );
     }
 
-    const aspectRatio = width && height ? `${width} / ${height}` : "16 / 9";
+    const aspectRatio = "16 / 9";
 
     return (
       <div
