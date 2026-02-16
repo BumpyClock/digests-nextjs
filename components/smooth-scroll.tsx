@@ -4,6 +4,10 @@ import { useEffect } from "react";
 
 export function SmoothScroll() {
   useEffect(() => {
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const scrollBehavior = prefersReducedMotion ? "auto" : "smooth";
+
     const handleAnchorClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const anchor = target.closest("a");
@@ -20,9 +24,9 @@ export function SmoothScroll() {
           // Update URL without triggering scroll
           window.history.pushState({}, "", anchor.hash);
 
-          // Smooth scroll to element
+          // Scroll to element (respects reduced motion)
           element.scrollIntoView({
-            behavior: "smooth",
+            behavior: scrollBehavior,
             block: "start",
           });
         }
@@ -38,7 +42,7 @@ export function SmoothScroll() {
           // Small delay to ensure proper scrolling after page load
           setTimeout(() => {
             element.scrollIntoView({
-              behavior: "smooth",
+              behavior: scrollBehavior,
               block: "start",
             });
           }, 100);

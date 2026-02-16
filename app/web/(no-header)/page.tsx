@@ -234,8 +234,12 @@ function WebPageContent() {
       // Feed URL filter
       if (feedUrlDecoded && normalizeUrl(item.feedUrl) !== feedUrlDecoded) continue;
       // Search filter
-      if (searchLower && !item.title?.toLowerCase().includes(searchLower)
-          && !item.description?.toLowerCase().includes(searchLower)) continue;
+      if (
+        searchLower &&
+        !item.title?.toLowerCase().includes(searchLower) &&
+        !item.description?.toLowerCase().includes(searchLower)
+      )
+        continue;
 
       all.push(item);
       if (item.type === "article") articles.push(item);
@@ -273,7 +277,9 @@ function WebPageContent() {
   }, []);
 
   return (
-    <div className={`w-full px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3${viewMode === "masterDetail" ? " h-dvh" : ""}`}>
+    <div
+      className={`w-full px-3 pb-3 pt-2 sm:px-4 sm:pb-4 sm:pt-3${viewMode === "masterDetail" ? " h-dvh" : ""}`}
+    >
       <Tabs
         defaultValue="unread"
         className={`flex flex-col gap-3 sm:gap-4${viewMode === "masterDetail" ? " h-full min-h-0" : ""}`}
@@ -355,23 +361,38 @@ function WebPageContent() {
           </div>
         </div>
 
-        <TabsContent value="all" className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}>
+        <TabsContent
+          value="all"
+          className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
+        >
           <FeedTabContent items={categorized.all} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
 
-        <TabsContent value="unread" className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}>
+        <TabsContent
+          value="unread"
+          className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
+        >
           <FeedTabContent items={filteredUnreadItems} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
 
-        <TabsContent value="articles" className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}>
+        <TabsContent
+          value="articles"
+          className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
+        >
           <FeedTabContent items={categorized.articles} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
 
-        <TabsContent value="podcasts" className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}>
+        <TabsContent
+          value="podcasts"
+          className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
+        >
           <FeedTabContent items={categorized.podcasts} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
 
-        <TabsContent value="readLater" className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}>
+        <TabsContent
+          value="readLater"
+          className={`mt-0${viewMode === "masterDetail" ? " flex-1 min-h-0" : ""}`}
+        >
           <FeedTabContent items={categorized.readLater} isLoading={isLoading} viewMode={viewMode} />
         </TabsContent>
       </Tabs>

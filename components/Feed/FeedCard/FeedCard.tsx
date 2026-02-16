@@ -125,10 +125,13 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem, onItemOpen }: F
           onItemOpen?.(feedItem);
         } else {
           if (viewTransitionsEnabled) {
-            runWithViewTransition(() => {
-              setIsActive(true);
-              onItemOpen?.(feedItem, () => setIsActive(false));
-            });
+            runWithViewTransition(
+              () => {
+                setIsActive(true);
+                onItemOpen?.(feedItem, () => setIsActive(false));
+              },
+              { phaseClassName: "reader-vt-active" }
+            );
           } else {
             onItemOpen?.(feedItem);
           }

@@ -71,11 +71,14 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
 
   const handleClose = useCallback(() => {
     if (viewTransitionsEnabled && openItem && !isPodcast(openItem)) {
-      runWithViewTransition(() => {
-        cleanupRef.current?.();
-        cleanupRef.current = null;
-        setOpenItem(null);
-      });
+      runWithViewTransition(
+        () => {
+          cleanupRef.current?.();
+          cleanupRef.current = null;
+          setOpenItem(null);
+        },
+        { phaseClassName: "reader-vt-active" }
+      );
     } else {
       cleanupRef.current?.();
       cleanupRef.current = null;
@@ -89,7 +92,9 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
       queryClient.prefetchQuery({
         queryKey: readerViewKeys.byUrl(item.link),
         queryFn: () =>
-          workerService.fetchReaderView(item.link).then((r) => getValidReaderViewOrThrow(r, item.link)),
+          workerService
+            .fetchReaderView(item.link)
+            .then((r) => getValidReaderViewOrThrow(r, item.link)),
         staleTime: 60 * 60 * 1000,
       });
     },
@@ -98,10 +103,7 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
 
   const renderItem = useCallback(
     ({ data: feed }: { data: FeedItem }) => (
-      <div
-        style={{ contain: "layout style" }}
-        onMouseEnter={() => handlePrefetch(feed)}
-      >
+      <div style={{ contain: "layout style" }} onMouseEnter={() => handlePrefetch(feed)}>
         <FeedCard feed={feed} onItemOpen={handleItemOpen} />
       </div>
     ),
@@ -133,13 +135,7 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
   try {
     return (
       <>
-        <motion.div
-          id="feed-grid"
-          className="pt-6"
-          initial={false}
-          animate={false}
-          layout={false}
-        >
+        <motion.div id="feed-grid" className="pt-6" initial={false} animate={false} layout={false}>
           <Masonry
             items={memoizedItems}
             maxColumnCount={columnCount}
@@ -152,11 +148,7 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
         </motion.div>
 
         {openItem && isOpenItemPodcast && (
-          <PodcastDetailsModal
-            isOpen={true}
-            onClose={handleClose}
-            podcast={openItem}
-          />
+          <PodcastDetailsModal isOpen={true} onClose={handleClose} podcast={openItem} />
         )}
 
         {openItem && !isOpenItemPodcast && (

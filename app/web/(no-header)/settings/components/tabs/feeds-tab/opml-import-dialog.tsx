@@ -86,7 +86,9 @@ export function OPMLImportDialog({
       try {
         // Get all feed URLs
         const feedUrls = initialFeeds.map((feed) => feed.url.trim()).filter(isFeedUrl);
-        const feedErrors = new Set(initialFeeds.filter((feed) => !isFeedUrl(feed.url)).map((feed) => feed.url));
+        const feedErrors = new Set(
+          initialFeeds.filter((feed) => !isFeedUrl(feed.url)).map((feed) => feed.url)
+        );
 
         if (feedErrors.size > 0) {
           setFeeds((prev) =>
@@ -257,7 +259,9 @@ export function OPMLImportDialog({
                     <FeedIcon feed={feed.feed} error={feed.error} />
                     <div className="flex-1 min-w-0">
                       <Label htmlFor={feed.url} className="flex flex-col space-y-1">
-                        <span className="text-subtitle text-primary-content truncate">{feed.title}</span>
+                        <span className="text-subtitle text-primary-content truncate">
+                          {feed.title}
+                        </span>
                         <span className="text-body-small text-secondary-content truncate">
                           {feed.url}
                         </span>

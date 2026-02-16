@@ -93,7 +93,11 @@ export function PodcastDetailsContent({
                 {getSiteDisplayName(podcast).charAt(0).toUpperCase()}
               </div>
             )}
-            <p className={isModal ? "text-title text-primary-content" : "text-subtitle text-primary-content"}>
+            <p
+              className={
+                isModal ? "text-title text-primary-content" : "text-subtitle text-primary-content"
+              }
+            >
               {cleanupTextContent(getSiteDisplayName(podcast))}
             </p>
           </div>

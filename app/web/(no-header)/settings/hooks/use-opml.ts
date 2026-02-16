@@ -100,7 +100,9 @@ export function useOPML() {
 
   const handleImportSelected = useCallback(
     async (selectedUrls: string[]) => {
-      const normalizedUrls = Array.from(new Set(selectedUrls.map((url) => url.trim()))).filter(isFeedUrl);
+      const normalizedUrls = Array.from(new Set(selectedUrls.map((url) => url.trim()))).filter(
+        isFeedUrl
+      );
 
       if (normalizedUrls.length === 0) {
         toast.info("No feeds selected");

@@ -299,10 +299,10 @@ class WorkerService {
     type,
     urls,
     fallbackLabel,
-    }: {
-      type: "FETCH_FEEDS" | "REFRESH_FEEDS" | "CHECK_UPDATES";
-      urls: string[];
-      fallbackLabel: string;
+  }: {
+    type: "FETCH_FEEDS" | "REFRESH_FEEDS" | "CHECK_UPDATES";
+    urls: string[];
+    fallbackLabel: string;
   }): Promise<{
     success: boolean;
     feeds: Feed[];
@@ -480,7 +480,7 @@ class WorkerService {
       (response) => response.type === "SHADOWS_RESULT" && response.payload.id === id
     );
 
-      if (response.type !== "SHADOWS_RESULT") {
+    if (response.type !== "SHADOWS_RESULT") {
       throw new Error("Unexpected worker response type for shadows");
     }
 

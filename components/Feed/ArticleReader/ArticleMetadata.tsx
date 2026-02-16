@@ -89,7 +89,9 @@ export const ArticleMetadata = memo<ArticleMetadataProps>(
                 {author.name}
               </span>
               {publishedDate && (
-                <span className={`text-secondary-content ${isCompact ? "text-caption" : "text-body-small"}`}>
+                <span
+                  className={`text-secondary-content ${isCompact ? "text-caption" : "text-body-small"}`}
+                >
                   {publishedDate}
                 </span>
               )}

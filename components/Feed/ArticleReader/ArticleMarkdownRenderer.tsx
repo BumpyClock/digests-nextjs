@@ -117,10 +117,7 @@ export const MARKDOWN_COMPONENTS: MarkdownComponents = {
     );
   },
   pre: ({ children, ...props }: React.ComponentProps<"pre">) => (
-    <pre
-      {...props}
-      className="bg-muted p-4 rounded-lg overflow-x-auto my-6 text-code border"
-    >
+    <pre {...props} className="bg-muted p-4 rounded-lg overflow-x-auto my-6 text-code border">
       {children}
     </pre>
   ),

@@ -165,6 +165,7 @@
     --text-color-link: var(--brand-primary);
     --text-color-primary-on-accent: var(--accent-foreground);
     --text-color-secondary-on-accent: var(--accent-foreground);
+    --color-overlay: rgb(0 0 0 / 0.8);
   }
 
   body {
@@ -362,6 +363,10 @@
 
   .scrollbar-hidden::-webkit-scrollbar {
     display: none;
+  }
+
+  .bg-overlay {
+    background-color: var(--color-overlay);
   }
 
   /* Reader View Modal Styles - Moved to ArticleReader.css */
@@ -603,6 +608,22 @@
   z-index: 0;
 }
 
+html.reader-vt-active::view-transition-group(*) {
+  z-index: var(--z-max, 2147483647);
+}
+
+html.reader-vt-active::view-transition-group(root) {
+  z-index: 0;
+}
+
+html.reader-vt-active::view-transition-old(root) {
+  display: none;
+}
+
+html.reader-vt-active::view-transition-new(root) {
+  animation: none;
+}
+
 /* Prevent layout animations on feed cards when scrolling */
 [data-masonic-tile] {
   contain: layout style;
@@ -619,12 +640,14 @@
   --card-shadow-g: 0;
   --card-shadow-b: 0;
   box-shadow: 0 2px 8px rgba(var(--card-shadow-r), var(--card-shadow-g), var(--card-shadow-b), 0.08);
-  transition: box-shadow var(--motion-duration-fast, 150ms) var(--motion-ease-decelerate, ease-out),
+  transition:
+    box-shadow var(--motion-duration-fast, 150ms) var(--motion-ease-decelerate, ease-out),
     opacity var(--motion-duration-normal, 200ms) var(--motion-ease-decelerate, ease-out);
 }
 
 .feed-card:hover {
-  box-shadow: 0 8px 30px rgba(var(--card-shadow-r), var(--card-shadow-g), var(--card-shadow-b), 0.25);
+  box-shadow: 0 8px 30px
+    rgba(var(--card-shadow-r), var(--card-shadow-g), var(--card-shadow-b), 0.25);
 }
 
 .feed-card:active {

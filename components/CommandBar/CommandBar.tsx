@@ -129,27 +129,27 @@ ArticleItemComponent.displayName = "ArticleItemComponent";
 // Podcast Item Component
 const PodcastItemComponent = React.memo(
   ({ podcast, onSelect }: { podcast: FeedItem; onSelect: (podcastId: string) => void }) => (
-  <MemoizedCommandItem
-    className="text-body"
-    value={`podcast:${podcast.id} ${podcast.title ?? ""}`.trim()}
-    key={podcast.id}
-    onSelect={() => onSelect(podcast.id)}
-  >
-    {podcast.favicon && (
-      <Image
-        src={podcast.favicon}
-        alt={podcast.title || "Untitled Feed"}
-        width={24}
-        height={24}
-        className="object-cover"
-        unoptimized
-      />
-    )}
-    <span className="text-body">{podcast.title || "Untitled Podcast"}</span>
-  </MemoizedCommandItem>
-));
+    <MemoizedCommandItem
+      className="text-body"
+      value={`podcast:${podcast.id} ${podcast.title ?? ""}`.trim()}
+      key={podcast.id}
+      onSelect={() => onSelect(podcast.id)}
+    >
+      {podcast.favicon && (
+        <Image
+          src={podcast.favicon}
+          alt={podcast.title || "Untitled Feed"}
+          width={24}
+          height={24}
+          className="object-cover"
+          unoptimized
+        />
+      )}
+      <span className="text-body">{podcast.title || "Untitled Podcast"}</span>
+    </MemoizedCommandItem>
+  )
+);
 PodcastItemComponent.displayName = "PodcastItemComponent";
-
 
 // Suggestions Section Component
 const SuggestionsSection = React.memo(
@@ -413,7 +413,11 @@ export function CommandBar({
                 className="text-overline text-secondary-content"
               >
                 {filteredPodcasts.slice(0, MAX_DISPLAY_ITEMS).map((podcast: FeedItem) => (
-                  <PodcastItemComponent key={podcast.id} podcast={podcast} onSelect={handlePodcastSelect} />
+                  <PodcastItemComponent
+                    key={podcast.id}
+                    podcast={podcast}
+                    onSelect={handlePodcastSelect}
+                  />
                 ))}
                 <CommandItem
                   key="see-all-podcasts"

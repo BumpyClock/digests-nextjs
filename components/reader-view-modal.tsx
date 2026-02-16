@@ -22,7 +22,12 @@ interface ReaderViewModalProps {
   useViewTransition?: boolean;
 }
 
-export function ReaderViewModal({ feedItem, isOpen, onClose, useViewTransition }: ReaderViewModalProps) {
+export function ReaderViewModal({
+  feedItem,
+  isOpen,
+  onClose,
+  useViewTransition,
+}: ReaderViewModalProps) {
   const { readerView, loading, cleanedContent, cleanedMarkdown, extractedAuthor } = useReaderView(
     feedItem?.link || "",
     isOpen
@@ -79,7 +84,11 @@ export function ReaderViewModal({ feedItem, isOpen, onClose, useViewTransition }
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
-      if (idleCallbackId !== null && typeof window !== "undefined" && "cancelIdleCallback" in window) {
+      if (
+        idleCallbackId !== null &&
+        typeof window !== "undefined" &&
+        "cancelIdleCallback" in window
+      ) {
         window.cancelIdleCallback(idleCallbackId);
       }
     };

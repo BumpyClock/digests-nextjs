@@ -64,7 +64,9 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({
           <h3 className="mb-1 line-clamp-2 text-subtitle text-primary-content">
             {getSiteDisplayName(feed)}
           </h3>
-          {feed.feedTitle && <p className="mb-2 text-caption text-secondary-content">{feed.feedTitle}</p>}
+          {feed.feedTitle && (
+            <p className="mb-2 text-caption text-secondary-content">{feed.feedTitle}</p>
+          )}
           <p className="break-all text-body-small text-secondary-content opacity-0 transition-token-opacity duration-token-fast group-hover:opacity-100">
             {feed.feedUrl}
           </p>

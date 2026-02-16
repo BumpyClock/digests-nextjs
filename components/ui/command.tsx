@@ -124,10 +124,7 @@ CommandItem.displayName = CommandPrimitive.Item.displayName;
 
 const CommandShortcut = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => {
   return (
-    <span
-      className={cn("ml-auto text-overline text-secondary-content", className)}
-      {...props}
-    />
+    <span className={cn("ml-auto text-overline text-secondary-content", className)} {...props} />
   );
 };
 CommandShortcut.displayName = "CommandShortcut";

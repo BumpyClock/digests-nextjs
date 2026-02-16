@@ -2,7 +2,7 @@
 title: Privacy Policy
 ---
 
-The privacy policy is simple: no personal data is collected, stored or shared with us. Your data will also never be used by us for any purpose without specific permission. Data is only used to provide the service and is not shared with any third party. Data sent to the server is not retained by the server and is specified below.
+The privacy policy is simple: no personal data is collected, stored or shared with us. Your data will also never be used by us for any purpose without specific permission. Data is only used to provide the service and is not shared with any third-party. Data sent to the server is not retained by the server and is specified below.
 
 The app engages in no ad targeting, data mining, or other algorithmic targeting that may compromise your privacy, and we do not affiliate ourselves with any third parties that do so.
 
@@ -18,15 +18,15 @@ We do not retain any data from you. Only the data required to provide the servic
 
 - Links to RSS feeds and their cached content are cycled out of the cache after 30 days. This is done to improve performance, avoid processing the same content multiple times and avoid unnecessary requests to the upstream servers. 
 
-- Only links to RSS feeds are stored temporarily, no user identifiable data like email, name, IP address, etc. is sent to the server or retained by the server. 
+- Only links to RSS feeds are stored temporarily, no user identifiable data like email, name, IP address, etc. is sent to the server or retained by the server.
 
-- Links to RSS feeds are not shared with any third party. You can host the digests-api server yourself, it is public source and available on GitHub and as a Docker image on Docker Hub. Apps may not provide the ability to switch to a self hosted API server but that functionality is on the roadmap and will eventually be available. You can build the apps yourself from source code and modify the API server URL to point to your own server or any other server you control or prefer.
+- Links to RSS feeds are not shared with any third-party. You can host the digests-api server yourself, it is public source and available on GitHub and as a Docker image on Docker Hub. Apps may not provide the ability to switch to a self-hosted API server but that functionality is on the roadmap and will eventually be available. You can build the apps yourself from source code and modify the API server URL to point to your own server or any other server you control or prefer.
 
 ## License and disclaimer
 
 This software is provided for personal, non-commercial use only. Commercial use of this software is prohibited without prior written consent from the author.
 
-All code (API Server, Web App, Windows App, and future apps), assets, and documentation are provided with no warranty, use at your own risk when using the apps or self hosting the API server. You are responsible for any damage caused by using this software.
+All code (API Server, Web App, Windows App, and future apps), assets, and documentation are provided with no warranty, use at your own risk when using the apps or self-hosting the API server. You are responsible for any damage caused by using this software.
 
 You may not use the apps or API server for any purpose that is against the law.
 

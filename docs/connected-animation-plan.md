@@ -88,7 +88,7 @@ interface AnimationState {
 
 ### 4. Animation Timeline
 
-```
+```text
 User clicks card (0ms)
 ├─ Card press animation (0-100ms)
 ├─ Capture position & start transition (100ms)

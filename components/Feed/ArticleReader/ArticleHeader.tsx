@@ -106,7 +106,9 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                         initial={disableMountAnimations ? false : { opacity: 1 }}
                         exit={disableMountAnimations ? undefined : { opacity: 0 }}
                         transition={
-                          disableMountAnimations ? { duration: 0 } : { duration: motionTokens.duration.slow }
+                          disableMountAnimations
+                            ? { duration: 0 }
+                            : { duration: motionTokens.duration.slow }
                         }
                         className="absolute inset-0 z-10"
                       >
@@ -140,9 +142,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                       initial={disableImageFadeIn ? false : { opacity: 0 }}
                       animate={disableImageFadeIn ? undefined : { opacity: imageLoaded ? 1 : 0 }}
                       transition={
-                        disableImageFadeIn
-                          ? undefined
-                          : { duration: motionTokens.duration.slow }
+                        disableImageFadeIn ? undefined : { duration: motionTokens.duration.slow }
                       }
                     />
                   </Ambilight>

@@ -220,10 +220,9 @@ describe("useFeedsData", () => {
 
   it("should use proper query key based on feed URLs", async () => {
     mockedUseFeedStore.mockReturnValue({
-      subscriptions: [
-      "https://example.com/feed1.xml",
-      "https://example.com/feed2.xml",
-    ].map((feedUrl) => ({ feedUrl })),
+      subscriptions: ["https://example.com/feed1.xml", "https://example.com/feed2.xml"].map(
+        (feedUrl) => ({ feedUrl })
+      ),
     } as unknown as ReturnType<typeof useFeedStore>);
 
     mockedWorkerService.refreshFeeds.mockResolvedValue({

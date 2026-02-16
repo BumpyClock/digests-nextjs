@@ -80,7 +80,10 @@ export const ArticleReader = memo<ArticleReaderProps>(
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: motionTokens.duration.slow, delay: motionTokens.duration.normal }}
+              transition={{
+                duration: motionTokens.duration.slow,
+                delay: motionTokens.duration.normal,
+              }}
             >
               <ArticleMetadata
                 author={extractedAuthor}

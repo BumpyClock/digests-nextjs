@@ -22,6 +22,11 @@ export const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string):
 export const cleanupTextContent = (text?: string): string => {
   if (!text) return "";
 
+  // SSR guard: DOMParser not available on server
+  if (typeof window === "undefined" || typeof DOMParser === "undefined") {
+    return text;
+  }
+
   const cached = textCleanupCache.get(text);
   if (cached) return cached;
 

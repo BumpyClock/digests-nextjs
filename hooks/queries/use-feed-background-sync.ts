@@ -48,7 +48,9 @@ export function useFeedBackgroundSync() {
       }
 
       // Fast path for unchanged item count and exact same IDs
-      const ids = items.map((item) => item.id).filter((itemId): itemId is string => Boolean(itemId));
+      const ids = items
+        .map((item) => item.id)
+        .filter((itemId): itemId is string => Boolean(itemId));
       if (prevIdsRef.current.size === items.length) {
         let allKnown = ids.length > 0;
         for (const id of ids) {

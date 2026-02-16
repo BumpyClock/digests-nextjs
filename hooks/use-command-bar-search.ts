@@ -59,9 +59,7 @@ function feedMatchesSearch(
     .toLowerCase();
 
   const fullMatch =
-    combined.includes(` ${search} `) ||
-    combined.startsWith(search) ||
-    combined.endsWith(search);
+    combined.includes(` ${search} `) || combined.startsWith(search) || combined.endsWith(search);
 
   if (fullMatch) return { match: true, score: 2 };
   if (combined.includes(search)) return { match: true, score: 1 };

@@ -43,7 +43,9 @@ export function PodcastMetadata({
 
   if (variant === "compact") {
     return (
-      <div className={cn("flex items-center gap-4 text-body-small text-secondary-content", className)}>
+      <div
+        className={cn("flex items-center gap-4 text-body-small text-secondary-content", className)}
+      >
         {formattedDate && <span>{formattedDate}</span>}
         {formattedDuration && <span>{formattedDuration}</span>}
         {author && <span>By {author}</span>}

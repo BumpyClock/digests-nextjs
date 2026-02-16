@@ -67,8 +67,8 @@ const ScrollArea = ({
 // No displayName needed since not using forwardRef
 
 // Export a hook to access SimpleBar instance methods
-export const useScrollAreaRef = () => {
-  return React.useRef(null);
+export const useScrollAreaRef = <T = HTMLDivElement>() => {
+  return React.useRef<T>(null);
 };
 
 export { ScrollArea };

@@ -71,9 +71,7 @@ const FeedListItem = memo(function FeedListItem({
             {cleanupTextContent(getSiteDisplayName(item))}
           </span>
         </div>
-        <h3 className="text-subtitle line-clamp-2 mb-1">
-          {cleanupTextContent(item.title)}
-        </h3>
+        <h3 className="text-subtitle line-clamp-2 mb-1">{cleanupTextContent(item.title)}</h3>
         <div className="flex justify-between items-center text-caption text-secondary-content">
           <span>{formattedDate}</span>
           {item.favorite && <Heart className="h-3 w-3 fill-red-500 text-red-500" />}

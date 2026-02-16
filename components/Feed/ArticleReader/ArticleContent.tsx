@@ -25,10 +25,10 @@ function ArticleContentSkeleton() {
   );
 }
 
-const ArticleMarkdownRenderer = dynamic(
-  () => import("./ArticleMarkdownRenderer"),
-  { ssr: false, loading: () => <ArticleContentSkeleton /> }
-);
+const ArticleMarkdownRenderer = dynamic(() => import("./ArticleMarkdownRenderer"), {
+  ssr: false,
+  loading: () => <ArticleContentSkeleton />,
+});
 
 interface ArticleContentProps {
   /** HTML content */

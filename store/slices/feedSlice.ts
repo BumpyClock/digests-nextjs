@@ -21,7 +21,10 @@ export const createFeedSlice: StateCreator<FeedSlice, [], [], FeedSlice> = (set,
   setSubscriptions: (subscriptions: FeedInput[]) =>
     set({
       subscriptions: Array.from(
-        new Map((subscriptions ?? []).map((entry) => toSubscription(entry)).map((entry) => [entry.feedUrl, entry])
+        new Map(
+          (subscriptions ?? [])
+            .map((entry) => toSubscription(entry))
+            .map((entry) => [entry.feedUrl, entry])
         ).values()
       ),
     }),
