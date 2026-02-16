@@ -2,7 +2,7 @@ import { type ChangeEvent, useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useBatchAddFeedsMutation } from "@/hooks/queries";
 import { useSubscriptions } from "@/hooks/useFeedSelectors";
-import { isValidUrl } from "@/utils/url";
+import { isFeedUrl } from "@/utils/url";
 import { exportOPML } from "../utils/opml";
 
 interface FeedItem {
@@ -10,14 +10,6 @@ interface FeedItem {
   title: string;
   isSubscribed: boolean;
 }
-
-const isFeedUrl = (url: string | null | undefined): url is string => {
-  if (!url) return false;
-  const normalized = url.trim();
-  if (!normalized) return false;
-  if (!/^https?:\/\//i.test(normalized)) return false;
-  return isValidUrl(normalized);
-};
 
 export function useOPML() {
   const fileInputRef = useRef<HTMLInputElement>(null);

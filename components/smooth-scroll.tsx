@@ -1,11 +1,27 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export function SmoothScroll() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
   useEffect(() => {
     // Check for reduced motion preference
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches);
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handleChange);
+    };
+  }, []);
+
+  useEffect(() => {
     const scrollBehavior = prefersReducedMotion ? "auto" : "smooth";
 
     const handleAnchorClick = (e: MouseEvent) => {
@@ -39,13 +55,21 @@ export function SmoothScroll() {
         const targetId = hash.slice(1);
         const element = document.getElementById(targetId);
         if (element) {
-          // Small delay to ensure proper scrolling after page load
-          setTimeout(() => {
+          if (scrollBehavior === "auto") {
+            // Skip delay for reduced motion
             element.scrollIntoView({
               behavior: scrollBehavior,
               block: "start",
             });
-          }, 100);
+          } else {
+            // Small delay to ensure proper scrolling after page load
+            setTimeout(() => {
+              element.scrollIntoView({
+                behavior: scrollBehavior,
+                block: "start",
+              });
+            }, 100);
+          }
         }
       }
     };
@@ -57,7 +81,7 @@ export function SmoothScroll() {
     return () => {
       document.removeEventListener("click", handleAnchorClick);
     };
-  }, []);
+  }, [prefersReducedMotion]);
 
   return null;
 }

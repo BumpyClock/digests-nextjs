@@ -51,7 +51,9 @@ export const createReadStatusSlice: StateCreator<ReadStatusSlice, [], [], ReadSt
 
   getUnreadItems: (items: FeedItem[]) => {
     const { readItems } = get();
-    const unreadItems = (items || []).filter((item: FeedItem) => !readItems.has(item.id));
+    // Ensure we're working with a Set
+    const readItemsSet = new Set(readItems instanceof Set ? readItems : []);
+    const unreadItems = (items || []).filter((item: FeedItem) => !readItemsSet.has(item.id));
     Logger.debug("unreadItems", unreadItems);
     return unreadItems.length > 0 ? unreadItems : [];
   },

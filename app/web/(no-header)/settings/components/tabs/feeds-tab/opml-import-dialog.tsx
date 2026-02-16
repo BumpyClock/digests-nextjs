@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { workerService } from "@/services/worker-service";
 import type { FeedItem as ApiFeedItem, Feed } from "@/types";
 import { getSiteDisplayName } from "@/utils/htmlUtils";
-import { isValidUrl } from "@/utils/url";
+import { isFeedUrl } from "@/utils/url";
 
 interface FeedItem {
   url: string;
@@ -28,14 +28,6 @@ interface FeedItem {
   error?: string;
   feed?: Feed;
 }
-
-const isFeedUrl = (url: string | null | undefined): url is string => {
-  if (!url) return false;
-  const normalized = url.trim();
-  if (!normalized) return false;
-  if (!/^https?:\/\//i.test(normalized)) return false;
-  return isValidUrl(normalized);
-};
 
 interface OPMLImportDialogProps {
   feeds: FeedItem[];
@@ -87,7 +79,7 @@ export function OPMLImportDialog({
         // Get all feed URLs
         const feedUrls = initialFeeds.map((feed) => feed.url.trim()).filter(isFeedUrl);
         const feedErrors = new Set(
-          initialFeeds.filter((feed) => !isFeedUrl(feed.url)).map((feed) => feed.url)
+          initialFeeds.filter((feed) => !isFeedUrl(feed.url.trim())).map((feed) => feed.url)
         );
 
         if (feedErrors.size > 0) {

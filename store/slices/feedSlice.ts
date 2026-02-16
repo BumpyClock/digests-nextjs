@@ -46,7 +46,7 @@ export const createFeedSlice: StateCreator<FeedSlice, [], [], FeedSlice> = (set,
 
   removeFeedSubscription: (feedUrl: string) => {
     set({
-      subscriptions: get().subscriptions.filter((feed) => feed.feedUrl !== feedUrl),
+      subscriptions: get().subscriptions.filter((subscription) => subscription.feedUrl !== feedUrl),
     });
   },
 });

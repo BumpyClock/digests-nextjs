@@ -51,8 +51,8 @@ export function useFeedBackgroundSync() {
       const ids = items
         .map((item) => item.id)
         .filter((itemId): itemId is string => Boolean(itemId));
-      if (prevIdsRef.current.size === items.length) {
-        let allKnown = ids.length > 0;
+      if (prevIdsRef.current.size === ids.length && ids.length > 0) {
+        let allKnown = true;
         for (const id of ids) {
           if (!prevIdsRef.current.has(id)) {
             allKnown = false;

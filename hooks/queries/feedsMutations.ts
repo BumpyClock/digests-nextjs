@@ -19,7 +19,7 @@ type FeedMutationContext = {
   nextKey?: QueryKey;
 };
 
-const getSubscriptions = () => useFeedStore.getState().subscriptions ?? [];
+const getSubscriptionsSnapshot = () => useFeedStore.getState().subscriptions ?? [];
 const normalizeUrl = (url: string | undefined) => (url || "").trim().toLowerCase();
 
 const getSubscriptionUrls = (subscriptions: Subscription[] | undefined) =>
@@ -55,7 +55,7 @@ export const useAddFeedMutation = () => {
       return result;
     },
     onMutate: async () => {
-      const previousSubscriptions = [...getSubscriptions()];
+      const previousSubscriptions = [...getSubscriptionsSnapshot()];
       const previousUrls = getSubscriptionUrls(previousSubscriptions);
       const previousKey = getQueryKey(previousUrls);
 
@@ -111,7 +111,7 @@ export const useRemoveFeedMutation = () => {
   return useMutation<{ feedUrl: string }, Error, string, FeedMutationContext>({
     mutationFn: async (feedUrl: string) => ({ feedUrl }),
     onMutate: async (feedUrl) => {
-      const previousSubscriptions = [...getSubscriptions()];
+      const previousSubscriptions = [...getSubscriptionsSnapshot()];
       const previousUrls = getSubscriptionUrls(previousSubscriptions);
       const previousKey = getQueryKey(previousUrls);
       const nextSubscriptions = previousSubscriptions.filter(
@@ -131,7 +131,6 @@ export const useRemoveFeedMutation = () => {
           }
         : { feeds: [], items: [] };
 
-      setFeedCache(queryClient, previousUrls, nextData);
       setFeedCache(queryClient, nextUrls, nextData);
       useFeedStore.getState().removeFeedSubscription(feedUrl);
 
@@ -177,7 +176,7 @@ export const useRefreshFeedsMutation = () => {
 
   return useMutation<{ feeds: Feed[]; items: FeedItem[] }, Error>({
     mutationFn: async () => {
-      const feedUrls = getSubscriptionUrls(getSubscriptions());
+      const feedUrls = getSubscriptionUrls(getSubscriptionsSnapshot());
       if (feedUrls.length === 0) {
         return { feeds: [], items: [] };
       }
@@ -193,7 +192,7 @@ export const useRefreshFeedsMutation = () => {
       };
     },
     onSuccess: (data) => {
-      const feedUrls = getSubscriptionUrls(getSubscriptions());
+      const feedUrls = getSubscriptionUrls(getSubscriptionsSnapshot());
       setFeedCache(queryClient, feedUrls, {
         feeds: data.feeds,
         items: data.items,
@@ -257,7 +256,7 @@ export const useBatchAddFeedsMutation = () => {
       };
     },
     onMutate: async () => {
-      const previousSubscriptions = [...getSubscriptions()];
+      const previousSubscriptions = [...getSubscriptionsSnapshot()];
       const previousUrls = getSubscriptionUrls(previousSubscriptions);
       const previousKey = getQueryKey(previousUrls);
 

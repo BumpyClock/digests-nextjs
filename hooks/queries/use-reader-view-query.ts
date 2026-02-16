@@ -60,29 +60,22 @@ export const useReaderView = (url: string, isOpen?: boolean) => {
       };
     }
 
-    if (!cacheKey) {
-      return {
-        htmlContent: "",
-        markdownContent: "",
-      };
-    }
-
-    const cached = getCachedReaderContent(cacheKey);
+    const cached = getCachedReaderContent(cacheKey!);
     if (cached) {
       return cached;
     }
 
     const next = processArticleContent(readerView);
-    setCachedReaderContent(cacheKey, next);
+    setCachedReaderContent(cacheKey!, next);
     return next;
   }, [cacheKey, readerView]);
 
   return {
+    ...query,
     readerView,
     loading: (isOpen === false ? query.isLoading : query.isLoading || query.isFetching) && !!url,
     cleanedContent: processed.htmlContent,
     cleanedMarkdown: processed.markdownContent,
     extractedAuthor: processed.extractedAuthor,
-    ...query,
   };
 };

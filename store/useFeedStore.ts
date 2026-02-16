@@ -73,8 +73,7 @@ const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<Fe
         if (from < 3) {
           // Drop persisted items and normalize Sets
           // Remove old feedItems property (now handled by React Query)
-          const { feedItems: _, ...cleanState } = state;
-          Object.assign(state, cleanState);
+          delete (state as any).feedItems;
           // Drop large feeds array from persistence if present
           if (state.feeds && Array.isArray(state.feeds)) {
             state.subscriptions = (state.feeds as Array<{ feedUrl?: unknown }>)
@@ -115,28 +114,36 @@ const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<Fe
     onRehydrateStorage: () => (state: FeedState | undefined) => {
       if (state && typeof window !== "undefined") {
         try {
-          // Initialize readItems as Set
+          const store = getStore();
+          
+          // Compute new Set values
+          let newReadItems: Set<string>;
           if (!state.readItems) {
-            state.readItems = new Set();
+            newReadItems = new Set();
           } else if (Array.isArray(state.readItems)) {
-            state.readItems = new Set(state.readItems);
+            newReadItems = new Set(state.readItems);
           } else {
             Logger.warn("Invalid readItems format, resetting to empty Set");
-            state.readItems = new Set();
+            newReadItems = new Set();
           }
 
-          // Initialize readLaterItems as Set
+          let newReadLaterItems: Set<string>;
           if (!state.readLaterItems) {
-            state.readLaterItems = new Set();
+            newReadLaterItems = new Set();
           } else if (Array.isArray(state.readLaterItems)) {
-            state.readLaterItems = new Set(state.readLaterItems);
+            newReadLaterItems = new Set(state.readLaterItems);
           } else {
             Logger.warn("Invalid readLaterItems format, resetting to empty Set");
-            state.readLaterItems = new Set();
+            newReadLaterItems = new Set();
           }
 
+          // Use setState to update both Sets
+          store.setState({
+            readItems: newReadItems,
+            readLaterItems: newReadLaterItems,
+          });
+
           hydrated = true;
-          const store = getStore();
           const storeState = store.getState();
           storeState.setHydrated(true);
 

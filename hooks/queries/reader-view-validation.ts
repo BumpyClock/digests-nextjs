@@ -1,4 +1,4 @@
-import type { ReaderViewResponse } from "../../types";
+import type { ReaderViewResponse } from "@/types";
 
 export const READER_VIEW_SUCCESS_STATUS = "ok";
 
@@ -23,7 +23,7 @@ export function getValidReaderViewOrThrow(
   const readerView = result.data[0];
   if (!readerView || readerView.status !== READER_VIEW_SUCCESS_STATUS) {
     const message =
-      (readerView && (readerView as { error?: string }).error) ||
+      readerView?.error ||
       `Invalid reader view status for ${url}: ${readerView?.status ?? "missing"}`;
     throw new Error(message);
   }

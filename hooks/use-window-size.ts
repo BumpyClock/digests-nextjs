@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 
+const DEFAULT_WINDOW_WIDTH = 1200;
+const DEFAULT_WINDOW_HEIGHT = 800;
+
 export function useWindowSize() {
   const [size, setSize] = useState({
-    width: 1200,
-    height: 800,
+    width: DEFAULT_WINDOW_WIDTH,
+    height: DEFAULT_WINDOW_HEIGHT,
   });
 
   useEffect(() => {

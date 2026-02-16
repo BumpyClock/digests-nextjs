@@ -21,7 +21,9 @@ export const mergeCacheData = (existing: CacheData | undefined, incoming: CacheD
 
   const feedMap = new Map<string, Feed>();
   for (const feed of existing.feeds) {
-    feedMap.set(feed.feedUrl, feed);
+    if (feed.feedUrl) {
+      feedMap.set(feed.feedUrl, feed);
+    }
   }
   for (const feed of incoming.feeds) {
     if (feed.feedUrl) {

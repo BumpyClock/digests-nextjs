@@ -6,6 +6,7 @@ import { ArticleContent, ArticleHeader } from "@/components/Feed/ArticleReader";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { getFeedAnimationIds } from "@/lib/feed-animation-ids";
+import { cn } from "@/lib/utils";
 import { getViewTransitionStyle, useViewTransitionsSupported } from "@/lib/view-transitions";
 import { FeedItem, ReaderViewResponse } from "@/types";
 import { ReaderLayout } from "@/types/reader";
@@ -89,9 +90,7 @@ export const ReaderContent = memo(function ReaderContent({
         <ArticleContent
           content={cleanedContent}
           markdown={cleanedMarkdown ?? readerView?.markdown}
-          className={`w-full ${isMobile ? "max-w-full" : "md:max-w-4xl"} ${
-            layout === "modal" ? "no-animation" : ""
-          }`}
+          className={cn("w-full", isMobile ? "max-w-full" : "md:max-w-4xl", layout === "modal" && "no-animation")}
           loading={loading}
           disableEntranceAnimation={layout === "modal"}
         />

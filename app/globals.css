@@ -165,7 +165,6 @@
     --text-color-link: var(--brand-primary);
     --text-color-primary-on-accent: var(--accent-foreground);
     --text-color-secondary-on-accent: var(--accent-foreground);
-    --color-overlay: rgb(0 0 0 / 0.8);
   }
 
   body {

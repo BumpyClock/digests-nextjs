@@ -4,7 +4,7 @@ read_when: touching token source-of-truth, CSS var generation, global layout imp
 
 ## Scope
 
-- Non-color foundation tokens only
+- Foundation tokens (spacing, radii, borders, shadows, z-index, and color.overlay)
 - Categories: typography, motion, radius, elevation, z-index, blur, spacing
 
 ## Source Of Truth

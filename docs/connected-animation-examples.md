@@ -27,11 +27,16 @@ export function FeedAnimationProvider({
   children: React.ReactNode;
 }) {
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
+  const [animationEnabled, setAnimationEnabled] = useState(true);
 
-  // Check for reduced motion preference
-  const animationEnabled = !window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-  ).matches;
+  // Check for reduced motion preference (SSR-safe)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setAnimationEnabled(
+        !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      );
+    }
+  }, []);
 
   return (
     <FeedAnimationContext.Provider

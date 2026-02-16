@@ -60,14 +60,6 @@ export const useReadLaterActions = (): {
   );
 };
 
-/**
- * Hook to get all feeds
- * @returns Array of all feeds
- */
-export const useFeeds = () => {
-  return useFeedStore((state) => state.subscriptions);
-};
-
 export const useSubscriptions = () => {
   return useFeedStore((state) => state.subscriptions ?? []);
 };

@@ -24,7 +24,15 @@ export const cleanupTextContent = (text?: string): string => {
 
   // SSR guard: DOMParser not available on server
   if (typeof window === "undefined" || typeof DOMParser === "undefined") {
-    return text;
+    return text
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&#x27;/g, "'")
+      .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(Number(num)))
+      .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
   }
 
   const cached = textCleanupCache.get(text);

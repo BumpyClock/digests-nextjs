@@ -104,7 +104,7 @@ export function FeedList({
   const readItems = useFeedStore((state) => state.readItems);
 
   // readItems is always a Set post-hydration (guaranteed by onRehydrateStorage)
-  const readItemsSet = readItems;
+  const readItemsSet = readItems instanceof Set ? readItems : new Set(readItems || []);
 
   // Restore scroll position when component remounts
   useEffect(() => {

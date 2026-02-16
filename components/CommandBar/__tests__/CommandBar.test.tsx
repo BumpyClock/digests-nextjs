@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useCommandBarSearch } from "@/hooks/use-command-bar-search";
 import { useCommandBarShortcuts } from "@/hooks/use-command-bar-shortcuts";
-import { useFeeds, useReadActions } from "@/hooks/useFeedSelectors";
+import { useSubscriptions, useReadActions } from "@/hooks/useFeedSelectors";
 import { useFeedStore } from "@/store/useFeedStore";
 import { Feed, FeedItem } from "@/types";
 import { CommandBar } from "../CommandBar";
@@ -144,7 +144,7 @@ describe("CommandBar", () => {
     // Setup default mocks
     (useRouter as jest.Mock).mockReturnValue(mockRouter);
     (useTheme as jest.Mock).mockReturnValue(mockTheme);
-    (useFeeds as jest.Mock).mockReturnValue(mockFeeds);
+    (useSubscriptions as jest.Mock).mockReturnValue(mockFeeds);
     (useReadActions as jest.Mock).mockReturnValue({
       markAllAsRead: jest.fn(),
     });

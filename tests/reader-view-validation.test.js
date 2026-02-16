@@ -22,6 +22,10 @@ const okResult = {
 test("returns reader view when response is successful", () => {
   const result = getValidReaderViewOrThrow(okResult, "https://example.com/article");
   assert.equal(result.status, "ok");
+  assert.equal(result.url, "https://example.com/article");
+  assert.equal(result.title, "ok");
+  assert.ok(result.content, "content should be present");
+  assert.ok(result.content.length > 0, "content should be non-empty");
 });
 
 test("throws when result is unsuccessful", () => {

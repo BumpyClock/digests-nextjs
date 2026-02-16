@@ -35,3 +35,16 @@ export const isValidUrl = (url: string | undefined | null): boolean => {
     return false;
   }
 };
+
+/**
+ * Checks if a string is a valid feed URL (http/https with validation)
+ * @param url - The URL string to validate
+ * @returns true if the URL is a valid feed URL, false otherwise
+ */
+export const isFeedUrl = (url: string | null | undefined): url is string => {
+  if (!url) return false;
+  const normalized = url.trim();
+  if (!normalized) return false;
+  if (!/^https?:\/\//i.test(normalized)) return false;
+  return isValidUrl(normalized);
+};

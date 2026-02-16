@@ -30,9 +30,10 @@ export const MARKDOWN_COMPONENTS: MarkdownComponents = {
     </h4>
   ),
   p: ({ children, ...props }: React.ComponentProps<"p">) => {
-    const hasImages = React.Children.toArray(children).some(
-      (child) => React.isValidElement(child) && child.type === "img"
-    );
+    const hasImages = React.Children.toArray(children).some((child) => {
+      if (!React.isValidElement(child)) return false;
+      return child.type === "img" || (child.props && "src" in child.props);
+    });
 
     if (hasImages) {
       return (

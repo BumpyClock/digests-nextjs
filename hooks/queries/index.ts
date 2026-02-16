@@ -6,4 +6,3 @@ export * from "./feedsMutations";
 export * from "./use-feed-background-sync";
 export * from "./use-feeds-data";
 export * from "./use-reader-view-query";
-export { readerViewKeys } from "./use-reader-view-query";

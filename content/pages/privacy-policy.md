@@ -8,17 +8,17 @@ The app engages in no ad targeting, data mining, or other algorithmic targeting 
 
 ## Data collection
 
-- Only the urls of your subscribed feeds are transmitted to the server to retrieve them. No IP address or other personal data is sent with any request or saved. You are free to review the source code of apps & API server to verify this. 
+- Only the urls of your subscribed feeds are transmitted to the server to retrieve them. No IP address or other personal data is sent with any request or saved. You are free to review the source code of apps & API server to verify this.
 
 - Google Analytics and Microsoft Clarity are used to collect anonymous usage data, these are opt-in and you can opt-out anytime. Google Analytics & Microsoft Clarity are used to improve the app.
 
 ## Data retention
 
-We do not retain any data from you. Only the data required to provide the service is retained for a period of 30 days, this may change in the future. 
+We do not retain any data from you. Only the data required to provide the service is retained for a period of 30 days, this may change in the future.
 
-- Links to RSS feeds and their cached content are cycled out of the cache after 30 days. This is done to improve performance, avoid processing the same content multiple times and avoid unnecessary requests to the upstream servers. 
+- Links to RSS feeds and their cached content are cycled out of the cache after 30 days. This is done to improve performance, avoid processing the same content multiple times and avoid unnecessary requests to the upstream servers.
 
-- Only links to RSS feeds are stored temporarily, no user identifiable data like email, name, IP address, etc. is sent to the server or retained by the server.
+- Only links to RSS feeds are stored temporarily, no user-identifiable data like email, name, IP address, etc. is sent to the server or retained by the server.
 
 - Links to RSS feeds are not shared with any third-party. You can host the digests-api server yourself, it is public source and available on GitHub and as a Docker image on Docker Hub. Apps may not provide the ability to switch to a self-hosted API server but that functionality is on the roadmap and will eventually be available. You can build the apps yourself from source code and modify the API server URL to point to your own server or any other server you control or prefer.
 
