@@ -1,7 +1,7 @@
 "use client";
 
+import { Bookmark, ExternalLink, Share2 } from "lucide-react";
 import React from "react";
-import { Share2, ExternalLink, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { handleShare, showReadLaterToast } from "@/utils/content-actions";
 

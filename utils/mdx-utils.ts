@@ -1,6 +1,6 @@
 import fs from "fs";
-import path from "path";
 import matter from "gray-matter";
+import path from "path";
 
 // Define content directories
 export const APP_MDX_DIR = path.join(process.cwd(), "app/pages");

@@ -2,19 +2,18 @@
 
 import { memo, useEffect } from "react";
 import "./ArticleReader.css";
-import type { FeedItem, ReaderViewResponse } from "@/types";
+import { motion } from "motion/react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-media-query";
+import { motionTokens } from "@/lib/motion-tokens";
+import type { FeedItem, ReaderViewResponse } from "@/types";
 import { cleanupModalContent } from "@/utils/htmlUtils";
 import { cleanupMarkdownContent } from "@/utils/imageDeduplicator";
-import { useIsMobile } from "@/hooks/use-media-query";
-import { motion } from "motion/react";
-import { motionTokens } from "@/lib/motion-tokens";
-
+import { ArticleActions } from "./ArticleActions";
+import { ArticleContent } from "./ArticleContent";
 // Import extracted components
 import { ArticleHeader } from "./ArticleHeader";
-import { ArticleContent } from "./ArticleContent";
 import { ArticleMetadata } from "./ArticleMetadata";
-import { ArticleActions } from "./ArticleActions";
 import { useArticleActions } from "./hooks/use-article-actions";
 
 interface ArticleReaderProps {

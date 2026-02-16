@@ -1,5 +1,5 @@
-import test from "node:test";
 import assert from "node:assert";
+import test from "node:test";
 import { normalizeUrl } from "../compiled-tests/url.js";
 
 test("removes protocol and trailing slash", () => {

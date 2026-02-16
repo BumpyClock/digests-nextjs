@@ -1,9 +1,9 @@
-import { memo } from "react";
-import { Trash2, Copy } from "lucide-react";
+import { Copy, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { memo } from "react";
 import noise from "@/public/noise.svg";
-import placeholderRss from "@/public/placeholder-rss.svg";
 import placeholderPodcast from "@/public/placeholder-podcast.svg";
+import placeholderRss from "@/public/placeholder-rss.svg";
 import type { Feed } from "@/types";
 import type { Subscription } from "@/types/subscription";
 import { getSiteDisplayName } from "@/utils/htmlUtils";

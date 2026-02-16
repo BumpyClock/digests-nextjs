@@ -1,6 +1,6 @@
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
 import localforage from "localforage";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 
 // Font size scale: 0-4 (0 = smallest, 4 = largest)
 export const FONT_SIZE_MIN = 0;

@@ -1,7 +1,7 @@
 import { memo } from "react";
-import { SettingsFeedCard } from "./components/settings-feed-card";
 import type { Feed } from "@/types";
 import type { Subscription } from "@/types/subscription";
+import { SettingsFeedCard } from "./components/settings-feed-card";
 
 interface SettingsFeedGridProps {
   feeds: Array<Feed | Subscription>;

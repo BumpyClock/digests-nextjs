@@ -50,6 +50,10 @@ interface RunWithViewTransitionOptions {
    * Used by CSS to isolate view-transition stacking for specific flows.
    */
   phaseClassName?: string;
+  /**
+   * Optional callback when the browser transition finishes.
+   */
+  onFinished?: () => void;
 }
 
 const VT_PHASE_CLASS_TIMEOUT_MS = 2000;
@@ -80,31 +84,40 @@ export function runWithViewTransition(
 ): void {
   if (typeof document === "undefined") {
     update();
+    options.onFinished?.();
     return;
   }
 
   const viewTransitionDocument = document as Document & DocumentWithViewTransition;
   if (typeof viewTransitionDocument.startViewTransition !== "function") {
     update();
+    options.onFinished?.();
     return;
   }
 
-  const { phaseClassName } = options;
+  const { phaseClassName, onFinished } = options;
+  let hasFinished = false;
   let clearTimeoutId: number | null = null;
 
-  const clearPhaseClass = () => {
+  const finalize = () => {
+    if (hasFinished) {
+      return;
+    }
+    hasFinished = true;
+
     if (clearTimeoutId !== null) {
-      window.clearTimeout(clearTimeoutId);
+      clearTimeout(clearTimeoutId);
       clearTimeoutId = null;
     }
     if (phaseClassName) {
       removePhaseClass(phaseClassName);
     }
+    onFinished?.();
   };
 
   if (phaseClassName) {
     addPhaseClass(phaseClassName);
-    clearTimeoutId = window.setTimeout(clearPhaseClass, VT_PHASE_CLASS_TIMEOUT_MS);
+    clearTimeoutId = window.setTimeout(finalize, VT_PHASE_CLASS_TIMEOUT_MS);
   }
 
   const transition = viewTransitionDocument.startViewTransition(() => {
@@ -113,15 +126,15 @@ export function runWithViewTransition(
     });
   });
 
-  if (!phaseClassName) {
-    return;
-  }
-
   const maybeFinished =
     transition && typeof transition === "object" && "finished" in transition
       ? (transition as { finished?: Promise<unknown> }).finished
       : undefined;
+
   if (maybeFinished && typeof maybeFinished.then === "function") {
-    maybeFinished.finally(clearPhaseClass);
+    maybeFinished.finally(finalize);
+    return;
   }
+
+  finalize();
 }

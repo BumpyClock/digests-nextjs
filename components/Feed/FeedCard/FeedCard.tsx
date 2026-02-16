@@ -6,11 +6,11 @@ import { Bookmark, Share2 } from "lucide-react";
 import { LayoutGroup, motion } from "motion/react";
 import Image from "next/image";
 import type React from "react";
-import { memo, useCallback, useRef, useState } from "react";
+import { memo, useCallback, useState } from "react";
 import { PodcastPlayButton } from "@/components/Podcast/shared/PodcastPlayButton";
 import { Ambilight } from "@/components/ui/ambilight";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter as CardFooterUI } from "@/components/ui/card";
+import { CardContent, CardFooter as CardFooterUI } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
 import { useIsInReadLater, useIsItemRead, useReadLaterActions } from "@/hooks/useFeedSelectors";
@@ -36,6 +36,7 @@ const DEFAULT_THUMBNAIL_COLOR = { r: 0, g: 0, b: 0 };
 export interface FeedCardProps {
   feed: FeedItem;
   onItemOpen?: (item: FeedItem, cleanup?: () => void) => void;
+  onItemOpenTransitionComplete?: () => void;
 }
 
 /**
@@ -95,8 +96,11 @@ const CardFooter = memo(function CardFooter({ feedItem }: { feedItem: FeedItem }
 /**
  * FeedCard component for displaying individual feed items.
  */
-export const FeedCard = memo(function FeedCard({ feed: feedItem, onItemOpen }: FeedCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
+export const FeedCard = memo(function FeedCard({
+  feed: feedItem,
+  onItemOpen,
+  onItemOpenTransitionComplete,
+}: FeedCardProps) {
   const [imageError, setImageError] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
   const [showPlaceholder, setShowPlaceholder] = useState(false);
@@ -111,6 +115,7 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem, onItemOpen }: F
   const viewTransitionsEnabled = animationEnabled && vtSupported;
   const motionLayoutEnabled = animationEnabled && !viewTransitionsEnabled;
   const cardViewTransitionEnabled = viewTransitionsEnabled && !isActive;
+  const childViewTransitionEnabled = false;
 
   // CSS custom properties for card shadow color
   const thumbnailColor = feedItem.thumbnailColor || DEFAULT_THUMBNAIL_COLOR;
@@ -125,12 +130,27 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem, onItemOpen }: F
           onItemOpen?.(feedItem);
         } else {
           if (viewTransitionsEnabled) {
+            const sourceTile = (e.currentTarget as HTMLElement).closest(
+              "[data-masonic-tile]"
+            ) as HTMLElement | null;
+            if (sourceTile) {
+              sourceTile.classList.add("vt-source-tile");
+            }
+
             runWithViewTransition(
               () => {
                 setIsActive(true);
                 onItemOpen?.(feedItem, () => setIsActive(false));
               },
-              { phaseClassName: "reader-vt-active" }
+              {
+                phaseClassName: "reader-vt-active",
+                onFinished: () => {
+                  if (sourceTile) {
+                    sourceTile.classList.remove("vt-source-tile");
+                  }
+                  onItemOpenTransitionComplete?.();
+                },
+              }
             );
           } else {
             onItemOpen?.(feedItem);
@@ -138,7 +158,7 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem, onItemOpen }: F
         }
       }
     },
-    [feedItem, viewTransitionsEnabled, onItemOpen]
+    [feedItem, viewTransitionsEnabled, onItemOpen, onItemOpenTransitionComplete]
   );
 
   const formatDate = useCallback((dateString: string) => {
@@ -154,121 +174,120 @@ export const FeedCard = memo(function FeedCard({ feed: feedItem, onItemOpen }: F
     setFaviconError(true);
   }, []);
 
-  const cardContent = (
+  const cardShellMotionStyle = {
+    "--card-shadow-r": thumbnailColor.r,
+    "--card-shadow-g": thumbnailColor.g,
+    "--card-shadow-b": thumbnailColor.b,
+    opacity: isRead ? 0.8 : 1,
+    ...(getViewTransitionStyle(cardViewTransitionEnabled, animationIds.cardShell) ?? {}),
+  } as React.CSSProperties;
+
+  const cardContentWithShell = (
     <motion.div
       whileHover={animationEnabled ? { y: -4 } : undefined}
       whileTap={animationEnabled ? { scale: 0.98 } : undefined}
       initial={animationEnabled ? { opacity: 0, y: 20 } : undefined}
       animate={animationEnabled ? { opacity: 1, y: 0 } : undefined}
       transition={{ duration: motionTokens.duration.normal }}
+      layoutId={motionLayoutEnabled ? animationIds.cardShell : undefined}
+      style={cardShellMotionStyle}
+      className={`feed-card card w-full bg-card overflow-hidden cursor-pointer rounded-4xl relative group ${
+        isRead ? "read-item" : ""
+      }`}
+      onClick={handleCardClick}
     >
-      <Card
-        ref={cardRef}
-        style={
-          {
-            "--card-shadow-r": thumbnailColor.r,
-            "--card-shadow-g": thumbnailColor.g,
-            "--card-shadow-b": thumbnailColor.b,
-            opacity: isRead ? 0.8 : 1,
-          } as React.CSSProperties
-        }
-        className={`feed-card card w-full bg-card overflow-hidden cursor-pointer rounded-4xl relative group ${isRead ? "read-item" : ""}`}
-        onClick={handleCardClick}
-      >
-        <div id={`feed-card-image-${feedItem.id}`} className="relative z-10 ">
-          {/* Card Thumbnail image*/}
-          {((!imageError && feedItem.thumbnail && isValidUrl(feedItem.thumbnail)) ||
-            showPlaceholder) && (
-            <motion.div
-              className="relative w-full p-2"
-              layoutId={motionLayoutEnabled ? animationIds.thumbnail : undefined}
-              style={getViewTransitionStyle(cardViewTransitionEnabled, animationIds.thumbnail)}
-            >
-              <Ambilight className="relative w-full aspect-video rounded-3xl overflow-hidden">
-                {imageLoading && <Skeleton className="absolute inset-0 z-10 rounded-3xl" />}
-                <Image
-                  src={
-                    showPlaceholder
-                      ? isPodcast(feedItem)
-                        ? "/placeholder-podcast.svg"
-                        : "/placeholder-rss.svg"
-                      : canUseImageKit(feedItem.thumbnail)
-                        ? getImageKitUrl(feedItem.thumbnail, IMAGE_PRESETS.feedCardThumbnail)
-                        : feedItem.thumbnail
-                  }
-                  alt={feedItem.title}
-                  width={400}
-                  height={300}
-                  className={`w-full h-full object-cover rounded-3xl group-hover:scale-[1.05] transition-token-transform duration-fast ${
-                    imageLoading ? "opacity-0" : "opacity-100"
-                  }`}
-                  onError={() => handleImageError()}
-                  onLoad={() => setImageLoading(false)}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                  loading="lazy"
-                />
-              </Ambilight>
-            </motion.div>
-          )}
+      <div id={`feed-card-image-${feedItem.id}`} className="relative z-10 ">
+        {((!imageError && feedItem.thumbnail && isValidUrl(feedItem.thumbnail)) ||
+          showPlaceholder) && (
+          <motion.div
+            className="relative w-full p-2"
+            layoutId={motionLayoutEnabled ? animationIds.thumbnail : undefined}
+            style={getViewTransitionStyle(childViewTransitionEnabled, animationIds.thumbnail)}
+          >
+            <Ambilight className="relative w-full aspect-video rounded-3xl overflow-hidden">
+              {imageLoading && <Skeleton className="absolute inset-0 z-10 rounded-3xl" />}
+              <Image
+                src={
+                  showPlaceholder
+                    ? isPodcast(feedItem)
+                      ? "/placeholder-podcast.svg"
+                      : "/placeholder-rss.svg"
+                    : canUseImageKit(feedItem.thumbnail)
+                      ? getImageKitUrl(feedItem.thumbnail, IMAGE_PRESETS.feedCardThumbnail)
+                      : feedItem.thumbnail
+                }
+                alt={feedItem.title}
+                width={400}
+                height={300}
+                className={`w-full h-full object-cover rounded-3xl group-hover:scale-[1.05] transition-token-transform duration-fast ${
+                  imageLoading ? "opacity-0" : "opacity-100"
+                }`}
+                onError={() => handleImageError()}
+                onLoad={() => setImageLoading(false)}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                loading="lazy"
+              />
+            </Ambilight>
+          </motion.div>
+        )}
 
-          <CardContent className="p-4">
-            <div className="space-y-2">
-              <div
-                id={`feed-card-header-${feedItem.id}`}
-                className="flex flex-wrap items-center justify-between gap-2 font-normal"
-              >
-                <div className="flex space-between gap-2 align-center items-center">
-                  <div>
-                    {!faviconError && feedItem.favicon && isValidUrl(feedItem.favicon) ? (
-                      <Image
-                        src={feedItem.favicon}
-                        alt={`${cleanupTextContent(getSiteDisplayName(feedItem))} favicon`}
-                        className="w-6 h-6 bg-background rounded-sm"
-                        onError={() => handleFaviconError()}
-                        width={24}
-                        height={24}
-                      />
-                    ) : (
-                      <div className="w-6 h-6 bg-muted rounded-sm flex items-center justify-center text-caption">
-                        {cleanupTextContent(getSiteDisplayName(feedItem)).charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-caption line-clamp-1">
-                    {cleanupTextContent(getSiteDisplayName(feedItem))}
-                  </div>
+        <CardContent className="p-4">
+          <div className="space-y-2">
+            <div
+              id={`feed-card-header-${feedItem.id}`}
+              className="flex flex-wrap items-center justify-between gap-2 font-normal"
+            >
+              <div className="flex space-between gap-2 align-center items-center">
+                <div>
+                  {!faviconError && feedItem.favicon && isValidUrl(feedItem.favicon) ? (
+                    <Image
+                      src={feedItem.favicon}
+                      alt={`${cleanupTextContent(getSiteDisplayName(feedItem))} favicon`}
+                      className="w-6 h-6 bg-background rounded-sm"
+                      onError={() => handleFaviconError()}
+                      width={24}
+                      height={24}
+                    />
+                  ) : (
+                    <div className="w-6 h-6 bg-muted rounded-sm flex items-center justify-center text-caption">
+                      {cleanupTextContent(getSiteDisplayName(feedItem)).charAt(0).toUpperCase()}
+                    </div>
+                  )}
                 </div>
-                <div className="text-caption text-secondary-content w-fit">
-                  {formatDate(feedItem.published)}
+                <div className="text-caption line-clamp-1">
+                  {cleanupTextContent(getSiteDisplayName(feedItem))}
                 </div>
               </div>
-              <motion.h3
-                className="text-subtitle"
-                layoutId={motionLayoutEnabled ? animationIds.title : undefined}
-                style={getViewTransitionStyle(cardViewTransitionEnabled, animationIds.title)}
-              >
-                {cleanupTextContent(feedItem.title)}
-              </motion.h3>
-              {feedItem.author && (
-                <div className="text-body-small text-secondary-content">
-                  By {cleanupTextContent(feedItem.author)}
-                </div>
-              )}
-              <p className="text-body-small text-secondary-content line-clamp-3">
-                {cleanupTextContent(feedItem.description)}
-              </p>
+              <div className="text-caption text-secondary-content w-fit">
+                {formatDate(feedItem.published)}
+              </div>
             </div>
-          </CardContent>
+            <motion.h3
+              className="text-subtitle"
+              layoutId={motionLayoutEnabled ? animationIds.title : undefined}
+              style={getViewTransitionStyle(childViewTransitionEnabled, animationIds.title)}
+            >
+              {cleanupTextContent(feedItem.title)}
+            </motion.h3>
+            {feedItem.author && (
+              <div className="text-body-small text-secondary-content">
+                By {cleanupTextContent(feedItem.author)}
+              </div>
+            )}
+            <p className="text-body-small text-secondary-content line-clamp-3">
+              {cleanupTextContent(feedItem.description)}
+            </p>
+          </div>
+        </CardContent>
 
-          <CardFooter feedItem={feedItem} />
-        </div>
-      </Card>
+        <CardFooter feedItem={feedItem} />
+      </div>
     </motion.div>
   );
 
   return motionLayoutEnabled ? (
-    <LayoutGroup id={feedItem.id}>{cardContent}</LayoutGroup>
+    <LayoutGroup id={feedItem.id}>{cardContentWithShell}</LayoutGroup>
   ) : (
-    cardContent
+    cardContentWithShell
   );
 });

@@ -1,5 +1,5 @@
 import type React from "react";
-import { useId, type ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 
 interface FrostedGlassProps {
   children: ReactNode;

@@ -5,7 +5,7 @@
  * reusable across React Query selectors and other components.
  */
 
-import type { FeedItem, Feed } from "@/types";
+import type { Feed, FeedItem } from "@/types";
 import type { Subscription } from "@/types/subscription";
 
 /**

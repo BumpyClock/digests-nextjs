@@ -1,17 +1,16 @@
 import {
-  useMutation,
-  useQueryClient,
   type QueryClient,
   type QueryKey,
+  useMutation,
+  useQueryClient,
 } from "@tanstack/react-query";
-import type { Feed, FeedItem } from "@/types";
-import { toSubscription } from "@/utils/selectors";
 import { workerService } from "@/services/worker-service";
 import { useFeedStore } from "@/store/useFeedStore";
+import type { Feed, FeedItem } from "@/types";
 import type { Subscription } from "@/types/subscription";
+import { sortByDateDesc, toSubscription } from "@/utils/selectors";
+import { type CacheData, mergeCacheData } from "./feed-cache-utils";
 import { feedsKeys } from "./feedsKeys";
-import { sortByDateDesc } from "@/utils/selectors";
-import { mergeCacheData, type CacheData } from "./feed-cache-utils";
 
 type FeedMutationContext = {
   previousSubscriptions: Subscription[];

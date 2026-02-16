@@ -1,6 +1,6 @@
+import { StateCreator } from "zustand";
 import type { FeedItem } from "@/types";
 import { Logger } from "@/utils/logger";
-import { StateCreator } from "zustand";
 
 export type ReadStatusSlice = {
   readItems: Set<string>;

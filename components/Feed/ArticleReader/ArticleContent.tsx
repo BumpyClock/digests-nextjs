@@ -1,8 +1,8 @@
 "use client";
 
-import React, { memo, useMemo } from "react";
-import dynamic from "next/dynamic";
 import { motion } from "motion/react";
+import dynamic from "next/dynamic";
+import React, { memo, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motionTokens } from "@/lib/motion-tokens";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";

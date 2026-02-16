@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FeedItem } from "@/types";
-import { BaseModal } from "./base-modal";
+import { ReaderContent } from "@/components/Feed/ReaderContent";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useReaderView } from "@/hooks/queries";
 import { useScrollShadow } from "@/hooks/use-scroll-shadow";
-import { ScrollShadow } from "./ui/scroll-shadow";
-import { ReaderContent } from "@/components/Feed/ReaderContent";
 import { useFeedStore } from "@/store/useFeedStore";
+import { FeedItem } from "@/types";
+import { BaseModal } from "./base-modal";
+import { ScrollShadow } from "./ui/scroll-shadow";
 
 // Selector for stable function reference — avoids full-store subscription
 const selectMarkAsRead = (s: ReturnType<typeof useFeedStore.getState>) => s.markAsRead;
@@ -20,6 +20,7 @@ interface ReaderViewModalProps {
   onClose: () => void;
   feedItem: FeedItem;
   useViewTransition?: boolean;
+  viewTransitionBackdropSettled?: boolean;
 }
 
 export function ReaderViewModal({
@@ -27,6 +28,7 @@ export function ReaderViewModal({
   isOpen,
   onClose,
   useViewTransition,
+  viewTransitionBackdropSettled,
 }: ReaderViewModalProps) {
   const { readerView, loading, cleanedContent, cleanedMarkdown, extractedAuthor } = useReaderView(
     feedItem?.link || "",
@@ -101,7 +103,8 @@ export function ReaderViewModal({
       title={readerView?.title || "Loading..."}
       className=""
       useViewTransition={useViewTransition}
-      viewTransitionBackdropSettleMs={OPEN_TRANSITION_DELAY_MS}
+      viewTransitionBackdropSettled={viewTransitionBackdropSettled}
+      viewTransitionBackdropSettleMs={useViewTransition ? OPEN_TRANSITION_DELAY_MS : undefined}
     >
       <div className="relative h-full overflow-hidden">
         <ScrollShadow visible={!transitionInProgress && hasScrolled} position="top" />

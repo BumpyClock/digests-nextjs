@@ -1,5 +1,5 @@
 import type { Feed, FeedItem, ReaderViewResponse } from "@/types";
-import type { IFeedFetcher, FeedFetcherConfig } from "./interfaces/feed-fetcher.interface";
+import type { FeedFetcherConfig, IFeedFetcher } from "./interfaces/feed-fetcher.interface";
 import { fetchFeeds as fetchFeedsFromApi, fetchReaderView as fetchReaderViewFromApi } from "./rss";
 
 /**

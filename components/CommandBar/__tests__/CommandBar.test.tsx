@@ -1,14 +1,14 @@
 // ABOUTME: Unit tests for the CommandBar component with React Query integration
 // ABOUTME: Tests prop vs store fallback behavior and component functionality
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { CommandBar } from "../CommandBar";
+import { useCommandBarSearch } from "@/hooks/use-command-bar-search";
+import { useCommandBarShortcuts } from "@/hooks/use-command-bar-shortcuts";
 import { useFeeds, useReadActions } from "@/hooks/useFeedSelectors";
 import { useFeedStore } from "@/store/useFeedStore";
-import { useCommandBarShortcuts } from "@/hooks/use-command-bar-shortcuts";
-import { useCommandBarSearch } from "@/hooks/use-command-bar-search";
-import { FeedItem, Feed } from "@/types";
+import { Feed, FeedItem } from "@/types";
+import { CommandBar } from "../CommandBar";
 
 // Helper factories to create fully-typed Feed / FeedItem objects with sensible defaults
 function createFeed(partial: Partial<Feed>): Feed {

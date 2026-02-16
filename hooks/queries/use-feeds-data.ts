@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { workerService } from "@/services/worker-service";
 import { useFeedStore } from "@/store/useFeedStore";
-import { feedsKeys } from "./feedsKeys";
-import { sortByDateDesc } from "@/utils/selectors";
 import type { Feed, FeedItem } from "@/types";
+import { sortByDateDesc } from "@/utils/selectors";
+import { feedsKeys } from "./feedsKeys";
 
 /**
  * React Query hook for fetching and managing feeds data

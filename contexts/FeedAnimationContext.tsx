@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, ReactNode, useEffect, useState } from "react";
 import { MotionConfig } from "motion/react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { useUiPreferencesStore } from "@/store/useUiPreferencesStore";
 
 interface AnimationContextValue {

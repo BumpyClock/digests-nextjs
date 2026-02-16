@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Hook for tracking new feed items via React Query cache updates

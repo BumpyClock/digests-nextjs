@@ -1,6 +1,6 @@
+import { cva, type VariantProps } from "class-variance-authority";
 import React from "react";
 import { cn } from "@/lib/utils";
-import { cva, type VariantProps } from "class-variance-authority";
 
 const mockupVariants = cva(
   "flex relative z-10 overflow-hidden border border-border/5 border-t-border/15 rounded-2xl",

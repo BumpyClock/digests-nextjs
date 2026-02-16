@@ -1,9 +1,9 @@
-import { getMdxMetadata, APP_MDX_DIR, CONTENT_MDX_DIR } from "@/utils/mdx-utils";
 import fs from "fs";
 import { notFound } from "next/navigation";
 import { compileMDX } from "next-mdx-remote/rsc";
-import { getMDXComponents } from "@/mdx-components";
 import remarkGfm from "remark-gfm";
+import { getMDXComponents } from "@/mdx-components";
+import { APP_MDX_DIR, CONTENT_MDX_DIR, getMdxMetadata } from "@/utils/mdx-utils";
 
 export default async function Page(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;

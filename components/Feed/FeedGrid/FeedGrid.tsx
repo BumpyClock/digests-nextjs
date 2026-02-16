@@ -1,20 +1,20 @@
 "use client";
 
-import { useCallback, useState, useEffect, useMemo, useRef } from "react";
-import { Masonry } from "masonic";
 import { useQueryClient } from "@tanstack/react-query";
+import { Masonry } from "masonic";
+import { motion } from "motion/react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FeedCard } from "@/components/Feed/FeedCard/FeedCard";
 import { PodcastDetailsModal } from "@/components/Podcast/PodcastDetailsModal";
 import { ReaderViewModal } from "@/components/reader-view-modal";
-import { useWindowSize } from "@/hooks/use-window-size";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
-import { useViewTransitionsSupported, runWithViewTransition } from "@/lib/view-transitions";
+import { getValidReaderViewOrThrow } from "@/hooks/queries/reader-view-validation";
 import { readerViewKeys } from "@/hooks/queries/use-reader-view-query";
+import { useWindowSize } from "@/hooks/use-window-size";
+import { runWithViewTransition, useViewTransitionsSupported } from "@/lib/view-transitions";
 import { workerService } from "@/services/worker-service";
 import { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
-import { motion } from "motion/react";
-import { getValidReaderViewOrThrow } from "@/hooks/queries/reader-view-validation";
 
 // Custom event for feed refresh
 export const FEED_REFRESHED_EVENT = "feed-refreshed";
@@ -44,6 +44,7 @@ const LoadingAnimation = () => {
 export function FeedGrid({ items, isLoading }: FeedGridProps) {
   const [mounted, setMounted] = useState(false);
   const [openItem, setOpenItem] = useState<FeedItem | null>(null);
+  const [readerTransitionSettled, setReaderTransitionSettled] = useState(false);
   const { width: windowWidth } = useWindowSize();
   const queryClient = useQueryClient();
   const { animationEnabled } = useFeedAnimation();
@@ -63,10 +64,18 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
 
   const cleanupRef = useRef<(() => void) | null>(null);
 
-  const handleItemOpen = useCallback((item: FeedItem, cleanup?: () => void) => {
-    cleanupRef.current?.();
-    cleanupRef.current = cleanup || null;
-    setOpenItem(item);
+  const handleItemOpen = useCallback(
+    (item: FeedItem, cleanup?: () => void) => {
+      cleanupRef.current?.();
+      cleanupRef.current = cleanup || null;
+      setReaderTransitionSettled(!viewTransitionsEnabled);
+      setOpenItem(item);
+    },
+    [viewTransitionsEnabled]
+  );
+
+  const handleItemOpenTransitionSettled = useCallback(() => {
+    setReaderTransitionSettled(true);
   }, []);
 
   const handleClose = useCallback(() => {
@@ -103,11 +112,23 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
 
   const renderItem = useCallback(
     ({ data: feed }: { data: FeedItem }) => (
-      <div style={{ contain: "layout style" }} onMouseEnter={() => handlePrefetch(feed)}>
-        <FeedCard feed={feed} onItemOpen={handleItemOpen} />
+      // biome-ignore lint/a11y/noStaticElementInteractions: prefetch-only hover, not interactive
+      <div
+        role="presentation"
+        className="relative z-0 hover:z-modal focus-within:z-modal"
+        style={{ contain: "layout style" }}
+        onMouseEnter={() => handlePrefetch(feed)}
+      >
+        <FeedCard
+          feed={feed}
+          onItemOpen={handleItemOpen}
+          onItemOpenTransitionComplete={
+            viewTransitionsEnabled ? handleItemOpenTransitionSettled : undefined
+          }
+        />
       </div>
     ),
-    [handleItemOpen, handlePrefetch]
+    [handleItemOpen, handlePrefetch, viewTransitionsEnabled, handleItemOpenTransitionSettled]
   );
 
   const memoizedItems = useMemo(() => {
@@ -157,6 +178,7 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
             onClose={handleClose}
             feedItem={openItem}
             useViewTransition={viewTransitionsEnabled}
+            viewTransitionBackdropSettled={readerTransitionSettled}
           />
         )}
       </>

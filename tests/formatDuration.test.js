@@ -1,5 +1,5 @@
-import test from "node:test";
 import assert from "node:assert";
+import test from "node:test";
 import { formatDuration } from "../compiled-tests/formatDuration.js";
 
 test("handles invalid input", () => {

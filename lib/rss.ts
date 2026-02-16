@@ -1,8 +1,8 @@
-import type { Feed, FeedItem, FetchFeedsResponse, ReaderViewResponse } from "@/types";
-import type { FeedFetcherConfig } from "./interfaces/feed-fetcher.interface";
 import { getApiUrl } from "@/lib/config";
-import { Logger } from "@/utils/logger";
 import { transformFeedResponse } from "@/lib/feed-transformer";
+import type { Feed, FeedItem, FetchFeedsResponse, ReaderViewResponse } from "@/types";
+import { Logger } from "@/utils/logger";
+import type { FeedFetcherConfig } from "./interfaces/feed-fetcher.interface";
 
 /**
  * Fetches feeds from the API

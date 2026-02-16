@@ -1,11 +1,11 @@
 "use client";
 
-import * as React from "react";
+import { LucideArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Mockup, MockupFrame } from "@/components/ui/mockup";
-import { LucideArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface HeroProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   title: React.ReactNode;

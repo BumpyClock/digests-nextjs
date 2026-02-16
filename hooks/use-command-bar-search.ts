@@ -1,7 +1,7 @@
-import { useMemo, useCallback } from "react";
-import { FeedItem, Feed } from "@/types";
-import type { Subscription } from "@/types/subscription";
+import { useCallback, useMemo } from "react";
 import { useDebounce } from "use-debounce";
+import { Feed, FeedItem } from "@/types";
+import type { Subscription } from "@/types/subscription";
 
 /**
  * Helper: combine relevant FeedItem fields & see if they match `query`.

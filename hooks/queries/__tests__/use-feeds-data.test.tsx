@@ -1,13 +1,13 @@
 // ABOUTME: Unit tests for the useFeedsData React Query hook
 // ABOUTME: Tests happy path, error handling, and loading states for feed data fetching
 
-import type { ReactNode } from "react";
-import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useFeedsData } from "../use-feeds-data";
+import { renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { workerService } from "@/services/worker-service";
 import { useFeedStore } from "@/store/useFeedStore";
 import { Feed, FeedItem } from "@/types";
+import { useFeedsData } from "../use-feeds-data";
 
 // Mock dependencies
 jest.mock("@/services/worker-service");

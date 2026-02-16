@@ -4,8 +4,8 @@
  * rather than the entire store, preventing unnecessary re-renders
  */
 
-import { useFeedStore } from "@/store/useFeedStore";
 import { useShallow } from "zustand/react/shallow";
+import { useFeedStore } from "@/store/useFeedStore";
 import type { FeedItem } from "@/types";
 
 /**

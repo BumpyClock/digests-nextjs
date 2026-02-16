@@ -1,12 +1,12 @@
 "use client";
 
-import React from "react";
 import Image from "next/image";
-import ReactMarkdown from "react-markdown";
+import React from "react";
 import type { Components as MarkdownComponents } from "react-markdown";
-import remarkGfm from "remark-gfm";
+import ReactMarkdown from "react-markdown";
 import rehypeRaw from "rehype-raw";
 import rehypeSanitize from "rehype-sanitize";
+import remarkGfm from "remark-gfm";
 
 export const MARKDOWN_COMPONENTS: MarkdownComponents = {
   h1: ({ children, ...props }: React.ComponentProps<"h1">) => (

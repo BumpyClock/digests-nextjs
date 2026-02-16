@@ -2,7 +2,23 @@
 // ABOUTME: Implements feed/article filtering, suggestions, and reader modal launching.
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import {
+  CheckCircle,
+  Moon,
+  Newspaper,
+  Podcast,
+  RefreshCcw,
+  Rss,
+  Search,
+  Settings,
+  Sun,
+} from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
+import React, { useCallback, useMemo, useState } from "react";
+import { ReaderViewModal } from "@/components/reader-view-modal";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandDialog,
@@ -13,28 +29,11 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
-import { FeedItem, Feed } from "@/types";
-import type { Subscription } from "@/types/subscription";
-import { useSubscriptions, useReadActions } from "@/hooks/useFeedSelectors";
-import { Button } from "@/components/ui/button";
-import {
-  Moon,
-  Podcast,
-  RefreshCcw,
-  Rss,
-  Search,
-  Settings,
-  Sun,
-  CheckCircle,
-  Newspaper,
-} from "lucide-react";
-import React from "react";
 import { useCommandBarSearch } from "@/hooks/use-command-bar-search";
 import { useCommandBarShortcuts } from "@/hooks/use-command-bar-shortcuts";
-import { ReaderViewModal } from "@/components/reader-view-modal";
-import Image from "next/image";
+import { useReadActions, useSubscriptions } from "@/hooks/useFeedSelectors";
+import { Feed, FeedItem } from "@/types";
+import type { Subscription } from "@/types/subscription";
 import { getSiteDisplayName } from "@/utils/htmlUtils";
 
 interface CommandBarProps {

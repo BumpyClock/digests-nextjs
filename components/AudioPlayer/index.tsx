@@ -18,7 +18,7 @@ export function AudioPlayer() {
   return <AudioMiniPlayer />;
 }
 
+export { AudioControls } from "./AudioControls";
 // Export components for external use
 export { AudioMiniPlayer } from "./AudioMiniPlayer";
-export { AudioControls } from "./AudioControls";
 export type { AudioInfo } from "./types";

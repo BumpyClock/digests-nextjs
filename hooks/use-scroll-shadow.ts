@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ScrollData } from "@/types/reader";
 
 export function useScrollShadow() {

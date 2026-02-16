@@ -1,6 +1,6 @@
-import { useCallback, useRef, type FormEvent } from "react";
-import { useAddFeedMutation } from "@/hooks/queries";
+import { type FormEvent, useCallback, useRef } from "react";
 import { toast } from "sonner";
+import { useAddFeedMutation } from "@/hooks/queries";
 
 export function useFeedForm() {
   const formRef = useRef<HTMLFormElement>(null);

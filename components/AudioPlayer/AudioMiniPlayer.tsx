@@ -1,12 +1,12 @@
 "use client";
 
+import { Pause, Play, Repeat, SkipBack, SkipForward, X } from "lucide-react";
+import Image from "next/image";
 import { useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Play, Pause, SkipBack, SkipForward, Repeat, X } from "lucide-react";
-import { useFeedStore } from "@/store/useFeedStore";
 import { Slider } from "@/components/ui/slider";
-import Image from "next/image";
+import { useFeedStore } from "@/store/useFeedStore";
 import { formatTime } from "@/utils/audio";
 
 /**

@@ -1,8 +1,8 @@
 // ABOUTME: Unit tests for the feedsKeys query key factory
 // ABOUTME: Tests query key generation and stability for React Query cache management
 
-import { feedsKeys } from "../feedsKeys";
 import { stableKey } from "@/utils/hash";
+import { feedsKeys } from "../feedsKeys";
 
 // Mock the stableKey utility
 jest.mock("@/utils/hash");

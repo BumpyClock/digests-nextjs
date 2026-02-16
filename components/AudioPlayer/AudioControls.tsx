@@ -1,8 +1,8 @@
 "use client";
+import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
 import { useFeedStore } from "@/store/useFeedStore";
 import { formatTime } from "@/utils/audio";
 

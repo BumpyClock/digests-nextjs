@@ -1,9 +1,9 @@
 "use client";
 
-import { memo, useMemo } from "react";
-import Image from "next/image";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import Image from "next/image";
+import { memo, useMemo } from "react";
 
 dayjs.extend(relativeTime);
 

@@ -1,18 +1,17 @@
 // store/useFeedStore.ts
-import { create, type StateCreator, type StoreApi, type UseBoundStore } from "zustand";
-import { persist, createJSONStorage, type PersistOptions } from "zustand/middleware";
-import localforage from "localforage";
-import { useState, useEffect, useRef } from "react";
 
-import type { Subscription } from "@/types/subscription";
-import { createFeedSlice, type FeedSlice } from "./slices/feedSlice";
-import { createReadStatusSlice, type ReadStatusSlice } from "./slices/readStatusSlice";
-import { createMetadataSlice, type MetadataSlice } from "./slices/metadataSlice";
-import { createAudioSlice, type AudioSlice } from "./slices/audioSlice";
-import { withPerformanceMonitoring } from "./middleware/performanceMiddleware";
-import { Logger } from "@/utils/logger";
+import localforage from "localforage";
+import { useEffect, useRef, useState } from "react";
+import { create, type StateCreator, type StoreApi, type UseBoundStore } from "zustand";
+import { createJSONStorage, type PersistOptions, persist } from "zustand/middleware";
 import { deserializeSet } from "@/lib/serializers/set-serializer";
+import { Logger } from "@/utils/logger";
 import { toSubscription } from "@/utils/selectors";
+import { withPerformanceMonitoring } from "./middleware/performanceMiddleware";
+import { type AudioSlice, createAudioSlice } from "./slices/audioSlice";
+import { createFeedSlice, type FeedSlice } from "./slices/feedSlice";
+import { createMetadataSlice, type MetadataSlice } from "./slices/metadataSlice";
+import { createReadStatusSlice, type ReadStatusSlice } from "./slices/readStatusSlice";
 
 /**
  * The Zustand store shape optimized for React Query integration

@@ -36,3 +36,4 @@
   - Kept feed-grid masonry virtual behavior but added react-virtual list virtualization for FeedList to reduce mounted rows.
   - Added reader-view response/content caching and read-marking guard to prevent repeated state churn.
   - Switched background feed query to worker fetch path (`fetchFeeds`) to use worker-level cache by default.
+- 2026-02-16: Connected animation shell parity improved by adding shared `cardShell` transition IDs for both feed card and modal reader shell, so view transitions animate the whole card container (`feed-card-shell-*`) and reduce z-order overlap risk during transition.

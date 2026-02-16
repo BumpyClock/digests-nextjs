@@ -57,6 +57,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
     const vtSupported = useViewTransitionsSupported();
     const viewTransitionsEnabled = animationEnabled && isModal && vtSupported;
     const motionLayoutEnabled = animationEnabled && isModal && !viewTransitionsEnabled;
+    const childViewTransitionEnabled = false;
     const disableHeavyEffects = disableTransitionEffectsDuringWindow && isTransitionWindow;
     const disableMountAnimations = disableEntranceAnimations && isModal;
     const disableImageFadeIn = disableMountAnimations || disableHeavyEffects;
@@ -97,7 +98,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
               ) : feedItem.thumbnail && feedItem.thumbnail.trim() !== "" ? (
                 <motion.div
                   layoutId={motionLayoutEnabled ? animationIds.thumbnail : undefined}
-                  style={getViewTransitionStyle(viewTransitionsEnabled, animationIds.thumbnail)}
+                  style={getViewTransitionStyle(childViewTransitionEnabled, animationIds.thumbnail)}
                 >
                   {/* Skeleton placeholder - positioned behind image */}
                   <AnimatePresence>
@@ -356,7 +357,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                           }
                     }
                     layoutId={motionLayoutEnabled ? animationIds.title : undefined}
-                    style={getViewTransitionStyle(viewTransitionsEnabled, animationIds.title)}
+                    style={getViewTransitionStyle(childViewTransitionEnabled, animationIds.title)}
                     className={
                       isModal
                         ? "text-fluid-3xl font-bold mb-2 text-left leading-fluid-tight"

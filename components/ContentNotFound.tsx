@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 interface ContentNotFoundProps {
   /** The type of content (e.g., "Article", "Podcast") */

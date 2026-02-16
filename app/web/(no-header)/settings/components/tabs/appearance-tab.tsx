@@ -1,10 +1,10 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import { memo } from "react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -12,9 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useTheme } from "next-themes";
+import { Switch } from "@/components/ui/switch";
 import { themes } from "@/lib/theme-definitions";
-import { useUiPreferencesStore, FONT_SIZE_MIN, FONT_SIZE_MAX } from "@/store/useUiPreferencesStore";
+import { FONT_SIZE_MAX, FONT_SIZE_MIN, useUiPreferencesStore } from "@/store/useUiPreferencesStore";
 
 // Width for select trigger (11.25rem = 180px)
 const SELECT_TRIGGER_WIDTH_CLASS = "w-[11.25rem]";

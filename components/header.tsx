@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/mode-toggle";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Home, Rss, Headphones, BookMarked } from "lucide-react";
-import logo192 from "@/public/logo192.png";
+import { BookMarked, Headphones, Home, Menu, Rss } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { ModeToggle } from "@/components/mode-toggle";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import logo192 from "@/public/logo192.png";
 
 /**
  * Header component for the landing page and non-app routes.

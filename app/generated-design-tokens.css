@@ -139,4 +139,5 @@
   --spacing-3xl: 3rem;
   --spacing-4xl: 4rem;
   --spacing-5xl: 6rem;
+  --color-overlay: rgb(0 0 0 / 0.8);
 }

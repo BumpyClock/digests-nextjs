@@ -1,20 +1,20 @@
 "use client";
 
-import { use, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Bookmark, Share2, ExternalLink } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft, Bookmark, ExternalLink, Share2 } from "lucide-react";
 import Image from "next/image";
-import { FeedItem } from "@/types";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { use, useMemo } from "react";
+import { ContentNotFound } from "@/components/ContentNotFound";
+import { ContentPageSkeleton } from "@/components/ContentPageSkeleton";
+import { Button } from "@/components/ui/button";
 import { useFeedsData, useReaderViewQuery } from "@/hooks/queries";
 import { feedsKeys } from "@/hooks/queries/feedsKeys";
-import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
-import { ContentPageSkeleton } from "@/components/ContentPageSkeleton";
-import { ContentNotFound } from "@/components/ContentNotFound";
 import { useContentActions } from "@/hooks/use-content-actions";
 import { useToast } from "@/hooks/use-toast";
+import { FeedItem } from "@/types";
+import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
 
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
