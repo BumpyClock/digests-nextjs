@@ -1,7 +1,8 @@
 // store/useApiConfigStore.ts
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+
 import localforage from "localforage";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
 import { APIConfig, DEFAULT_API_CONFIG } from "@/lib/config";
 
 interface ApiConfigState {

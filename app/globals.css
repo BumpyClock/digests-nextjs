@@ -35,7 +35,7 @@
   will-change: filter, transform;
 }
 @utility ambilight-active {
-  filter: url(#feedCardAmbilight-filter);
+  filter: url("#feedCardAmbilight-filter");
 }
 @utility ambilight-inactive {
   filter: none;
@@ -364,6 +364,10 @@
     display: none;
   }
 
+  .bg-overlay {
+    background-color: var(--color-overlay);
+  }
+
   /* Reader View Modal Styles - Moved to ArticleReader.css */
 
   .progress-circle {
@@ -594,6 +598,36 @@
   /* Ambilight filter */
 }
 
+/* Ensure VT-named elements animate above the rest of the page */
+::view-transition-group(*) {
+  z-index: 100;
+}
+
+::view-transition-group(root) {
+  z-index: 0;
+}
+
+html.reader-vt-active::view-transition-group(*) {
+  z-index: var(--z-max, 2147483647);
+}
+
+html.reader-vt-active::view-transition-group(root) {
+  z-index: 0;
+}
+
+html.reader-vt-active::view-transition-old(root) {
+  display: none;
+}
+
+html.reader-vt-active::view-transition-new(root) {
+  animation: none;
+}
+
+html.reader-vt-active [data-masonic-tile].vt-source-tile {
+  z-index: var(--z-modal, 1050) !important;
+  contain: none !important;
+}
+
 /* Prevent layout animations on feed cards when scrolling */
 [data-masonic-tile] {
   contain: layout style;
@@ -604,16 +638,24 @@
   animation: none !important;
 }
 
-/* Enable transitions only for ready cards */
-[data-masonic-tile] .card.ready {
-  transition-property: box-shadow;
-  transition-duration: var(--motion-duration-fast, 100ms);
-  transition-timing-function: var(--motion-ease-decelerate, ease-out);
+/* Feed card shadow using CSS custom properties (no worker needed) */
+.feed-card {
+  --card-shadow-r: 0;
+  --card-shadow-g: 0;
+  --card-shadow-b: 0;
+  box-shadow: 0 2px 8px rgba(var(--card-shadow-r), var(--card-shadow-g), var(--card-shadow-b), 0.08);
+  transition:
+    box-shadow var(--motion-duration-fast, 150ms) var(--motion-ease-decelerate, ease-out),
+    opacity var(--motion-duration-normal, 200ms) var(--motion-ease-decelerate, ease-out);
 }
 
-/* Prevent unwanted transforms and hover effects on cards that aren't ready */
-[data-masonic-tile] .card:not(.ready) {
-  pointer-events: none;
+.feed-card:hover {
+  box-shadow: 0 8px 30px
+    rgba(var(--card-shadow-r), var(--card-shadow-g), var(--card-shadow-b), 0.25);
+}
+
+.feed-card:active {
+  box-shadow: 0 2px 8px rgba(var(--card-shadow-r), var(--card-shadow-g), var(--card-shadow-b), 0.15);
 }
 
 /* Prevent any CSS animations on children */

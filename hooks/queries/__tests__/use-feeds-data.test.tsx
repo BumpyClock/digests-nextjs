@@ -1,13 +1,13 @@
 // ABOUTME: Unit tests for the useFeedsData React Query hook
 // ABOUTME: Tests happy path, error handling, and loading states for feed data fetching
 
-import type { ReactNode } from "react";
-import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useFeedsData } from "../use-feeds-data";
+import { renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { workerService } from "@/services/worker-service";
 import { useFeedStore } from "@/store/useFeedStore";
 import { Feed, FeedItem } from "@/types";
+import { useFeedsData } from "../use-feeds-data";
 
 // Mock dependencies
 jest.mock("@/services/worker-service");
@@ -105,7 +105,9 @@ describe("useFeedsData", () => {
     jest.clearAllMocks();
 
     // Default mock for store
-    mockedUseFeedStore.mockReturnValue(["https://example.com/feed1.xml"]);
+    mockedUseFeedStore.mockReturnValue({
+      subscriptions: [{ feedUrl: "https://example.com/feed1.xml" }],
+    } as unknown as ReturnType<typeof useFeedStore>);
   });
 
   afterEach(() => {
@@ -113,7 +115,9 @@ describe("useFeedsData", () => {
   });
 
   it("should return empty data when no feed URLs are provided", async () => {
-    mockedUseFeedStore.mockReturnValue([]);
+    mockedUseFeedStore.mockReturnValue({
+      subscriptions: [],
+    } as unknown as ReturnType<typeof useFeedStore>);
 
     const { result } = renderHook(() => useFeedsData(), {
       wrapper: createWrapper(),
@@ -130,7 +134,7 @@ describe("useFeedsData", () => {
   });
 
   it("should fetch and return feeds data successfully", async () => {
-    mockedWorkerService.refreshFeeds.mockResolvedValue({
+    mockedWorkerService.fetchFeeds.mockResolvedValue({
       success: true,
       feeds: mockFeeds,
       items: mockFeedItems,
@@ -153,16 +157,14 @@ describe("useFeedsData", () => {
       items: mockFeedItems, // Items should be sorted by date desc
     });
 
-    expect(mockedWorkerService.refreshFeeds).toHaveBeenCalledWith([
-      "https://example.com/feed1.xml",
-    ]);
+    expect(mockedWorkerService.fetchFeeds).toHaveBeenCalledWith(["https://example.com/feed1.xml"]);
   });
 
   it("should sort items by date descending", async () => {
     const unsortedItems = [...mockFeedItems]; // Already in desc order
     const reversedItems = [...mockFeedItems].reverse(); // Put in asc order
 
-    mockedWorkerService.refreshFeeds.mockResolvedValue({
+    mockedWorkerService.fetchFeeds.mockResolvedValue({
       success: true,
       feeds: mockFeeds,
       items: reversedItems, // Feed in asc order
@@ -182,7 +184,7 @@ describe("useFeedsData", () => {
   });
 
   it("should handle worker service errors", async () => {
-    mockedWorkerService.refreshFeeds.mockResolvedValue({
+    mockedWorkerService.fetchFeeds.mockResolvedValue({
       success: false,
       feeds: [],
       items: [],
@@ -201,7 +203,7 @@ describe("useFeedsData", () => {
   });
 
   it("should handle worker service rejections", async () => {
-    mockedWorkerService.refreshFeeds.mockRejectedValue(new Error("Network error"));
+    mockedWorkerService.fetchFeeds.mockRejectedValue(new Error("Network error"));
 
     const { result } = renderHook(() => useFeedsData(), {
       wrapper: createWrapper(),
@@ -215,12 +217,13 @@ describe("useFeedsData", () => {
   });
 
   it("should use proper query key based on feed URLs", async () => {
-    mockedUseFeedStore.mockReturnValue([
-      "https://example.com/feed1.xml",
-      "https://example.com/feed2.xml",
-    ]);
+    mockedUseFeedStore.mockReturnValue({
+      subscriptions: ["https://example.com/feed1.xml", "https://example.com/feed2.xml"].map(
+        (feedUrl) => ({ feedUrl })
+      ),
+    } as unknown as ReturnType<typeof useFeedStore>);
 
-    mockedWorkerService.refreshFeeds.mockResolvedValue({
+    mockedWorkerService.fetchFeeds.mockResolvedValue({
       success: true,
       feeds: mockFeeds,
       items: mockFeedItems,
@@ -235,14 +238,16 @@ describe("useFeedsData", () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(mockedWorkerService.refreshFeeds).toHaveBeenCalledWith([
+    expect(mockedWorkerService.fetchFeeds).toHaveBeenCalledWith([
       "https://example.com/feed1.xml",
       "https://example.com/feed2.xml",
     ]);
   });
 
   it("should not fetch when query is disabled (no feeds)", () => {
-    mockedUseFeedStore.mockReturnValue([]);
+    mockedUseFeedStore.mockReturnValue({
+      subscriptions: [],
+    } as unknown as ReturnType<typeof useFeedStore>);
 
     const { result } = renderHook(() => useFeedsData(), {
       wrapper: createWrapper(),
@@ -251,11 +256,11 @@ describe("useFeedsData", () => {
     // Should not be loading since query is disabled
     expect(result.current.isLoading).toBe(false);
     expect(result.current.isFetching).toBe(false);
-    expect(mockedWorkerService.refreshFeeds).not.toHaveBeenCalled();
+    expect(mockedWorkerService.fetchFeeds).not.toHaveBeenCalled();
   });
 
   it("should have correct cache configuration", async () => {
-    mockedWorkerService.refreshFeeds.mockResolvedValue({
+    mockedWorkerService.fetchFeeds.mockResolvedValue({
       success: true,
       feeds: mockFeeds,
       items: mockFeedItems,

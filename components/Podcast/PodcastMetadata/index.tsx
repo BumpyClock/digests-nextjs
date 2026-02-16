@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
-import { Calendar, Clock, User } from "lucide-react";
-import { formatDuration } from "@/utils/formatDuration";
-import { cn } from "@/lib/utils";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { Calendar, Clock, User } from "lucide-react";
+import { useMemo } from "react";
+import { cn } from "@/lib/utils";
+import { formatDuration } from "@/utils/formatDuration";
 
 dayjs.extend(relativeTime);
 
@@ -43,7 +43,9 @@ export function PodcastMetadata({
 
   if (variant === "compact") {
     return (
-      <div className={cn("flex items-center gap-4 text-body-small text-secondary-content", className)}>
+      <div
+        className={cn("flex items-center gap-4 text-body-small text-secondary-content", className)}
+      >
         {formattedDate && <span>{formattedDate}</span>}
         {formattedDuration && <span>{formattedDuration}</span>}
         {author && <span>By {author}</span>}

@@ -17,7 +17,7 @@ function makeQueryClient() {
         retry: 2,
         refetchOnWindowFocus: false,
         refetchOnReconnect: true,
-        refetchOnMount: true,
+        refetchOnMount: false,
       },
       mutations: {
         retry: 1,

@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ReaderContent } from "@/components/Feed/ReaderContent";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { useReaderView } from "@/hooks/queries";
+import { useScrollShadow } from "@/hooks/use-scroll-shadow";
+import { useFeedStore } from "@/store/useFeedStore";
 import { FeedItem } from "@/types";
 import { BaseModal } from "./base-modal";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useReaderView } from "@/hooks/use-reader-view";
-import { useScrollShadow } from "@/hooks/use-scroll-shadow";
 import { ScrollShadow } from "./ui/scroll-shadow";
-import { ReaderContent } from "@/components/Feed/ReaderContent";
-import { useFeedStore } from "@/store/useFeedStore";
 
 // Selector for stable function reference — avoids full-store subscription
 const selectMarkAsRead = (s: ReturnType<typeof useFeedStore.getState>) => s.markAsRead;
@@ -20,11 +20,18 @@ interface ReaderViewModalProps {
   onClose: () => void;
   feedItem: FeedItem;
   useViewTransition?: boolean;
+  viewTransitionBackdropSettled?: boolean;
 }
 
-export function ReaderViewModal({ feedItem, isOpen, onClose, useViewTransition }: ReaderViewModalProps) {
+export function ReaderViewModal({
+  feedItem,
+  isOpen,
+  onClose,
+  useViewTransition,
+  viewTransitionBackdropSettled,
+}: ReaderViewModalProps) {
   const { readerView, loading, cleanedContent, cleanedMarkdown, extractedAuthor } = useReaderView(
-    feedItem,
+    feedItem.link,
     isOpen
   );
   const [transitionInProgress, setTransitionInProgress] = useState(false);
@@ -79,7 +86,11 @@ export function ReaderViewModal({ feedItem, isOpen, onClose, useViewTransition }
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
-      if (idleCallbackId !== null && typeof window !== "undefined" && "cancelIdleCallback" in window) {
+      if (
+        idleCallbackId !== null &&
+        typeof window !== "undefined" &&
+        "cancelIdleCallback" in window
+      ) {
         window.cancelIdleCallback(idleCallbackId);
       }
     };
@@ -92,7 +103,8 @@ export function ReaderViewModal({ feedItem, isOpen, onClose, useViewTransition }
       title={readerView?.title || "Loading..."}
       className=""
       useViewTransition={useViewTransition}
-      viewTransitionBackdropSettleMs={OPEN_TRANSITION_DELAY_MS}
+      viewTransitionBackdropSettled={viewTransitionBackdropSettled}
+      viewTransitionBackdropSettleMs={useViewTransition ? OPEN_TRANSITION_DELAY_MS : undefined}
     >
       <div className="relative h-full overflow-hidden">
         <ScrollShadow visible={!transitionInProgress && hasScrolled} position="top" />

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
 
 /**
  * Hook for tracking new feed items via React Query cache updates
@@ -30,11 +30,42 @@ export function useFeedBackgroundSync() {
         return;
       }
 
-      const data = event.query.state.data as { items?: { id?: string }[] } | undefined;
-      const items = data?.items ?? [];
+      const data = event.query.state.data as
+        | {
+            items?: Array<{ id?: string }>;
+          }
+        | undefined;
+      const items = data?.items;
+      if (!Array.isArray(items)) {
+        return;
+      }
 
-      // Extract item IDs, filtering out any without IDs
-      const currentIds = new Set(items.map((item) => item.id).filter(Boolean) as string[]);
+      // Skip extra work when cache size is empty and there are no items.
+      if (items.length === 0) {
+        prevIdsRef.current = new Set();
+        setSync({ hasNewItems: false, count: 0 });
+        return;
+      }
+
+      // Fast path for unchanged item count and exact same IDs
+      const ids = items
+        .map((item) => item.id)
+        .filter((itemId): itemId is string => Boolean(itemId));
+      if (prevIdsRef.current.size === ids.length && ids.length > 0) {
+        let allKnown = true;
+        for (const id of ids) {
+          if (!prevIdsRef.current.has(id)) {
+            allKnown = false;
+            break;
+          }
+        }
+        if (allKnown) {
+          setSync({ hasNewItems: false, count: 0 });
+          return;
+        }
+      }
+
+      const currentIds = new Set(ids);
 
       // On first load, just store the IDs without triggering notification
       if (prevIdsRef.current.size === 0) {

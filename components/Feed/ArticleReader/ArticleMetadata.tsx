@@ -1,9 +1,9 @@
 "use client";
 
-import { memo, useMemo } from "react";
-import Image from "next/image";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import Image from "next/image";
+import { memo, useMemo } from "react";
 
 dayjs.extend(relativeTime);
 
@@ -89,7 +89,9 @@ export const ArticleMetadata = memo<ArticleMetadataProps>(
                 {author.name}
               </span>
               {publishedDate && (
-                <span className={`text-secondary-content ${isCompact ? "text-caption" : "text-body-small"}`}>
+                <span
+                  className={`text-secondary-content ${isCompact ? "text-caption" : "text-body-small"}`}
+                >
                   {publishedDate}
                 </span>
               )}

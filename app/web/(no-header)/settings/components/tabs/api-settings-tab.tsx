@@ -1,15 +1,15 @@
 "use client";
 
-import { memo, useState, useEffect, useRef } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AlertCircle, CheckCircle } from "lucide-react";
+import { memo, useEffect, useRef, useState } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useApiConfigStore } from "@/store/useApiConfigStore";
 import { DEFAULT_API_CONFIG } from "@/lib/config";
 import { workerService } from "@/services/worker-service";
-import { AlertCircle, CheckCircle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useApiConfigStore } from "@/store/useApiConfigStore";
 
 export const ApiSettingsTab = memo(function ApiSettingsTab() {
   const { config, setApiUrl, resetToDefault, isValidUrl } = useApiConfigStore();

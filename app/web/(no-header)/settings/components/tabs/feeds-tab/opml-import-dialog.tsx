@@ -1,24 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { AlertCircle } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-import { workerService } from "@/services/worker-service";
-import type { Feed, FeedItem as ApiFeedItem } from "@/types";
-import Image from "next/image";
 import { Skeleton } from "@/components/ui/skeleton";
+import { workerService } from "@/services/worker-service";
+import type { FeedItem as ApiFeedItem, Feed } from "@/types";
 import { getSiteDisplayName } from "@/utils/htmlUtils";
+import { isHttpUrl } from "@/utils/url";
 
 interface FeedItem {
   url: string;
@@ -75,8 +76,35 @@ export function OPMLImportDialog({
     const fetchFeedDetails = async () => {
       setLoading(true);
       try {
-        // Get all feed URLs
-        const feedUrls = initialFeeds.map((feed) => feed.url);
+        // Partition feed URLs into valid and invalid in a single pass
+        const feedUrls: string[] = [];
+        const feedErrors = new Set<string>();
+        for (const feed of initialFeeds) {
+          const trimmed = feed.url.trim();
+          if (isHttpUrl(trimmed)) {
+            feedUrls.push(trimmed);
+          } else {
+            feedErrors.add(trimmed);
+          }
+        }
+
+        if (feedErrors.size > 0) {
+          setFeeds((prev) =>
+            prev.map((feed) =>
+              isHttpUrl(feed.url.trim())
+                ? feed
+                : {
+                    ...feed,
+                    error: "Invalid feed URL. Skipped during validation.",
+                  }
+            )
+          );
+        }
+
+        if (feedUrls.length === 0) {
+          setLoading(false);
+          return;
+        }
 
         // Initialize worker if not already
         workerService.initialize();
@@ -109,13 +137,14 @@ export function OPMLImportDialog({
         if (result.success) {
           // Map the fetched feeds back to our feed items
           const updatedFeeds = initialFeeds.map((feed) => {
-            const fetchedFeed = result.feeds.find((f) => f.feedUrl === feed.url);
+            const trimmedUrl = feed.url.trim();
+            const fetchedFeed = result.feeds.find((f) => f.feedUrl === trimmedUrl);
             if (fetchedFeed) {
               return {
                 ...feed,
                 feed: fetchedFeed,
                 title: getSiteDisplayName(fetchedFeed, {
-                  extraFallbacks: [fetchedFeed.feedTitle, feed.title, feed.url],
+                  extraFallbacks: [fetchedFeed.feedTitle, feed.title, trimmedUrl],
                 }),
               };
             }
@@ -189,7 +218,7 @@ export function OPMLImportDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-[600px] w-[95vw] max-h-[90vh] flex flex-col"
+        className="sm:max-w-150 w-[95vw] max-h-[90vh] flex flex-col"
         id="opml-import-dialog"
       >
         <DialogHeader>
@@ -229,7 +258,9 @@ export function OPMLImportDialog({
                     <FeedIcon feed={feed.feed} error={feed.error} />
                     <div className="flex-1 min-w-0">
                       <Label htmlFor={feed.url} className="flex flex-col space-y-1">
-                        <span className="text-subtitle text-primary-content truncate">{feed.title}</span>
+                        <span className="text-subtitle text-primary-content truncate">
+                          {feed.title}
+                        </span>
                         <span className="text-body-small text-secondary-content truncate">
                           {feed.url}
                         </span>

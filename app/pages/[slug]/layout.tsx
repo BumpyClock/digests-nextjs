@@ -1,5 +1,5 @@
-import { getMdxMetadata } from "@/utils/mdx-utils";
 import { Metadata } from "next";
+import { getMdxMetadata } from "@/utils/mdx-utils";
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>;

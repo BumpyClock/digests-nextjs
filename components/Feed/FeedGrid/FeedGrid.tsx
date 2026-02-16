@@ -1,22 +1,21 @@
 "use client";
 
-import { useCallback, useState, useEffect, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Masonry } from "masonic";
-import { FeedCard } from "@/components/Feed/FeedCard/FeedCard";
-import { useWindowSize } from "@/hooks/use-window-size";
-import { FeedItem } from "@/types";
-import dynamic from "next/dynamic";
-import loadingAnimation from "@/public/assets/animations/feed-loading.json";
 import { motion } from "motion/react";
-
-const Lottie = dynamic(() => import("lottie-react"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-64 h-64 flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-    </div>
-  ),
-});
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ErrorBoundary from "@/components/error-boundary";
+import { FeedCard } from "@/components/Feed/FeedCard/FeedCard";
+import { PodcastDetailsModal } from "@/components/Podcast/PodcastDetailsModal";
+import { ReaderViewModal } from "@/components/reader-view-modal";
+import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
+import { getValidReaderViewOrThrow } from "@/hooks/queries/reader-view-validation";
+import { readerViewKeys } from "@/hooks/queries/use-reader-view-query";
+import { useWindowSize } from "@/hooks/use-window-size";
+import { runWithViewTransition, useViewTransitionsSupported } from "@/lib/view-transitions";
+import { workerService } from "@/services/worker-service";
+import { FeedItem } from "@/types";
+import { isPodcast } from "@/types/podcast";
 
 // Custom event for feed refresh
 export const FEED_REFRESHED_EVENT = "feed-refreshed";
@@ -25,48 +24,47 @@ interface FeedGridProps {
   items: FeedItem[];
   isLoading: boolean;
   skeletonCount?: number;
+  /** Changes when feed/search filter changes — forces Masonry remount to clear stale position cache */
+  filterKey?: string;
 }
 
 /**
  * Loading animation component displayed while data is being fetched.
  */
 const LoadingAnimation = () => {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   return (
     <div className="flex items-center justify-center h-[50vh]">
-      <div className="w-64 h-64">
-        {isMounted && <Lottie animationData={loadingAnimation} loop={true} />}
+      <div className="relative h-16 w-16">
+        <div className="absolute inset-0 rounded-full border-4 border-muted border-t-primary animate-spin" />
       </div>
+    </div>
+  );
+};
+
+const EmptyState = () => {
+  return (
+    <div className="flex items-center justify-center h-[50vh] text-sm text-muted">
+      <p>No items to display</p>
     </div>
   );
 };
 
 /**
  * Displays a responsive masonry grid of feed items with loading and periodic update checking.
- *
- * Shows a loading animation until the component is mounted, a minimum loading time has elapsed, and items are available. Periodically checks for new feed items and notifies the user with a toast if updates are found, allowing manual refresh.
- *
- * @param items - The array of feed items to display.
- * @param isLoading - Whether the feed is currently loading.
- *
- * @returns The rendered feed grid or a loading animation.
- *
- * @remark If new items are detected during periodic checks, a toast notification is shown with an option to refresh the feed.
  */
-export function FeedGrid({ items, isLoading }: FeedGridProps) {
+export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
   const [mounted, setMounted] = useState(false);
+  const [openItem, setOpenItem] = useState<FeedItem | null>(null);
+  const [readerTransitionSettled, setReaderTransitionSettled] = useState(false);
   const { width: windowWidth } = useWindowSize();
+  const queryClient = useQueryClient();
+  const { animationEnabled } = useFeedAnimation();
+  const vtSupported = useViewTransitionsSupported();
+  const viewTransitionsEnabled = animationEnabled && vtSupported;
+
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Background sync is now handled by the main page component using React Query
-  // This simplifies the FeedGrid component to focus only on rendering
 
   const columnWidth = 320;
   const columnGutter = 24;
@@ -75,13 +73,81 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
     [windowWidth]
   );
 
+  // Stores the cleanup callback (e.g. resetting card active state) for the
+  // currently open item. On rapid re-opens the previous cleanup runs first,
+  // so only one card is ever visually "active" at a time.
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  const handleItemOpen = useCallback(
+    (item: FeedItem, cleanup?: () => void) => {
+      cleanupRef.current?.();
+      cleanupRef.current = cleanup || null;
+      setReaderTransitionSettled(!viewTransitionsEnabled);
+      setOpenItem(item);
+    },
+    [viewTransitionsEnabled]
+  );
+
+  const handleItemOpenTransitionSettled = useCallback(() => {
+    setReaderTransitionSettled(true);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    if (viewTransitionsEnabled && openItem && !isPodcast(openItem)) {
+      runWithViewTransition(
+        () => {
+          cleanupRef.current?.();
+          cleanupRef.current = null;
+          setOpenItem(null);
+        },
+        { phaseClassName: "reader-vt-active" }
+      );
+    } else {
+      cleanupRef.current?.();
+      cleanupRef.current = null;
+      setOpenItem(null);
+    }
+  }, [viewTransitionsEnabled, openItem]);
+
+  const handlePrefetch = useCallback(
+    (item: FeedItem) => {
+      if (isPodcast(item)) return;
+      const key = readerViewKeys.byUrl(item.link);
+      const state = queryClient.getQueryState(key);
+      // Skip if data is already fresh or a fetch is in progress
+      if (state?.status === "success" && state.dataUpdatedAt > Date.now() - 60 * 60 * 1000) return;
+      if (state?.fetchStatus === "fetching") return;
+      queryClient.prefetchQuery({
+        queryKey: key,
+        queryFn: () =>
+          workerService
+            .fetchReaderView(item.link)
+            .then((r) => getValidReaderViewOrThrow(r, item.link)),
+        staleTime: 60 * 60 * 1000,
+      });
+    },
+    [queryClient]
+  );
+
   const renderItem = useCallback(
     ({ data: feed }: { data: FeedItem }) => (
-      <div style={{ contain: "layout style" }}>
-        <FeedCard feed={feed} />
+      // biome-ignore lint/a11y/noStaticElementInteractions: prefetch-only hover, not interactive
+      <div
+        role="presentation"
+        className="relative z-0 hover:z-modal focus-within:z-modal"
+        style={{ contain: "layout style" }}
+        onMouseEnter={() => handlePrefetch(feed)}
+      >
+        <FeedCard
+          feed={feed}
+          onItemOpen={handleItemOpen}
+          onItemOpenTransitionComplete={
+            viewTransitionsEnabled ? handleItemOpenTransitionSettled : undefined
+          }
+        />
       </div>
     ),
-    []
+    [handleItemOpen, handlePrefetch, viewTransitionsEnabled, handleItemOpenTransitionSettled]
   );
 
   const memoizedItems = useMemo(() => {
@@ -89,34 +155,32 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
       console.warn("Items is not an array:", items);
       return [];
     }
-    return items;
+    return items.filter((item): item is FeedItem => Boolean(item));
   }, [items]);
 
-  const cacheKey = useMemo(() => `masonry-${memoizedItems.length}`, [memoizedItems.length]);
+  const itemKey = useCallback((item: FeedItem) => item.id, []);
 
-  const itemKey = useCallback((item: FeedItem, index: number) => {
-    if (!item) {
-      console.warn(`Undefined item at index ${index}`);
-      return `fallback-${index}`;
-    }
-    return item.id;
-  }, []);
-
-  if (!mounted || isLoading || items.length === 0) {
+  if (!mounted || isLoading) {
     return <LoadingAnimation />;
   }
 
-  try {
-    return (
-      <motion.div
-        id="feed-grid"
-        className="pt-6 h-screen"
-        initial={false}
-        animate={false}
-        layout={false}
-      >
+  if (memoizedItems.length === 0) {
+    return <EmptyState />;
+  }
+
+  const isOpenItemPodcast = openItem ? isPodcast(openItem) : false;
+
+  return (
+    <ErrorBoundary
+      fallback={
+        <div className="flex items-center justify-center h-[50vh] text-sm text-muted">
+          Error loading feed. Please try refreshing the page.
+        </div>
+      }
+    >
+      <motion.div id="feed-grid" className="pt-6" initial={false} animate={false} layout={false}>
         <Masonry
-          key={cacheKey}
+          key={filterKey ?? "default"}
           items={memoizedItems}
           maxColumnCount={columnCount}
           columnGutter={columnGutter}
@@ -126,9 +190,20 @@ export function FeedGrid({ items, isLoading }: FeedGridProps) {
           itemKey={itemKey}
         />
       </motion.div>
-    );
-  } catch (error) {
-    console.error("Error rendering FeedGrid:", error);
-    return <div>Error loading feed. Please try refreshing the page.</div>;
-  }
+
+      {openItem && isOpenItemPodcast && (
+        <PodcastDetailsModal isOpen={true} onClose={handleClose} podcast={openItem} />
+      )}
+
+      {openItem && !isOpenItemPodcast && (
+        <ReaderViewModal
+          isOpen={true}
+          onClose={handleClose}
+          feedItem={openItem}
+          useViewTransition={viewTransitionsEnabled}
+          viewTransitionBackdropSettled={readerTransitionSettled}
+        />
+      )}
+    </ErrorBoundary>
+  );
 }

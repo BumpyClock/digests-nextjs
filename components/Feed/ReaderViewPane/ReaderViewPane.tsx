@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import { EmptyState } from "@/components/Feed/ArticleReader";
 import { ReaderContent } from "@/components/Feed/ReaderContent";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useReaderView } from "@/hooks/use-reader-view";
+import { useReaderView } from "@/hooks/queries";
 import { useFeedStore } from "@/store/useFeedStore";
 import { type FeedItem } from "@/types";
 
@@ -14,14 +14,20 @@ interface ReaderViewPaneProps {
 
 export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
   const { markAsRead } = useFeedStore();
-  const { readerView, loading, cleanedContent } = useReaderView(feedItem);
+  const hasMarkedAsReadRef = useRef(false);
+  const { readerView, loading, cleanedContent } = useReaderView(feedItem?.link || "");
   const scrollableNodeRef = useRef<HTMLDivElement>(null);
 
   // Mark as read after viewing
   useEffect(() => {
+    hasMarkedAsReadRef.current = false;
+
     if (feedItem) {
       const timer = setTimeout(() => {
-        markAsRead(feedItem.id);
+        if (!hasMarkedAsReadRef.current) {
+          markAsRead(feedItem.id);
+          hasMarkedAsReadRef.current = true;
+        }
       }, 2000);
 
       return () => clearTimeout(timer);
@@ -32,8 +38,9 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
   const handleScroll = useCallback(
     (e: Event) => {
       const target = e.target as HTMLDivElement;
-      if (target.scrollTop > 100 && feedItem) {
+      if (target.scrollTop > 100 && feedItem && !hasMarkedAsReadRef.current) {
         markAsRead(feedItem.id);
+        hasMarkedAsReadRef.current = true;
       }
     },
     [feedItem, markAsRead]

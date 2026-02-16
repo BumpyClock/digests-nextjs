@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { DEFAULT_WINDOW_HEIGHT, DEFAULT_WINDOW_WIDTH } from "@/hooks/use-media-query";
 
 export function useWindowSize() {
   const [size, setSize] = useState({
-    width: typeof window !== "undefined" ? window.innerWidth : 1200,
-    height: typeof window !== "undefined" ? window.innerHeight : 800,
+    width: DEFAULT_WINDOW_WIDTH,
+    height: DEFAULT_WINDOW_HEIGHT,
   });
 
   useEffect(() => {

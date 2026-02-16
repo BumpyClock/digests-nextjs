@@ -1,11 +1,11 @@
 "use client";
 
 import { QueryClientProvider } from "@tanstack/react-query";
-import { getQueryClient } from "@/lib/query-client";
-import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import localforage from "localforage";
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
+import { getQueryClient } from "@/lib/query-client";
 
 // Only load ReactQueryDevtools in development
 const ReactQueryDevtools = dynamic(

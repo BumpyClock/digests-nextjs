@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { FeedItem } from "@/types";
-import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
+import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
 import { getImageProps } from "@/utils/image-config";
 import { isValidUrl } from "@/utils/url";
 import { PodcastArtwork } from "../PodcastArtwork";
@@ -93,7 +93,11 @@ export function PodcastDetailsContent({
                 {getSiteDisplayName(podcast).charAt(0).toUpperCase()}
               </div>
             )}
-            <p className={isModal ? "text-title text-primary-content" : "text-subtitle text-primary-content"}>
+            <p
+              className={
+                isModal ? "text-title text-primary-content" : "text-subtitle text-primary-content"
+              }
+            >
               {cleanupTextContent(getSiteDisplayName(podcast))}
             </p>
           </div>

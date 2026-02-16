@@ -1,12 +1,12 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import { Share2, Download, ExternalLink } from "lucide-react";
-import type { FeedItem } from "@/types";
-import { BaseModal } from "@/components/base-modal";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Download, ExternalLink, Share2 } from "lucide-react";
 import { toast } from "sonner";
-import { PodcastDetailsContent } from "../shared/PodcastDetailsContent";
+import { BaseModal } from "@/components/base-modal";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import type { FeedItem } from "@/types";
 import { getSiteDisplayName } from "@/utils/htmlUtils";
+import { PodcastDetailsContent } from "../shared/PodcastDetailsContent";
 
 interface PodcastDetailsModalProps {
   isOpen: boolean;

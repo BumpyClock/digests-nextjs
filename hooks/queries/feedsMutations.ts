@@ -1,15 +1,63 @@
-import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
+import {
+  type QueryClient,
+  type QueryKey,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { workerService } from "@/services/worker-service";
 import { useFeedStore } from "@/store/useFeedStore";
 import type { Feed, FeedItem } from "@/types";
+import type { Subscription } from "@/types/subscription";
+import { sortByDateDesc, toSubscription } from "@/utils/selectors";
+import { type CacheData, mergeCacheData } from "./feed-cache-utils";
 import { feedsKeys } from "./feedsKeys";
-import { sortByDateDesc } from "@/utils/selectors";
+
+type FeedMutationContext = {
+  previousSubscriptions: Subscription[];
+  previousKey: QueryKey;
+  previousData?: CacheData;
+  nextKey?: QueryKey;
+};
+
+const readSubscriptionsSnapshot = () => useFeedStore.getState().subscriptions ?? [];
+const normalizeUrl = (url: string | undefined) => (url || "").trim();
+
+const getSubscriptionUrls = (subscriptions: Subscription[] | undefined) =>
+  Array.from(new Set((subscriptions ?? []).map((s) => normalizeUrl(s.feedUrl)).filter(Boolean)));
+
+const getQueryKey = (subscriptionUrls: string[]) => feedsKeys.list(subscriptionUrls);
+
+const setFeedCache = (queryClient: QueryClient, subscriptionUrls: string[], data: CacheData) => {
+  queryClient.setQueryData<CacheData>(getQueryKey(subscriptionUrls), data);
+};
+
+const getFeedCache = (queryClient: QueryClient, subscriptionUrls: string[]) =>
+  queryClient.getQueryData<CacheData>(getQueryKey(subscriptionUrls));
+
+const invalidateFeedQuery = (queryClient: QueryClient, subscriptionUrls: string[]) => {
+  queryClient.invalidateQueries({ queryKey: getQueryKey(subscriptionUrls) });
+};
+
+const toSubscriptionEntries = (feeds: Feed[]) => feeds.map((feed) => toSubscription(feed));
+
+/**
+ * Compares two query keys for equality.
+ * Keys produced by feedsKeys.list() are 3-element string tuples
+ * (["feeds", "list", stableHash]), so a simple JSON comparison suffices.
+ */
+const queryKeysDiffer = (a: QueryKey | undefined, b: QueryKey | undefined): boolean =>
+  a !== b && JSON.stringify(a) !== JSON.stringify(b);
 
 // Add single feed mutation
 export const useAddFeedMutation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<
+    { success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string },
+    Error,
+    string,
+    FeedMutationContext
+  >({
     mutationFn: async (url: string) => {
       const result = await workerService.fetchFeeds(url);
       if (!result.success) {
@@ -17,15 +65,52 @@ export const useAddFeedMutation = () => {
       }
       return result;
     },
-    onSuccess: (data) => {
-      // Invalidate all feed list queries so subscription-dependent keys refresh
-      queryClient.invalidateQueries({ queryKey: feedsKeys.all });
-      // Keep store subscriptions in sync for key computation
-      const store = useFeedStore.getState();
-      store.setFeeds([...(store.feeds || []), ...data.feeds]);
+    onMutate: async () => {
+      const previousSubscriptions = [...readSubscriptionsSnapshot()];
+      const previousUrls = getSubscriptionUrls(previousSubscriptions);
+      const previousKey = getQueryKey(previousUrls);
+
+      await queryClient.cancelQueries({ queryKey: previousKey });
+
+      const previousData = getFeedCache(queryClient, previousUrls);
+      return { previousSubscriptions, previousKey, previousData };
     },
-    onError: (error) => {
-      console.error("Failed to add feed:", error);
+    onSuccess: (result, _url, context) => {
+      const store = useFeedStore.getState();
+      const previousSubscriptions = context?.previousSubscriptions ?? [];
+      const previousKey = context?.previousKey;
+
+      store.addSubscriptions(toSubscriptionEntries(result.feeds));
+      const nextSubscriptions = [...store.subscriptions];
+      const nextUrls = getSubscriptionUrls(nextSubscriptions);
+      const nextKey = getQueryKey(nextUrls);
+      const nextData = mergeCacheData(context?.previousData, {
+        feeds: result.feeds,
+        items: result.items,
+      });
+
+      setFeedCache(queryClient, nextUrls, nextData);
+
+      // Only invalidate if keys actually differ
+      const keysDiffer = queryKeysDiffer(nextKey, previousKey);
+      if (previousKey && keysDiffer) {
+        invalidateFeedQuery(queryClient, getSubscriptionUrls(previousSubscriptions));
+      }
+      if (keysDiffer) {
+        invalidateFeedQuery(queryClient, nextUrls);
+      }
+    },
+    onError: (_error, _url, context) => {
+      const previousSubscriptions = context?.previousSubscriptions;
+      const previousKey = context?.previousKey;
+      const previousData = context?.previousData;
+
+      if (previousSubscriptions) {
+        useFeedStore.getState().setSubscriptions(previousSubscriptions);
+      }
+      if (previousKey) {
+        queryClient.setQueryData(previousKey, previousData);
+      }
     },
   });
 };
@@ -34,54 +119,64 @@ export const useAddFeedMutation = () => {
 export const useRemoveFeedMutation = () => {
   const queryClient = useQueryClient();
 
-  type CacheData = { feeds: Feed[]; items: FeedItem[] };
-
-  return useMutation<
-    { feedUrl: string },
-    Error,
-    string,
-    { previousFeeds?: CacheData; key: QueryKey }
-  >({
-    mutationFn: async (feedUrl: string) => {
-      // This is optimistic - we don't need server call for removal
-      return { feedUrl };
-    },
+  return useMutation<{ feedUrl: string }, Error, string, FeedMutationContext>({
+    mutationFn: async (feedUrl: string) => ({ feedUrl }),
     onMutate: async (feedUrl) => {
-      // Cancel any outgoing refetches for any feeds list
-      await queryClient.cancelQueries({ queryKey: feedsKeys.all });
+      const previousSubscriptions = [...readSubscriptionsSnapshot()];
+      const previousUrls = getSubscriptionUrls(previousSubscriptions);
+      const previousKey = getQueryKey(previousUrls);
+      const nextSubscriptions = previousSubscriptions.filter(
+        (subscription) => subscription.feedUrl !== feedUrl
+      );
+      const nextUrls = getSubscriptionUrls(nextSubscriptions);
+      const nextKey = getQueryKey(nextUrls);
 
-      // Snapshot the previous cache for the current subscription set
-      const st = useFeedStore.getState();
-      const urls: string[] = (st.feeds || []).map((f: Feed) => f.feedUrl);
-      const key = feedsKeys.list(urls);
-      const previousFeeds = queryClient.getQueryData<CacheData>(key);
+      await queryClient.cancelQueries({ queryKey: previousKey });
+      await queryClient.cancelQueries({ queryKey: nextKey });
 
-      // Optimistically update for the current key
-      const updatedData = queryClient.setQueryData<CacheData>(key, (old) => {
-        if (!old) return old;
-        return {
-          feeds: old.feeds.filter((f: Feed) => f.feedUrl !== feedUrl),
-          items: old.items.filter((i: FeedItem) => i.feedUrl !== feedUrl),
-        };
-      });
+      const previousData = getFeedCache(queryClient, previousUrls);
+      const nextData = previousData
+        ? {
+            feeds: previousData.feeds.filter((feed) => feed.feedUrl !== feedUrl),
+            items: previousData.items.filter((item) => item.feedUrl !== feedUrl),
+          }
+        : { feeds: [], items: [] };
 
-      // Sync updated data back to Zustand store
-      if (updatedData) {
-        const store = useFeedStore.getState();
-        store.setFeeds(updatedData.feeds);
-      }
+      setFeedCache(queryClient, nextUrls, nextData);
+      useFeedStore.getState().removeFeedSubscription(feedUrl);
 
-      return { previousFeeds, key };
+      return { previousSubscriptions, previousKey, previousData, nextKey };
     },
-    onError: (_err, _feedUrl, context) => {
-      // If the mutation fails, roll back
-      if (context?.previousFeeds && context?.key) {
-        queryClient.setQueryData<CacheData>(context.key, context.previousFeeds);
+    onSuccess: (_data, feedUrl, context) => {
+      const previousSubscriptions = context?.previousSubscriptions ?? [];
+      const previousUrls = getSubscriptionUrls(previousSubscriptions);
+      const nextUrls = previousUrls.filter((url) => url !== feedUrl);
+
+      if (previousUrls.length !== nextUrls.length) {
+        invalidateFeedQuery(queryClient, previousUrls);
+      }
+      if (nextUrls.length) {
+        invalidateFeedQuery(queryClient, nextUrls);
+      } else {
+        queryClient.removeQueries({ queryKey: getQueryKey(previousUrls) });
       }
     },
-    onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ queryKey: feedsKeys.all });
+    onError: (_error, _feedUrl, context) => {
+      const previousSubscriptions = context?.previousSubscriptions;
+      const previousKey = context?.previousKey;
+      const previousData = context?.previousData;
+      const nextKey = context?.nextKey;
+
+      if (previousSubscriptions) {
+        useFeedStore.getState().setSubscriptions(previousSubscriptions);
+      }
+      if (previousKey) {
+        queryClient.setQueryData(previousKey, previousData);
+      }
+      // Clean up the nextKey cache that was set optimistically
+      if (nextKey) {
+        queryClient.removeQueries({ queryKey: nextKey });
+      }
     },
   });
 };
@@ -92,30 +187,27 @@ export const useRefreshFeedsMutation = () => {
 
   return useMutation<{ feeds: Feed[]; items: FeedItem[] }, Error>({
     mutationFn: async () => {
-      const st = useFeedStore.getState();
-      const feedUrls: string[] = (st.feeds || []).map((f: Feed) => f.feedUrl);
-
+      const feedUrls = getSubscriptionUrls(readSubscriptionsSnapshot());
       if (feedUrls.length === 0) {
         return { feeds: [], items: [] };
       }
 
       const result = await workerService.refreshFeeds(feedUrls);
-      if (result.success) {
-        // Sort items by date (newest first) without mutation
-        const sortedItems = [...result.items].sort(sortByDateDesc);
-        return { feeds: result.feeds, items: sortedItems };
+      if (!result.success) {
+        throw new Error(result.message || "Failed to refresh feeds");
       }
-      throw new Error(result.message || "Failed to refresh feeds");
+
+      return {
+        feeds: result.feeds,
+        items: [...result.items].sort(sortByDateDesc),
+      };
     },
     onSuccess: (data) => {
-      // Update cache for the current subscription key
-      const st = useFeedStore.getState();
-      const urls: string[] = (st.feeds || []).map((f: Feed) => f.feedUrl);
-      queryClient.setQueryData<{ feeds: Feed[]; items: FeedItem[] }>(feedsKeys.list(urls), data);
-
-      // Sync fresh data back to Zustand store
-      const store = useFeedStore.getState();
-      store.setFeeds(data.feeds);
+      const feedUrls = getSubscriptionUrls(readSubscriptionsSnapshot());
+      setFeedCache(queryClient, feedUrls, {
+        feeds: data.feeds,
+        items: data.items,
+      });
     },
     onError: (error) => {
       console.error("Failed to refresh feeds:", error);
@@ -127,49 +219,91 @@ export const useRefreshFeedsMutation = () => {
 export const useBatchAddFeedsMutation = () => {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<
+    {
+      feeds: Feed[];
+      items: FeedItem[];
+      successfulCount: number;
+      failedCount: number;
+      failedUrls: string[];
+    },
+    Error,
+    string[],
+    FeedMutationContext
+  >({
     mutationFn: async (urls: string[]) => {
-      // Use the worker's native ability to handle multiple URLs in one call
       const allFeeds: Feed[] = [];
       const allItems: FeedItem[] = [];
-      let successfulCount = 0;
-      let failedCount = 0;
       const failedUrls: string[] = [];
+      const CONCURRENCY = 5;
 
-      for (const url of urls) {
+      for (let i = 0; i < urls.length; i += CONCURRENCY) {
+        const batch = urls.slice(i, i + CONCURRENCY);
         try {
-          const result = await workerService.fetchFeeds(url);
+          const result = await workerService.fetchFeeds(batch);
           if (result.success) {
             allFeeds.push(...result.feeds);
             allItems.push(...result.items);
-            successfulCount++;
           } else {
-            failedUrls.push(url);
-            failedCount++;
+            failedUrls.push(...batch);
           }
-        } catch (error) {
-          console.error(`Failed to fetch feed ${url}:`, error);
-          failedUrls.push(url);
-          failedCount++;
+        } catch {
+          failedUrls.push(...batch);
         }
       }
 
       return {
         feeds: allFeeds,
         items: allItems,
-        successfulCount,
-        failedCount,
+        successfulCount: urls.length - failedUrls.length,
+        failedCount: failedUrls.length,
         failedUrls,
       };
     },
-    onSuccess: (data) => {
-      // Invalidate all feeds lists to re-compute keys and refetch
-      queryClient.invalidateQueries({ queryKey: feedsKeys.all });
-      const store = useFeedStore.getState();
-      store.setFeeds([...(store.feeds || []), ...data.feeds]);
+    onMutate: async () => {
+      const previousSubscriptions = [...readSubscriptionsSnapshot()];
+      const previousUrls = getSubscriptionUrls(previousSubscriptions);
+      const previousKey = getQueryKey(previousUrls);
+
+      await queryClient.cancelQueries({ queryKey: previousKey });
+      const previousData = getFeedCache(queryClient, previousUrls);
+      return { previousSubscriptions, previousKey, previousData };
     },
-    onError: (error) => {
-      console.error("Failed to batch add feeds:", error);
+    onSuccess: (data, _url, context) => {
+      // Use context instead of re-reading store for previous state
+      const previousSubscriptions = context?.previousSubscriptions ?? [];
+      const previousKey = context?.previousKey;
+      const previousUrls = getSubscriptionUrls(previousSubscriptions);
+
+      const store = useFeedStore.getState();
+      store.addSubscriptions(toSubscriptionEntries(data.feeds));
+      const nextSubscriptions = [...store.subscriptions];
+      const nextUrls = getSubscriptionUrls(nextSubscriptions);
+      const nextKey = getQueryKey(nextUrls);
+      const nextData = mergeCacheData(context?.previousData, {
+        feeds: data.feeds,
+        items: data.items,
+      });
+
+      setFeedCache(queryClient, nextUrls, nextData);
+
+      // Only invalidate if keys actually differ
+      const keysDiffer = queryKeysDiffer(nextKey, previousKey);
+      if (previousKey && keysDiffer) {
+        invalidateFeedQuery(queryClient, previousUrls);
+      }
+      if (keysDiffer && nextUrls.length) {
+        invalidateFeedQuery(queryClient, nextUrls);
+      }
+    },
+    onError: (_error, _urls, context) => {
+      const previousSubscriptions = context?.previousSubscriptions;
+      if (previousSubscriptions) {
+        useFeedStore.getState().setSubscriptions(previousSubscriptions);
+      }
+      if (context?.previousKey) {
+        queryClient.setQueryData(context.previousKey, context.previousData);
+      }
     },
   });
 };

@@ -1,10 +1,10 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import { memo } from "react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -12,13 +12,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useTheme } from "next-themes";
+import { Switch } from "@/components/ui/switch";
 import { themes } from "@/lib/theme-definitions";
-import { useUiPreferencesStore } from "@/store/useUiPreferencesStore";
+import { FONT_SIZE_MAX, FONT_SIZE_MIN, useUiPreferencesStore } from "@/store/useUiPreferencesStore";
+
+// Keep theme select trigger aligned in the appearance settings layout.
+const SELECT_TRIGGER_WIDTH_CLASS = "w-select-trigger";
 
 export const AppearanceTab = memo(function AppearanceTab() {
   const { theme, setTheme } = useTheme();
-  const { animationsEnabled, setAnimationsEnabled } = useUiPreferencesStore();
+  const {
+    animationsEnabled,
+    setAnimationsEnabled,
+    compactView,
+    setCompactView,
+    fontSize,
+    increaseFontSize,
+    decreaseFontSize,
+  } = useUiPreferencesStore();
 
   return (
     <Card>
@@ -33,7 +44,7 @@ export const AppearanceTab = memo(function AppearanceTab() {
             <p className="text-body-small text-secondary-content">Choose your preferred theme</p>
           </div>
           <Select value={theme} onValueChange={setTheme}>
-            <SelectTrigger className="w-[180px]" id="theme-select">
+            <SelectTrigger className={SELECT_TRIGGER_WIDTH_CLASS} id="theme-select">
               <SelectValue placeholder="Select theme" />
             </SelectTrigger>
             <SelectContent>
@@ -66,25 +77,32 @@ export const AppearanceTab = memo(function AppearanceTab() {
               Display more items in a condensed layout
             </p>
           </div>
-          <Switch
-            id="compact-view"
-            disabled
-            aria-disabled={true}
-            title="TODO: compact view preference wiring"
-          />
+          <Switch id="compact-view" checked={compactView} onCheckedChange={setCompactView} />
         </div>
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label htmlFor="font-size">Font Size</Label>
             <p className="text-body-small text-secondary-content">
-              Adjust the text size for better readability
+              Adjust the text size for better readability ({fontSize + 1}/{FONT_SIZE_MAX + 1})
             </p>
           </div>
           <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" disabled title="Decrease font size">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={fontSize <= FONT_SIZE_MIN}
+              onClick={decreaseFontSize}
+              title="Decrease font size"
+            >
               A-
             </Button>
-            <Button variant="outline" size="sm" disabled title="Increase font size">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={fontSize >= FONT_SIZE_MAX}
+              onClick={increaseFontSize}
+              title="Increase font size"
+            >
               A+
             </Button>
           </div>

@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
+export const DESKTOP_BREAKPOINT = 1025;
+export const MOBILE_BREAKPOINT = 768;
+export const TABLET_MIN_BREAKPOINT = 769;
+export const TABLET_MAX_BREAKPOINT = 1024;
+export const DEFAULT_WINDOW_WIDTH = 1200;
+export const DEFAULT_WINDOW_HEIGHT = 800;
 
 /**
  * Hook to detect if the current viewport matches a media query
@@ -14,15 +21,13 @@ export function useMediaQuery(query: string): boolean {
     if (typeof window === "undefined") return;
 
     const media = window.matchMedia(query);
-    if (media.matches !== matches) {
-      setMatches(media.matches);
-    }
+    setMatches(media.matches);
 
     const listener = () => setMatches(media.matches);
     media.addEventListener("change", listener);
 
     return () => media.removeEventListener("change", listener);
-  }, [query, matches]);
+  }, [query]);
   return matches;
 }
 
@@ -30,19 +35,21 @@ export function useMediaQuery(query: string): boolean {
  * Predefined media query for mobile screens
  */
 export function useIsMobile(): boolean {
-  return useMediaQuery("(max-width: 768px)");
+  return useMediaQuery(`(max-width: ${MOBILE_BREAKPOINT}px)`);
 }
 
 /**
  * Predefined media query for tablet screens
  */
 export function useIsTablet(): boolean {
-  return useMediaQuery("(min-width: 769px) and (max-width: 1024px)");
+  return useMediaQuery(
+    `(min-width: ${TABLET_MIN_BREAKPOINT}px) and (max-width: ${TABLET_MAX_BREAKPOINT}px)`
+  );
 }
 
 /**
  * Predefined media query for desktop screens
  */
 export function useIsDesktop(): boolean {
-  return useMediaQuery("(min-width: 1025px)");
+  return useMediaQuery(`(min-width: ${DESKTOP_BREAKPOINT}px)`);
 }

@@ -1,9 +1,9 @@
-import { memo } from "react";
-import { Trash2, Copy } from "lucide-react";
+import { Copy, Trash2 } from "lucide-react";
 import Image from "next/image";
+import { memo } from "react";
 import noise from "@/public/noise.svg";
-import placeholderRss from "@/public/placeholder-rss.svg";
 import placeholderPodcast from "@/public/placeholder-podcast.svg";
+import placeholderRss from "@/public/placeholder-rss.svg";
 import type { Feed } from "@/types";
 import type { Subscription } from "@/types/subscription";
 import { getSiteDisplayName } from "@/utils/htmlUtils";
@@ -64,7 +64,9 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({
           <h3 className="mb-1 line-clamp-2 text-subtitle text-primary-content">
             {getSiteDisplayName(feed)}
           </h3>
-          {feed.feedTitle && <p className="mb-2 text-caption text-secondary-content">{feed.feedTitle}</p>}
+          {feed.feedTitle && (
+            <p className="mb-2 text-caption text-secondary-content">{feed.feedTitle}</p>
+          )}
           <p className="break-all text-body-small text-secondary-content opacity-0 transition-token-opacity duration-token-fast group-hover:opacity-100">
             {feed.feedUrl}
           </p>

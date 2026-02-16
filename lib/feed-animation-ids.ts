@@ -1,20 +1,12 @@
+import { hashString } from "@/utils/hash";
+
 export interface FeedAnimationIds {
+  cardShell: string;
   thumbnail: string;
   title: string;
   siteMeta: string;
   favicon: string;
   siteName: string;
-}
-
-function hashString(value: string): string {
-  let hash = 0;
-
-  for (let i = 0; i < value.length; i++) {
-    hash = (hash << 5) - hash + value.charCodeAt(i);
-    hash |= 0;
-  }
-
-  return Math.abs(hash).toString(36);
 }
 
 function toSafeId(value: string): string {
@@ -32,6 +24,7 @@ export function getFeedAnimationIds(feedItemId: string): FeedAnimationIds {
   const safeId = toSafeId(feedItemId);
 
   return {
+    cardShell: `feed-card-shell-${safeId}`,
     thumbnail: `feed-thumbnail-${safeId}`,
     title: `feed-title-${safeId}`,
     siteMeta: `feed-site-meta-${safeId}`,

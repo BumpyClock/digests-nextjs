@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
+import { useState } from "react";
 import { Ambilight } from "@/components/ui/ambilight";
+import { ProgressiveImage } from "@/components/ui/progressive-image";
 import { cn } from "@/lib/utils";
 import { getImageProps } from "@/utils/image-config";
-import { ProgressiveImage } from "@/components/ui/progressive-image";
 
 interface PodcastArtworkProps {
   src?: string;

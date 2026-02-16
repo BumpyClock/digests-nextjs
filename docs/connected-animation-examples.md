@@ -6,7 +6,7 @@
 // contexts/FeedAnimationContext.tsx
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { MotionConfig } from "motion";
 
 interface AnimationContextValue {
@@ -27,11 +27,24 @@ export function FeedAnimationProvider({
   children: React.ReactNode;
 }) {
   const [activeItemId, setActiveItemId] = useState<string | null>(null);
+  const [animationEnabled, setAnimationEnabled] = useState(true);
 
-  // Check for reduced motion preference
-  const animationEnabled = !window.matchMedia(
-    "(prefers-reduced-motion: reduce)"
-  ).matches;
+  // Check for reduced motion preference (SSR-safe)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handlePreferenceChange = (event: MediaQueryListEvent) => {
+      setAnimationEnabled(!event.matches);
+    };
+
+    setAnimationEnabled(!mediaQuery.matches);
+    mediaQuery.addEventListener("change", handlePreferenceChange);
+
+    return () => {
+      mediaQuery.removeEventListener("change", handlePreferenceChange);
+    };
+  }, []);
 
   return (
     <FeedAnimationContext.Provider
@@ -225,7 +238,7 @@ export function MotionReaderViewModal({ feedItem, isOpen, onClose }: Props) {
         {/* Shared thumbnail with parallax */}
         <motion.div
           layoutId={`thumbnail-container-${feedItem.id}`}
-          className="relative h-[400px] overflow-hidden"
+          className="relative w-full overflow-hidden aspect-video"
         >
           <motion.img
             layoutId={`thumbnail-${feedItem.id}`}

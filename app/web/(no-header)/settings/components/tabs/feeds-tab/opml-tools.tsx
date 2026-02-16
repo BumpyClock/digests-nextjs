@@ -1,7 +1,7 @@
 import { Download, Upload } from "lucide-react";
 import { memo } from "react";
-import { useOPML } from "@/hooks";
 import { Button } from "@/components/ui/button";
+import { useOPML } from "@/hooks";
 import { OPMLImportDialog } from "./opml-import-dialog";
 
 export const OPMLTools = memo(function OPMLTools() {

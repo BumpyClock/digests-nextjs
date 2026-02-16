@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { workerService } from "@/services/worker-service";
 import { useFeedStore } from "@/store/useFeedStore";
-import { feedsKeys } from "./feedsKeys";
-import { sortByDateDesc } from "@/utils/selectors";
 import type { Feed, FeedItem } from "@/types";
+import { sortByDateDesc } from "@/utils/selectors";
+import { feedsKeys } from "./feedsKeys";
 
 /**
  * React Query hook for fetching and managing feeds data
@@ -18,9 +18,8 @@ import type { Feed, FeedItem } from "@/types";
  * - Proper error handling and loading states
  */
 export function useFeedsData() {
-  const feeds = useFeedStore((s) => s.feeds);
-  const subs = useFeedStore((s) => s.subscriptions ?? []) as { feedUrl: string }[];
-  const feedUrls = (feeds?.length ? feeds : subs).map((f) => f.feedUrl);
+  const subscriptions = useFeedStore((s) => s.subscriptions ?? []);
+  const feedUrls = subscriptions.map((f) => f.feedUrl);
 
   return useQuery({
     queryKey: feedsKeys.list(feedUrls),
@@ -29,7 +28,7 @@ export function useFeedsData() {
         return { feeds: [], items: [] };
       }
 
-      const result = await workerService.refreshFeeds(feedUrls);
+      const result = await workerService.fetchFeeds(feedUrls);
 
       if (!result.success) {
         throw new Error(result.message || "Failed to fetch feeds");
@@ -37,15 +36,11 @@ export function useFeedsData() {
 
       return {
         feeds: result.feeds,
-        items: result.items,
+        items: [...result.items].sort(sortByDateDesc), // Sort once at fetch time
       };
     },
-    select: (data) => ({
-      feeds: data.feeds,
-      items: [...data.items].sort(sortByDateDesc), // Sort items by date (newest first)
-    }),
-    staleTime: 15 * 60 * 1000, // 15 minutes - align with worker TTL
-    gcTime: 30 * 60 * 1000, // 30 minutes - keep in cache longer
+    staleTime: 15 * 60 * 1000, // 15 minutes - uses worker cache for dedup within this window
+    gcTime: 30 * 60 * 1000, // 30 minutes - keep in React Query cache after going unused
     refetchOnReconnect: true, // Refetch when coming back online
     refetchOnWindowFocus: false, // Don't refetch on every window focus
     enabled: feedUrls.length > 0, // Only run if we have feeds to fetch

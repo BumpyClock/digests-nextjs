@@ -34,6 +34,11 @@ interface BaseModalProps {
    * If omitted, VT mode keeps a low-cost blur throughout the entrance.
    */
   viewTransitionBackdropSettleMs?: number;
+  /**
+   * Optional explicit signal that VT-connected reader transition is finished.
+   * When set, backdrop blur switches to the full state immediately.
+   */
+  viewTransitionBackdropSettled?: boolean;
 }
 
 /**
@@ -52,6 +57,7 @@ export function BaseModal({
   className,
   useViewTransition,
   viewTransitionBackdropSettleMs,
+  viewTransitionBackdropSettled,
 }: BaseModalProps) {
   const isMobile = useIsMobile();
   // Store the initial mobile state when modal opens to prevent resize issues
@@ -110,6 +116,11 @@ export function BaseModal({
       return;
     }
 
+    if (typeof viewTransitionBackdropSettled === "boolean") {
+      setIsBackdropSettled(viewTransitionBackdropSettled);
+      return;
+    }
+
     if (!viewTransitionBackdropSettleMs || viewTransitionBackdropSettleMs <= 0) {
       setIsBackdropSettled(false);
       return;
@@ -123,7 +134,7 @@ export function BaseModal({
     return () => {
       window.clearTimeout(settleTimer);
     };
-  }, [isOpen, useViewTransition, viewTransitionBackdropSettleMs]);
+  }, [isOpen, useViewTransition, viewTransitionBackdropSettleMs, viewTransitionBackdropSettled]);
 
   const backdropBlurClass = useViewTransition
     ? isBackdropSettled

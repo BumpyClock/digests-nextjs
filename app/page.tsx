@@ -1,9 +1,9 @@
 "use client";
 
-import { Rss, Headphones, BookOpenText, Cookie, FileTextIcon } from "lucide-react";
-import { BentoCard, BentoGrid } from "@/components/ui/bento-grid";
+import { BookOpenText, Cookie, FileTextIcon, Headphones, Rss } from "lucide-react";
 import { Hero } from "@/components/hero";
 import { SmoothScroll } from "@/components/smooth-scroll";
+import { BentoCard, BentoGrid } from "@/components/ui/bento-grid";
 
 const features = [
   {

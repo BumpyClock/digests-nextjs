@@ -5,7 +5,7 @@
  * reusable across React Query selectors and other components.
  */
 
-import type { FeedItem, Feed } from "@/types";
+import type { Feed, FeedItem } from "@/types";
 import type { Subscription } from "@/types/subscription";
 
 /**
@@ -56,7 +56,7 @@ export function filterByFeed(items: FeedItem[], normalizedFeedUrl?: string): Fee
  * This is used when migrating from storing full Feed objects
  * to storing only essential metadata in Zustand.
  */
-export function toSubscription(feed: Feed): Subscription {
+export function toSubscription(feed: Feed | Subscription): Subscription {
   return {
     feedUrl: feed.feedUrl,
     feedTitle: feed.feedTitle || feed.siteTitle,

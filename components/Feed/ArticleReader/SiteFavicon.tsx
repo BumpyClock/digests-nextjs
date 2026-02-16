@@ -1,7 +1,7 @@
 "use client";
 
-import { memo } from "react";
 import Image from "next/image";
+import { memo } from "react";
 import { getImageProps } from "@/utils/image-config";
 import { isValidImageUrl, normalizeImageUrl } from "@/utils/image-url";
 

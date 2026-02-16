@@ -2,8 +2,8 @@
  * Barrel file for exporting all types
  */
 
-export * from "./feed";
 export * from "./api";
+export * from "./feed";
 
 // Add any shared types here
 export interface Timestamp {

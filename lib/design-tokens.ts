@@ -194,6 +194,10 @@ export const designTokens = {
     "4xl": rem(4),
     "5xl": rem(6),
   },
+  color: {
+    bgCode: "rgb(45 45 45)",
+    overlay: "rgb(0 0 0 / 0.8)",
+  },
 } as const satisfies TokenTree;
 
 export type DesignTokens = typeof designTokens;

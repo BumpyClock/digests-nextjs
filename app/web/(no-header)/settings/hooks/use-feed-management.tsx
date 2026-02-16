@@ -1,6 +1,6 @@
 import { useCallback } from "react";
-import { useRemoveFeedMutation } from "@/hooks/queries";
 import { toast } from "sonner";
+import { useRemoveFeedMutation } from "@/hooks/queries";
 
 export function useFeedManagement() {
   const removeFeedMutation = useRemoveFeedMutation();

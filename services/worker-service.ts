@@ -1,18 +1,27 @@
 // services/worker-service.ts
-import type { Feed, FeedItem, ReaderViewResponse } from "../types";
-import type { IFeedFetcher } from "@/lib/interfaces/feed-fetcher.interface";
+
+import { DEFAULT_CACHE_TTL_MS } from "@/lib/config";
 import { createFeedFetcher } from "@/lib/feed-fetcher";
+import type { IFeedFetcher } from "@/lib/interfaces/feed-fetcher.interface";
 import { getApiConfig } from "@/store/useApiConfigStore";
 import { Logger } from "@/utils/logger";
-import { DEFAULT_CACHE_TTL_MS } from "@/lib/config";
+import type { Feed, FeedItem, ReaderViewResponse } from "../types";
 
 const isClient = typeof window !== "undefined";
 
 // Define the types for messages to and from the worker
 type WorkerMessage =
-  | { type: "FETCH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "FETCH_READER_VIEW"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "REFRESH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string } }
+  | { type: "FETCH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
+  | {
+      type: "FETCH_READER_VIEW";
+      payload: { urls: string[]; apiBaseUrl?: string };
+      requestId?: string;
+    }
+  | {
+      type: "REFRESH_FEEDS";
+      payload: { urls: string[]; apiBaseUrl?: string };
+      requestId?: string;
+    }
   | {
       type: "GENERATE_SHADOWS";
       payload: {
@@ -20,22 +29,37 @@ type WorkerMessage =
         color: { r: number; g: number; b: number };
         isDarkMode: boolean;
       };
+      requestId?: string;
     }
-  | { type: "CHECK_UPDATES"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "SET_API_URL"; payload: { url: string } }
-  | { type: "SET_CACHE_TTL"; payload: { ttl: number } };
+  | { type: "CHECK_UPDATES"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
+  | { type: "SET_API_URL"; payload: { url: string }; requestId?: string }
+  | { type: "SET_CACHE_TTL"; payload: { ttl: number }; requestId?: string };
 
 type WorkerResponse =
-  | { type: "FEEDS_RESULT"; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
-  | { type: "READER_VIEW_RESULT"; success: boolean; data: ReaderViewResponse[]; message?: string }
+  | {
+      type: "FEEDS_RESULT";
+      success: boolean;
+      feeds: Feed[];
+      items: FeedItem[];
+      message?: string;
+      requestId?: string;
+    }
+  | {
+      type: "READER_VIEW_RESULT";
+      success: boolean;
+      data: ReaderViewResponse[];
+      message?: string;
+      requestId?: string;
+    }
   | {
       type: "SHADOWS_RESULT";
       payload: {
         id: string;
         shadows: { restShadow: string; hoverShadow: string; pressedShadow: string };
       };
+      requestId?: string;
     }
-  | { type: "ERROR"; message: string };
+  | { type: "ERROR"; message: string; requestId?: string };
 
 /**
  * A service that manages the RSS web worker
@@ -47,6 +71,11 @@ class WorkerService {
     new Map();
   private isInitialized = false;
   private cacheTtl = DEFAULT_CACHE_TTL_MS;
+  private shadowCache = new Map<
+    string,
+    { restShadow: string; hoverShadow: string; pressedShadow: string }
+  >();
+  private requestCounter = 0;
   private readonly WORKER_TIMEOUT_MS = 30000; // 30 seconds
   private fallbackFetcher: IFeedFetcher; // NEW
 
@@ -97,7 +126,8 @@ class WorkerService {
   }
 
   /**
-   * Updates the API URL in the worker
+   * Updates the API URL used by the RSS worker.
+   * @param url - The base URL of the feed API
    */
   updateApiUrl(url: string): void {
     if (!this.isInitialized) this.initialize();
@@ -111,7 +141,8 @@ class WorkerService {
   }
 
   /**
-   * Updates cache TTL in the worker
+   * Updates the cache time-to-live for the RSS worker's internal cache.
+   * @param ttl - Cache duration in milliseconds
    */
   updateCacheTtl(ttl: number): void {
     this.cacheTtl = ttl;
@@ -208,6 +239,7 @@ class WorkerService {
     responseFilter?: (response: WorkerResponse) => boolean
   ): Promise<WorkerResponse> {
     return new Promise((resolve, reject) => {
+      const requestId = `${++this.requestCounter}-${Date.now()}`;
       // Initialize if not already
       if (!this.isInitialized) this.initialize();
 
@@ -247,6 +279,15 @@ class WorkerService {
 
       // Register one-time handler for response
       unsubscribe = this.onMessage(expectedResponseType, (response) => {
+        if (response.requestId !== requestId) {
+          Logger.debug("WorkerService: Ignoring response with mismatched requestId", {
+            expectedRequestId: requestId,
+            receivedRequestId: response.requestId,
+            type: response.type,
+          });
+          return;
+        }
+
         // Apply filter if provided - if false, keep listener active
         if (responseFilter && !responseFilter(response)) {
           return;
@@ -258,7 +299,7 @@ class WorkerService {
       });
 
       // Send message to worker
-      this.postMessage(message);
+      this.postMessage({ ...message, requestId });
     });
   }
 
@@ -324,23 +365,28 @@ class WorkerService {
   }
 
   /**
-   * Fetches feeds from the worker
+   * Fetches feeds from the RSS worker (or fallback fetcher).
+   * @param url - A single feed URL or array of feed URLs to fetch
+   * @returns Parsed feeds and their items, with success/failure status
    */
-  async fetchFeeds(url: string): Promise<{
+  async fetchFeeds(url: string | string[]): Promise<{
     success: boolean;
     feeds: Feed[];
     items: FeedItem[];
     message?: string;
   }> {
+    const urls = Array.isArray(url) ? url : [url];
     return this.sendFeedsRequest({
       type: "FETCH_FEEDS",
-      urls: [url],
+      urls,
       fallbackLabel: "fetch",
     });
   }
 
   /**
-   * Refreshes feeds from the worker
+   * Refreshes feeds by bypassing the worker's internal cache.
+   * @param urls - Feed URLs to refresh
+   * @returns Freshly fetched feeds and items, with success/failure status
    */
   async refreshFeeds(urls: string[]): Promise<{
     success: boolean;
@@ -356,7 +402,9 @@ class WorkerService {
   }
 
   /**
-   * Fetches reader view from the worker
+   * Fetches a reader-friendly rendering of a page via the RSS worker.
+   * @param url - The article URL to extract reader view for
+   * @returns Reader view HTML content, with success/failure status
    */
   async fetchReaderView(url: string): Promise<{
     success: boolean;
@@ -411,7 +459,12 @@ class WorkerService {
   }
 
   /**
-   * Generates card shadows in the worker
+   * Generates themed box-shadow CSS values for a feed card via the shadow worker.
+   * Results are cached in-memory (FIFO, max 500 entries) keyed by id + color + theme.
+   * @param id - Unique identifier for the card (used to match async responses)
+   * @param color - Dominant RGB color extracted from the card's thumbnail
+   * @param isDarkMode - Whether the current theme is dark mode
+   * @returns Rest, hover, and pressed shadow CSS strings
    */
   async generateShadows(
     id: string,
@@ -422,6 +475,12 @@ class WorkerService {
     hoverShadow: string;
     pressedShadow: string;
   }> {
+    const cacheKey = `${id}-${isDarkMode}-${color.r}-${color.g}-${color.b}`;
+    const cachedShadows = this.shadowCache.get(cacheKey);
+    if (cachedShadows) {
+      return cachedShadows;
+    }
+
     const response = await this.sendWorkerMessage(
       "shadow",
       {
@@ -444,11 +503,21 @@ class WorkerService {
       throw new Error("Unexpected worker response type for shadows");
     }
 
+    if (this.shadowCache.size >= 500) {
+      const firstKey = this.shadowCache.keys().next().value;
+      if (firstKey !== undefined) {
+        this.shadowCache.delete(firstKey);
+      }
+    }
+    this.shadowCache.set(cacheKey, response.payload.shadows);
+
     return response.payload.shadows;
   }
 
   /**
-   * Checks for updates without refreshing the store
+   * Checks for feed updates by clearing the worker cache and re-fetching.
+   * @param urls - Feed URLs to check for updates
+   * @returns Updated feeds and items, with success/failure status
    */
   async checkForUpdates(urls: string[]): Promise<{
     success: boolean;

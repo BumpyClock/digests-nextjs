@@ -10,7 +10,9 @@ export function RouteShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className={isWebHome ? "flex h-dvh flex-col overflow-x-hidden" : "flex min-h-screen flex-col"}
+      className={
+        isWebHome ? "flex min-h-dvh flex-col overflow-x-clip" : "flex min-h-screen flex-col"
+      }
     >
       {!isWebRoute && <Header />}
       <main

@@ -1,7 +1,7 @@
 import { memo, useCallback, useRef } from "react";
 import { AddFeedForm } from "./add-feed-form";
-import { OPMLTools } from "./opml-tools";
 import { FeedList } from "./feed-list";
+import { OPMLTools } from "./opml-tools";
 
 export const FeedsTab = memo(function FeedsTab() {
   const feedUrlInputRef = useRef<HTMLInputElement>(null);

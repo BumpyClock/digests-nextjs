@@ -1,7 +1,7 @@
-import { useMemo, useCallback } from "react";
-import { FeedItem, Feed } from "@/types";
-import type { Subscription } from "@/types/subscription";
+import { useCallback, useMemo } from "react";
 import { useDebounce } from "use-debounce";
+import { Feed, FeedItem } from "@/types";
+import type { Subscription } from "@/types/subscription";
 
 /**
  * Helper: combine relevant FeedItem fields & see if they match `query`.
@@ -59,9 +59,7 @@ function feedMatchesSearch(
     .toLowerCase();
 
   const fullMatch =
-    combined.includes(` ${search} `) ||
-    combined.startsWith(search) ||
-    combined.endsWith(search);
+    combined.includes(` ${search} `) || combined.startsWith(search) || combined.endsWith(search);
 
   if (fullMatch) return { match: true, score: 2 };
   if (combined.includes(search)) return { match: true, score: 1 };
@@ -76,7 +74,7 @@ export function useCommandBarSearch(
   handleClose: () => void,
   onSearchValueChange: (value: string) => void
 ) {
-  const debouncedValue = useDebounce(searchValue, 300);
+  const [debouncedValue] = useDebounce(searchValue, 300);
 
   const uniqueFeedSources = useMemo(() => {
     if (feeds && Array.isArray(feeds)) {
@@ -97,23 +95,23 @@ export function useCommandBarSearch(
   }, [feedItems, feeds]);
 
   const filteredSources = useMemo(() => {
-    if (!searchValue) {
+    if (!debouncedValue) {
       return uniqueFeedSources;
     }
-    const searchLower = searchValue.toLowerCase();
+    const searchLower = debouncedValue.toLowerCase();
     const filtered = (uniqueFeedSources as Array<Feed | Subscription>)
       .map((feed) => ({ feed, ...feedMatchesSearch(feed, searchLower) }))
       .filter(({ match }) => match)
       .sort((a, b) => b.score - a.score);
 
     return filtered.map(({ feed }) => feed); // Return only feeds
-  }, [uniqueFeedSources, searchValue]);
+  }, [uniqueFeedSources, debouncedValue]);
 
   const filteredItems = useMemo(() => {
-    if (!searchValue) {
+    if (!debouncedValue) {
       return [];
     }
-    const searchLower = searchValue.toLowerCase();
+    const searchLower = debouncedValue.toLowerCase();
     const filtered = feedItems
       .map((item) => ({ item, ...itemMatchesSearch(item, searchLower) }))
       .filter(({ match }) => match)
@@ -121,7 +119,7 @@ export function useCommandBarSearch(
 
     const filteredItems = filtered.map(({ item }) => item);
     return filteredItems;
-  }, [feedItems, searchValue]);
+  }, [feedItems, debouncedValue]);
 
   const totalMatchCount = filteredItems.length;
 

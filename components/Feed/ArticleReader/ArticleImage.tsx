@@ -1,10 +1,10 @@
 "use client";
 
-import React, { memo } from "react";
 import Image from "next/image";
+import React, { memo } from "react";
 import { ProgressiveImage } from "@/components/ui/progressive-image";
-import { canUseImageKit } from "@/utils/imagekit";
 import { isValidImageUrl, normalizeImageUrl } from "@/utils/image-url";
+import { canUseImageKit } from "@/utils/imagekit";
 
 interface ArticleImageProps {
   src: string;

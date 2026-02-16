@@ -1,10 +1,21 @@
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
 import localforage from "localforage";
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+
+// Font size scale: 0-4 (0 = smallest, 4 = largest)
+export const FONT_SIZE_MIN = 0;
+export const FONT_SIZE_MAX = 4;
+export const FONT_SIZE_DEFAULT = 2;
 
 interface UiPreferencesState {
   animationsEnabled: boolean;
   setAnimationsEnabled: (enabled: boolean) => void;
+  compactView: boolean;
+  setCompactView: (compact: boolean) => void;
+  fontSize: number;
+  setFontSize: (size: number) => void;
+  increaseFontSize: () => void;
+  decreaseFontSize: () => void;
 }
 
 export const useUiPreferencesStore = create<UiPreferencesState>()(
@@ -17,6 +28,29 @@ export const useUiPreferencesStore = create<UiPreferencesState>()(
       setAnimationsEnabled: (enabled: boolean) => {
         set({ animationsEnabled: enabled });
       },
+
+      // Compact view (default: false)
+      compactView: false,
+      setCompactView: (compact: boolean) => {
+        set({ compactView: compact });
+      },
+
+      // Font size scale (0-4, default: 2)
+      fontSize: FONT_SIZE_DEFAULT,
+      setFontSize: (size: number) => {
+        const clampedSize = Math.max(FONT_SIZE_MIN, Math.min(FONT_SIZE_MAX, size));
+        set({ fontSize: clampedSize });
+      },
+      increaseFontSize: () => {
+        set((state) => ({
+          fontSize: Math.min(FONT_SIZE_MAX, state.fontSize + 1),
+        }));
+      },
+      decreaseFontSize: () => {
+        set((state) => ({
+          fontSize: Math.max(FONT_SIZE_MIN, state.fontSize - 1),
+        }));
+      },
     }),
     {
       name: "digests-ui-preferences",
@@ -28,4 +62,14 @@ export const useUiPreferencesStore = create<UiPreferencesState>()(
 // Helper function to get animation preference without hook
 export function getAnimationsEnabled(): boolean {
   return useUiPreferencesStore.getState().animationsEnabled;
+}
+
+// Helper function to get compact view preference without hook
+export function getCompactView(): boolean {
+  return useUiPreferencesStore.getState().compactView;
+}
+
+// Helper function to get font size preference without hook
+export function getFontSize(): number {
+  return useUiPreferencesStore.getState().fontSize;
 }

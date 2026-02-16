@@ -1,22 +1,41 @@
 // workers/rss-worker.ts
-import type { Feed, FeedItem, ReaderViewResponse, FetchFeedsResponse } from "../types";
-import { DEFAULT_API_CONFIG, DEFAULT_CACHE_TTL_MS } from "../lib/config";
+
 import { Logger } from "@/utils/logger";
+import { isHttpUrl } from "@/utils/url";
+import { DEFAULT_API_CONFIG, DEFAULT_CACHE_TTL_MS } from "../lib/config";
 import { transformFeedResponse } from "../lib/feed-transformer";
+import type { Feed, FeedItem, FetchFeedsResponse, ReaderViewResponse } from "../types";
 
 // Message types to organize communication
 type WorkerMessage =
-  | { type: "FETCH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "FETCH_READER_VIEW"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "REFRESH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "CHECK_UPDATES"; payload: { urls: string[]; apiBaseUrl?: string } }
-  | { type: "SET_API_URL"; payload: { url: string } }
-  | { type: "SET_CACHE_TTL"; payload: { ttl: number } };
+  | { type: "FETCH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
+  | {
+      type: "FETCH_READER_VIEW";
+      payload: { urls: string[]; apiBaseUrl?: string };
+      requestId?: string;
+    }
+  | { type: "REFRESH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
+  | { type: "CHECK_UPDATES"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
+  | { type: "SET_API_URL"; payload: { url: string }; requestId?: string }
+  | { type: "SET_CACHE_TTL"; payload: { ttl: number }; requestId?: string };
 
 type WorkerResponse =
-  | { type: "FEEDS_RESULT"; success: boolean; feeds: Feed[]; items: FeedItem[]; message?: string }
-  | { type: "READER_VIEW_RESULT"; success: boolean; data: ReaderViewResponse[]; message?: string }
-  | { type: "ERROR"; message: string };
+  | {
+      type: "FEEDS_RESULT";
+      success: boolean;
+      feeds: Feed[];
+      items: FeedItem[];
+      message?: string;
+      requestId?: string;
+    }
+  | {
+      type: "READER_VIEW_RESULT";
+      success: boolean;
+      data: ReaderViewResponse[];
+      message?: string;
+      requestId?: string;
+    }
+  | { type: "ERROR"; message: string; requestId?: string };
 
 // Cache implementation for the worker
 class WorkerCache {
@@ -56,6 +75,12 @@ class WorkerCache {
   }
 }
 
+// Build a deterministic, collision-safe cache key for URL arrays
+// - order-insensitive via sort
+// - unambiguous serialization via JSON
+const buildSortedUrlCacheKey = (prefix: string, urls: string[]): string =>
+  `${prefix}:${JSON.stringify([...urls].sort())}`;
+
 // Initialize worker cache and API URL
 const workerCache = new WorkerCache(DEFAULT_CACHE_TTL_MS);
 let apiBaseUrl = DEFAULT_API_CONFIG.baseUrl;
@@ -80,8 +105,12 @@ async function fetchFeeds(
   const { bypassCache = false } = options ?? {};
 
   try {
-    // Generate cache key from sorted copy to avoid mutating caller's array
-    const cacheKey = `feeds:${[...urls].sort().join(",")}`;
+    // Validate the API base URL before proceeding
+    if (!isHttpUrl(currentApiUrl)) {
+      throw new Error(`Invalid API base URL: ${currentApiUrl}`);
+    }
+
+    const cacheKey = buildSortedUrlCacheKey("feeds", urls);
 
     // Check cache first (unless bypassed)
     if (!bypassCache) {
@@ -123,7 +152,11 @@ async function fetchFeeds(
 
     return result;
   } catch (error) {
-    console.error("[Worker] Error fetching feeds:", error);
+    const loggerError = error instanceof Error ? error : undefined;
+    Logger.error(
+      `[Worker] Error fetching feeds (api=${currentApiUrl}, urls=${urls.length}):`,
+      loggerError
+    );
     throw error;
   }
 }
@@ -143,8 +176,13 @@ async function fetchReaderView(
 ): Promise<ReaderViewResponse[]> {
   const currentApiUrl = customApiUrl || apiBaseUrl;
   try {
+    // Validate the API base URL before proceeding
+    if (!isHttpUrl(currentApiUrl)) {
+      throw new Error(`Invalid API base URL: ${currentApiUrl}`);
+    }
+
     // Generate cache key
-    const cacheKey = `reader:${urls[0]}`;
+    const cacheKey = buildSortedUrlCacheKey("reader", urls);
 
     // Check cache first
     const cached = workerCache.get<ReaderViewResponse[]>(cacheKey);
@@ -178,7 +216,8 @@ async function fetchReaderView(
 
     return data as ReaderViewResponse[];
   } catch (error) {
-    console.error("[Worker] Error fetching reader view:", error);
+    const loggerError = error instanceof Error ? error : undefined;
+    Logger.error("[Worker] Error fetching reader view:", loggerError);
     throw error;
   }
 }
@@ -316,8 +355,9 @@ const messageHandlers: WorkerHandlerMap = {
         feeds,
         items,
       } as WorkerResponse;
-    } catch (error) {
-      console.error("[Worker] Error checking for updates:", error);
+  } catch (error) {
+      const loggerError = error instanceof Error ? error : undefined;
+      Logger.error("[Worker] Error checking for updates:", loggerError);
       return {
         type: "FEEDS_RESULT",
         success: false,
@@ -394,11 +434,17 @@ const dispatchMessage = (
 self.addEventListener("message", async (event) => {
   const message = event.data as unknown;
 
+  let requestId: string | undefined;
+  if (isRecord(message) && typeof message.requestId === "string") {
+    requestId = message.requestId;
+  }
+
   try {
     if (!isWorkerMessage(message)) {
       self.postMessage({
         type: "ERROR",
         message: "Invalid worker message payload",
+        ...(requestId !== undefined ? { requestId } : {}),
       } as WorkerResponse);
       return;
     }
@@ -406,18 +452,19 @@ self.addEventListener("message", async (event) => {
     // Execute handler and send response if any
     const response = await dispatchMessage(message);
     if (response) {
-      self.postMessage(response);
+      self.postMessage(requestId !== undefined ? { ...response, requestId } : response);
     }
   } catch (error) {
     self.postMessage({
       type: "ERROR",
       message: error instanceof Error ? error.message : "Unknown error in worker",
+      ...(requestId !== undefined ? { requestId } : {}),
     } as WorkerResponse);
   }
 });
 
 self.addEventListener("unhandledrejection", (event) => {
-  console.error("[Worker] Unhandled promise rejection:", event.reason);
+  Logger.error("[Worker] Unhandled promise rejection:", event.reason);
   self.postMessage({
     type: "ERROR",
     message: `Unhandled error in worker: ${event.reason?.message || "Unknown error"}`,

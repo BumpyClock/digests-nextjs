@@ -1,5 +1,5 @@
-import { Result } from "@/types";
 import { getApiUrl } from "@/lib/config";
+import { Result } from "@/types";
 
 export class APIError extends Error {
   constructor(

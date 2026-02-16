@@ -1,6 +1,6 @@
+import { StateCreator } from "zustand";
 import type { FeedItem } from "@/types";
 import { Logger } from "@/utils/logger";
-import { StateCreator } from "zustand";
 
 export type ReadStatusSlice = {
   readItems: Set<string>;
@@ -12,7 +12,7 @@ export type ReadStatusSlice = {
    */
   getUnreadItems: (items: FeedItem[]) => FeedItem[];
   /**
-   * Marks all provided items as read by adding their IDs to readItems.
+   * Replaces readItems with the IDs from provided items.
    */
   markAllAsRead: (items: FeedItem[]) => void;
   addToReadLater: (itemId: string) => void;
@@ -51,15 +51,26 @@ export const createReadStatusSlice: StateCreator<ReadStatusSlice, [], [], ReadSt
 
   getUnreadItems: (items: FeedItem[]) => {
     const { readItems } = get();
-    const readItemsSet = readItems instanceof Set ? readItems : new Set();
+    // Ensure we're working with a Set
+    const readItemsSet = new Set(readItems instanceof Set ? readItems : []);
     const unreadItems = (items || []).filter((item: FeedItem) => !readItemsSet.has(item.id));
-    Logger.debug("unreadItems", unreadItems);
-    return unreadItems.length > 0 ? unreadItems : [];
+    if (process.env.NEXT_PUBLIC_DEBUG_STORE === "true") {
+      Logger.debug("unreadItems", unreadItems);
+    }
+    return unreadItems;
   },
 
   markAllAsRead: (items: FeedItem[]) => {
-    const allIds = new Set((items || []).map((item: FeedItem) => item.id));
-    set({ readItems: allIds });
+    const nextReadItems = new Set((items || []).map((item) => item.id));
+    const { readItems } = get();
+    const currentReadItems = readItems instanceof Set ? readItems : new Set<string>();
+    const hasChanges =
+      currentReadItems.size !== nextReadItems.size ||
+      [...nextReadItems].some((itemId) => !currentReadItems.has(itemId));
+
+    if (hasChanges) {
+      set({ readItems: nextReadItems });
+    }
   },
 
   addToReadLater: (itemId: string) => {
@@ -78,16 +89,11 @@ export const createReadStatusSlice: StateCreator<ReadStatusSlice, [], [], ReadSt
 
   isInReadLater: (itemId: string) => {
     const { readLaterItems } = get();
-    const set =
-      readLaterItems instanceof Set
-        ? readLaterItems
-        : new Set(Array.isArray(readLaterItems) ? readLaterItems : []);
-    return set.has(itemId);
+    return readLaterItems.has(itemId);
   },
 
   getReadLaterItems: (items: FeedItem[]) => {
     const { readLaterItems } = get();
-    const readLaterSet = readLaterItems instanceof Set ? readLaterItems : new Set();
-    return (items || []).filter((item: FeedItem) => readLaterSet.has(item.id));
+    return (items || []).filter((item: FeedItem) => readLaterItems.has(item.id));
   },
 });

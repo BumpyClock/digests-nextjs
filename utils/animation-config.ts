@@ -16,3 +16,18 @@ export const contentVariants = {
     },
   },
 };
+
+/**
+ * Get content variants that respect prefers-reduced-motion
+ * @param prefersReducedMotion - Whether user prefers reduced motion
+ * @returns Animation variants with no-op when reduced motion is preferred
+ */
+export function getContentVariants(prefersReducedMotion: boolean) {
+  if (prefersReducedMotion) {
+    return {
+      hidden: {},
+      visible: {},
+    };
+  }
+  return contentVariants;
+}

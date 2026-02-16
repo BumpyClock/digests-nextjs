@@ -1,6 +1,6 @@
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft } from "lucide-react";
 
 /**
  * Shared loading skeleton for article and podcast detail pages

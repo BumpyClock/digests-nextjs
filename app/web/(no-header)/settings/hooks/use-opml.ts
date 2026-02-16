@@ -1,21 +1,23 @@
-import { useCallback, useRef, useState, type ChangeEvent } from "react";
-import { useSubscriptions } from "@/hooks/useFeedSelectors";
-import { useBatchAddFeedsMutation } from "@/hooks/queries";
-import { toast } from "sonner";
-import { exportOPML } from "../utils/opml";
+// ABOUTME: React hook for OPML import/export orchestration.
+// ABOUTME: Delegates parsing and URL deduplication to ../utils/opml.
 
-interface FeedItem {
-  url: string;
-  title: string;
-  isSubscribed: boolean;
-}
+import { type ChangeEvent, useCallback, useRef, useState } from "react";
+import { toast } from "sonner";
+import { useBatchAddFeedsMutation } from "@/hooks/queries";
+import { useSubscriptions } from "@/hooks/useFeedSelectors";
+import {
+  type OPMLFeedItem,
+  deduplicateUrls,
+  exportOPML,
+  parseFeedsFromDocument,
+} from "../utils/opml";
 
 export function useOPML() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const feeds = useSubscriptions();
   const batchAddFeedsMutation = useBatchAddFeedsMutation();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [detectedFeeds, setDetectedFeeds] = useState<FeedItem[]>([]);
+  const [detectedFeeds, setDetectedFeeds] = useState<OPMLFeedItem[]>([]);
 
   const handleExportOPML = useCallback(() => {
     exportOPML(feeds);
@@ -44,26 +46,8 @@ export function useOPML() {
           const parserErrorMessage = parserError.textContent?.trim() || "Invalid OPML XML format";
           throw new Error(parserErrorMessage);
         }
-        const outlines = doc.querySelectorAll("outline");
-
-        // Get unique feed URLs from OPML
-        const existingUrls = new Set(feeds.map((f: { feedUrl: string }) => f.feedUrl));
-        const uniqueFeeds = new Map<string, FeedItem>();
-
-        outlines.forEach((outline) => {
-          const feedUrl = outline.getAttribute("xmlUrl");
-          const title =
-            outline.getAttribute("title") || outline.getAttribute("text") || feedUrl || "";
-          if (feedUrl) {
-            uniqueFeeds.set(feedUrl, {
-              url: feedUrl,
-              title,
-              isSubscribed: existingUrls.has(feedUrl),
-            });
-          }
-        });
-
-        const feedsList = Array.from(uniqueFeeds.values());
+        const existingUrls = new Set(feeds.map((f: { feedUrl: string }) => f.feedUrl.trim()));
+        const feedsList = parseFeedsFromDocument(doc, existingUrls);
 
         if (feedsList.length === 0) {
           toast.error("No valid feeds found", {
@@ -91,13 +75,31 @@ export function useOPML() {
 
   const handleImportSelected = useCallback(
     async (selectedUrls: string[]) => {
-      if (selectedUrls.length === 0) {
-        toast.info("No feeds selected");
+      const { urls: normalizedUrls, invalidCount, duplicateCount } = deduplicateUrls(selectedUrls);
+
+      if (invalidCount > 0 || duplicateCount > 0) {
+        const messages: string[] = [];
+
+        if (invalidCount > 0) {
+          messages.push(`${invalidCount} invalid feed${invalidCount === 1 ? "" : "s"} skipped`);
+        }
+
+        if (duplicateCount > 0) {
+          messages.push(
+            `${duplicateCount} duplicate feed${duplicateCount === 1 ? "" : "s"} removed`
+          );
+        }
+
+        toast.warning(messages.join(" and "));
+      }
+
+      if (normalizedUrls.length === 0) {
+        toast.info("No valid feeds selected");
         return;
       }
 
       try {
-        const result = await batchAddFeedsMutation.mutateAsync(selectedUrls);
+        const result = await batchAddFeedsMutation.mutateAsync(normalizedUrls);
 
         toast.success(`Import complete`, {
           description: `Added ${result.successfulCount} new feeds. ${

@@ -1,33 +1,58 @@
 # Learnings
 
-- 2026-02-07: `react-resizable-panels@4` breaks old shadcn wrapper names; use `Group`/`Separator` and shim legacy `direction` prop in `components/ui/resizable.tsx`.
-- 2026-02-07: `@types/dompurify` is deprecated stub and breaks `scripts/pretest.js` raw `tsc` compile (TS2688); remove it from direct deps.
-- 2026-02-07: Bun migration: set `packageManager`, replace `npm run` chaining in scripts with `bun run`, and keep docs/examples Bun-first to avoid mixed-manager drift. For Vercel production/runtime Next.js commands, use Bun runtime explicitly with `--bun` (for example `bun --bun next dev` and `bun --bun next build`); local dev can usually run plain `bun run` scripts.
-- 2026-02-07: Bun migration, React Compiler guidance: before enabling compiler transforms, verify plugin/rule compatibility in the current Next.js/Bun toolchain (for example when upgrading Next major versions).
-- 2026-02-07: Bun migration, Monorepo workspaces guidance: in workspace setups, add `@types/node` in the nearest package `node_modules` when TS can’t resolve Node globals during local package builds.
-- 2026-02-07: Bun migration, Route groups guidance: validate route-group path collisions after folder moves (for example `(with-header)` vs `(no-header)` pages resolving to the same URL segment).
-- 2026-02-07: `bun audit` transitive CVEs cleared by `overrides` (`lodash`, `lodash-es`, `mdast-util-to-hast`, `js-yaml`) without changing app runtime APIs.
-- 2026-02-07: keep a single Prism theme source (`public/prism-tomorrow.css`) and reference it via `<link rel="stylesheet" href="/prism-tomorrow.css" />` from `app/layout.tsx`.
-- 2026-02-07: root `app/layout.tsx` wrappers can unintentionally constrain nested app routes; use a pathname-aware shell (`/web` immersive mode) to remove inherited max-width/padding when full-screen UX is needed.
-- 2026-02-07: `react-resizable-panels@4` treats numeric `defaultSize`/`minSize`/`maxSize` as pixels; use strings for percentage sizes (`"30%"`) in panel layouts.
-- 2026-02-07: settings UX works best as shared tabs content reused in both `/web` modal dialog and `/web/settings` fallback page to avoid duplicated tab wiring/state bugs.
-- 2026-02-07: View Transition API shared-element names must be CSS-safe; sanitize/hash feed IDs for `viewTransitionName`, and wrap state flips in `document.startViewTransition(() => flushSync(...))` for reliable snapshots in React.
-- 2026-02-07: for `/web` header/no-header splits, keep `app/web/layout.tsx` server-only and use route groups (`(with-header)` / `(no-header)`) instead of `usePathname` in layout, so server rendering stays intact.
-- 2026-02-07: TS-first design tokens only work if generated CSS variable names exactly match consumer names (`--motion-ease-*`, `--shadow-*`, `--z-*`, `--backdrop-blur-*`); keep generator output aligned with `tailwind.config.ts` fallback vars and regenerate after token key changes.
-- 2026-02-07: semantic typography tokens (`--typography-*`) + semantic text role aliases (`--text-color-*`) reduce repeated Tailwind class stacks; keep color aliases mapped to theme vars (in `globals.css`) and keep generated token CSS non-theme-specific.
-- 2026-02-07: keep Tailwind fallback utilities token-driven too (`fontFamily`, `fontWeight` in `tailwind.config.ts`) so remaining `font-*` classes inherit token values instead of hardcoded Tailwind defaults.
-- 2026-02-07: include larger display sizes (`font-size-5xl`, `font-size-6xl`) in token source-of-truth when components use hero-scale headings; otherwise they silently fall back to Tailwind defaults outside token control.
-- 2026-02-07: semantic type tokens work best with a dedicated display tier (`typography.display*`) plus utility classes (`text-display*`) so large marketing/app headings avoid ad-hoc `text-4xl/6xl` stacks.
-- 2026-02-07: for token-migration cleanup sweeps, use grep gates (`text-sm|text-xs|text-muted-foreground|text-gray-|transition-all|z-2`) to quickly confirm legacy class removal across `app/**` and `components/**`.
-- 2026-02-07: for worker request/response typing in strict TS, avoid over-generic callback maps; use a typed wrapper in `onMessage` and return a concrete union (`WorkerResponse`) from transport helpers to prevent contravariance errors.
-- 2026-02-07: `stableKey()` used O(n^2) dedup via `.filter(indexOf)`; replaced with `Set` for O(n log n). Always prefer `new Set()` for array dedup.
-- 2026-02-07: `itemMatchesSearch` called `.toLowerCase()` 4x on same string; cache once. Early-exit on short fields (title/desc) before joining expensive `content`.
-- 2026-02-07: `totalMatchCount` was a redundant O(n) filter using different matching logic than `filteredItems` (title+desc vs all fields) -- was a bug producing mismatched counts. Replaced with `filteredItems.length`.
-- 2026-02-07: `cleanupMarkdownMetadata` had ~20 separate regex replace passes; combined into 4 alternation regexes (~5x fewer scans).
-- 2026-02-07: `deduplicateMarkdownImages` did O(R*L) serial replacements; combined into single-pass regex using `Map` lookup.
-- 2026-02-07: `transformFeedResponse` re-evaluated feed-level fallback chains per item; hoisted outside `.map()`.
-- 2026-02-07: CommandBar had two O(n) filter passes for articles/podcasts; merged into single-pass partition + Map for O(1) article lookup.
-- 2026-02-06: PR55 review pass: useHydratedStore should prefer persist.hasHydrated()/onFinishHydration() over broad subscribe to avoid extra pre-hydration callbacks, and store rehydrate Set repairs should use store.setState(...) (not direct state mutation).
-- 2026-02-06: Token build safety: wire generate:design-tokens into prebuild and keep build as next build to avoid duplicate migration checks while still preventing stale generated token CSS.
-- 2026-02-08: /web card-grid scroll can break when route shell uses overflow-hidden; masonic uses window scroll, so keep /web shell vertically scrollable (e.g., overflow-x-hidden) or migrate grid to container-scroller APIs.
-- 2026-02-09: Connected card->reader transitions are much smoother when modal open is two-phase (light shell first, heavy article body deferred ~300ms), VT path disables extra motion entrances, and shared elements are limited to thumbnail+title (drop site meta/favicons from shared transition set).
+Durable repo learnings only. Keep evergreen; drop incident logs.
+
+## Build and Toolchain
+
+- Use one package manager across scripts/docs. Avoid mixed-manager drift.
+- Remove deprecated `@types/*` stubs when packages ship their own types; stubs can break raw `tsc` runs.
+- Keep `scripts/pretest.js` on isolated TS compiles: temp tsconfig with explicit `files` + `include: []`; separate util compile pass when path layout depends on `rootDir`.
+- Run token generation before app build so generated CSS never goes stale.
+
+## Routing and Layout
+
+- Keep `app/web/layout.tsx` server-only; use route groups for header/no-header variants, not `usePathname` in layout.
+- Validate route-group URL collisions after folder moves.
+- Do not let root layout wrappers unintentionally constrain immersive/full-screen routes.
+
+## UI State and Transitions
+
+- View Transition names must be CSS-safe; sanitize/hash dynamic IDs.
+- Wrap transition-bound state flips in `document.startViewTransition(() => flushSync(...))` for reliable snapshots.
+- Shared-element transitions work best with a small shared set (shell/title/thumbnail), not every metadata node.
+- Reuse one settings-tabs content implementation across modal and fallback page to prevent state drift.
+
+## Design Tokens
+
+- Generated CSS variable names must match all consumers (`globals.css`, Tailwind config, component vars).
+- Keep token CSS theme-agnostic; map semantic aliases at the theme layer.
+- Keep Tailwind fallback utilities token-driven (`fontFamily`, `fontWeight`, typography scale, display sizes).
+
+## Tooling and Linting
+
+- For Tailwind CSS v4 files with `@config`/`@utility`, add Stylelint `at-rule-no-unknown` allowlist entries so CSS at-rule parsing stays compatible without rewriting hook usage.
+- In migration logic, always guard legacy persisted collections with `Array.isArray(...)` before `.filter/.map`; if invalid, log and clear stale legacy keys to avoid runtime errors and bad rehydration state.
+- For worker cache keys, normalize URL arrays with deterministic ordering and unambiguous serialization (eg `JSON.stringify`) rather than delimiter-joined keys to avoid false collisions.
+
+## Performance Patterns
+
+- Prefer single-pass/linear transforms over repeated full-array scans.
+- Use `Set`/`Map` for dedup and hot-path lookups.
+- Hoist feed-level fallback calculations out of per-item loops.
+- Cache normalized strings in search paths; avoid repeated `.toLowerCase()` and expensive joins.
+- Derived counts must come from the same filtered source used by UI output.
+- Virtualize long lists and align scroll-container behavior with virtualization library expectations.
+- Use request-id correlation plus response/content caching on worker boundaries to stabilize concurrent responses.
+- Guard idempotent state writes (for example read-marking) to prevent unnecessary churn.
+- Ensure worker cache keys are deterministic for full URL lists and include requestId on ERROR worker responses for better cross-thread correlation.
+
+## Migration Guardrails
+
+- When `biome check .` fails, update formatter/lint config, fix import ordering, JSX layout, duplicate props, and utility/store formatting together to restore formatting and lint conformance consistently.
+- Migration guardrails that use regex search should include narrow, file+line-scoped allowlists for intentional legacy cleanup paths to avoid false positives without weakening enforcement.
+
+## PR 56 Feedback Response (2026-02-16)
+
+- Fixed review-findings with high confidence: normalized mojibake regexes, URL case handling in feed normalization, deterministic reader cache key hashing, stylelint at-rule allowlist, OPML warning flow, markdown content className pass-through, and Logger-based errors in rss worker.
+- Kept additional low-impact style/heuristic findings as deferred notes unless explicitly prioritized.
+- Added a quick validation pass: `bun run check:migration`, `bun run lint`, `node --test tests/feed-cache-merge.test.js`.

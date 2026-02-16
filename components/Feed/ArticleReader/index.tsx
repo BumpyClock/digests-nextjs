@@ -1,13 +1,12 @@
 // Main component
-export { ArticleReader, LoadingSkeleton, EmptyState, processArticleContent } from "./ArticleReader";
 
-// Sub-components (now in separate files)
-export { ArticleImage } from "./ArticleImage";
-export { ArticleHeader } from "./ArticleHeader";
 export { ArticleActions } from "./ArticleActions";
 export { ArticleContent } from "./ArticleContent";
+export { ArticleHeader } from "./ArticleHeader";
+// Sub-components (now in separate files)
+export { ArticleImage } from "./ArticleImage";
 export { ArticleMetadata } from "./ArticleMetadata";
-export { SiteFavicon } from "./SiteFavicon";
-
+export { ArticleReader, EmptyState, LoadingSkeleton, processArticleContent } from "./ArticleReader";
 // Hooks
 export { useArticleActions } from "./hooks/use-article-actions";
+export { SiteFavicon } from "./SiteFavicon";

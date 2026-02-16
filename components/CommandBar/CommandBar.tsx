@@ -2,7 +2,23 @@
 // ABOUTME: Implements feed/article filtering, suggestions, and reader modal launching.
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import {
+  CheckCircle,
+  Moon,
+  Newspaper,
+  Podcast,
+  RefreshCcw,
+  Rss,
+  Search,
+  Settings,
+  Sun,
+} from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
+import React, { useCallback, useMemo, useState } from "react";
+import { ReaderViewModal } from "@/components/reader-view-modal";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandDialog,
@@ -13,28 +29,11 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
-import { FeedItem, Feed } from "@/types";
-import type { Subscription } from "@/types/subscription";
-import { useSubscriptions, useReadActions } from "@/hooks/useFeedSelectors";
-import { Button } from "@/components/ui/button";
-import {
-  Moon,
-  Podcast,
-  RefreshCcw,
-  Rss,
-  Search,
-  Settings,
-  Sun,
-  CheckCircle,
-  Newspaper,
-} from "lucide-react";
-import React from "react";
 import { useCommandBarSearch } from "@/hooks/use-command-bar-search";
 import { useCommandBarShortcuts } from "@/hooks/use-command-bar-shortcuts";
-import { ReaderViewModal } from "@/components/reader-view-modal";
-import Image from "next/image";
+import { useReadActions, useSubscriptions } from "@/hooks/useFeedSelectors";
+import { Feed, FeedItem } from "@/types";
+import type { Subscription } from "@/types/subscription";
 import { getSiteDisplayName } from "@/utils/htmlUtils";
 
 interface CommandBarProps {
@@ -129,27 +128,27 @@ ArticleItemComponent.displayName = "ArticleItemComponent";
 // Podcast Item Component
 const PodcastItemComponent = React.memo(
   ({ podcast, onSelect }: { podcast: FeedItem; onSelect: (podcastId: string) => void }) => (
-  <MemoizedCommandItem
-    className="text-body"
-    value={`podcast:${podcast.id} ${podcast.title ?? ""}`.trim()}
-    key={podcast.id}
-    onSelect={() => onSelect(podcast.id)}
-  >
-    {podcast.favicon && (
-      <Image
-        src={podcast.favicon}
-        alt={podcast.title || "Untitled Feed"}
-        width={24}
-        height={24}
-        className="object-cover"
-        unoptimized
-      />
-    )}
-    <span className="text-body">{podcast.title || "Untitled Podcast"}</span>
-  </MemoizedCommandItem>
-));
+    <MemoizedCommandItem
+      className="text-body"
+      value={`podcast:${podcast.id} ${podcast.title ?? ""}`.trim()}
+      key={podcast.id}
+      onSelect={() => onSelect(podcast.id)}
+    >
+      {podcast.favicon && (
+        <Image
+          src={podcast.favicon}
+          alt={podcast.title || "Untitled Feed"}
+          width={24}
+          height={24}
+          className="object-cover"
+          unoptimized
+        />
+      )}
+      <span className="text-body">{podcast.title || "Untitled Podcast"}</span>
+    </MemoizedCommandItem>
+  )
+);
 PodcastItemComponent.displayName = "PodcastItemComponent";
-
 
 // Suggestions Section Component
 const SuggestionsSection = React.memo(
@@ -413,7 +412,11 @@ export function CommandBar({
                 className="text-overline text-secondary-content"
               >
                 {filteredPodcasts.slice(0, MAX_DISPLAY_ITEMS).map((podcast: FeedItem) => (
-                  <PodcastItemComponent key={podcast.id} podcast={podcast} onSelect={handlePodcastSelect} />
+                  <PodcastItemComponent
+                    key={podcast.id}
+                    podcast={podcast}
+                    onSelect={handlePodcastSelect}
+                  />
                 ))}
                 <CommandItem
                   key="see-all-podcasts"
