@@ -36,7 +36,7 @@ type WorkerResponse =
       message?: string;
       requestId?: string;
     }
-  | { type: "ERROR"; message: string };
+  | { type: "ERROR"; message: string; requestId?: string };
 
 // Cache implementation for the worker
 class WorkerCache {
@@ -171,7 +171,7 @@ async function fetchReaderView(
   const currentApiUrl = customApiUrl || apiBaseUrl;
   try {
     // Generate cache key
-    const cacheKey = `reader:${urls[0]}`;
+    const cacheKey = `reader:${JSON.stringify(urls)}`;
 
     // Check cache first
     const cached = workerCache.get<ReaderViewResponse[]>(cacheKey);
@@ -420,17 +420,22 @@ const dispatchMessage = (
  */
 self.addEventListener("message", async (event) => {
   const message = event.data as unknown;
+  const requestId =
+    message && typeof message === "object" && "requestId" in (message as Record<string, unknown>)
+      ? typeof (message as Record<string, unknown>).requestId === "string"
+        ? ((message as Record<string, unknown>).requestId as string)
+        : undefined
+      : undefined;
 
   try {
     if (!isWorkerMessage(message)) {
       self.postMessage({
         type: "ERROR",
         message: "Invalid worker message payload",
+        ...(requestId !== undefined ? { requestId } : {}),
       } as WorkerResponse);
       return;
     }
-
-    const requestId = (message as { requestId?: string }).requestId;
 
     // Execute handler and send response if any
     const response = await dispatchMessage(message);
@@ -441,6 +446,7 @@ self.addEventListener("message", async (event) => {
     self.postMessage({
       type: "ERROR",
       message: error instanceof Error ? error.message : "Unknown error in worker",
+      ...(requestId !== undefined ? { requestId } : {}),
     } as WorkerResponse);
   }
 });

@@ -14,6 +14,20 @@ export const cleanupModalContent = (htmlContent: string, thumbnailUrl?: string):
   return deduplicateHtmlImages(htmlContent, thumbnailUrl);
 };
 
+type TextReplacement = [RegExp | string, string];
+
+const htmlTextReplacements: TextReplacement[] = [
+  [/â€™/g, "'"], // Smart single quote
+  [/â€“/g, "\u2013"], // En dash
+  [/â€”/g, "\u2014"], // Em dash
+  [/â€œ/g, '"'], // Smart left double quote
+  [/â€/g, '"'], // Smart right double quote
+  [/&nbsp;/g, " "], // Non-breaking space
+];
+
+const applyHtmlTextReplacements = (value: string): string =>
+  htmlTextReplacements.reduce((cleanText, [pattern, replacement]) => cleanText.replace(pattern, replacement), value);
+
 /**
  * Decodes HTML entities and cleans up special characters in text.
  * Handles cases like "A24â€™s" -> "A24's"
@@ -24,15 +38,18 @@ export const cleanupTextContent = (text?: string): string => {
 
   // SSR guard: DOMParser not available on server
   if (typeof window === "undefined" || typeof DOMParser === "undefined") {
-    return text
+    return applyHtmlTextReplacements(
+      text
       .replace(/&amp;/g, "&")
       .replace(/&lt;/g, "<")
       .replace(/&gt;/g, ">")
       .replace(/&quot;/g, '"')
+      .replace(/&apos;/g, "'")
       .replace(/&#039;/g, "'")
       .replace(/&#x27;/g, "'")
       .replace(/&#(\d+);/g, (_, num) => String.fromCharCode(Number(num)))
-      .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
+      .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    );
   }
 
   const cached = textCleanupCache.get(text);
@@ -42,20 +59,8 @@ export const cleanupTextContent = (text?: string): string => {
   const doc = new DOMParser().parseFromString(text, "text/html");
   let cleanText = doc.body.textContent || "";
 
-  // Replace common problematic characters
-  const replacements: [RegExp | string, string][] = [
-    [/â€™/g, "'"], // Smart single quote
-    [/â€“/g, "\u2013"], // En dash
-    [/â€”/g, "\u2014"], // Em dash
-    [/â€œ/g, '"'], // Smart left double quote
-    [/â€/g, '"'], // Smart right double quote
-    [/&nbsp;/g, " "], // Non-breaking space
-  ];
-
   // Apply all replacements
-  cleanText = replacements
-    .reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), cleanText)
-    .trim();
+  cleanText = applyHtmlTextReplacements(cleanText).trim();
 
   textCleanupCache.set(text, cleanText);
   return cleanText;

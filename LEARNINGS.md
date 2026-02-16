@@ -42,3 +42,4 @@ Durable repo learnings only. Keep evergreen; drop incident logs.
 - Virtualize long lists and align scroll-container behavior with virtualization library expectations.
 - Use request-id correlation plus response/content caching on worker boundaries to stabilize concurrent responses.
 - Guard idempotent state writes (for example read-marking) to prevent unnecessary churn.
+- Ensure worker cache keys are deterministic for full URL lists and include requestId on ERROR worker responses for better cross-thread correlation.
