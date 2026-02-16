@@ -76,11 +76,17 @@ export function OPMLImportDialog({
     const fetchFeedDetails = async () => {
       setLoading(true);
       try {
-        // Get all feed URLs
-        const feedUrls = initialFeeds.map((feed) => feed.url.trim()).filter(isHttpUrl);
-        const feedErrors = new Set(
-          initialFeeds.map((feed) => feed.url.trim()).filter((url) => !isHttpUrl(url))
-        );
+        // Partition feed URLs into valid and invalid in a single pass
+        const feedUrls: string[] = [];
+        const feedErrors = new Set<string>();
+        for (const feed of initialFeeds) {
+          const trimmed = feed.url.trim();
+          if (isHttpUrl(trimmed)) {
+            feedUrls.push(trimmed);
+          } else {
+            feedErrors.add(trimmed);
+          }
+        }
 
         if (feedErrors.size > 0) {
           setFeeds((prev) =>
