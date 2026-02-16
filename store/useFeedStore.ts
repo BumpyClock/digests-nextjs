@@ -69,8 +69,10 @@ const isFeed = (value: unknown): value is Feed => {
   );
 };
 
-const isFeedArray = (value: unknown): value is Feed[] =>
-  Array.isArray(value) && value.every(isFeed);
+const removeLegacyFeedItemsKey = (state: Record<string, unknown>): void => {
+  // Legacy persisted key cleanup only; React Query owns server feed data.
+  delete state["feedItems"];
+};
 
 const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<FeedState>>) =>
   ({
@@ -84,13 +86,19 @@ const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<Fe
           // Drop persisted items and normalize Sets
           // Remove old feedItems property (now handled by React Query)
           if ("feedItems" in state) {
-            delete state.feedItems;
+            removeLegacyFeedItemsKey(state);
           }
           // Drop large feeds array from persistence if present
-          if (isFeedArray(state.feeds)) {
-            state.subscriptions = state.feeds.filter(isFeed).map((feed) => toSubscription(feed));
-            delete state.feeds;
+          if (Array.isArray(state.feeds)) {
+            state.subscriptions = state.feeds
+              .filter((feed) => isFeed(feed))
+              .map((feed) => toSubscription(feed));
+          } else if (state.feeds !== undefined) {
+            Logger.warn("[Store] Skipping migration for feeds: invalid persisted structure", {
+              type: typeof state.feeds,
+            });
           }
+          delete state.feeds;
           // Use utility for clean Set deserialization
           state.readItems = deserializeSet(state.readItems);
           state.readLaterItems = deserializeSet(state.readLaterItems);

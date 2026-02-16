@@ -6,7 +6,7 @@ export type CacheData = {
   items: FeedItem[];
 };
 
-const mergeMap = <T extends { id: string }>(items: T[]) =>
+const mergeMap = <T extends { id?: string }>(items: T[]) =>
   Array.from(new Map(items.map((item) => [item.id, item])).values());
 
 const sortAndDedupeItems = (items: FeedItem[]) => [...mergeMap(items)].sort(sortByDateDesc);

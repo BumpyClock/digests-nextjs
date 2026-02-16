@@ -71,6 +71,12 @@ class WorkerCache {
   }
 }
 
+// Build a deterministic, collision-safe cache key for URL arrays
+// - order-insensitive via sort
+// - unambiguous serialization via JSON
+const buildSortedUrlCacheKey = (prefix: string, urls: string[]): string =>
+  `${prefix}:${JSON.stringify([...urls].sort())}`;
+
 // Initialize worker cache and API URL
 const workerCache = new WorkerCache(DEFAULT_CACHE_TTL_MS);
 let apiBaseUrl = DEFAULT_API_CONFIG.baseUrl;
@@ -100,7 +106,7 @@ async function fetchFeeds(
       throw new Error(`Invalid API base URL: ${currentApiUrl}`);
     }
 
-    const cacheKey = `feeds:${[...urls].sort().join(",")}`;
+    const cacheKey = buildSortedUrlCacheKey("feeds", urls);
 
     // Check cache first (unless bypassed)
     if (!bypassCache) {
@@ -166,8 +172,7 @@ async function fetchReaderView(
   const currentApiUrl = customApiUrl || apiBaseUrl;
   try {
     // Generate cache key
-    const sortedUrls = [...urls].sort();
-    const cacheKey = `reader:${sortedUrls.join(",")}`;
+    const cacheKey = buildSortedUrlCacheKey("reader", urls);
 
     // Check cache first
     const cached = workerCache.get<ReaderViewResponse[]>(cacheKey);

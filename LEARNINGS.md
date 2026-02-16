@@ -31,6 +31,8 @@ Durable repo learnings only. Keep evergreen; drop incident logs.
 ## Tooling and Linting
 
 - For Tailwind CSS v4 files with `@config`/`@utility`, add Stylelint `at-rule-no-unknown` allowlist entries so CSS at-rule parsing stays compatible without rewriting hook usage.
+- In migration logic, always guard legacy persisted collections with `Array.isArray(...)` before `.filter/.map`; if invalid, log and clear stale legacy keys to avoid runtime errors and bad rehydration state.
+- For worker cache keys, normalize URL arrays with deterministic ordering and unambiguous serialization (eg `JSON.stringify`) rather than delimiter-joined keys to avoid false collisions.
 
 ## Performance Patterns
 
@@ -47,3 +49,4 @@ Durable repo learnings only. Keep evergreen; drop incident logs.
 ## Tooling
 
 - When `biome check .` fails, update formatter/lint config, fix import ordering, JSX layout, duplicate props, and utility/store formatting together to restore formatting and lint conformance consistently.
+- Migration guardrails that use regex search should include narrow, file+line-scoped allowlists for intentional legacy cleanup paths to avoid false positives without weakening enforcement.

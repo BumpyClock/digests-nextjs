@@ -12,7 +12,7 @@ export type ReadStatusSlice = {
    */
   getUnreadItems: (items: FeedItem[]) => FeedItem[];
   /**
-   * Marks all provided items as read by adding their IDs to readItems.
+   * Replaces readItems with the IDs from provided items.
    */
   markAllAsRead: (items: FeedItem[]) => void;
   addToReadLater: (itemId: string) => void;
@@ -61,11 +61,16 @@ export const createReadStatusSlice: StateCreator<ReadStatusSlice, [], [], ReadSt
   },
 
   markAllAsRead: (items: FeedItem[]) => {
+    const nextReadItems = new Set((items || []).map((item) => item.id));
     const { readItems } = get();
-    const existing = readItems instanceof Set ? readItems : [];
-    const updatedReadItems = new Set([...existing, ...(items || []).map((item) => item.id)]);
+    const currentReadItems = readItems instanceof Set ? readItems : new Set<string>();
+    const hasChanges =
+      currentReadItems.size !== nextReadItems.size ||
+      [...nextReadItems].some((itemId) => !currentReadItems.has(itemId));
 
-    set({ readItems: updatedReadItems });
+    if (hasChanges) {
+      set({ readItems: nextReadItems });
+    }
   },
 
   addToReadLater: (itemId: string) => {
