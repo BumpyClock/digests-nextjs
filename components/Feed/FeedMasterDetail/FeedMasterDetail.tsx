@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { motionTokens } from "@/lib/motion-tokens";
+import { useFeedItemsController } from "@/components/Feed/shared/useFeedItemsController";
 import { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
 import { ScrollProvider } from "@/contexts/ScrollContext";
@@ -22,7 +23,12 @@ interface FeedMasterDetailProps {
 const MOBILE_SLIDE_MS = Math.round(motionTokens.duration.normal * 1000);
 
 export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
-  const [selectedItem, setSelectedItem] = useState<FeedItem | null>(null);
+  const {
+    items: normalizedItems,
+    selectedItem,
+    setSelectedItem,
+    clearSelection,
+  } = useFeedItemsController({ items });
   const isMobile = useIsMobile();
   const [showList, setShowList] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -52,16 +58,17 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
         setTimeout(() => setIsAnimating(false), MOBILE_SLIDE_MS);
       }
     },
-    [isMobile]
+    [isMobile, setSelectedItem]
   );
 
   const handleBackToList = useCallback(() => {
+    clearSelection();
     setAnimationDirection("to-list");
     setIsAnimating(true);
     setShowList(true);
     // Reset animation state after animation completes
     setTimeout(() => setIsAnimating(false), MOBILE_SLIDE_MS);
-  }, []);
+  }, [clearSelection]);
 
   // Determine animation classes based on direction
   const getAnimationClass = useCallback(() => {
@@ -82,7 +89,7 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
           {showList ? (
             <div className={`mobile-feed-list ${getAnimationClass()}`}>
               <FeedList
-                items={items}
+                items={normalizedItems}
                 isLoading={isLoading}
                 selectedItem={selectedItem}
                 onItemSelect={handleItemSelect}
@@ -92,11 +99,11 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
           ) : (
             <div className={`mobile-reader-view ${getAnimationClass()}`}>
               <div className="mobile-reader-back-button">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleBackToList}
-                    className="flex items-center gap-1"
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBackToList}
+                  className="flex items-center gap-1"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back to list
@@ -123,7 +130,7 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
         <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 rounded-lg border">
           <ResizablePanel defaultSize="30%" minSize="300px" maxSize="45%">
             <FeedList
-              items={items}
+              items={normalizedItems}
               isLoading={isLoading}
               selectedItem={selectedItem}
               onItemSelect={handleItemSelect}

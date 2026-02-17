@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import Image from "next/image";
 import { type KeyboardEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FeedItemPreviewMeta } from "@/components/Feed/shared/FeedItemPreviewMeta";
+import { useFeedItemsController } from "@/components/Feed/shared/useFeedItemsController";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFeedStore } from "@/store/useFeedStore";
 import type { FeedItem } from "@/types";
@@ -87,6 +88,14 @@ export function FeedList({
   onItemSelect,
   savedScrollPosition = 0,
 }: FeedListProps) {
+  const {
+    items: normalizedItems,
+    isEmpty,
+    isSelected,
+  } = useFeedItemsController({
+    items,
+    selectedItem,
+  });
   const scrollableNodeRef = useRef<HTMLDivElement>(null);
   const scrollTopRafId = useRef<number | null>(null);
   const lastScrollTop = useRef(0);
@@ -104,7 +113,7 @@ export function FeedList({
   }, [savedScrollPosition]);
 
   const virtualizer = useVirtualizer({
-    count: items.length,
+    count: normalizedItems.length,
     getScrollElement: () => scrollableNodeRef.current,
     estimateSize: () => ESTIMATED_ROW_HEIGHT_PX,
     overscan: 5,
@@ -123,14 +132,14 @@ export function FeedList({
 
   const handleItemSelect = useCallback(
     (index: number) => {
-      const item = items[index];
+      const item = normalizedItems[index];
       if (!item) {
         return;
       }
 
       onItemSelect(item, currentScrollTop);
     },
-    [items, currentScrollTop, onItemSelect]
+    [normalizedItems, currentScrollTop, onItemSelect]
   );
 
   const skeletonKeys = useMemo(() => Array.from({ length: 10 }, (_, i) => `skeleton-${i}`), []);
@@ -161,7 +170,7 @@ export function FeedList({
     );
   }
 
-  if (!items || items.length === 0) {
+  if (isEmpty) {
     return (
       <div className="border rounded-md p-8 flex items-center justify-center h-full">
         <p className="text-secondary-content">No items found</p>
@@ -197,7 +206,7 @@ export function FeedList({
               >
                 <FeedListItem
                   item={item}
-                  isSelected={selectedItem?.id === item.id}
+                  isSelected={isSelected(item)}
                   isRead={readItemsSet.has(item.id)}
                   onSelect={() => handleItemSelect(virtualItem.index)}
                 />

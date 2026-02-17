@@ -11,6 +11,7 @@ import { PodcastDetailsModal } from "@/components/Podcast/PodcastDetailsModal";
 import { ReaderViewModal } from "@/components/reader-view-modal";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
 import { useScrollContext } from "@/contexts/ScrollContext";
+import { useFeedItemsController } from "@/components/Feed/shared/useFeedItemsController";
 import { readerViewKeys } from "@/hooks/queries/feedsKeys";
 import { getValidReaderViewOrThrow } from "@/hooks/queries/reader-view-validation";
 import { useWindowSize } from "@/hooks/use-window-size";
@@ -69,7 +70,6 @@ const EmptyState = () => {
  */
 export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
   const [mounted, setMounted] = useState(false);
-  const [openItem, setOpenItem] = useState<FeedItem | null>(null);
   const [readerTransitionSettled, setReaderTransitionSettled] = useState(false);
   const { width: windowWidth } = useWindowSize();
   const queryClient = useQueryClient();
@@ -77,6 +77,12 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
   const { isScrolling, handleScroll } = useScrollContext();
   const vtSupported = useViewTransitionsSupported();
   const viewTransitionsEnabled = animationEnabled && vtSupported;
+  const {
+    items: normalizedItems,
+    selectedItem: openItem,
+    setSelectedItem,
+    clearSelection,
+  } = useFeedItemsController({ items });
 
   useEffect(() => {
     setMounted(true);
@@ -113,9 +119,9 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
       cleanupRef.current?.();
       cleanupRef.current = cleanup || null;
       setReaderTransitionSettled(!viewTransitionsEnabled);
-      setOpenItem(item);
+      setSelectedItem(item);
     },
-    [viewTransitionsEnabled]
+    [setSelectedItem, viewTransitionsEnabled]
   );
 
   const handleItemOpenTransitionSettled = useCallback(() => {
@@ -128,16 +134,16 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
         () => {
           cleanupRef.current?.();
           cleanupRef.current = null;
-          setOpenItem(null);
+          clearSelection();
         },
         { phaseClassName: "reader-vt-active" }
       );
     } else {
       cleanupRef.current?.();
       cleanupRef.current = null;
-      setOpenItem(null);
+      clearSelection();
     }
-  }, [viewTransitionsEnabled, openItem]);
+  }, [viewTransitionsEnabled, openItem, clearSelection]);
 
   const handlePrefetch = useCallback(
     (item: FeedItem) => {
@@ -180,21 +186,13 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
     [handleItemOpen, handlePrefetch, viewTransitionsEnabled, handleItemOpenTransitionSettled]
   );
 
-  const memoizedItems = useMemo(() => {
-    if (!Array.isArray(items)) {
-      console.warn("Items is not an array:", items);
-      return [];
-    }
-    return items.filter((item): item is FeedItem => Boolean(item));
-  }, [items]);
-
   const itemKey = useCallback((item: FeedItem) => item.id, []);
 
   if (!mounted || isLoading) {
     return <LoadingAnimation />;
   }
 
-  if (memoizedItems.length === 0) {
+  if (normalizedItems.length === 0) {
     return <EmptyState />;
   }
 
@@ -217,7 +215,7 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
       >
         <Masonry
           key={filterKey ?? "default"}
-          items={memoizedItems}
+          items={normalizedItems}
           maxColumnCount={columnCount}
           columnGutter={columnGutter}
           columnWidth={columnWidth}
