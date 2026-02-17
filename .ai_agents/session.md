@@ -170,3 +170,20 @@
 - Commit was prepared with `feat(test): add reader-view query ownership regression test`.
 - Learned: keep runtime regressions from previous handoff in sync with bead state files; `.beads/issues.jsonl` can diverge unless `bd close` is run in-session.
 - Challenge: pre-existing unrelated local changes are present in the workspace and intentionally left untouched.
+
+## 2026-02-17 - Bead digests-nextjs-04s.12.2
+- Completed `digests-nextjs-04s.12.2` (Apply safe dead-code removals from scan report).
+- Removed verified-unused modules confirmed by knip+repo-wide reference checks:
+  - `components/SearchBar.tsx`
+  - `components/conditional-header.tsx`
+  - `lib/client.ts`
+  - `utils/animation-config.ts`
+- Kept unrelated workspace edits untouched and committed only these removals in `b2f8bdb`.
+- Verified no remaining references before deletion with full-repo symbol and path-based searches.
+
+### Learnings
+- `knip` output plus direct import/reference validation is a practical low-risk path for dead-code deletions.
+- Some modules can look candidate-like in reports but still be in active use; explicit source scans avoid unsafe removals.
+
+### Challenges
+- No behavioral test/build validation was run in-session; recommend a follow-up check before release rollout.
