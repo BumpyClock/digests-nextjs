@@ -18,7 +18,9 @@ export default function WebAppError({
         We hit an unexpected error in the app surface. You can retry this view.
       </p>
       <Button onClick={reset}>Try again</Button>
-      {error.digest && <p className="text-caption text-secondary-content">Error ID: {error.digest}</p>}
+      {error.digest && (
+        <p className="text-caption text-secondary-content">Error ID: {error.digest}</p>
+      )}
     </div>
   );
 }

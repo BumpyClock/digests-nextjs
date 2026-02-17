@@ -4,10 +4,7 @@ import { Bookmark, ExternalLink, Share2 } from "lucide-react";
 import Image from "next/image";
 import { use, useMemo } from "react";
 import { ContentNotFound } from "@/components/ContentNotFound";
-import {
-  ContentDetailShell,
-  ContentDetailToolbar,
-} from "@/components/ContentDetailShell";
+import { ContentDetailShell, ContentDetailToolbar } from "@/components/ContentDetailShell";
 import { ContentPageSkeleton } from "@/components/ContentPageSkeleton";
 import { Button } from "@/components/ui/button";
 import { useFeedsData, useReaderViewQuery } from "@/hooks/queries";
@@ -21,7 +18,9 @@ import { useQueryClient } from "@tanstack/react-query";
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
   const queryClient = useQueryClient();
-  const { handleBookmark: bookmarkAction, handleShare } = useContentActions({ contentType: "article" });
+  const { handleBookmark: bookmarkAction, handleShare } = useContentActions({
+    contentType: "article",
+  });
   const { toast } = useToast();
 
   // Use React Query to get feeds data

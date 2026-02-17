@@ -23,7 +23,7 @@ export interface UseContentActionsReturn {
 export function useContentActions(arg: UseContentActionsArg): UseContentActionsReturn {
   const { toast } = useToast();
   const contentType = typeof arg === "string" ? arg : arg.contentType;
-  const itemId = typeof arg === "string" ? "" : arg.itemId ?? "";
+  const itemId = typeof arg === "string" ? "" : (arg.itemId ?? "");
 
   const isInReadLater = useIsInReadLater(itemId);
   const { addToReadLater, removeFromReadLater } = useReadLaterActions();

@@ -49,9 +49,16 @@ const LoadingAnimation = () => {
 const EmptyState = () => {
   return (
     <div className="flex flex-col items-center justify-center h-[50vh] gap-4">
-      <CheckCircle className="empty-state-enter empty-state-delay-1 h-16 w-16 text-secondary-content" style={{ willChange: "transform, opacity" }} />
-      <h2 className="empty-state-enter empty-state-delay-2 text-title-large text-primary-content">All caught up!</h2>
-      <p className="empty-state-enter empty-state-delay-3 text-body text-secondary-content">You've read everything in this view.</p>
+      <CheckCircle
+        className="empty-state-enter empty-state-delay-1 h-16 w-16 text-secondary-content"
+        style={{ willChange: "transform, opacity" }}
+      />
+      <h2 className="empty-state-enter empty-state-delay-2 text-title-large text-primary-content">
+        All caught up!
+      </h2>
+      <p className="empty-state-enter empty-state-delay-3 text-body text-secondary-content">
+        You've read everything in this view.
+      </p>
     </div>
   );
 };

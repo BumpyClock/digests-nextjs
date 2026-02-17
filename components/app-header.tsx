@@ -38,5 +38,7 @@ export function AppHeader() {
     },
   ] satisfies HeaderShellProps["navItems"];
 
-  return <HeaderShell brandHref="/web" navItems={desktopNavItems} mobileNavItems={mobileNavItems} />;
+  return (
+    <HeaderShell brandHref="/web" navItems={desktopNavItems} mobileNavItems={mobileNavItems} />
+  );
 }

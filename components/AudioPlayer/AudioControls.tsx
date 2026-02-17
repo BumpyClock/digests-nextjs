@@ -11,8 +11,17 @@ import { useAudioPlaybackState } from "./use-audio-playback-state";
  * Component that renders audio playback controls
  */
 export function AudioControls() {
-  const { isPlaying, currentTime, duration, volume, isMuted, togglePlayPause, seek, setVolume, toggleMute } =
-    useAudioPlaybackState();
+  const {
+    isPlaying,
+    currentTime,
+    duration,
+    volume,
+    isMuted,
+    togglePlayPause,
+    seek,
+    setVolume,
+    toggleMute,
+  } = useAudioPlaybackState();
 
   /**
    * Memoized formatted time values to prevent recalculation

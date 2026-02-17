@@ -31,9 +31,7 @@ const toHttpUrl = (value: string): string => {
 };
 
 const normalizeRequestUrls = (urls: string[]): string[] => {
-  return urls
-    .map((url) => toHttpUrl(url))
-    .filter((url) => url.length > 0 && isValidHttpUrl(url));
+  return urls.map((url) => toHttpUrl(url)).filter((url) => url.length > 0 && isValidHttpUrl(url));
 };
 
 const resolveEndpoint = (path: "/parse" | "/getreaderview", apiBaseUrl?: string): string => {
@@ -54,7 +52,9 @@ async function postJson<TResponse>(url: string, body: unknown): Promise<TRespons
   });
 
   if (!response.ok) {
-    const error = new Error(`HTTP error! status: ${response.status}`) as Error & { status?: number };
+    const error = new Error(`HTTP error! status: ${response.status}`) as Error & {
+      status?: number;
+    };
     error.status = response.status;
     throw error;
   }

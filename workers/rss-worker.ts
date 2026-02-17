@@ -5,7 +5,10 @@ import { isHttpUrl } from "@/utils/url";
 import { fetchParseFeeds, fetchReaderViewData } from "../lib/feed-api-client";
 import { DEFAULT_API_CONFIG, DEFAULT_CACHE_TTL_MS } from "../lib/config";
 import type { Feed, FeedItem, ReaderViewResponse } from "../types";
-import type { RssWorkerMessage as WorkerMessage, RssWorkerResponse as WorkerResponse } from "../types/worker-contracts";
+import type {
+  RssWorkerMessage as WorkerMessage,
+  RssWorkerResponse as WorkerResponse,
+} from "../types/worker-contracts";
 
 // Cache implementation for the worker
 class WorkerCache {

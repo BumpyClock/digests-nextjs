@@ -6,10 +6,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchFeedsAction } from "@/app/actions";
 import { ContentNotFound } from "@/components/ContentNotFound";
-import {
-  ContentDetailShell,
-  ContentDetailToolbar,
-} from "@/components/ContentDetailShell";
+import { ContentDetailShell, ContentDetailToolbar } from "@/components/ContentDetailShell";
 import { ContentPageSkeleton } from "@/components/ContentPageSkeleton";
 import { Button } from "@/components/ui/button";
 import { useContentActions } from "@/hooks/use-content-actions";
@@ -25,7 +22,9 @@ export default function PodcastPage() {
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const { playAudio } = useAudioActions();
-  const { handleBookmark: bookmarkAction, handleShare } = useContentActions({ contentType: "podcast" });
+  const { handleBookmark: bookmarkAction, handleShare } = useContentActions({
+    contentType: "podcast",
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -52,7 +51,9 @@ export default function PodcastPage() {
         }
 
         if (success && items) {
-          const foundPodcast = items.find((item: FeedItem) => item.id === id && item.type === "podcast");
+          const foundPodcast = items.find(
+            (item: FeedItem) => item.id === id && item.type === "podcast"
+          );
 
           if (foundPodcast) {
             setPodcast(foundPodcast);

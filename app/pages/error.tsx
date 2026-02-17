@@ -18,7 +18,9 @@ export default function PagesError({
         The content route failed to render. Please retry.
       </p>
       <Button onClick={reset}>Retry</Button>
-      {error.digest && <p className="text-caption text-secondary-content">Error ID: {error.digest}</p>}
+      {error.digest && (
+        <p className="text-caption text-secondary-content">Error ID: {error.digest}</p>
+      )}
     </div>
   );
 }

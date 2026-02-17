@@ -53,37 +53,31 @@ export interface EmptyStateProps extends VariantProps<typeof emptyStateVariants>
 // Variants
 // ============================================================================
 
-const emptyStateVariants = cva(
-  "flex flex-col items-center justify-center text-center",
-  {
-    variants: {
-      size: {
-        compact: "py-8 px-4 gap-3",
-        default: "py-12 px-6 gap-4",
-        spacious: "py-16 px-6 gap-6",
-      },
+const emptyStateVariants = cva("flex flex-col items-center justify-center text-center", {
+  variants: {
+    size: {
+      compact: "py-8 px-4 gap-3",
+      default: "py-12 px-6 gap-4",
+      spacious: "py-16 px-6 gap-6",
     },
-    defaultVariants: {
-      size: "default",
-    },
-  }
-);
+  },
+  defaultVariants: {
+    size: "default",
+  },
+});
 
-const iconVariants = cva(
-  "empty-state-enter empty-state-delay-1 text-secondary-content",
-  {
-    variants: {
-      size: {
-        compact: "h-10 w-10 mb-2",
-        default: "h-16 w-16 mb-3",
-        spacious: "h-20 w-20 mb-4",
-      },
+const iconVariants = cva("empty-state-enter empty-state-delay-1 text-secondary-content", {
+  variants: {
+    size: {
+      compact: "h-10 w-10 mb-2",
+      default: "h-16 w-16 mb-3",
+      spacious: "h-20 w-20 mb-4",
     },
-    defaultVariants: {
-      size: "default",
-    },
-  }
-);
+  },
+  defaultVariants: {
+    size: "default",
+  },
+});
 
 const titleVariants = cva("empty-state-enter empty-state-delay-2 text-primary-content", {
   variants: {
@@ -98,18 +92,21 @@ const titleVariants = cva("empty-state-enter empty-state-delay-2 text-primary-co
   },
 });
 
-const descriptionVariants = cva("empty-state-enter empty-state-delay-3 text-secondary-content max-w-md", {
-  variants: {
-    size: {
-      compact: "text-body-small mb-4",
-      default: "text-body mb-6",
-      spacious: "text-body-large mb-8",
+const descriptionVariants = cva(
+  "empty-state-enter empty-state-delay-3 text-secondary-content max-w-md",
+  {
+    variants: {
+      size: {
+        compact: "text-body-small mb-4",
+        default: "text-body mb-6",
+        spacious: "text-body-large mb-8",
+      },
     },
-  },
-  defaultVariants: {
-    size: "default",
-  },
-});
+    defaultVariants: {
+      size: "default",
+    },
+  }
+);
 
 // ============================================================================
 // Action Button Component
@@ -225,7 +222,7 @@ export function EmptyState({
 
     // Fallback renderable node
     return (
-      <span className={iconVariants({ size})} aria-hidden="true">
+      <span className={iconVariants({ size })} aria-hidden="true">
         {icon}
       </span>
     );
@@ -241,18 +238,19 @@ export function EmptyState({
     >
       {/* Icon Section */}
       {icon && (
-        <div className="flex items-center justify-center" style={{ willChange: "transform, opacity" }}>
+        <div
+          className="flex items-center justify-center"
+          style={{ willChange: "transform, opacity" }}
+        >
           {renderIcon()}
         </div>
       )}
 
       {/* Title Section */}
-      <h2 className={titleVariants({ size})}>{title}</h2>
+      <h2 className={titleVariants({ size })}>{title}</h2>
 
       {/* Description Section */}
-      {description && (
-        <p className={descriptionVariants({ size})}>{description}</p>
-      )}
+      {description && <p className={descriptionVariants({ size })}>{description}</p>}
 
       {/* Actions Section */}
       {(primaryAction || secondaryAction) && (
@@ -287,7 +285,9 @@ export function EmptyState({
 
       {/* Footer Section */}
       {footer && (
-        <div className="empty-state-enter empty-state-delay-4 mt-4 text-caption text-secondary-content">{footer}</div>
+        <div className="empty-state-enter empty-state-delay-4 mt-4 text-caption text-secondary-content">
+          {footer}
+        </div>
       )}
     </div>
   );
@@ -417,10 +417,7 @@ export function EmptyStateError({
 /**
  * Offline empty state
  */
-export function EmptyStateOffline({
-  onRetry,
-  className,
-}: EmptyStateErrorProps) {
+export function EmptyStateOffline({ onRetry, className }: EmptyStateErrorProps) {
   return (
     <EmptyState
       title="You're offline"

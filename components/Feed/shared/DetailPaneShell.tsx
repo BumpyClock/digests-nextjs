@@ -6,5 +6,13 @@ interface DetailPaneShellProps {
 }
 
 export function DetailPaneShell({ children, className }: DetailPaneShellProps) {
-  return <div className={["h-full border rounded-md overflow-hidden bg-card", className].filter(Boolean).join(" ")}>{children}</div>;
+  return (
+    <div
+      className={["h-full border rounded-md overflow-hidden bg-card", className]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      {children}
+    </div>
+  );
 }

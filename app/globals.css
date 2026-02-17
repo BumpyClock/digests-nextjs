@@ -605,7 +605,8 @@
 
   /* Container animation - starts first */
   .empty-state-enter {
-    animation: empty-state-enter 280ms var(--motion-ease-decelerate, cubic-bezier(0, 0, 0, 1)) forwards;
+    animation: empty-state-enter 280ms var(--motion-ease-decelerate, cubic-bezier(0, 0, 0, 1))
+      forwards;
   }
 
   /* Staggered children delays */

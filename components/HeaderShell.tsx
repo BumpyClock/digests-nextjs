@@ -74,7 +74,9 @@ export function HeaderShell({
                       <Link
                         key={`mobile-${item.id}`}
                         href={item.href}
-                        className={["flex items-center gap-2", item.mobileClassName].filter(Boolean).join(" ")}
+                        className={["flex items-center gap-2", item.mobileClassName]
+                          .filter(Boolean)
+                          .join(" ")}
                       >
                         {item.icon ? <item.icon className="h-5 w-5" /> : null}
                         <span>{item.label}</span>

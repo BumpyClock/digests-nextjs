@@ -55,7 +55,10 @@ const FeedListItem = memo(function FeedListItem({
     >
       <div className="grow min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          <FeedItemPreviewMeta item={item} className="flex w-full items-center justify-between gap-2" />
+          <FeedItemPreviewMeta
+            item={item}
+            className="flex w-full items-center justify-between gap-2"
+          />
         </div>
         <h3 className="text-subtitle line-clamp-2 mb-1">{cleanupTextContent(item.title)}</h3>
         <div className="flex justify-end items-center text-caption text-secondary-content">

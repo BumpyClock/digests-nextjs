@@ -20,7 +20,8 @@ const SETTINGS_VARIANTS: Record<
 > = {
   page: {
     containerClassName: "flex h-full min-h-0 flex-col gap-3 sm:gap-4",
-    headerClassName: "flex shrink-0 items-center justify-between rounded-lg border bg-card/40 p-2.5",
+    headerClassName:
+      "flex shrink-0 items-center justify-between rounded-lg border bg-card/40 p-2.5",
     contentClassName: "flex min-h-0 flex-1 flex-col rounded-lg border bg-card/20 p-3 sm:p-4",
   },
   modal: {
@@ -75,4 +76,3 @@ export function SettingsShell({ variant, children, backTo = "/web" }: SettingsSh
     </div>
   );
 }
-
