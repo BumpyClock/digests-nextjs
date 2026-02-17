@@ -135,3 +135,13 @@
 
 ### Challenges
 - `readerViewQueryByUrl` needed to return deterministic query options; keeping `enabled` in the hook avoids accidental fetches when URLs are empty.
+## 2026-02-17 - Bead digests-nextjs-04s.10.3
+- Closed `digests-nextjs-04s.10.3` after adding `hooks/queries/__tests__/use-reader-view-query.test.tsx`.
+- Added regression coverage for reader-view server-state ownership:
+  - Query-key normalization for article URLs.
+  - Shared `readerViewQueryByUrl` fetch path executed by `useReaderViewQuery`.
+  - Explicit assertion that reader fetch calls flow through the shared worker call in React Query options.
+- No behavior changes to runtime flows were needed because fetch/path unification already existed; this commit locks migration in tests.
+- Commit was prepared with `feat(test): add reader-view query ownership regression test`.
+- Learned: keep runtime regressions from previous handoff in sync with bead state files; `.beads/issues.jsonl` can diverge unless `bd close` is run in-session.
+- Challenge: pre-existing unrelated local changes are present in the workspace and intentionally left untouched.
