@@ -32,6 +32,7 @@ Durable repo learnings only. Evergreen. No dated incident logs.
 - Token variable names must stay consistent across generation output, globals, Tailwind config, component usage.
 - Keep base tokens theme-agnostic; map semantic aliases in theme layer.
 - Keep typography/fallback utilities token-driven.
+- Keep one canonical CSS/motion layering policy in `docs/css-motion-layering-policy.md` and link to it from contributor-facing docs.
 
 ## Tooling and Data Safety
 
@@ -40,6 +41,7 @@ Durable repo learnings only. Evergreen. No dated incident logs.
 - For Tailwind v4 directives (`@config`, `@utility`), keep Stylelint at-rule allowlist aligned.
 - In migration/persisted-state code, guard unknown legacy shapes before map/filter and clear invalid legacy keys safely.
 - Keep dependency risk low: prefer maintained libraries, isolate replaceable deps behind adapters, review health periodically.
+- On Windows process spawning, prefer explicit `.cmd/.exe` resolution for PATH shims (extensionless shim files can exist but fail under Node `spawn`).
 
 ## Performance
 
@@ -51,3 +53,13 @@ Durable repo learnings only. Evergreen. No dated incident logs.
 - Virtualize long lists; keep scroll-container behavior compatible with virtualization library.
 - Worker cache keys deterministic (stable ordering + unambiguous serialization, e.g. `JSON.stringify`); include request correlation IDs on error responses.
 - Guard idempotent state writes to prevent unnecessary re-renders/churn.
+
+## State ownership
+
+- React Query is the source of truth for server state (feeds/reader content).
+- Zustand holds client/UI state only; avoid duplicating server collections into store slices.
+- Use docs/state-ownership-react-query-vs-zustand.md as the canonical boundary reference.
+
+## 2026-02-17 - Images module layout and exports
+- Keep image utilities grouped under a namespace (`utils/images/*`) with a single public index.
+- Use `@/utils/images` as the canonical import path and avoid adding new top-level `utils/image*` files.

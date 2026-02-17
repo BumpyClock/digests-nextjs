@@ -2,7 +2,7 @@
 
 import { Logger } from "@/utils/logger";
 import { isHttpUrl } from "@/utils/url";
-import { fetchParseFeeds, fetchReaderViewData } from "../lib/feed-api-client";
+import { fetchParseFeeds, fetchReaderViewData } from "../lib/feed-pipeline/api-client";
 import { DEFAULT_API_CONFIG, DEFAULT_CACHE_TTL_MS } from "../lib/config";
 import type { Feed, FeedItem, ReaderViewResponse } from "../types";
 import type {

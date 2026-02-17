@@ -1,7 +1,7 @@
-import { fetchParseFeeds, fetchReaderViewData } from "@/lib/feed-api-client";
 import type { Feed, FeedItem, ReaderViewResponse } from "@/types";
 import { Logger } from "@/utils/logger";
-import type { FeedFetcherConfig } from "./interfaces/feed-fetcher.interface";
+import { fetchParseFeeds, fetchReaderViewData } from "@/lib/feed-pipeline/api-client";
+import type { FeedFetcherConfig } from "../contracts/fetcher.interface";
 
 /**
  * Fetches feeds from the API

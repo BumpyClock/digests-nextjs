@@ -1,6 +1,6 @@
 import { DEFAULT_API_CONFIG, DEFAULT_CACHE_TTL_MS } from "@/lib/config";
-import { createFeedFetcher } from "@/lib/feed-fetcher";
-import type { IFeedFetcher } from "@/lib/interfaces/feed-fetcher.interface";
+import { createFeedFetcher } from "@/lib/feed-pipeline";
+import type { IFeedFetcher } from "@/lib/feed-pipeline";
 import { Logger } from "@/utils/logger";
 import type { Feed, FeedItem, ReaderViewResponse } from "@/types";
 import { sendWorkerRequest } from "./transport";

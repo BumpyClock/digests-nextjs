@@ -3,6 +3,7 @@
 Read when:
 - You create new files under `app/`, `components/`, `hooks/`, `services/`, `store/`, `lib/`, or `workers/`.
 - You refactor duplicated logic and need ownership rules.
+- You need state ownership rules between React Query and Zustand: `docs/state-ownership-react-query-vs-zustand.md`.
 - You need CSS/motion implementation rules: `docs/css-motion-layering-policy.md`.
 
 ## Directory ownership
@@ -22,6 +23,11 @@ Read when:
 - `services/` may depend on `types`, `lib`, and worker contracts; do not import route or UI modules.
 - `workers/` may depend on `types`, `lib`; do not import React, Next, or Zustand modules.
 - `store/` may depend on `types` and `lib`; avoid `components` imports.
+
+## State ownership boundary
+- React Query owns server state.
+- Zustand owns client-only state.
+- Do not duplicate server collections into Zustand.
 
 ## Duplication prevention rules
 - If logic is reused in 2 places, extract to shared helper/hook unless coupling would increase complexity.
@@ -57,3 +63,11 @@ Read when:
   - `bunx tsc --noEmit`
   - `bun test ./tests`
 - For migrations touching persisted state, also run `bun run check:migration`.
+
+## Images module ownership
+
+Image helpers are now grouped under `utils/images/*` with a canonical barrel export in `utils/images/index.ts`.
+- Prefer `@/utils/images` as the default import surface.
+- Prefer `@/utils/images/<module>` only for narrow, single-purpose imports.
+- Keep image-specific exports in the images namespace; do not create new top-level `utils/image*.ts` entry files.
+- See `docs/images-module-layout.md` before modifying image helpers.

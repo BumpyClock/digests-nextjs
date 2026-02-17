@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { fetchFeeds } from "@/lib/rss";
+import { fetchFeeds } from "@/lib/feed-pipeline/feeds/fetcher";
 import type { Feed, FeedItem } from "@/types";
 
 interface FeedActionResult {

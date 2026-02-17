@@ -1,5 +1,5 @@
 import { getApiUrl } from "@/lib/config";
-import { transformFeedResponse } from "@/lib/feed-transformer";
+import { transformFeedResponse } from "@/lib/feed-pipeline/feeds/transformer";
 import type { FetchFeedsResponse, Feed, FeedItem, ReaderViewResponse } from "@/types";
 import { Logger } from "@/utils/logger";
 
