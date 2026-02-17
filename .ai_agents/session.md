@@ -112,3 +112,14 @@
 
 ### Challenges
 - Replacing imports across `app` paths required care for escaped route segments (`[id]`) in PowerShell file path handling.
+## 2026-02-17 - Bead digests-nextjs-04s.10.2
+- Completed `digests-nextjs-04s.10.2` (Migrate feed list/data flow to React Query-owned server state).
+- Updated `hooks/useFeedSelectors.ts` so `useSubscriptions()` now prefers React Query `feeds` payload when available and falls back to persisted Zustand subscriptions.
+- This shifts feed-list metadata consumption toward query cache while keeping subscriptions persisted in Zustand for client-bound configuration.
+- Commit: `2640ad9`
+
+### Learnings
+- `useSubscriptions` was still using Zustand as the first read path for feed list metadata; wiring it to query data removes an easy duplication path and enforces single-source behavior for list payloads.
+
+### Challenges
+- `useSubscriptions` now imports `useFeedsData`, so every selector call shares the same React Query cache lifecycle as the main page flow, which should be reviewed in end-to-end behavior.
