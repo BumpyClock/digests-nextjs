@@ -1,5 +1,17 @@
 # Session Notes
 
+## 2026-02-17 - Bead digests-nextjs-04s.6
+- Closed `digests-nextjs-04s.6` after a final verification sweep.
+- Verified no remaining source references to legacy feed-pipeline paths (`lib/feed-api-client.ts`, `lib/feed-fetcher.ts`, `lib/rss.ts`, `lib/feed-transformer.ts`, `lib/interfaces/feed-fetcher.interface.ts`, `utils/feed-validator.ts`) exist in application/service/worker code.
+- Kept remaining references in historical docs/report notes only.
+- `bd` workflow update:
+  - Marked bead `in_progress` with execution plan note.
+  - Completed and closed bead with summary.
+- Learnings:
+  - `rg` path-pattern checks are a quick and reliable final validation for namespace migration completeness.
+- Challenges:
+  - No additional code changes were required; completion relied on verification and tracker state cleanup.
+
 ## 2026-02-17 - Bead digests-nextjs-04s.12.3
 - Completed `digests-nextjs-04s.12.3` (Document false positives and intentional keeps for dead-code scan).
 - Expanded `docs/learned/knip-dead-code-waivers-2026-02-17.md` with explicit keep/defer/delete tables and review notes.
@@ -241,3 +253,20 @@
 - Learnings: 	ailwindcss-animate can replace many custom transition keyframes when transitions are entry-only and scoped to component state.
 - Challenges: FeedMasterDetail previously relied on immediate mount-switch animation intent; behavior now relies on entry animations only due existing unmount timing, so parity should be visually checked on mobile.
 
+## 2026-02-17 - Bead digests-nextjs-04s.10
+- Completed digests-nextjs-04s.10 (A4: Define and execute state-boundary plan) by closing the parent bead after all child state-boundary migrations were completed.
+- Verified child beads 10.1 through 10.4 are complete; no additional code changes were needed in this pass.
+- Added closure note in d status with rationale that all feed reader-list / reader-view server-state ambiguity paths are removed in favor of React Query ownership, with Zustand limited to client state.
+- No behavioral regressions observed in-session because this was a parent-closure bead; execution-level verification deferred.
+- Learning: parent beads can now be closed safely when child bead completion proves the acceptance criteria end-to-end.
+- Challenge: this pass required only issue-tracker reconciliation; operational handoff should confirm no hidden duplicate state paths outside child-bead scope.
+
+## 2026-02-17 - Bead digests-nextjs-04s.12
+- Completed digests-nextjs-04s.12 (A6: Run dead-code sweep and remove verified unused exports).
+- Marked the bead in_progress in d, confirmed all child beads (12.1, 12.2, 12.3) were already done, and closed it with final completion summary.
+- No runtime code changes were made in this iteration.
+- Learned:
+  - Existing report-follow-up work is complete once scan, removals, and intentional keep documentation are finalized at child-level.
+  - Parent beads should be closed promptly after all children complete to keep dependency visibility in d accurate.
+- Challenges:
+  - This iteration was mostly tracker/documentation closure with minimal code surface; no functional deltas to validate.
