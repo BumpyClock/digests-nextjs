@@ -2,7 +2,7 @@
 
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { Bookmark, Share2 } from "lucide-react";
+import { Bookmark, Podcast, Rss, Share2 } from "lucide-react";
 import { LayoutGroup, motion } from "motion/react";
 import Image from "next/image";
 import type React from "react";
@@ -168,6 +168,7 @@ export const FeedCard = memo(function FeedCard({
   const handleImageError = useCallback(() => {
     setImageError(true);
     setShowPlaceholder(true);
+    setImageLoading(false);
   }, []);
 
   const cardShellMotionStyle = {
@@ -180,6 +181,7 @@ export const FeedCard = memo(function FeedCard({
   } as React.CSSProperties;
 
   const interactionMotionEnabled = animationEnabled && !isScrolling;
+  const PlaceholderIcon = isPodcast(feedItem) ? Podcast : Rss;
 
   const cardContentWithShell = (
     <motion.div
@@ -208,28 +210,32 @@ export const FeedCard = memo(function FeedCard({
               className="relative w-full aspect-video rounded-3xl overflow-hidden"
               suppressHover={isScrolling}
             >
-              {imageLoading && <Skeleton className="absolute inset-0 z-10 rounded-3xl" />}
-              <Image
-                src={
-                  showPlaceholder
-                    ? isPodcast(feedItem)
-                      ? "/placeholder-podcast.svg"
-                      : "/placeholder-rss.svg"
-                    : canUseImageKit(feedItem.thumbnail)
+              {!showPlaceholder && imageLoading && (
+                <Skeleton className="absolute inset-0 z-10 rounded-3xl" />
+              )}
+              {showPlaceholder ? (
+                <div className="flex h-full w-full items-center justify-center rounded-3xl bg-muted text-secondary-content">
+                  <PlaceholderIcon size={64} aria-hidden="true" />
+                </div>
+              ) : (
+                <Image
+                  src={
+                    canUseImageKit(feedItem.thumbnail)
                       ? getImageKitUrl(feedItem.thumbnail, IMAGE_PRESETS.feedCardThumbnail)
                       : feedItem.thumbnail
-                }
-                alt={feedItem.title}
-                width={400}
-                height={300}
-                className={`w-full h-full object-cover rounded-3xl group-hover:scale-[1.05] transition-token-transform duration-fast ${
-                  imageLoading ? "opacity-0" : "opacity-100"
-                }`}
-                onLoad={() => setImageLoading(false)}
-                onError={handleImageError}
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
-                loading="lazy"
-              />
+                  }
+                  alt={feedItem.title}
+                  width={400}
+                  height={300}
+                  className={`w-full h-full object-cover rounded-3xl group-hover:scale-[1.05] transition-token-transform duration-fast ${
+                    imageLoading ? "opacity-0" : "opacity-100"
+                  }`}
+                  onLoad={() => setImageLoading(false)}
+                  onError={handleImageError}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+                  loading="lazy"
+                />
+              )}
             </Ambilight>
           </motion.div>
         )}

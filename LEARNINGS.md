@@ -4,10 +4,11 @@ Durable repo learnings only. Evergreen. No dated incident logs.
 
 ## Architecture
 
-- Single source of truth per concern: route/detail shells, query-key derivation, worker message contracts.
-- Keep feed key + URL normalization centralized (`hooks/queries/feedsKeys.ts`); route all cache invalidation/mutation through shared helpers.
-- Keep worker orchestration reusable + store-agnostic: boundary config injection, centralized timeout/retry/fallback flow, shared types.
-- Worker service lifecycle idempotent: explicit attach/detach handlers; safe repeated start/stop.
+- Single source of truth per concern: route/detail shells, query keys, worker message contracts.
+- Keep feed query keys + URL normalization centralized (`hooks/queries/feedsKeys.ts`).
+- Route cache invalidation/mutation through shared key/normalization helpers.
+- Keep worker orchestration reusable + store-agnostic; shared timeout/retry/fallback flow.
+- Worker lifecycle idempotent: safe repeated start/stop, explicit handler attach/detach.
 
 ## Routing and Layout
 
@@ -22,11 +23,13 @@ Durable repo learnings only. Evergreen. No dated incident logs.
 - Transition state flips inside `document.startViewTransition(() => flushSync(...))` for stable snapshots.
 - Shared-element transitions: small intentional element set; avoid over-animating metadata nodes.
 - Reuse shared shells/content across modal/page variants to prevent behavior drift.
-- Keep accessibility defaults: semantic headings, AA tap targets, `aria-live`/status semantics, icon `aria-hidden` when decorative.
+- Keep accessibility defaults: semantic headings, AA tap targets, `aria-live`/status semantics, decorative icons `aria-hidden`.
+- Virtualized lists: avoid mount entrance animations on frequently remounted cards.
+- Scroll-based suppression logic must subscribe to the same scroll source used by virtualization.
 
 ## Design Tokens
 
-- Token variable names must stay consistent across generation output, `globals.css`, Tailwind config, component usage.
+- Token variable names must stay consistent across generation output, globals, Tailwind config, component usage.
 - Keep base tokens theme-agnostic; map semantic aliases in theme layer.
 - Keep typography/fallback utilities token-driven.
 
@@ -35,7 +38,8 @@ Durable repo learnings only. Evergreen. No dated incident logs.
 - Use one package manager across scripts/docs.
 - Remove obsolete `@types/*` stubs when upstream package ships types.
 - For Tailwind v4 directives (`@config`, `@utility`), keep Stylelint at-rule allowlist aligned.
-- In migration/persisted-state code, guard unknown legacy shapes (`Array.isArray`, etc.) before map/filter; clear invalid legacy keys safely.
+- In migration/persisted-state code, guard unknown legacy shapes before map/filter and clear invalid legacy keys safely.
+- Keep dependency risk low: prefer maintained libraries, isolate replaceable deps behind adapters, review health periodically.
 
 ## Performance
 
@@ -45,17 +49,5 @@ Durable repo learnings only. Evergreen. No dated incident logs.
 - Cache normalized search strings; avoid repeated normalization work.
 - Derived counts must match the same filtered dataset used for rendering.
 - Virtualize long lists; keep scroll-container behavior compatible with virtualization library.
-- Scroll-driven animation suppression must be wired to the same scroll source as virtualization (`window` for default `masonic` usage), otherwise `isScrolling` stays inert.
-- Avoid mount entrance animations (`initial`/`animate`) on virtualized feed cards; remount cycles during scroll can present as flicker.
 - Worker cache keys deterministic (stable ordering + unambiguous serialization, e.g. `JSON.stringify`); include request correlation IDs on error responses.
 - Guard idempotent state writes to prevent unnecessary re-renders/churn.
-
-## Dependency strategy
-
-- Keep `masonic`, `prismjs`, and `simplebar-react` for now; revisit quarterly instead of replacing proactively.
-- Keep `localforage` short-term but isolate behind a storage adapter boundary to de-risk eventual replacement.
-- Record dependency replacement decisions under `docs/learned/dependency-health-review-YYYY-MM-DD.md` with npm/GitHub signals and migration cost.
-
-## Architecture docs
-
-- Keep ownership and layering rules in `docs/architecture-boundaries-and-refactor-rules.md` and link from route/layout docs.
