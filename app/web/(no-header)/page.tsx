@@ -419,7 +419,7 @@ function WebPageContent() {
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent
           hideCloseButton
-          className="h-[92dvh] w-[96vw] max-w-6xl gap-0 overflow-hidden border bg-background p-0 data-[state=open]:duration-200 data-[state=closed]:duration-150 data-[state=open]:ease-out data-[state=closed]:ease-out motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none"
+          className="h-[92dvh] w-[96vw] max-w-6xl gap-0 border bg-background p-0 data-[state=open]:duration-200 data-[state=closed]:duration-150 data-[state=open]:ease-out data-[state=closed]:ease-out motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none"
         >
           <DialogTitle className="sr-only">Settings</DialogTitle>
           <SettingsShell variant="modal">
