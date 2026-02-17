@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { CommandBar } from "@/components/CommandBar/CommandBar";
-import { EmptyState } from "@/components/EmptyState";
+import { EmptyStateAllCaughtUp, EmptyStateNoFeeds } from "@/components/EmptyState";
 import { FEED_REFRESHED_EVENT, FeedGrid } from "@/components/Feed/FeedGrid/FeedGrid";
 import { FeedMasterDetail } from "@/components/Feed/FeedMasterDetail/FeedMasterDetail";
 import { RefreshButton } from "@/components/RefreshButton";
@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // React Query imports
 import { useFeedBackgroundSync, useFeedsData, useRefreshFeedsMutation } from "@/hooks/queries";
-import { useWebPageData } from "@/hooks/useFeedSelectors";
+import { useSubscriptions, useWebPageData } from "@/hooks/useFeedSelectors";
 import { useHydratedStore } from "@/store/useFeedStore";
 import type { FeedItem } from "@/types";
 import { Logger } from "@/utils/logger";
@@ -64,6 +64,8 @@ function WebPageContent() {
 
   // Zustand hooks for client state only
   const { initialized, setInitialized, setActiveFeed } = useWebPageData();
+  const subscriptions = useSubscriptions();
+  const hasSubscriptions = subscriptions.length > 0;
 
   const emptyReadItems = useMemo(() => new Set<string>(), []);
   const emptyReadLater = useMemo(() => new Set<string>(), []);
@@ -408,6 +410,7 @@ function WebPageContent() {
               isLoading={isLoading}
               viewMode={viewMode}
               filterKey={filterKey}
+              hasSubscriptions={hasSubscriptions}
             />
           </TabsContent>
         ))}
@@ -434,17 +437,20 @@ function FeedTabContent({
   isLoading,
   viewMode,
   filterKey,
+  hasSubscriptions,
 }: {
   items: FeedItem[];
   isLoading: boolean;
   viewMode: "grid" | "masterDetail";
   filterKey: string;
+  hasSubscriptions: boolean;
 }) {
   if (isLoading) {
     return <FeedGrid items={[]} isLoading />;
   }
   if (!items || items.length === 0) {
-    return <EmptyState />;
+    // Show different message based on whether user has feeds configured
+    return hasSubscriptions ? <EmptyStateAllCaughtUp /> : <EmptyStateNoFeeds />;
   }
 
   return viewMode === "grid" ? (

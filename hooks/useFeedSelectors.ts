@@ -2,6 +2,10 @@
  * Granular selectors for the feed store to optimize re-renders
  * These selectors allow components to subscribe to specific parts of the store
  * rather than the entire store, preventing unnecessary re-renders
+ *
+ * Canonical selector ownership:
+ * - Pure selectors and transforms live in `store/selectors/feed-selectors.ts`
+ * - This module remains a thin hook wrapper over `useFeedStore`
  */
 
 import { useShallow } from "zustand/react/shallow";

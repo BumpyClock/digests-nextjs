@@ -1,9 +1,7 @@
-import { Copy, Trash2 } from "lucide-react";
+import { Copy, Podcast, Rss, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { memo } from "react";
 import noise from "@/public/noise.svg";
-import placeholderPodcast from "@/public/placeholder-podcast.svg";
-import placeholderRss from "@/public/placeholder-rss.svg";
 import type { Feed } from "@/types";
 import type { Subscription } from "@/types/subscription";
 import { getSiteDisplayName } from "@/utils/htmlUtils";
@@ -46,20 +44,27 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({
 
   const isPodcastFeed = (candidate: Feed | Subscription): candidate is Feed =>
     "type" in candidate && candidate.type === "podcast";
-  const placeholderImage = isPodcastFeed(feed) ? placeholderPodcast : placeholderRss;
+  const PlaceholderIcon = isPodcastFeed(feed) ? Podcast : Rss;
+  const hasFavicon = Boolean(feed.favicon);
 
   return (
     <div className="group relative transition-token-transform duration-token-normal ease-token-standard group-hover:-translate-y-2 group-hover:scale-105">
       <div id={feedCardId} className="relative z-[2] flex h-full flex-col p-5">
         <div className="flex-1">
           <div className="mb-4 transition-token-transform duration-token-slow ease-token-standard group-hover:-translate-y-1">
-            <Image
-              src={feed.favicon || placeholderImage}
-              alt={`${getSiteDisplayName(feed)} icon`}
-              width={48}
-              height={48}
-              className="rounded-sm transition-token-transform duration-token-normal ease-token-standard group-hover:scale-110"
-            />
+            {hasFavicon ? (
+              <Image
+                src={feed.favicon!}
+                alt={`${getSiteDisplayName(feed)} icon`}
+                width={48}
+                height={48}
+                className="rounded-sm transition-token-transform duration-token-normal ease-token-standard group-hover:scale-110"
+              />
+            ) : (
+              <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-muted text-secondary-content transition-token-transform duration-token-normal ease-token-standard group-hover:scale-110">
+                <PlaceholderIcon size={28} aria-hidden="true" />
+              </div>
+            )}
           </div>
           <h3 className="mb-1 line-clamp-2 text-subtitle text-primary-content">
             {getSiteDisplayName(feed)}
@@ -96,11 +101,13 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({
           className="overflow-hidden absolute top-0 left-0 w-full h-full opacity-5 bg-cover bg-center"
           style={{ backgroundImage: `url(${noise.src})` }}
         />
-        <div
-          id={`${feedCardId}-imageblur`}
-          className="absolute left-0 top-0 h-full w-full overflow-hidden bg-cover bg-center opacity-15 brightness-80 transition-token-filter duration-token-normal group-hover:opacity-30 group-hover:blur-[100px] group-hover:brightness-120"
-          style={{ backgroundImage: `url(${feed.favicon || placeholderImage})` }}
-        />
+        {hasFavicon && (
+          <div
+            id={`${feedCardId}-imageblur`}
+            className="absolute left-0 top-0 h-full w-full overflow-hidden bg-cover bg-center opacity-15 brightness-80 transition-token-filter duration-token-normal group-hover:opacity-30 group-hover:blur-[100px] group-hover:brightness-120"
+            style={{ backgroundImage: `url(${feed.favicon})` }}
+          />
+        )}
       </div>
       <div className="absolute left-0 top-0 h-full w-full rounded-xl border border-border bg-card shadow-md transition-token-shadow duration-token-normal group-hover:shadow-xl" />
     </div>

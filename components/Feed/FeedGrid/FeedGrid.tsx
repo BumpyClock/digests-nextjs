@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Masonry } from "masonic";
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CheckCircle } from "lucide-react";
 import ErrorBoundary from "@/components/error-boundary";
 import { FeedCard } from "@/components/Feed/FeedCard/FeedCard";
 import { PodcastDetailsModal } from "@/components/Podcast/PodcastDetailsModal";
@@ -41,10 +42,16 @@ const LoadingAnimation = () => {
   );
 };
 
+/**
+ * Empty state component with subtle entrance animation.
+ * Shows "All caught up!" message for users with feeds.
+ */
 const EmptyState = () => {
   return (
-    <div className="flex items-center justify-center h-[50vh] text-sm text-muted">
-      <p>No items to display</p>
+    <div className="flex flex-col items-center justify-center h-[50vh] gap-4">
+      <CheckCircle className="empty-state-enter empty-state-delay-1 h-16 w-16 text-secondary-content" style={{ willChange: "transform, opacity" }} />
+      <h2 className="empty-state-enter empty-state-delay-2 text-title-large text-primary-content">All caught up!</h2>
+      <p className="empty-state-enter empty-state-delay-3 text-body text-secondary-content">You've read everything in this view.</p>
     </div>
   );
 };
