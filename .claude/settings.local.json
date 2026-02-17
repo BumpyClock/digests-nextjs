@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__sequentialthinking__sequentialthinking",
+      "Bash(npm test:*)",
+      "Bash(node:*)",
+      "Bash(npm run build:*)",
+      "Bash(gemini:*)",
+      "Bash(bun pm ls:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true
+  }
+}

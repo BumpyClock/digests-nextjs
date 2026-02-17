@@ -40,8 +40,6 @@ next-env.d.ts
 .cursorrules/
 .cursor/
 
-**/.claude/settings.local.json
-.claude/
 .env
 .claude/tasks/tasks.md
 .pr-description.md
