@@ -56,3 +56,12 @@ Durable repo learnings only. Keep evergreen; drop incident logs.
 - Fixed review-findings with high confidence: normalized mojibake regexes, URL case handling in feed normalization, deterministic reader cache key hashing, stylelint at-rule allowlist, OPML warning flow, markdown content className pass-through, and Logger-based errors in rss worker.
 - Kept additional low-impact style/heuristic findings as deferred notes unless explicitly prioritized.
 - Added a quick validation pass: `bun run check:migration`, `bun run lint`, `node --test tests/feed-cache-merge.test.js`.
+
+## Architecture Audit (2026-02-17)
+
+- Keep one source of truth per concern: route/detail shells, feed query-key derivation, and worker transport contracts should each live in shared modules instead of per-view duplication.
+- Do not keep committed compiled test artifacts (compiled-tests) as a second source of truth; prefer TS-native test execution or ephemeral compile output.
+- Keep worker/request orchestration reusable and store-agnostic: inject config at boundaries, centralize request/timeout/fallback handling, and share message/response types.
+- Prefer domain-driven component folders (layout, eed, podcast, udio, shared) with extracted shell primitives/hooks to reduce UI drift.
+
+- When validating older architecture reports, classify each finding as confirmed/partial/stale against current code before creating tasks; avoid duplicate epics by adding scoped child beads to the active architecture epic.
