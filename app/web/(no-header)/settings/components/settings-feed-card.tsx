@@ -54,7 +54,7 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({
           <div className="mb-4 transition-token-transform duration-token-slow ease-token-standard group-hover:-translate-y-1">
             {hasFavicon ? (
               <Image
-                src={feed.favicon!}
+                src={feed.favicon as string}
                 alt={`${getSiteDisplayName(feed)} icon`}
                 width={48}
                 height={48}
