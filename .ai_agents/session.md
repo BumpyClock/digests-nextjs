@@ -1,14 +1,23 @@
 # Session Notes
 
 ## 2026-02-17 - Bead digests-nextjs-04s.6.4
-- Selected `digests-nextjs-04s.6.4` in progress, then verified migration status after moving feed pipeline modules.
-- Completed:
-  - Confirmed no temporary compatibility shim files remain in code.
-  - Updated `docs/architecture-boundaries-and-refactor-rules.md` to canonicalize feed API client ownership.
-  - Updated `docs/feed-pipeline-namespace-plan.md` with completion status and removed remaining compatibility-shim language.
-  - Added a durable LEARNINGS note for migration cleanup checks.
-- Learnings: migration docs should include an explicit finalization section to make "done" auditable.
-- Challenges: existing historical references required careful narrowing so we preserve historical plan context while indicating current final state.
+- Completed `digests-nextjs-04s.6.4` (Remove compatibility shims and finalize feed-pipeline docs).
+- Confirmed via repo scan that no legacy feed pipeline paths remain in source:
+  - `lib/feed-api-client.ts`
+  - `lib/rss.ts`
+  - `lib/feed-fetcher.ts`
+  - `lib/interfaces/feed-fetcher.interface.ts`
+  - `lib/feed-transformer.ts`
+  - `utils/feed-validator.ts`
+- Updated `docs/feed-pipeline-namespace-plan.md` to finalize shim-free boundaries and make stale path references explicit.
+- Confirmed no further docs changes are required in `docs/architecture-boundaries-and-refactor-rules.md`.
+- Added this session summary and finalization note for continuity.
+
+### Learnings
+- Historical migration notes can become inconsistent after execution; a final docs pass should normalize wording from "compatibility shim" language to "shim-free steady state".
+
+### Challenges
+- Existing historical references required careful patching so plan context remains accurate without hiding progress.
 
 ## 2026-02-17 - Bead digests-nextjs-04s.1
 - Closed `digests-nextjs-04s.1` (D1: Build adaptive modal/pane wrapper for reader and podcast detail).
