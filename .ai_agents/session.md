@@ -1,5 +1,19 @@
 # Session Notes
 
+## 2026-02-17 - Bead digests-nextjs-04s.12.1
+- Completed `digests-nextjs-04s.12.1` (Run knip dead-code scan and publish triage report).
+- Ran `bunx knip` and captured a categorized report in `reports/knip-dead-code-2026-02-17.json` and `docs/learned/knip-dead-code-2026-02-17.md`.
+- Confirmed safe-removal candidates:
+  - `scripts/codex-beads-loop.ts`
+  - `components/Feed/FeedCard/FeedCardBase.tsx` (duplicate of `components/Feed/shared/FeedCardBase.tsx`)
+  - `components/ui/frosted-glass.tsx`
+  - `app/web/(no-header)/settings/hooks/index.ts`
+- Marked framework/route assets as intentional keeps (`sw.js`, `prism-tomorrow.css`, `app/pages/*.mdx`) and kept tests in triage as test-scope, not removable in this bead.
+- Added to learning notes:
+  - Knip’s scan requires separate interpretation layers (runtime, framework, test scope), and duplicate file copies are common false-positive sources.
+- Challenge:
+  - Large knip exported-symbol section is mostly false positive/intentional surface area and should be handled by a focused follow-up bead.
+
 ## 2026-02-17 - Bead digests-nextjs-04s.9.1
 - Completed `digests-nextjs-04s.9.1` (CSS inventory and ownership/migration-risk classification).
 - Added `docs/css-inventory-and-migration.md` with a full inventory and actionable classification matrix for every active CSS source.

@@ -70,3 +70,10 @@ Durable repo learnings only. Evergreen. No dated incident logs.
 ## 2026-02-17 - Images module layout and exports
 - Keep image utilities grouped under a namespace (`utils/images/*`) with a single public index.
 - Use `@/utils/images` as the canonical import path and avoid adding new top-level `utils/image*` files.
+
+- 2026-02-17: Completed CSS inventory follow-up bead and added docs/css-inventory-and-migration.md with per-source ownership and migration-risk classifications for all active style assets.
+
+## 2026-02-17 - Dead-code scan workflow
+
+- Use `knip` output as a triage input, not an automatic deletion list: distinguish runtime/route/framework/test-scope keepers before removals.
+- Knip flags duplicate or barrel-aliased files as dead; verify active imports (including route groups and public assets) before deleting.
