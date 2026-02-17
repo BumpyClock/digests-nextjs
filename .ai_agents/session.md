@@ -1,5 +1,17 @@
 # Session Notes
 
+## 2026-02-17 - Bead digests-nextjs-04s.10.4
+- Completed `digests-nextjs-04s.10.4` (Remove legacy sync paths and finalize state-boundary cleanup).
+- Removed legacy item fallback in `CommandBar` from Zustand store so search/feed data now flows only from React Query props.
+- Updated `components/CommandBar/CommandBar.tsx` to require `items` prop and `components/CommandBar/__tests__/CommandBar.test.tsx` to validate explicit-props behavior.
+- Kept fallback behavior for feed subscriptions (`useSubscriptions`) unchanged for the command bar feed filter list, while eliminating a duplicate item state path.
+
+### Learnings
+- A required query-data item prop avoids hidden dependency on Zustand for server-owned payloads and simplifies component test setup.
+
+### Challenges
+- No test suite run in-session; only targeted static consistency changes were made.
+
 ## 2026-02-17 - Bead digests-nextjs-04s.11
 - Completed `digests-nextjs-04s.11` (A5: Decouple worker startup from React component mount timing).
 - Updated `components/worker-init.tsx` so `WorkerInitializer` no longer calls `workerService.start()` on mount or `workerService.stop()` on unmount.

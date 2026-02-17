@@ -43,7 +43,7 @@ interface CommandBarProps {
   onSeeAllMatches: () => void;
   handleRefresh: () => void;
   onFeedSelect: (feedUrl: string) => void;
-  items?: FeedItem[]; // Optional prop to accept React Query data
+  items: FeedItem[]; // React Query data source for searchable feed items
 }
 
 const MemoizedCommandItem = React.memo(CommandItem, (prevProps, nextProps) => {
@@ -261,9 +261,7 @@ export function CommandBar({
   const { setTheme } = useTheme();
   const feeds = useSubscriptions();
   const { markAllAsRead } = useReadActions();
-  // const unreadCount = useUnreadCount();
-  // Prefer prop (React Query data). Do not read items from store.
-  const feedItems: FeedItem[] = items ?? [];
+  const feedItems: FeedItem[] = items;
   const { open, setOpen, handleKeyDown, handleClose } = useCommandBarShortcuts(onApplySearch);
 
   const { filteredSources, filteredItems, handleSeeAllMatches } = useCommandBarSearch(

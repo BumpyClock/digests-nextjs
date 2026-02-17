@@ -1,12 +1,11 @@
 // ABOUTME: Unit tests for the CommandBar component with React Query integration
-// ABOUTME: Tests prop vs store fallback behavior and component functionality
+// ABOUTME: Tests CommandBar behavior with query-provided item props and component functionality
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useCommandBarSearch } from "@/hooks/use-command-bar-search";
 import { useCommandBarShortcuts } from "@/hooks/use-command-bar-shortcuts";
 import { useReadActions, useSubscriptions } from "@/hooks/useFeedSelectors";
-import { useFeedStore } from "@/store/useFeedStore";
 import { Feed, FeedItem } from "@/types";
 import { CommandBar } from "../CommandBar";
 
@@ -65,7 +64,6 @@ function createFeedItem(partial: Partial<FeedItem>): FeedItem {
 jest.mock("next/navigation");
 jest.mock("next-themes");
 jest.mock("@/hooks/useFeedSelectors");
-jest.mock("@/store/useFeedStore");
 jest.mock("@/hooks/use-command-bar-shortcuts");
 jest.mock("@/hooks/use-command-bar-search");
 jest.mock("@/components/reader-view-modal", () => {
@@ -139,6 +137,8 @@ const mockDefaultProps = {
   onFeedSelect: jest.fn(),
 };
 
+const defaultItems = [...mockFeedItems];
+
 describe("CommandBar", () => {
   beforeEach(() => {
     // Setup default mocks
@@ -148,7 +148,6 @@ describe("CommandBar", () => {
     (useReadActions as jest.Mock).mockReturnValue({
       markAllAsRead: jest.fn(),
     });
-    (useFeedStore as unknown as jest.Mock).mockReturnValue(mockFeedItems); // Store feedItems
     (useCommandBarShortcuts as jest.Mock).mockReturnValue({
       open: false,
       setOpen: jest.fn(),
@@ -164,8 +163,8 @@ describe("CommandBar", () => {
     jest.clearAllMocks();
   });
 
-  describe("prop vs store fallback behavior", () => {
-    it("should prefer items prop over store when provided", () => {
+  describe("prop-based item source behavior", () => {
+    it("should use explicit items prop", () => {
       const propItems: FeedItem[] = [
         createFeedItem({
           id: "prop-item",
@@ -180,7 +179,7 @@ describe("CommandBar", () => {
 
       render(<CommandBar {...mockDefaultProps} items={propItems} />);
 
-      // useCommandBarSearch should be called with prop items, not store items
+      // useCommandBarSearch should be called with prop items
       expect(useCommandBarSearch).toHaveBeenCalledWith(
         mockDefaultProps.value,
         propItems, // Should use prop items
@@ -191,13 +190,13 @@ describe("CommandBar", () => {
       );
     });
 
-    it("should fallback to store items when no prop provided", () => {
-      render(<CommandBar {...mockDefaultProps} />);
+    it("should use default query item list when provided", () => {
+      render(<CommandBar {...mockDefaultProps} items={defaultItems} />);
 
-      // useCommandBarSearch should be called with store items
+      // useCommandBarSearch should be called with provided items
       expect(useCommandBarSearch).toHaveBeenCalledWith(
         mockDefaultProps.value,
-        mockFeedItems, // Should use store items
+        defaultItems,
         mockFeeds,
         mockDefaultProps.onSeeAllMatches,
         expect.any(Function),
@@ -205,9 +204,7 @@ describe("CommandBar", () => {
       );
     });
 
-    it("should use empty array when both prop and store are empty", () => {
-      (useFeedStore as unknown as jest.Mock).mockReturnValue([]); // Empty store
-
+    it("should use empty array when prop is empty", () => {
       render(
         <CommandBar
           {...mockDefaultProps}
@@ -224,24 +221,11 @@ describe("CommandBar", () => {
         mockDefaultProps.onChange
       );
     });
-
-    it("should handle undefined prop and fallback to store", () => {
-      render(<CommandBar {...mockDefaultProps} items={undefined} />);
-
-      expect(useCommandBarSearch).toHaveBeenCalledWith(
-        mockDefaultProps.value,
-        mockFeedItems, // Should fallback to store
-        mockFeeds,
-        mockDefaultProps.onSeeAllMatches,
-        expect.any(Function),
-        mockDefaultProps.onChange
-      );
-    });
   });
 
   describe("rendering", () => {
     it("should render search trigger button", () => {
-      render(<CommandBar {...mockDefaultProps} />);
+      render(<CommandBar {...mockDefaultProps} items={defaultItems} />);
 
       const searchButton = screen.getByRole("button", { name: /search feeds and articles/i });
       expect(searchButton).toBeInTheDocument();
@@ -250,7 +234,7 @@ describe("CommandBar", () => {
     it("should display current search value in trigger button", () => {
       const searchValue = "test search query";
 
-      render(<CommandBar {...mockDefaultProps} value={searchValue} />);
+      render(<CommandBar {...mockDefaultProps} value={searchValue} items={defaultItems} />);
 
       expect(screen.getByText(searchValue)).toBeInTheDocument();
     });
@@ -264,7 +248,7 @@ describe("CommandBar", () => {
         handleClose: jest.fn(),
       });
 
-      render(<CommandBar {...mockDefaultProps} />);
+      render(<CommandBar {...mockDefaultProps} items={defaultItems} />);
 
       const searchButton = screen.getByRole("button", { name: /search feeds and articles/i });
       fireEvent.click(searchButton);
@@ -293,7 +277,7 @@ describe("CommandBar", () => {
         handleSeeAllMatches: jest.fn(),
       });
 
-      render(<CommandBar {...mockDefaultProps} />);
+      render(<CommandBar {...mockDefaultProps} items={defaultItems} />);
 
       expect(screen.getByText("ARTICLES (1)")).toBeInTheDocument();
       expect(screen.getByText("Test Article 1")).toBeInTheDocument();
@@ -308,7 +292,7 @@ describe("CommandBar", () => {
         handleSeeAllMatches: jest.fn(),
       });
 
-      render(<CommandBar {...mockDefaultProps} />);
+      render(<CommandBar {...mockDefaultProps} items={defaultItems} />);
 
       expect(screen.getByText("PODCASTS (1)")).toBeInTheDocument();
       expect(screen.getByText("Test Article 2")).toBeInTheDocument();
@@ -321,7 +305,7 @@ describe("CommandBar", () => {
         handleSeeAllMatches: jest.fn(),
       });
 
-      render(<CommandBar {...mockDefaultProps} />);
+      render(<CommandBar {...mockDefaultProps} items={defaultItems} />);
 
       expect(screen.getByText("Feeds (1)")).toBeInTheDocument();
       expect(screen.getByText("Test Feed 1")).toBeInTheDocument();
@@ -334,7 +318,7 @@ describe("CommandBar", () => {
         handleSeeAllMatches: jest.fn(),
       });
 
-      render(<CommandBar {...mockDefaultProps} />);
+      render(<CommandBar {...mockDefaultProps} items={defaultItems} />);
 
       expect(screen.getByText("No results found.")).toBeInTheDocument();
     });
@@ -357,7 +341,7 @@ describe("CommandBar", () => {
     });
 
     it("should open reader modal when article is selected", async () => {
-      render(<CommandBar {...mockDefaultProps} />);
+      render(<CommandBar {...mockDefaultProps} items={defaultItems} />);
 
       const articleElement = screen.getByText("Test Article 1");
       fireEvent.click(articleElement);
@@ -369,7 +353,7 @@ describe("CommandBar", () => {
     });
 
     it("should close reader modal when close button clicked", async () => {
-      render(<CommandBar {...mockDefaultProps} />);
+      render(<CommandBar {...mockDefaultProps} items={defaultItems} />);
 
       // Open modal
       const articleElement = screen.getByText("Test Article 1");
@@ -406,7 +390,7 @@ describe("CommandBar", () => {
         handleSeeAllMatches: jest.fn(),
       });
 
-      render(<CommandBar {...mockDefaultProps} />);
+      render(<CommandBar {...mockDefaultProps} items={defaultItems} />);
 
       expect(screen.getByText("Suggestions")).toBeInTheDocument();
       expect(screen.getByText("Settings")).toBeInTheDocument();
@@ -429,7 +413,7 @@ describe("CommandBar", () => {
         handleSeeAllMatches: jest.fn(),
       });
 
-      render(<CommandBar {...mockDefaultProps} />);
+      render(<CommandBar {...mockDefaultProps} items={defaultItems} />);
 
       // Test settings navigation
       const settingsItem = screen.getByText("Settings");
