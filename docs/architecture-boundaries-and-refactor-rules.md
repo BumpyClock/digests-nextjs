@@ -3,6 +3,7 @@
 Read when:
 - You create new files under `app/`, `components/`, `hooks/`, `services/`, `store/`, `lib/`, or `workers/`.
 - You refactor duplicated logic and need ownership rules.
+- You need CSS/motion implementation rules: `docs/css-motion-layering-policy.md`.
 
 ## Directory ownership
 - `app/`: route entrypoints and route-local composition only. Avoid domain business logic here.
@@ -27,6 +28,7 @@ Read when:
 - Keep feed parsing/network calls centralized in `lib/feed-api-client.ts`.
 - Keep worker message contracts only in `types/worker-contracts.ts` and consume via aliases, not duplicate interfaces.
 - Keep selector derivations in `store/selectors/*`; `hooks/*` should wrap selectors, not redefine them.
+- Keep feed pipeline orchestration modules under `lib/feed-pipeline/*` and route worker/service imports there directly. See `docs/feed-pipeline-namespace-plan.md`.
 
 ## File size and organization
 - Target files under ~500 LOC.
@@ -41,6 +43,7 @@ Read when:
 - Use design tokens for color, typography, spacing, radius, shadows, and motion timing.
 - Avoid ad-hoc hardcoded durations/easing; consume motion tokens.
 - Keep custom CSS for cases that are not expressible cleanly in Tailwind utilities.
+- Follow `docs/css-motion-layering-policy.md` for implementation-level layering and reduced-motion behavior.
 
 ## Worker/service rules
 - Worker initialization/config updates happen at app boundary (for example provider/initializer components).
