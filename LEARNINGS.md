@@ -45,6 +45,8 @@ Durable repo learnings only. Evergreen. No dated incident logs.
 - Cache normalized search strings; avoid repeated normalization work.
 - Derived counts must match the same filtered dataset used for rendering.
 - Virtualize long lists; keep scroll-container behavior compatible with virtualization library.
+- Scroll-driven animation suppression must be wired to the same scroll source as virtualization (`window` for default `masonic` usage), otherwise `isScrolling` stays inert.
+- Avoid mount entrance animations (`initial`/`animate`) on virtualized feed cards; remount cycles during scroll can present as flicker.
 - Worker cache keys deterministic (stable ordering + unambiguous serialization, e.g. `JSON.stringify`); include request correlation IDs on error responses.
 - Guard idempotent state writes to prevent unnecessary re-renders/churn.
 

@@ -5,7 +5,7 @@ import { useScrollState } from "@/hooks/use-scroll-state";
 
 interface ScrollContextValue {
   isScrolling: boolean;
-  handleScroll: (event: Event) => void;
+  handleScroll: (input: Event | number) => void;
 }
 
 const ScrollContext = createContext<ScrollContextValue>({

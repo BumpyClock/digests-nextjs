@@ -179,12 +179,12 @@ export const FeedCard = memo(function FeedCard({
     ...(getViewTransitionStyle(viewTransitionsEnabled && !isActive, animationIds.cardShell) ?? {}),
   } as React.CSSProperties;
 
+  const interactionMotionEnabled = animationEnabled && !isScrolling;
+
   const cardContentWithShell = (
     <motion.div
-      whileHover={animationEnabled && !isScrolling ? { y: -4 } : undefined}
-      whileTap={animationEnabled && !isScrolling ? { scale: 0.98 } : undefined}
-      initial={animationEnabled && !isScrolling ? { opacity: 0, y: 20 } : undefined}
-      animate={animationEnabled && !isScrolling ? { opacity: 1, y: 0 } : undefined}
+      whileHover={interactionMotionEnabled ? { y: -4 } : undefined}
+      whileTap={interactionMotionEnabled ? { scale: 0.98 } : undefined}
       transition={{ duration: motionTokens.duration.normal }}
       layoutId={motionLayoutEnabled ? animationIds.cardShell : undefined}
       style={cardShellMotionStyle}

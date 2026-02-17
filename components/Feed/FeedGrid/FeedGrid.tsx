@@ -74,13 +74,27 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
   const { width: windowWidth } = useWindowSize();
   const queryClient = useQueryClient();
   const { animationEnabled } = useFeedAnimation();
-  const { isScrolling } = useScrollContext();
+  const { isScrolling, handleScroll } = useScrollContext();
   const vtSupported = useViewTransitionsSupported();
   const viewTransitionsEnabled = animationEnabled && vtSupported;
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    const handleWindowScroll = () => {
+      const scrollTop = document.scrollingElement?.scrollTop ?? window.scrollY;
+      handleScroll(scrollTop);
+    };
+
+    handleWindowScroll();
+    window.addEventListener("scroll", handleWindowScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleWindowScroll);
+    };
+  }, [handleScroll]);
 
   const columnWidth = 320;
   const columnGutter = 24;
