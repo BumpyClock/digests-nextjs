@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { FeedList } from "@/components/Feed/FeedList/FeedList";
 import { ReaderViewPane } from "@/components/Feed/ReaderViewPane/ReaderViewPane";
-import { PodcastDetailsPane } from "@/components/Podcast/PodcastDetailsPane";
+import { PodcastDetailsPane } from "@/components/Podcast/PodcastDetailsPane/PodcastDetailsPane";
 import { Button } from "@/components/ui/button";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useIsMobile } from "@/hooks/use-media-query";
@@ -13,7 +13,6 @@ import { useFeedItemsController } from "@/components/Feed/shared/useFeedItemsCon
 import { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
 import { ScrollProvider } from "@/contexts/ScrollContext";
-import "./FeedMasterDetail.css";
 
 interface FeedMasterDetailProps {
   items: FeedItem[];
@@ -75,11 +74,11 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
     if (!isAnimating) return "";
 
     if (animationDirection === "to-reader") {
-      return showList ? "slide-out-left" : "slide-in-right";
-    } else {
-      return showList ? "slide-in-left" : "slide-out-right";
+      return "animate-in slide-in-from-right-full fade-in-0 duration-normal ease-emphasized motion-reduce:animate-none";
     }
-  }, [isAnimating, animationDirection, showList]);
+
+    return "animate-in slide-in-from-left-full fade-in-0 duration-normal ease-emphasized motion-reduce:animate-none";
+  }, [isAnimating, animationDirection]);
 
   // On mobile: show either the list or the detail view
   if (isMobile) {

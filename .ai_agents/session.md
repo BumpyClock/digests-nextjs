@@ -232,3 +232,12 @@
 - Kept runtime behavior unchanged; request/response shape, worker cache paths, and fallback behavior remain intact.
 - Learned: introducing small response-builder helpers is an effective way to remove casting-heavy return objects without increasing branching.
 - Challenge: strict casts were entrenched in worker messaging, and changing them safely required keeping the same error message formatting while preserving requestId propagation.
+
+## 2026-02-17 - Bead digests-nextjs-04s.9.3
+- Completed digests-nextjs-04s.9.3 (Constrain scoped CSS to complex reader surfaces).
+- Updated components/Feed/FeedMasterDetail/FeedMasterDetail.tsx to replace FeedMasterDetail.css animation classes with token-backed Tailwind utilities (nimate-in, slide-in-from-*-full, duration-normal, ase-emphasized, motion-reduce:animate-none).
+- Removed components/Feed/FeedMasterDetail/FeedMasterDetail.css from component scope.
+- Kept reader prose stylesheet (components/Feed/ArticleReader/ArticleReader.css) as the remaining scoped CSS surface for reader rendering complexity.
+- Learnings: 	ailwindcss-animate can replace many custom transition keyframes when transitions are entry-only and scoped to component state.
+- Challenges: FeedMasterDetail previously relied on immediate mount-switch animation intent; behavior now relies on entry animations only due existing unmount timing, so parity should be visually checked on mobile.
+
