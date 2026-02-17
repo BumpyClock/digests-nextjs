@@ -48,8 +48,15 @@ These are likely false positives or acceptable API surface for flexibility; they
 
 ## 4) Next bead handoff
 
-- `digests-nextjs-12.2` (safe removals only) should take the confirmed safe-remove list from above.
+- `digests-nextjs-04s.12.2` (safe removals only) should take the confirmed safe-remove list from above.
+- Keep/waiver evidence for this scan is now documented separately in:
+  - `docs/learned/knip-dead-code-waivers-2026-02-17.md`
 - Other flagged symbols are triaged to **investigate** because they may represent:
   - index-export intent
   - dynamic/indirect usage
   - test-only or UI-API boundary exports
+
+## 5) Waiver index
+
+- `docs/learned/knip-dead-code-waivers-2026-02-17.md` tracks false positives and intentional keeps
+  identified during this sweep, with rationale and follow-up guidance.
