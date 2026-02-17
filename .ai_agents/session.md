@@ -187,3 +187,19 @@
 
 ### Challenges
 - No behavioral test/build validation was run in-session; recommend a follow-up check before release rollout.
+
+## 2026-02-17 - Bead digests-nextjs-04s.9.2
+- Completed `digests-nextjs-04s.9.2` (low-risk migration follow-up for `A2`).
+- Migrated the straightforward mobile layout rules from `components/Feed/FeedMasterDetail/FeedMasterDetail.css` into Tailwind classes directly in `components/Feed/FeedMasterDetail/FeedMasterDetail.tsx`:
+  - `mobile-feed-master-detail`
+  - `mobile-feed-list`
+  - `mobile-reader-view`
+  - `mobile-reader-back-button`
+  - `mobile-reader-content`
+- Kept transition animation/keyframe classes in the CSS file (`slide-*` and related `@keyframes`) because they are less trivial and unchanged.
+
+### Learnings
+- The feed master/detail mobile container is a good first migration candidate because structural layout classes convert cleanly without altering behavior.
+
+### Challenges
+- Remaining CSS for transition animations should be followed up separately to finish the Tailwind migration in a later bead.

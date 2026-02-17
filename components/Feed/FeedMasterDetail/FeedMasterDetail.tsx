@@ -85,9 +85,9 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
   if (isMobile) {
     return (
       <ScrollProvider>
-        <div className="h-full mobile-feed-master-detail" id="feed-master-detail">
+        <div className="h-full flex flex-col overflow-hidden" id="feed-master-detail">
           {showList ? (
-            <div className={`mobile-feed-list ${getAnimationClass()}`}>
+            <div className={`h-full overflow-hidden w-full relative ${getAnimationClass()}`}>
               <FeedList
                 items={normalizedItems}
                 isLoading={isLoading}
@@ -97,8 +97,8 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
               />
             </div>
           ) : (
-            <div className={`mobile-reader-view ${getAnimationClass()}`}>
-              <div className="mobile-reader-back-button">
+            <div className={`h-full flex flex-col w-full relative ${getAnimationClass()}`}>
+              <div className="p-2 border-b border-border bg-background sticky top-0 z-10">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -109,7 +109,7 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
                   Back to list
                 </Button>
               </div>
-              <div className="mobile-reader-content">
+              <div className="flex-1 overflow-hidden">
                 {selectedItem && isPodcast(selectedItem) ? (
                   <PodcastDetailsPane feedItem={selectedItem} onClose={handleBackToList} />
                 ) : (

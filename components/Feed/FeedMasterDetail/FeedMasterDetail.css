@@ -1,41 +1,5 @@
 /* Mobile specific styles for FeedMasterDetail component */
 
-.mobile-feed-master-detail {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; /* Ensure animations don't cause overflow */
-}
-
-.mobile-feed-list {
-  height: 100%;
-  overflow: hidden;
-  width: 100%;
-  position: relative;
-}
-
-.mobile-reader-view {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  position: relative;
-}
-
-.mobile-reader-back-button {
-  padding: 0.5rem;
-  border-bottom: 1px solid var(--border);
-  background-color: var(--background);
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.mobile-reader-content {
-  flex: 1;
-  overflow: hidden;
-}
-
 /* Animations for transitions between views */
 .slide-in-right {
   animation: slideInRight var(--motion-duration-normal, 200ms)
