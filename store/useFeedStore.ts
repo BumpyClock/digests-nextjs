@@ -138,6 +138,8 @@ const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<Fe
           let newReadItems: Set<string>;
           if (!state.readItems) {
             newReadItems = new Set();
+          } else if (state.readItems instanceof Set) {
+            newReadItems = state.readItems;
           } else if (Array.isArray(state.readItems)) {
             newReadItems = new Set(state.readItems);
           } else {
@@ -148,6 +150,8 @@ const createFeedStorePersistOptions = (getStore: () => UseBoundStore<StoreApi<Fe
           let newReadLaterItems: Set<string>;
           if (!state.readLaterItems) {
             newReadLaterItems = new Set();
+          } else if (state.readLaterItems instanceof Set) {
+            newReadLaterItems = state.readLaterItems;
           } else if (Array.isArray(state.readLaterItems)) {
             newReadLaterItems = new Set(state.readLaterItems);
           } else {

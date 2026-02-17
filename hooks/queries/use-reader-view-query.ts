@@ -50,7 +50,7 @@ export const useReaderView = (url: string, isOpen?: boolean) => {
 
   const cacheKey = useMemo(() => {
     if (!readerView) return null;
-    return hashString(`${readerView.url}::${readerView.content}::${readerView.markdown}`);
+    return hashString(`${readerView.url}::${readerView.content}::${readerView.markdown}::${readerView.image}::${readerView.title}::${readerView.siteName}`);
   }, [readerView]);
 
   const processed = useMemo(() => {

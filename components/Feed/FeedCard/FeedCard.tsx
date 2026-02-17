@@ -5,8 +5,9 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { Bookmark, Share2 } from "lucide-react";
 import { LayoutGroup, motion } from "motion/react";
 import Image from "next/image";
+import { useTheme } from "next-themes";
 import type React from "react";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import { PodcastPlayButton } from "@/components/Podcast/shared/PodcastPlayButton";
 import { Ambilight } from "@/components/ui/ambilight";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import {
   runWithViewTransition,
   useViewTransitionsSupported,
 } from "@/lib/view-transitions";
+import { workerService } from "@/services/worker-service";
 import type { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
 import { handleShare, showReadLaterToast } from "@/utils/content-actions";
@@ -97,6 +99,35 @@ const CardFooter = memo(function CardFooter({ feedItem }: { feedItem: FeedItem }
   );
 });
 
+function useCardShadow(id: string, color: { r: number; g: number; b: number }) {
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
+  const [shadows, setShadows] = useState({
+    restShadow: "",
+    hoverShadow: "",
+    pressedShadow: "",
+  });
+
+  // Stabilize color by value so effect doesn't re-run on reference changes
+  const colorR = color.r;
+  const colorG = color.g;
+  const colorB = color.b;
+
+  useEffect(() => {
+    const stableColor = { r: colorR, g: colorG, b: colorB };
+    workerService
+      .generateShadows(id, stableColor, isDarkMode)
+      .then((newShadows) => {
+        setShadows(newShadows);
+      })
+      .catch((error) => {
+        console.error("Error generating shadows:", error);
+      });
+  }, [id, colorR, colorG, colorB, isDarkMode]);
+
+  return shadows;
+}
+
 /**
  * FeedCard component for displaying individual feed items.
  */
@@ -108,6 +139,8 @@ export const FeedCard = memo(function FeedCard({
   const [imageError, setImageError] = useState(false);
   const [faviconError, setFaviconError] = useState(false);
   const [showPlaceholder, setShowPlaceholder] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPressed, setIsPressed] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [isActive, setIsActive] = useState(false);
   const isRead = useIsItemRead(feedItem.id);
@@ -118,10 +151,11 @@ export const FeedCard = memo(function FeedCard({
   const animationIds = getFeedAnimationIds(feedItem.id);
   const viewTransitionsEnabled = animationEnabled && vtSupported;
   const motionLayoutEnabled = animationEnabled && !viewTransitionsEnabled;
+  const cardViewTransitionEnabled = viewTransitionsEnabled && !isActive;
   const childViewTransitionEnabled = false;
 
-  // CSS custom properties for card shadow color
   const thumbnailColor = feedItem.thumbnailColor || DEFAULT_THUMBNAIL_COLOR;
+  const { restShadow, hoverShadow, pressedShadow } = useCardShadow(feedItem.id, thumbnailColor);
 
   const handleCardActivation = useCallback(
     (event: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>) => {
@@ -185,10 +219,17 @@ export const FeedCard = memo(function FeedCard({
     setFaviconError(true);
   }, []);
 
+  const getShadowStyle = () => {
+    if (isPressed) return pressedShadow;
+    if (isHovered) return hoverShadow;
+    return restShadow;
+  };
+
   const cardShellMotionStyle = {
-    "--card-shadow-r": thumbnailColor.r,
-    "--card-shadow-g": thumbnailColor.g,
-    "--card-shadow-b": thumbnailColor.b,
+    boxShadow: getShadowStyle(),
+    transition:
+      "opacity var(--motion-duration-normal, 200ms) var(--motion-ease-decelerate, ease-out), box-shadow var(--motion-duration-fast, 120ms) var(--motion-ease-decelerate, ease-out), transform var(--motion-duration-fast, 120ms) var(--motion-ease-decelerate, ease-out)",
+    transform: isPressed ? "translateY(2px)" : "none",
     opacity: isRead ? 0.8 : 1,
     // Keep shell transitions enabled only when not currently active.
     ...(getViewTransitionStyle(viewTransitionsEnabled && !isActive, animationIds.cardShell) ?? {}),
@@ -203,11 +244,18 @@ export const FeedCard = memo(function FeedCard({
       transition={{ duration: motionTokens.duration.normal }}
       layoutId={motionLayoutEnabled ? animationIds.cardShell : undefined}
       style={cardShellMotionStyle}
-      className={`feed-card card w-full bg-card overflow-hidden cursor-pointer rounded-4xl relative group ${
+      className={`card w-full border bg-card text-card-foreground overflow-hidden cursor-pointer rounded-4xl relative group ${
         isRead ? "read-item" : ""
       }`}
       onClick={handleCardActivation}
       onKeyDown={handleCardKeyDown}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setIsPressed(false);
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseDown={() => setIsPressed(true)}
+      onMouseUp={() => setIsPressed(false)}
       role="button"
       tabIndex={0}
     >
@@ -217,9 +265,13 @@ export const FeedCard = memo(function FeedCard({
           <motion.div
             className="relative w-full p-2"
             layoutId={motionLayoutEnabled ? animationIds.thumbnail : undefined}
-            style={getViewTransitionStyle(childViewTransitionEnabled, animationIds.thumbnail)}
+            style={getViewTransitionStyle(cardViewTransitionEnabled, animationIds.thumbnail)}
           >
-            <Ambilight className="relative w-full aspect-video rounded-3xl overflow-hidden">
+            <Ambilight
+              className="relative w-full aspect-video rounded-3xl overflow-hidden"
+              parentHovered={isHovered}
+              opacity={{ rest: 0, hover: 0.7 }}
+            >
               {imageLoading && <Skeleton className="absolute inset-0 z-10 rounded-3xl" />}
               <Image
                 src={
