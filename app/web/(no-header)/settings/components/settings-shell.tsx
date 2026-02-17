@@ -26,7 +26,7 @@ const SETTINGS_VARIANTS: Record<
   modal: {
     containerClassName: "flex h-full min-h-0 flex-col",
     headerClassName: "flex shrink-0 items-center justify-between border-b bg-card/40 px-4 py-3",
-    contentClassName: "min-h-0 flex-1 p-3 sm:p-4",
+    contentClassName: "min-h-0 flex-1",
   },
 };
 

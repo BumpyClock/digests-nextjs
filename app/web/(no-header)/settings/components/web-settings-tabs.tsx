@@ -32,15 +32,17 @@ export function WebSettingsTabs({
 }: WebSettingsTabsProps) {
   return (
     <Tabs defaultValue="feeds" className={cn("flex min-h-0 flex-1 flex-col", className)}>
-      <TabsList className={cn("mb-4 grid w-full grid-cols-4", tabsListClassName)}>
-        {SETTINGS_TABS.map((tab) => (
-          <TabsTrigger key={tab.value} value={tab.value}>
-            {tab.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+      <div className="sticky top-0 z-10 bg-background px-3 pt-3 sm:px-4 sm:pt-4">
+        <TabsList className={cn("mb-4 grid w-full grid-cols-4", tabsListClassName)}>
+          {SETTINGS_TABS.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
 
-      <div className={cn("min-h-0 flex-1 overflow-auto", contentWrapperClassName)}>
+      <div className={cn("min-h-0 flex-1 overflow-auto px-3 pb-4 sm:px-4", contentWrapperClassName)}>
         {SETTINGS_TABS.map(({ value, Content }) => (
           <TabsContent key={value} value={value} className="mt-0">
             <Content />
