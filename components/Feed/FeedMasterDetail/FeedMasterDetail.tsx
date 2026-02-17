@@ -11,6 +11,7 @@ import { useIsMobile } from "@/hooks/use-media-query";
 import { motionTokens } from "@/lib/motion-tokens";
 import { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
+import { ScrollProvider } from "@/contexts/ScrollContext";
 import "./FeedMasterDetail.css";
 
 interface FeedMasterDetailProps {
@@ -76,66 +77,70 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
   // On mobile: show either the list or the detail view
   if (isMobile) {
     return (
-      <div className="h-full mobile-feed-master-detail" id="feed-master-detail">
-        {showList ? (
-          <div className={`mobile-feed-list ${getAnimationClass()}`}>
-            <FeedList
-              items={items}
-              isLoading={isLoading}
-              selectedItem={selectedItem}
-              onItemSelect={handleItemSelect}
-              savedScrollPosition={scrollPosition}
-            />
-          </div>
-        ) : (
-          <div className={`mobile-reader-view ${getAnimationClass()}`}>
-            <div className="mobile-reader-back-button">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleBackToList}
-                className="flex items-center gap-1"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to list
-              </Button>
+      <ScrollProvider>
+        <div className="h-full mobile-feed-master-detail" id="feed-master-detail">
+          {showList ? (
+            <div className={`mobile-feed-list ${getAnimationClass()}`}>
+              <FeedList
+                items={items}
+                isLoading={isLoading}
+                selectedItem={selectedItem}
+                onItemSelect={handleItemSelect}
+                savedScrollPosition={scrollPosition}
+              />
             </div>
-            <div className="mobile-reader-content">
-              {selectedItem && isPodcast(selectedItem) ? (
-                <PodcastDetailsPane feedItem={selectedItem} />
-              ) : (
-                <ReaderViewPane feedItem={selectedItem} />
-              )}
+          ) : (
+            <div className={`mobile-reader-view ${getAnimationClass()}`}>
+              <div className="mobile-reader-back-button">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBackToList}
+                  className="flex items-center gap-1"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to list
+                </Button>
+              </div>
+              <div className="mobile-reader-content">
+                {selectedItem && isPodcast(selectedItem) ? (
+                  <PodcastDetailsPane feedItem={selectedItem} />
+                ) : (
+                  <ReaderViewPane feedItem={selectedItem} />
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </ScrollProvider>
     );
   }
 
   // On desktop: show the resizable panel group
   return (
-    <div className="h-full min-h-0" id="feed-master-detail">
-      <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 rounded-lg border">
-        <ResizablePanel defaultSize="30%" minSize="300px" maxSize="45%">
-          <FeedList
-            items={items}
-            isLoading={isLoading}
-            selectedItem={selectedItem}
-            onItemSelect={handleItemSelect}
-          />
-        </ResizablePanel>
+    <ScrollProvider>
+      <div className="h-full min-h-0" id="feed-master-detail">
+        <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 rounded-lg border">
+          <ResizablePanel defaultSize="30%" minSize="300px" maxSize="45%">
+            <FeedList
+              items={items}
+              isLoading={isLoading}
+              selectedItem={selectedItem}
+              onItemSelect={handleItemSelect}
+            />
+          </ResizablePanel>
 
-        <ResizableHandle withHandle />
+          <ResizableHandle withHandle />
 
-        <ResizablePanel defaultSize="70%">
-          {selectedItem && isPodcast(selectedItem) ? (
-            <PodcastDetailsPane feedItem={selectedItem} />
-          ) : (
-            <ReaderViewPane feedItem={selectedItem} />
-          )}
-        </ResizablePanel>
-      </ResizablePanelGroup>
-    </div>
+          <ResizablePanel defaultSize="70%">
+            {selectedItem && isPodcast(selectedItem) ? (
+              <PodcastDetailsPane feedItem={selectedItem} />
+            ) : (
+              <ReaderViewPane feedItem={selectedItem} />
+            )}
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+    </ScrollProvider>
   );
 }

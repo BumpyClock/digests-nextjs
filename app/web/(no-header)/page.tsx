@@ -8,6 +8,7 @@ import { CommandBar } from "@/components/CommandBar/CommandBar";
 import { EmptyStateAllCaughtUp, EmptyStateNoFeeds } from "@/components/EmptyState";
 import { FEED_REFRESHED_EVENT, FeedGrid } from "@/components/Feed/FeedGrid/FeedGrid";
 import { FeedMasterDetail } from "@/components/Feed/FeedMasterDetail/FeedMasterDetail";
+import { ScrollProvider } from "@/contexts/ScrollContext";
 import { RefreshButton } from "@/components/RefreshButton";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -454,7 +455,9 @@ function FeedTabContent({
   }
 
   return viewMode === "grid" ? (
-    <FeedGrid items={items} isLoading={false} filterKey={filterKey} />
+    <ScrollProvider>
+      <FeedGrid items={items} isLoading={false} filterKey={filterKey} />
+    </ScrollProvider>
   ) : (
     <FeedMasterDetail items={items} isLoading={false} />
   );
@@ -463,7 +466,13 @@ function FeedTabContent({
 // Make the main page component simpler
 export default function AppPage() {
   return (
-    <Suspense fallback={<FeedGrid items={[]} isLoading />}>
+    <Suspense
+      fallback={
+        <ScrollProvider>
+          <FeedGrid items={[]} isLoading />
+        </ScrollProvider>
+      }
+    >
       <WebPageContent />
     </Suspense>
   );

@@ -689,6 +689,20 @@ html.reader-vt-active [data-masonic-tile].vt-source-tile {
     rgba(var(--card-shadow-r), var(--card-shadow-g), var(--card-shadow-b), 0.25);
 }
 
+/* Suppress hover effects during scroll */
+.is-scrolling .feed-card {
+  transition: none !important;
+}
+.is-scrolling .feed-card:hover {
+  box-shadow: 0 2px 8px rgba(var(--card-shadow-r), var(--card-shadow-g), var(--card-shadow-b), 0.08);
+}
+.is-scrolling .group:hover img {
+  transform: none !important;
+}
+.is-scrolling .ambilight-active {
+  filter: none !important;
+}
+
 .feed-card:active {
   box-shadow: 0 2px 8px rgba(var(--card-shadow-r), var(--card-shadow-g), var(--card-shadow-b), 0.15);
 }

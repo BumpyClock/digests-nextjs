@@ -10,6 +10,7 @@ import { FeedCard } from "@/components/Feed/FeedCard/FeedCard";
 import { PodcastDetailsModal } from "@/components/Podcast/PodcastDetailsModal";
 import { ReaderViewModal } from "@/components/reader-view-modal";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
+import { useScrollContext } from "@/contexts/ScrollContext";
 import { readerViewKeys } from "@/hooks/queries/feedsKeys";
 import { getValidReaderViewOrThrow } from "@/hooks/queries/reader-view-validation";
 import { useWindowSize } from "@/hooks/use-window-size";
@@ -73,6 +74,7 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
   const { width: windowWidth } = useWindowSize();
   const queryClient = useQueryClient();
   const { animationEnabled } = useFeedAnimation();
+  const { isScrolling } = useScrollContext();
   const vtSupported = useViewTransitionsSupported();
   const viewTransitionsEnabled = animationEnabled && vtSupported;
 
@@ -192,7 +194,13 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
         </div>
       }
     >
-      <motion.div id="feed-grid" className="pt-6" initial={false} animate={false} layout={false}>
+      <motion.div
+        id="feed-grid"
+        className={`pt-6 ${isScrolling ? "is-scrolling" : ""}`}
+        initial={false}
+        animate={false}
+        layout={false}
+      >
         <Masonry
           key={filterKey ?? "default"}
           items={memoizedItems}

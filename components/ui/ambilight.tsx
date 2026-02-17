@@ -15,6 +15,7 @@ interface AmbiLightProps extends React.HTMLAttributes<HTMLDivElement> {
   };
   isActive?: boolean;
   parentHovered?: boolean;
+  suppressHover?: boolean;
 }
 
 /**
@@ -26,17 +27,20 @@ export function Ambilight({
   className,
   isActive,
   parentHovered,
+  suppressHover,
   ...props
 }: AmbiLightProps) {
   return (
     <div
       className={cn(
         "ambilight-wrapper",
-        isActive !== undefined || parentHovered !== undefined
-          ? isActive || parentHovered
-            ? "ambilight-active"
-            : "ambilight-inactive"
-          : "group-hover:ambilight-active ambilight-inactive",
+        suppressHover
+          ? "ambilight-inactive"
+          : isActive !== undefined || parentHovered !== undefined
+            ? isActive || parentHovered
+              ? "ambilight-active"
+              : "ambilight-inactive"
+            : "group-hover:ambilight-active ambilight-inactive",
         className
       )}
       {...props}

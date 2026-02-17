@@ -3,7 +3,7 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import type { FeedItem } from "@/types";
 import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
 import { isValidUrl } from "@/utils/url";
@@ -18,7 +18,7 @@ interface FeedItemPreviewMetaProps {
   dateLabel?: string;
 }
 
-export function FeedItemPreviewMeta({
+export const FeedItemPreviewMeta = memo(function FeedItemPreviewMeta({
   item,
   className,
   faviconSize = 16,
@@ -62,4 +62,4 @@ export function FeedItemPreviewMeta({
       {showDate && <span className="text-caption text-secondary-content">{resolvedDateLabel}</span>}
     </div>
   );
-}
+});

@@ -88,6 +88,8 @@ export function FeedList({
   savedScrollPosition = 0,
 }: FeedListProps) {
   const scrollableNodeRef = useRef<HTMLDivElement>(null);
+  const scrollTopRafId = useRef<number | null>(null);
+  const lastScrollTop = useRef(0);
   const [currentScrollTop, setCurrentScrollTop] = useState(0);
   const readItems = useFeedStore((state) => state.readItems);
 
@@ -109,8 +111,14 @@ export function FeedList({
   });
 
   const handleScroll = useCallback((e: Event) => {
-    const target = e.target as HTMLDivElement;
-    setCurrentScrollTop(target.scrollTop);
+    if (scrollTopRafId.current) cancelAnimationFrame(scrollTopRafId.current);
+    scrollTopRafId.current = requestAnimationFrame(() => {
+      const target = e.target as HTMLDivElement;
+      if (Math.abs(target.scrollTop - lastScrollTop.current) >= 4) {
+        lastScrollTop.current = target.scrollTop;
+        setCurrentScrollTop(target.scrollTop);
+      }
+    });
   }, []);
 
   const handleItemSelect = useCallback(

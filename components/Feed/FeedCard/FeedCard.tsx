@@ -14,6 +14,7 @@ import { CardContent, CardFooter as CardFooterUI } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FeedItemPreviewMeta } from "@/components/Feed/shared/FeedItemPreviewMeta";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
+import { useScrollContext } from "@/contexts/ScrollContext";
 import { useIsItemRead } from "@/hooks/useFeedSelectors";
 import { getFeedAnimationIds } from "@/lib/feed-animation-ids";
 import { motionTokens } from "@/lib/motion-tokens";
@@ -101,6 +102,7 @@ export const FeedCard = memo(function FeedCard({
 
   // Animation context
   const { animationEnabled } = useFeedAnimation();
+  const { isScrolling } = useScrollContext();
   const vtSupported = useViewTransitionsSupported();
   const animationIds = getFeedAnimationIds(feedItem.id);
   const viewTransitionsEnabled = animationEnabled && vtSupported;
@@ -179,10 +181,10 @@ export const FeedCard = memo(function FeedCard({
 
   const cardContentWithShell = (
     <motion.div
-      whileHover={animationEnabled ? { y: -4 } : undefined}
-      whileTap={animationEnabled ? { scale: 0.98 } : undefined}
-      initial={animationEnabled ? { opacity: 0, y: 20 } : undefined}
-      animate={animationEnabled ? { opacity: 1, y: 0 } : undefined}
+      whileHover={animationEnabled && !isScrolling ? { y: -4 } : undefined}
+      whileTap={animationEnabled && !isScrolling ? { scale: 0.98 } : undefined}
+      initial={animationEnabled && !isScrolling ? { opacity: 0, y: 20 } : undefined}
+      animate={animationEnabled && !isScrolling ? { opacity: 1, y: 0 } : undefined}
       transition={{ duration: motionTokens.duration.normal }}
       layoutId={motionLayoutEnabled ? animationIds.cardShell : undefined}
       style={cardShellMotionStyle}
@@ -202,7 +204,10 @@ export const FeedCard = memo(function FeedCard({
             layoutId={motionLayoutEnabled ? animationIds.thumbnail : undefined}
             style={getViewTransitionStyle(childViewTransitionEnabled, animationIds.thumbnail)}
           >
-            <Ambilight className="relative w-full aspect-video rounded-3xl overflow-hidden">
+            <Ambilight
+              className="relative w-full aspect-video rounded-3xl overflow-hidden"
+              suppressHover={isScrolling}
+            >
               {imageLoading && <Skeleton className="absolute inset-0 z-10 rounded-3xl" />}
               <Image
                 src={
