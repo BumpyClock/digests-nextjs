@@ -60,6 +60,13 @@ Durable repo learnings only. Evergreen. No dated incident logs.
 - Zustand holds client/UI state only; avoid duplicating server collections into store slices.
 - Use docs/state-ownership-react-query-vs-zustand.md as the canonical boundary reference.
 
+## 2026-02-17 - Feed pipeline migration cleanup
+- Final migration cleanup should verify and remove any temporary shims immediately; stale compatibility references in docs can mask completion status.
+- Keep namespace plans with a final status section so future readers know whether compatibility exports still exist.
+
+## 2026-02-17 - Feed pipeline cleanup verification
+- Bead closeout requires evidence checks in code (no missing legacy paths) and docs (status + canonical entrypoint) before marking migration complete.
+
 ## 2026-02-17 - Images module layout and exports
 - Keep image utilities grouped under a namespace (`utils/images/*`) with a single public index.
 - Use `@/utils/images` as the canonical import path and avoid adding new top-level `utils/image*` files.

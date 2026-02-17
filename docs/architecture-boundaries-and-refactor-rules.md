@@ -31,7 +31,7 @@ Read when:
 
 ## Duplication prevention rules
 - If logic is reused in 2 places, extract to shared helper/hook unless coupling would increase complexity.
-- Keep feed parsing/network calls centralized in `lib/feed-api-client.ts`.
+- Keep feed parsing/network calls centralized in `lib/feed-pipeline/api-client.ts` (canonical export surface via `lib/feed-pipeline/index.ts`).
 - Keep worker message contracts only in `types/worker-contracts.ts` and consume via aliases, not duplicate interfaces.
 - Keep selector derivations in `store/selectors/*`; `hooks/*` should wrap selectors, not redefine them.
 - Keep feed pipeline orchestration modules under `lib/feed-pipeline/*` and route worker/service imports there directly. See `docs/feed-pipeline-namespace-plan.md`.

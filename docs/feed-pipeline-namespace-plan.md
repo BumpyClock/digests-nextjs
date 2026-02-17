@@ -3,6 +3,11 @@
 ## Goal
 Bring parser/fetch/transform/validate/feed-fetch orchestration under a single coherent namespace so feed-related concerns are discoverable from one place.
 
+## Status
+- Migration completed on 2026-02-17.
+- Temporary compatibility shims were not retained; all feed orchestration imports now use `lib/feed-pipeline/*` and worker/service imports were fully migrated.
+- Legacy moved files are removed; canonical namespace API is `lib/feed-pipeline/index.ts`.
+
 ## Target namespace
 - `lib/feed-pipeline/` owns pipeline code and contracts.
 - `workers/` and `services/` remain entrypoints/orchestrators and import from the namespace.
@@ -35,15 +40,15 @@ export { FeedValidator, feedValidator } from "./feeds/validator";
 export type { FeedFetcherConfig, IFeedFetcher } from "./contracts/fetcher.interface";
 ```
 
-## Migration sequence (minimal-risk)
+## Migration sequence (completed)
 
 1. Create namespace scaffolding
    - Add new directories under `lib/feed-pipeline/`.
    - Add `index.ts` barrel.
-   - Add temporary re-export shims in old paths if needed to keep current imports green while landing changes.
+   - Directly migrate imports to namespace entrypoints in the same pass (no temporary shims retained).
 
 2. Move shared contracts first
-   - Move `lib/interfaces/feed-fetcher.interface.ts` and add re-export aliases.
+   - Move `lib/interfaces/feed-fetcher.interface.ts`.
    - Update any direct contract consumers (currently `lib/feed-fetcher.ts`, `lib/rss.ts`, `services/worker-service/service.ts`).
 
 3. Move data API client and transformation
@@ -58,14 +63,13 @@ export type { FeedFetcherConfig, IFeedFetcher } from "./contracts/fetcher.interf
 
 5. Move validation helper
    - Move `utils/feed-validator.ts` into namespace and update any current/new usage.
-   - Keep `utils/feed-validator.ts` as compatibility shim in the same step only if any imports remain.
 
 6. Update orchestrators
    - Update `services/worker-service/service.ts` and `workers/rss-worker.ts` imports to namespace index.
    - Confirm no `lib/*` boundary imports bypass namespace for feed orchestration.
 
 7. Verify and finalize
-   - Replace compatibility shims where no code relies on old path.
+   - Confirm no compatibility shims remain and no code relies on old path.
    - Update docs: `docs/architecture-boundaries-and-refactor-rules.md` with new canonical namespace note.
    - Add checklist entry for manual smoke tests:
      - RSS feed list refresh path works

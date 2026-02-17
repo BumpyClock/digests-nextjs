@@ -1,5 +1,15 @@
 # Session Notes
 
+## 2026-02-17 - Bead digests-nextjs-04s.6.4
+- Selected `digests-nextjs-04s.6.4` in progress, then verified migration status after moving feed pipeline modules.
+- Completed:
+  - Confirmed no temporary compatibility shim files remain in code.
+  - Updated `docs/architecture-boundaries-and-refactor-rules.md` to canonicalize feed API client ownership.
+  - Updated `docs/feed-pipeline-namespace-plan.md` with completion status and removed remaining compatibility-shim language.
+  - Added a durable LEARNINGS note for migration cleanup checks.
+- Learnings: migration docs should include an explicit finalization section to make "done" auditable.
+- Challenges: existing historical references required careful narrowing so we preserve historical plan context while indicating current final state.
+
 ## 2026-02-17 - Bead digests-nextjs-04s.1
 - Closed `digests-nextjs-04s.1` (D1: Build adaptive modal/pane wrapper for reader and podcast detail).
 - Selected bead in progress, implemented shared adaptive container + adaptive pane behavior, and completed the refactor.
