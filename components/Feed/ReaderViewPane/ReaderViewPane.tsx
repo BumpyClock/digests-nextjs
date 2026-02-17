@@ -57,6 +57,7 @@ export function ReaderViewPane({ feedItem, onClose = noop }: ReaderViewPaneProps
     >
       <ScrollArea
         className="h-full w-full"
+        variant={isMobile ? "modal" : "default"}
         onScroll={handleScroll}
         scrollableNodeRef={scrollableNodeRef}
       >

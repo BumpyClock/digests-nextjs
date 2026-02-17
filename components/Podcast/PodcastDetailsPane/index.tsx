@@ -34,7 +34,7 @@ export function PodcastDetailsPane({ feedItem, onClose = noop }: PodcastDetailsP
       itemId={feedItem.id}
       mode="adaptive"
     >
-      <ScrollArea className="h-full w-full">
+      <ScrollArea className="h-full w-full" variant={isMobile ? "modal" : "default"}>
         <div className={containerPadding}>
           <PodcastDetailsContent
             podcast={feedItem}
