@@ -4,6 +4,11 @@ Command: `bunx knip`
 Generated from: `reports/knip-dead-code-2026-02-17.json`  
 Scope: `digests-nextjs` workspace
 
+## 0) Report artifacts
+
+- `docs/learned/knip-dead-code-waivers-2026-02-17.md` contains false positives and intentional keeps with rationale and follow-up notes.
+- Use this file as the canonical false-positive and waiver index for this scan run.
+
 ## 1) Files marked unused by knip
 
 ### Safe remove (confirmed)
@@ -30,6 +35,14 @@ Scope: `digests-nextjs` workspace
 - `hooks/queries/__tests__/use-feeds-data.test.tsx`
 - `hooks/queries/__tests__/use-reader-view-query.test.tsx`  
   - Marked unused in knip’s default analysis, but these are test files and currently not imported in runtime code.
+
+### Delete list for this run
+
+- Confirmed deletion targets already completed in bead `digests-nextjs-04s.12.2`:
+  - `scripts/codex-beads-loop.ts`
+  - `components/Feed/FeedCard/FeedCardBase.tsx`
+  - `components/ui/frosted-glass.tsx`
+  - `app/web/(no-header)/settings/hooks/index.ts`
 
 ## 2) Unused package findings
 

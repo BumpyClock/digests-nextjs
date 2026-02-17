@@ -2,9 +2,10 @@
 
 ## 2026-02-17 - Bead digests-nextjs-04s.12.3
 - Completed `digests-nextjs-04s.12.3` (Document false positives and intentional keeps for dead-code scan).
-- Added `docs/learned/knip-dead-code-waivers-2026-02-17.md` with explicit waiver entries for framework assets, tests, and known-export false positives.
+- Expanded `docs/learned/knip-dead-code-waivers-2026-02-17.md` with explicit keep/defer/delete tables and review notes.
 - Linked the waiver register from `docs/learned/knip-dead-code-triage-2026-02-17.md` so scan follow-up is discoverable from the report.
-- Kept follow-up risk limited to future API-surface review (`components/ui/*`, worker/contract exports) that should be validated only when ownership or public-surface assumptions change.
+- Added a deleted-item list in triage for confirmed removals from `digests-nextjs-04s.12.2`.
+- Updated `LEARNINGS.md` with a reminder to keep waiver registers linked to dead-code scan artifacts.
 - No build/test commands were run in this iteration (docs-only work).
 
 ## 2026-02-17 - Bead digests-nextjs-04s.12.1

@@ -77,3 +77,6 @@ Durable repo learnings only. Evergreen. No dated incident logs.
 
 - Use `knip` output as a triage input, not an automatic deletion list: distinguish runtime/route/framework/test-scope keepers before removals.
 - Knip flags duplicate or barrel-aliased files as dead; verify active imports (including route groups and public assets) before deleting.
+
+## 2026-02-17 - Dead-code report follow-up
+- Keep a dedicated waiver register for each dead-code run and link it directly from the triage report so false positives and intentional keeps stay explicit.
