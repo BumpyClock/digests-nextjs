@@ -3,6 +3,29 @@ import { transformFeedResponse } from "@/lib/feed-pipeline/feeds/transformer";
 import type { FetchFeedsResponse, Feed, FeedItem, ReaderViewResponse } from "@/types";
 import { Logger } from "@/utils/logger";
 
+const isReaderViewResponse = (value: unknown): value is ReaderViewResponse => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<ReaderViewResponse>;
+  return (
+    typeof candidate.url === "string" &&
+    typeof candidate.status === "string" &&
+    typeof candidate.content === "string" &&
+    typeof candidate.title === "string" &&
+    typeof candidate.siteName === "string" &&
+    typeof candidate.image === "string" &&
+    typeof candidate.favicon === "string" &&
+    typeof candidate.textContent === "string" &&
+    typeof candidate.markdown === "string" &&
+    (candidate.error === undefined || typeof candidate.error === "string")
+  );
+};
+
+const isReaderViewResponseList = (value: unknown): value is ReaderViewResponse[] =>
+  Array.isArray(value) && value.every(isReaderViewResponse);
+
 const normalizeBaseUrl = (baseUrl: string): string => baseUrl.replace(/\/+$/, "");
 const isValidHttpUrl = (value: string): boolean => {
   try {
@@ -127,13 +150,13 @@ export async function fetchReaderViewData(
     throw new Error("No valid reader-view URLs were provided");
   }
 
-  const data = await postJson<unknown>(resolveEndpoint("/getreaderview", apiBaseUrl), {
+  const data = await postJson<ReaderViewResponse[]>(resolveEndpoint("/getreaderview", apiBaseUrl), {
     urls: normalizedUrls,
   });
 
-  if (!Array.isArray(data)) {
+  if (!isReaderViewResponseList(data)) {
     throw new Error("Invalid response from API");
   }
 
-  return data as ReaderViewResponse[];
+  return data;
 }

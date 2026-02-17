@@ -166,6 +166,35 @@ type WorkerHandlerMap = {
   ) => Promise<WorkerResponse | undefined> | WorkerResponse | undefined;
 };
 
+const toFeedsResultResponse = (
+  success: boolean,
+  feeds: Feed[] = [],
+  items: FeedItem[] = [],
+  message?: string
+): Extract<WorkerResponse, { type: "FEEDS_RESULT" }> => ({
+  type: "FEEDS_RESULT",
+  success,
+  feeds,
+  items,
+  ...(message !== undefined ? { message } : {}),
+});
+
+const toReaderViewResultResponse = (
+  success: boolean,
+  data: ReaderViewResponse[] = [],
+  message?: string
+): Extract<WorkerResponse, { type: "READER_VIEW_RESULT" }> => ({
+  type: "READER_VIEW_RESULT",
+  success,
+  data,
+  ...(message !== undefined ? { message } : {}),
+});
+
+const toErrorResponse = (message: string): Extract<WorkerResponse, { type: "ERROR" }> => ({
+  type: "ERROR",
+  message,
+});
+
 // Create handler registry
 const messageHandlers: WorkerHandlerMap = {
   /**
@@ -200,20 +229,9 @@ const messageHandlers: WorkerHandlerMap = {
   }) => {
     try {
       const { feeds, items } = await fetchFeeds(urls, customApiUrl);
-      return {
-        type: "FEEDS_RESULT",
-        success: true,
-        feeds,
-        items,
-      } as WorkerResponse;
+      return toFeedsResultResponse(true, feeds, items);
     } catch (error) {
-      return {
-        type: "FEEDS_RESULT",
-        success: false,
-        feeds: [],
-        items: [],
-        message: error instanceof Error ? error.message : "Failed to fetch feeds",
-      } as WorkerResponse;
+      return toFeedsResultResponse(false, [], [], error instanceof Error ? error.message : "Failed to fetch feeds");
     }
   },
 
@@ -229,20 +247,14 @@ const messageHandlers: WorkerHandlerMap = {
   }) => {
     try {
       const { feeds, items } = await fetchFeeds(urls, customApiUrl, { bypassCache: true });
-      return {
-        type: "FEEDS_RESULT",
-        success: true,
-        feeds,
-        items,
-      } as WorkerResponse;
+      return toFeedsResultResponse(true, feeds, items);
     } catch (error) {
-      return {
-        type: "FEEDS_RESULT",
-        success: false,
-        feeds: [],
-        items: [],
-        message: error instanceof Error ? error.message : "Failed to refresh feeds",
-      } as WorkerResponse;
+      return toFeedsResultResponse(
+        false,
+        [],
+        [],
+        error instanceof Error ? error.message : "Failed to refresh feeds"
+      );
     }
   },
 
@@ -258,18 +270,13 @@ const messageHandlers: WorkerHandlerMap = {
   }) => {
     try {
       const data = await fetchReaderView(urls, customApiUrl);
-      return {
-        type: "READER_VIEW_RESULT",
-        success: true,
-        data,
-      } as WorkerResponse;
+      return toReaderViewResultResponse(true, data);
     } catch (error) {
-      return {
-        type: "READER_VIEW_RESULT",
-        success: false,
-        data: [],
-        message: error instanceof Error ? error.message : "Failed to fetch reader view",
-      } as WorkerResponse;
+      return toReaderViewResultResponse(
+        false,
+        [],
+        error instanceof Error ? error.message : "Failed to fetch reader view"
+      );
     }
   },
 
@@ -287,22 +294,16 @@ const messageHandlers: WorkerHandlerMap = {
       Logger.debug("[Worker] Checking for updates");
       workerCache.clear();
       const { feeds, items } = await fetchFeeds(urls, customApiUrl);
-      return {
-        type: "FEEDS_RESULT",
-        success: true,
-        feeds,
-        items,
-      } as WorkerResponse;
+      return toFeedsResultResponse(true, feeds, items);
     } catch (error) {
       const loggerError = error instanceof Error ? error : undefined;
       Logger.error("[Worker] Error checking for updates:", loggerError);
-      return {
-        type: "FEEDS_RESULT",
-        success: false,
-        feeds: [],
-        items: [],
-        message: error instanceof Error ? error.message : "Failed to check for updates",
-      } as WorkerResponse;
+      return toFeedsResultResponse(
+        false,
+        [],
+        [],
+        error instanceof Error ? error.message : "Failed to check for updates"
+      );
     }
   },
 };
@@ -379,11 +380,10 @@ self.addEventListener("message", async (event) => {
 
   try {
     if (!isWorkerMessage(message)) {
-      self.postMessage({
-        type: "ERROR",
-        message: "Invalid worker message payload",
-        ...(requestId !== undefined ? { requestId } : {}),
-      } as WorkerResponse);
+      const errorResponse = toErrorResponse("Invalid worker message payload");
+      self.postMessage(
+        requestId !== undefined ? { ...errorResponse, requestId } : errorResponse
+      );
       return;
     }
 
@@ -393,20 +393,20 @@ self.addEventListener("message", async (event) => {
       self.postMessage(requestId !== undefined ? { ...response, requestId } : response);
     }
   } catch (error) {
-    self.postMessage({
-      type: "ERROR",
-      message: error instanceof Error ? error.message : "Unknown error in worker",
-      ...(requestId !== undefined ? { requestId } : {}),
-    } as WorkerResponse);
+    const errorResponse = toErrorResponse(
+      error instanceof Error ? error.message : "Unknown error in worker"
+    );
+    self.postMessage(requestId !== undefined ? { ...errorResponse, requestId } : errorResponse);
   }
 });
 
 self.addEventListener("unhandledrejection", (event) => {
   Logger.error("[Worker] Unhandled promise rejection:", event.reason);
-  self.postMessage({
-    type: "ERROR",
-    message: `Unhandled error in worker: ${event.reason?.message || "Unknown error"}`,
-  } as WorkerResponse);
+  const errorMessage =
+    event.reason && typeof event.reason === "object" && "message" in event.reason
+      ? `Unhandled error in worker: ${(event.reason as { message?: string }).message || "Unknown error"}`
+      : `Unhandled error in worker: ${String(event.reason) || "Unknown error"}`;
+  self.postMessage(toErrorResponse(errorMessage));
 });
 
 // Log worker startup

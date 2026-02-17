@@ -203,3 +203,10 @@
 
 ### Challenges
 - Remaining CSS for transition animations should be followed up separately to finish the Tailwind migration in a later bead.
+## 2026-02-17 - Bead digests-nextjs-04s.14
+- Completed `digests-nextjs-04s.14` with focused typing tightening in feed pipeline paths.
+- Added strict reader-view payload guards in `lib/feed-pipeline/api-client.ts` and parse only when payloads pass validation.
+- Removed broad `as WorkerResponse` assertions in `workers/rss-worker.ts` by returning typed response constructors for FEEDS_RESULT, READER_VIEW_RESULT, and ERROR responses.
+- Kept runtime behavior unchanged; request/response shape, worker cache paths, and fallback behavior remain intact.
+- Learned: introducing small response-builder helpers is an effective way to remove casting-heavy return objects without increasing branching.
+- Challenge: strict casts were entrenched in worker messaging, and changing them safely required keeping the same error message formatting while preserving requestId propagation.
