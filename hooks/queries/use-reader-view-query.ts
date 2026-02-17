@@ -1,3 +1,4 @@
+import type { UseQueryOptions } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { processArticleContent } from "@/components/Feed/ArticleReader";
@@ -24,18 +25,24 @@ function getCachedReaderContent(key: string) {
   return readerContentCache.get(key);
 }
 
-// Reader view query for individual articles
-export const useReaderViewQuery = (url: string) => {
-  return useQuery({
+export const readerViewQueryByUrl = (url: string): UseQueryOptions<ReaderViewResponse> => {
+  return {
     queryKey: readerViewKeys.byUrl(url),
-    queryFn: async (): Promise<ReaderViewResponse> => {
+    queryFn: async () => {
       const result = await workerService.fetchReaderView(url);
       return getValidReaderViewOrThrow(result, url);
     },
-    enabled: !!url, // Only run when URL is provided
     staleTime: 60 * 60 * 1000, // 1 hour - articles don't change often
     gcTime: 2 * 60 * 60 * 1000, // 2 hours cache time
     retry: 2, // Retry failed requests twice
+  };
+};
+
+// Reader view query for individual articles
+export const useReaderViewQuery = (url: string) => {
+  return useQuery({
+    ...readerViewQueryByUrl(url),
+    enabled: !!url, // Only run when URL is provided
   });
 };
 

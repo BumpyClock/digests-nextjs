@@ -12,11 +12,9 @@ import { ReaderViewModal } from "@/components/reader-view-modal";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
 import { useScrollContext } from "@/contexts/ScrollContext";
 import { useFeedItemsController } from "@/components/Feed/shared/useFeedItemsController";
-import { readerViewKeys } from "@/hooks/queries/feedsKeys";
-import { getValidReaderViewOrThrow } from "@/hooks/queries/reader-view-validation";
+import { readerViewQueryByUrl } from "@/hooks/queries";
 import { useWindowSize } from "@/hooks/use-window-size";
 import { runWithViewTransition, useViewTransitionsSupported } from "@/lib/view-transitions";
-import { workerService } from "@/services/worker-service";
 import { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
 
@@ -148,19 +146,12 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
   const handlePrefetch = useCallback(
     (item: FeedItem) => {
       if (isPodcast(item)) return;
-      const key = readerViewKeys.byUrl(item.link);
-      const state = queryClient.getQueryState(key);
+      const options = readerViewQueryByUrl(item.link);
+      const state = queryClient.getQueryState(options.queryKey);
       // Skip if data is already fresh or a fetch is in progress
       if (state?.status === "success" && state.dataUpdatedAt > Date.now() - 60 * 60 * 1000) return;
       if (state?.fetchStatus === "fetching") return;
-      queryClient.prefetchQuery({
-        queryKey: key,
-        queryFn: () =>
-          workerService
-            .fetchReaderView(item.link)
-            .then((r) => getValidReaderViewOrThrow(r, item.link)),
-        staleTime: 60 * 60 * 1000,
-      });
+      queryClient.prefetchQuery(options);
     },
     [queryClient]
   );

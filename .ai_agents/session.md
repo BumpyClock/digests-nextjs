@@ -123,3 +123,15 @@
 
 ### Challenges
 - `useSubscriptions` now imports `useFeedsData`, so every selector call shares the same React Query cache lifecycle as the main page flow, which should be reviewed in end-to-end behavior.
+## 2026-02-17 - Bead digests-nextjs-04s.10.3
+- Completed `digests-nextjs-04s.10.3` (Migrate reader-view/article fetch flow to React Query-owned server state).
+- Centralized reader-view query ownership in `hooks/queries/use-reader-view-query.ts` via exported `readerViewQueryByUrl(...)`.
+- Updated `components/Feed/FeedGrid/FeedGrid.tsx` to prefetch reader-view via `readerViewQueryByUrl`, removing direct `workerService.fetchReaderView` + inline validation in prefetch.
+- Kept existing read UI behavior unchanged while removing a duplicate fetch path.
+
+### Learnings
+- Shared query option helpers eliminate subtle cache-key drift and make prefetch/use-query ownership clearly aligned.
+- Small ownership refactors can remove duplicate fetch paths without altering UI surface.
+
+### Challenges
+- `readerViewQueryByUrl` needed to return deterministic query options; keeping `enabled` in the hook avoids accidental fetches when URLs are empty.
