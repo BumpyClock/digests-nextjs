@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { motionTokens } from "@/lib/motion-tokens";
 import type { FeedItem, ReaderViewResponse } from "@/types";
-import { cleanupModalContent } from "@/utils/htmlUtils";
+import { cleanupModalContent } from "@/utils/html";
 import { cleanupMarkdownContent } from "@/utils/images/imageDeduplicator";
 import { ArticleActions } from "./ArticleActions";
 import { ArticleContent } from "./ArticleContent";
@@ -190,3 +190,4 @@ export const EmptyState = memo(() => {
   );
 });
 EmptyState.displayName = "EmptyState";
+

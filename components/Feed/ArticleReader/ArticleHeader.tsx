@@ -10,7 +10,7 @@ import { getFeedAnimationIds } from "@/lib/feed-animation-ids";
 import { motionTokens } from "@/lib/motion-tokens";
 import { getViewTransitionStyle, useViewTransitionsSupported } from "@/lib/view-transitions";
 import type { FeedItem, ReaderViewResponse } from "@/types";
-import { getSiteDisplayName } from "@/utils/htmlUtils";
+import { getSiteDisplayName } from "@/utils/html";
 import { SiteFavicon } from "./SiteFavicon";
 
 interface ArticleHeaderProps {
@@ -378,3 +378,4 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
 );
 
 ArticleHeader.displayName = "ArticleHeader";
+

@@ -6,7 +6,7 @@ import { memo, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motionTokens } from "@/lib/motion-tokens";
 import { cn } from "@/lib/utils";
-import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
+import { sanitizeReaderContent } from "@/utils/html";
 
 const articleContentClassName = (className?: string) =>
   cn(
@@ -129,3 +129,4 @@ export const ArticleContent = memo<ArticleContentProps>(
 );
 
 ArticleContent.displayName = "ArticleContent";
+

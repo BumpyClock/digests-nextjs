@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAudioActions } from "@/hooks/useFeedSelectors";
 import type { FeedItem } from "@/types/feed";
 import { getPodcastAudioUrl } from "@/types/podcast";
-import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
+import { sanitizeReaderContent } from "@/utils/html";
 
 export default function PodcastPage() {
   const params = useParams<{ id?: string }>();
@@ -178,3 +178,4 @@ export default function PodcastPage() {
     </ContentDetailShell>
   );
 }
+

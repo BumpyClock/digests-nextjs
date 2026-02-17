@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { workerService } from "@/services/worker-service";
 import type { FeedItem as ApiFeedItem, Feed } from "@/types";
-import { getSiteDisplayName } from "@/utils/htmlUtils";
+import { getSiteDisplayName } from "@/utils/html";
 import { isHttpUrl } from "@/utils/url";
 
 interface FeedItem {
@@ -296,3 +296,4 @@ export function OPMLImportDialog({
     </Dialog>
   );
 }
+

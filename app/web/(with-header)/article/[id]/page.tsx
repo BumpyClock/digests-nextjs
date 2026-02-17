@@ -12,7 +12,7 @@ import { feedsKeys } from "@/hooks/queries/feedsKeys";
 import { useContentActions } from "@/hooks/use-content-actions";
 import { useToast } from "@/hooks/use-toast";
 import { FeedItem } from "@/types";
-import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
+import { sanitizeReaderContent } from "@/utils/html";
 import { useQueryClient } from "@tanstack/react-query";
 
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
@@ -159,3 +159,4 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
     </ContentDetailShell>
   );
 }
+

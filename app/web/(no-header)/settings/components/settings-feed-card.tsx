@@ -1,10 +1,11 @@
 import { Copy, Podcast, Rss, Trash2 } from "lucide-react";
-import Image from "next/image";
 import { memo } from "react";
 import noise from "@/public/noise.svg";
 import type { Feed } from "@/types";
 import type { Subscription } from "@/types/subscription";
-import { getSiteDisplayName } from "@/utils/htmlUtils";
+import { FeedCardBase } from "@/components/Feed/shared/FeedCardBase";
+import { getSiteDisplayName } from "@/utils/html";
+import { cleanupTextContent } from "@/utils/html";
 
 interface FeedCardProps {
   feed: Feed | Subscription;
@@ -50,50 +51,45 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({
   return (
     <div className="group relative transition-token-transform duration-token-normal ease-token-standard group-hover:-translate-y-2 group-hover:scale-105">
       <div id={feedCardId} className="relative z-[2] flex h-full flex-col p-5">
-        <div className="flex-1">
-          <div className="mb-4 transition-token-transform duration-token-slow ease-token-standard group-hover:-translate-y-1">
-            {hasFavicon ? (
-              <Image
-                src={feed.favicon as string}
-                alt={`${getSiteDisplayName(feed)} icon`}
-                width={48}
-                height={48}
-                className="rounded-sm transition-token-transform duration-token-normal ease-token-standard group-hover:scale-110"
-              />
-            ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-muted text-secondary-content transition-token-transform duration-token-normal ease-token-standard group-hover:scale-110">
-                <PlaceholderIcon size={28} aria-hidden="true" />
-              </div>
-            )}
+        <FeedCardBase
+          title={getSiteDisplayName(feed)}
+          item={feed}
+          iconUrl={feed.favicon}
+          iconAlt={`${cleanupTextContent(getSiteDisplayName(feed))} icon`}
+          iconSize={48}
+          iconClassName="transition-token-transform duration-token-normal ease-token-standard group-hover:scale-110"
+          headerClassName="mb-4 flex items-center gap-2 min-w-0 transition-token-transform duration-token-slow ease-token-standard group-hover:-translate-y-1"
+          iconFallback={
+            <div className="flex h-12 w-12 items-center justify-center rounded-sm bg-muted text-secondary-content transition-token-transform duration-token-normal ease-token-standard group-hover:scale-110">
+              <PlaceholderIcon size={28} aria-hidden="true" />
+            </div>
+          }
+          subtitle={feed.feedTitle}
+          subtitleClassName="mb-2 text-caption text-secondary-content"
+          url={feed.feedUrl}
+          urlClassName="break-all text-body-small text-secondary-content opacity-0 transition-token-opacity duration-token-fast group-hover:opacity-100"
+          className="flex-1"
+          titleClassName="mb-1 line-clamp-2 text-subtitle text-primary-content"
+        >
+          <div className="mt-6 flex border-t border-border pt-2">
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="rounded-md p-2 text-secondary-content transition-token-colors duration-token-fast hover:bg-muted hover:text-primary-content"
+              aria-label="Delete feed"
+            >
+              <Trash2 size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="rounded-md p-2 text-secondary-content transition-token-colors duration-token-fast hover:bg-muted hover:text-primary-content"
+              aria-label="Copy feed URL"
+            >
+              <Copy size={18} />
+            </button>
           </div>
-          <h3 className="mb-1 line-clamp-2 text-subtitle text-primary-content">
-            {getSiteDisplayName(feed)}
-          </h3>
-          {feed.feedTitle && (
-            <p className="mb-2 text-caption text-secondary-content">{feed.feedTitle}</p>
-          )}
-          <p className="break-all text-body-small text-secondary-content opacity-0 transition-token-opacity duration-token-fast group-hover:opacity-100">
-            {feed.feedUrl}
-          </p>
-        </div>
-        <div className="mt-6 flex border-t border-border pt-2">
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="rounded-md p-2 text-secondary-content transition-token-colors duration-token-fast hover:bg-muted hover:text-primary-content"
-            aria-label="Delete feed"
-          >
-            <Trash2 size={18} />
-          </button>
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="rounded-md p-2 text-secondary-content transition-token-colors duration-token-fast hover:bg-muted hover:text-primary-content"
-            aria-label="Copy feed URL"
-          >
-            <Copy size={18} />
-          </button>
-        </div>
+        </FeedCardBase>
       </div>
       <div className="overflow-hidden rounded-2xl absolute top-0 left-0 w-full h-full z-[-1]">
         <div
@@ -113,3 +109,4 @@ export const SettingsFeedCard = memo(function SettingsFeedCard({
     </div>
   );
 });
+

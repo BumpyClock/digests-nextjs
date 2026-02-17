@@ -9,7 +9,7 @@ import { useFeedItemsController } from "@/components/Feed/shared/useFeedItemsCon
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFeedStore } from "@/store/useFeedStore";
 import type { FeedItem } from "@/types";
-import { cleanupTextContent } from "@/utils/htmlUtils";
+import { cleanupTextContent } from "@/utils/html";
 import { isValidUrl } from "@/utils/url";
 
 // Approximate height (px) of a single FeedListItem row for the virtualizer.
@@ -218,3 +218,4 @@ export function FeedList({
     </div>
   );
 }
+

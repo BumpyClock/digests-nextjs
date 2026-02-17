@@ -12,7 +12,6 @@ import { Ambilight } from "@/components/ui/ambilight";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardFooter as CardFooterUI } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FeedItemPreviewMeta } from "@/components/Feed/shared/FeedItemPreviewMeta";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
 import { useScrollContext } from "@/contexts/ScrollContext";
 import { useIsItemRead } from "@/hooks/useFeedSelectors";
@@ -26,10 +25,12 @@ import {
 import type { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
 import { formatDuration } from "@/utils/formatDuration";
-import { cleanupTextContent } from "@/utils/htmlUtils";
+import { cleanupTextContent } from "@/utils/html";
 import { canUseImageKit, getImageKitUrl, IMAGE_PRESETS } from "@/utils/images/imagekit";
 import { isValidUrl } from "@/utils/url";
 import { useContentActions } from "@/hooks/use-content-actions";
+import { FeedCardBase } from "@/components/Feed/shared/FeedCardBase";
+import { getSiteDisplayName } from "@/utils/html";
 
 dayjs.extend(relativeTime);
 
@@ -182,6 +183,7 @@ export const FeedCard = memo(function FeedCard({
 
   const interactionMotionEnabled = animationEnabled && !isScrolling;
   const PlaceholderIcon = isPodcast(feedItem) ? Podcast : Rss;
+  const siteName = getSiteDisplayName(feedItem);
 
   const cardContentWithShell = (
     <motion.div
@@ -242,32 +244,44 @@ export const FeedCard = memo(function FeedCard({
 
         <CardContent className="p-4">
           <div className="space-y-2">
-            <div
-              id={`feed-card-header-${feedItem.id}`}
-              className="flex flex-wrap items-center justify-between gap-2 font-normal"
+            <FeedCardBase
+              title={feedItem.title}
+              headline={siteName}
+              item={feedItem}
+              iconUrl={feedItem.favicon}
+              iconAlt={`${siteName} favicon`}
+              iconSize={24}
+              iconFallback={
+                <div
+                  className="rounded-sm bg-muted flex items-center justify-center text-caption"
+                  style={{ width: 24, height: 24 }}
+                >
+                  <PlaceholderIcon size={16} aria-hidden="true" />
+                </div>
+              }
+              headerClassName="flex items-center gap-2 min-w-0"
+              subtitle={formatDate(feedItem.published)}
+              subtitleClassName="text-caption text-secondary-content"
+              className="space-y-2"
+              titleContent={
+                <motion.h3
+                  className="text-subtitle"
+                  layoutId={motionLayoutEnabled ? animationIds.title : undefined}
+                  style={getViewTransitionStyle(childViewTransitionEnabled, animationIds.title)}
+                >
+                  {cleanupTextContent(feedItem.title)}
+                </motion.h3>
+              }
             >
-              <FeedItemPreviewMeta
-                item={feedItem}
-                faviconSize={24}
-                dateLabel={formatDate(feedItem.published)}
-                className="flex w-full items-center justify-between gap-2"
-              />
-            </div>
-            <motion.h3
-              className="text-subtitle"
-              layoutId={motionLayoutEnabled ? animationIds.title : undefined}
-              style={getViewTransitionStyle(childViewTransitionEnabled, animationIds.title)}
-            >
-              {cleanupTextContent(feedItem.title)}
-            </motion.h3>
-            {feedItem.author && (
-              <div className="text-body-small text-secondary-content">
-                By {cleanupTextContent(feedItem.author)}
-              </div>
-            )}
-            <p className="text-body-small text-secondary-content line-clamp-3">
-              {cleanupTextContent(feedItem.description)}
-            </p>
+              {feedItem.author ? (
+                <div className="text-body-small text-secondary-content">
+                  By {cleanupTextContent(feedItem.author)}
+                </div>
+              ) : null}
+              <p className="text-body-small text-secondary-content line-clamp-3">
+                {cleanupTextContent(feedItem.description)}
+              </p>
+            </FeedCardBase>
           </div>
         </CardContent>
 
@@ -282,3 +296,4 @@ export const FeedCard = memo(function FeedCard({
     cardContentWithShell
   );
 });
+

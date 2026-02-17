@@ -5,7 +5,7 @@ import { AdaptiveDetailContainer } from "@/components/Feed/shared/AdaptiveDetail
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { FeedItem } from "@/types";
-import { getSiteDisplayName } from "@/utils/htmlUtils";
+import { getSiteDisplayName } from "@/utils/html";
 import { PodcastDetailsContent } from "../shared/PodcastDetailsContent";
 
 interface PodcastDetailsModalProps {
@@ -87,3 +87,4 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast }: PodcastDetails
     </AdaptiveDetailContainer>
   );
 }
+

@@ -1,5 +1,18 @@
 # Session Notes
 
+## 2026-02-17 - Bead digests-nextjs-04s.11
+- Completed `digests-nextjs-04s.11` (A5: Decouple worker startup from React component mount timing).
+- Updated `components/worker-init.tsx` so `WorkerInitializer` no longer calls `workerService.start()` on mount or `workerService.stop()` on unmount.
+- Kept `/sw.js` registration and moved worker runtime to demand-driven initialization driven by `WorkerService` calls.
+- Config sync still stays explicit by updating `workerService.updateApiUrl` on `useApiConfigStore` changes so startup config remains deterministic.
+- Commit: `0020cd3` (`fix: decouple worker init from React mount timing`).
+
+### Learnings
+- The previous mount-driven startup pattern could terminate workers unexpectedly under remount/development mode; demand-driven initialization keeps service lifecycle deterministic.
+
+### Challenges
+- No functional changes were made to `WorkerService` internals, so this relies on existing lazy init paths (`initialize` via `ensureInitialized`) and may need follow-up if startup must be eager in another execution context.
+
 ## 2026-02-17 - Bead digests-nextjs-04s.6.4
 - Completed `digests-nextjs-04s.6.4` (Remove compatibility shims and finalize feed-pipeline docs).
 - Confirmed via repo scan that no legacy feed pipeline paths remain in source:
@@ -77,3 +90,25 @@
 - Added LEARNINGS note reinforcing namespace-only image exports and canonical import path (`@/utils/images`).
 - Key learning: `utils/images/` was already the canonical physical layout; needed mostly clear contract documentation and guardrails.
 - Challenge: there are existing uncommitted workspace changes from prior state-boundary and feed-pipeline refactors, so this bead intentionally stayed documentation-only.
+
+## 2026-02-17 - Bead digests-nextjs-04s.8
+- Completed `digests-nextjs-04s.8` (A1: Route-tree clarification follow-up).
+- Clarified `app/pages` migration decision in `docs/route-tree-and-boundaries.md`: explicit defer status, rationale, and migration trigger checklist.
+- Confirmed no route-tree behavior changes were needed; only docs were updated for intent clarity.
+
+### Learnings
+- Explicitly documenting "defer" decisions prevents repeated migration churn and clarifies future routing changes.
+
+### Challenges
+- Existing wording already covered intent; the gap was making defer reason and trigger conditions explicit and actionable.
+## 2026-02-17 - Bead digests-nextjs-04s.5
+- Completed `digests-nextjs-04s.5` (O3: Merge HTML sanitizer and HTML utility surface).
+- Added new canonical module `utils/html.ts` combining sanitizer utilities and HTML text helpers.
+- Migrated all HTML utility callsites to import from `@/utils/html` across app and component paths.
+- Removed legacy split modules `utils/htmlSanitizer.ts` and `utils/htmlUtils.ts`.
+
+### Learnings
+- A single utility module with named exports reduces duplicate imports and makes future HTML sanitization/cleanup refactors safer.
+
+### Challenges
+- Replacing imports across `app` paths required care for escaped route segments (`[id]`) in PowerShell file path handling.

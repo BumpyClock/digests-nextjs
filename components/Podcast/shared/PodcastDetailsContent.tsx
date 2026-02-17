@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { FeedItem } from "@/types";
-import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
-import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
+import { sanitizeReaderContent } from "@/utils/html";
+import { cleanupTextContent, getSiteDisplayName } from "@/utils/html";
 import { getImageProps } from "@/utils/images/image-config";
 import { isValidUrl } from "@/utils/url";
 import { PodcastArtwork } from "../PodcastArtwork";
@@ -138,3 +138,4 @@ export function PodcastDetailsContent({
     </>
   );
 }
+

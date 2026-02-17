@@ -34,7 +34,7 @@ import { useCommandBarShortcuts } from "@/hooks/use-command-bar-shortcuts";
 import { useReadActions, useSubscriptions } from "@/hooks/useFeedSelectors";
 import { Feed, FeedItem } from "@/types";
 import type { Subscription } from "@/types/subscription";
-import { getSiteDisplayName } from "@/utils/htmlUtils";
+import { getSiteDisplayName } from "@/utils/html";
 
 interface CommandBarProps {
   value: string;
@@ -444,3 +444,4 @@ export function CommandBar({
     </>
   );
 }
+

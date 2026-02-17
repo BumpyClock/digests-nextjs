@@ -5,7 +5,7 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
 import { memo, useMemo, useState } from "react";
 import type { FeedItem } from "@/types";
-import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
+import { cleanupTextContent, getSiteDisplayName } from "@/utils/html";
 import { isValidUrl } from "@/utils/url";
 
 dayjs.extend(relativeTime);
@@ -63,3 +63,4 @@ export const FeedItemPreviewMeta = memo(function FeedItemPreviewMeta({
     </div>
   );
 });
+
