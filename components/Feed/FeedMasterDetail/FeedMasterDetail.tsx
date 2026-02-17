@@ -8,6 +8,7 @@ import { PodcastDetailsPane } from "@/components/Podcast/PodcastDetailsPane";
 import { Button } from "@/components/ui/button";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { motionTokens } from "@/lib/motion-tokens";
 import { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
 import "./FeedMasterDetail.css";
@@ -17,7 +18,7 @@ interface FeedMasterDetailProps {
   isLoading: boolean;
 }
 
-const MOBILE_SLIDE_MS = 220;
+const MOBILE_SLIDE_MS = Math.round(motionTokens.duration.normal * 1000);
 
 export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
   const [selectedItem, setSelectedItem] = useState<FeedItem | null>(null);

@@ -4,6 +4,8 @@ Read when:
 - You add or move routes under `app/`.
 - You are unsure whether code belongs in `app/web` or `app/pages`.
 - You add selectors or error boundaries.
+- You need style and motion layering rules: `docs/css-motion-layering-policy.md`.
+- You need architecture ownership and refactor rules: `docs/architecture-boundaries-and-refactor-rules.md`.
 
 ## Route intent
 

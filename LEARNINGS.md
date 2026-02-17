@@ -47,3 +47,13 @@ Durable repo learnings only. Evergreen. No dated incident logs.
 - Virtualize long lists; keep scroll-container behavior compatible with virtualization library.
 - Worker cache keys deterministic (stable ordering + unambiguous serialization, e.g. `JSON.stringify`); include request correlation IDs on error responses.
 - Guard idempotent state writes to prevent unnecessary re-renders/churn.
+
+## Dependency strategy
+
+- Keep `masonic`, `prismjs`, and `simplebar-react` for now; revisit quarterly instead of replacing proactively.
+- Keep `localforage` short-term but isolate behind a storage adapter boundary to de-risk eventual replacement.
+- Record dependency replacement decisions under `docs/learned/dependency-health-review-YYYY-MM-DD.md` with npm/GitHub signals and migration cost.
+
+## Architecture docs
+
+- Keep ownership and layering rules in `docs/architecture-boundaries-and-refactor-rules.md` and link from route/layout docs.

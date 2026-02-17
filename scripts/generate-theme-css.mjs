@@ -14,8 +14,8 @@ const __dirname = path.dirname(__filename);
 // Path to output file
 const outputPath = path.join(__dirname, "..", "app", "generated-themes.css");
 
-// Import compiled theme definitions (CommonJS module)
-const themeDefinitionsModule = await import("../lib/theme-definitions.js");
+// Import canonical TypeScript theme definitions (Bun resolves .ts modules)
+const themeDefinitionsModule = await import("../lib/theme-definitions.ts");
 const themes = themeDefinitionsModule.default?.themes || themeDefinitionsModule.themes;
 
 /**

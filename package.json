@@ -11,7 +11,7 @@
     "lint:fix": "biome lint --write .",
     "format": "biome format .",
     "format:fix": "biome format --write .",
-    "generate:themes": "node scripts/generate-theme-css.mjs",
+    "generate:themes": "bun scripts/generate-theme-css.mjs",
     "generate:design-tokens": "bun scripts/generate-design-tokens-css.mjs",
     "test": "node scripts/run-bun-tests.js",
     "test:node": "node --test tests/*.js",

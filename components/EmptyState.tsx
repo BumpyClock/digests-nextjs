@@ -9,9 +9,7 @@ import {
   Bookmark,
   AlertCircle,
   WifiOff,
-  Inbox,
   CheckCircle,
-  Podcast,
 } from "lucide-react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Button } from "@/components/ui/button";
