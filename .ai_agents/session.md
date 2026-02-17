@@ -1,5 +1,18 @@
 # Session Notes
 
+## 2026-02-17 - Bead digests-nextjs-04s.9.1
+- Completed `digests-nextjs-04s.9.1` (CSS inventory and ownership/migration-risk classification).
+- Added `docs/css-inventory-and-migration.md` with a full inventory and actionable classification matrix for every active CSS source.
+- Scope included all style files in-tree (`app/globals.css`, `app/typography.css`, `app/generated-design-tokens.css`, `app/generated-themes.css`, `components/Feed/ArticleReader/ArticleReader.css`, `components/Feed/FeedMasterDetail/FeedMasterDetail.css`, `public/prism-tomorrow.css`) plus imported vendor CSS (`simplebar-react/dist/simplebar.min.css`).
+- Classifications reflect migration posture for next phase: generated token/theme outputs as source-of-truth artifacts, global styles as split-then-migrate candidates, component CSS as scoped-retain, and vendor styles as dependency-owned.
+- Added notes that earlier analysis references to `FeedGrid.css` are stale in the current branch.
+
+### Learnings
+- A short inventory document is the lowest-risk path to unblock styling refactor discussions without changing runtime behavior.
+
+### Challenges
+- Multiple style surfaces are interdependent (globals, token outputs, and component-local behavior), so safe migration paths are narrow and incremental rather than one-shot.
+
 ## 2026-02-17 - Bead digests-nextjs-04s.10.4
 - Completed `digests-nextjs-04s.10.4` (Remove legacy sync paths and finalize state-boundary cleanup).
 - Removed legacy item fallback in `CommandBar` from Zustand store so search/feed data now flows only from React Query props.
