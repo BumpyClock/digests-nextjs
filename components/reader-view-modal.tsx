@@ -4,14 +4,12 @@ import { useEffect, useState } from "react";
 import { ReaderContent } from "@/components/Feed/ReaderContent";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useReaderView } from "@/hooks/queries";
+import { useDelayedMarkAsRead } from "@/hooks/use-delayed-mark-as-read";
 import { useScrollShadow } from "@/hooks/use-scroll-shadow";
-import { useFeedStore } from "@/store/useFeedStore";
 import { FeedItem } from "@/types";
 import { BaseModal } from "./base-modal";
 import { ScrollShadow } from "./ui/scroll-shadow";
 
-// Selector for stable function reference — avoids full-store subscription
-const selectMarkAsRead = (s: ReturnType<typeof useFeedStore.getState>) => s.markAsRead;
 const OPEN_TRANSITION_DELAY_MS = 300;
 const OPEN_TRANSITION_IDLE_TIMEOUT_MS = 340;
 
@@ -36,8 +34,7 @@ export function ReaderViewModal({
   );
   const [transitionInProgress, setTransitionInProgress] = useState(false);
   const { isBottomVisible, handleScroll, hasScrolled } = useScrollShadow();
-  const markAsRead = useFeedStore(selectMarkAsRead);
-  const feedItemId = feedItem.id;
+  useDelayedMarkAsRead(feedItem.id, isOpen, 800);
 
   const handleScrollEvent = (e: Event) => {
     const target = e.target as HTMLDivElement;
@@ -47,13 +44,6 @@ export function ReaderViewModal({
       clientHeight: target.clientHeight,
     });
   };
-
-  // Mark as read shortly after opening to avoid grid re-render during animation
-  useEffect(() => {
-    if (!isOpen) return;
-    const t = setTimeout(() => markAsRead(feedItemId), 800);
-    return () => clearTimeout(t);
-  }, [isOpen, feedItemId, markAsRead]);
 
   // Keep first paint light, then mount heavy reader content after open transition settles.
   useEffect(() => {

@@ -2,40 +2,10 @@
 
 import { Logger } from "@/utils/logger";
 import { isHttpUrl } from "@/utils/url";
+import { fetchParseFeeds, fetchReaderViewData } from "../lib/feed-api-client";
 import { DEFAULT_API_CONFIG, DEFAULT_CACHE_TTL_MS } from "../lib/config";
-import { transformFeedResponse } from "../lib/feed-transformer";
-import type { Feed, FeedItem, FetchFeedsResponse, ReaderViewResponse } from "../types";
-
-// Message types to organize communication
-type WorkerMessage =
-  | { type: "FETCH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
-  | {
-      type: "FETCH_READER_VIEW";
-      payload: { urls: string[]; apiBaseUrl?: string };
-      requestId?: string;
-    }
-  | { type: "REFRESH_FEEDS"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
-  | { type: "CHECK_UPDATES"; payload: { urls: string[]; apiBaseUrl?: string }; requestId?: string }
-  | { type: "SET_API_URL"; payload: { url: string }; requestId?: string }
-  | { type: "SET_CACHE_TTL"; payload: { ttl: number }; requestId?: string };
-
-type WorkerResponse =
-  | {
-      type: "FEEDS_RESULT";
-      success: boolean;
-      feeds: Feed[];
-      items: FeedItem[];
-      message?: string;
-      requestId?: string;
-    }
-  | {
-      type: "READER_VIEW_RESULT";
-      success: boolean;
-      data: ReaderViewResponse[];
-      message?: string;
-      requestId?: string;
-    }
-  | { type: "ERROR"; message: string; requestId?: string };
+import type { Feed, FeedItem, ReaderViewResponse } from "../types";
+import type { RssWorkerMessage as WorkerMessage, RssWorkerResponse as WorkerResponse } from "../types/worker-contracts";
 
 // Cache implementation for the worker
 class WorkerCache {
@@ -125,26 +95,7 @@ async function fetchFeeds(
 
     Logger.debug(`[Worker] Fetching feeds for URLs: ${urls.length}`);
 
-    const response = await fetch(`${currentApiUrl}/parse`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ urls }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = (await response.json()) as FetchFeedsResponse;
-
-    if (!data || !Array.isArray(data.feeds)) {
-      throw new Error("Invalid response from API");
-    }
-
-    // Transform the response using shared utility
-    const result = transformFeedResponse(data);
+    const result = await fetchParseFeeds(urls, currentApiUrl);
 
     // Always cache the fresh result to keep cache updated
     // bypassCache only controls cache reads, not writes
@@ -193,23 +144,7 @@ async function fetchReaderView(
 
     Logger.debug("[Worker] Fetching reader view for URLs:", urls);
 
-    const response = await fetch(`${currentApiUrl}/getreaderview`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ urls }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (!Array.isArray(data)) {
-      throw new Error("Invalid response from API");
-    }
+    const data = await fetchReaderViewData(urls, currentApiUrl);
 
     // Cache the result
     workerCache.set(cacheKey, data);

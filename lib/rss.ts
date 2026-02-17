@@ -1,6 +1,5 @@
-import { getApiUrl } from "@/lib/config";
-import { transformFeedResponse } from "@/lib/feed-transformer";
-import type { Feed, FeedItem, FetchFeedsResponse, ReaderViewResponse } from "@/types";
+import { fetchParseFeeds, fetchReaderViewData } from "@/lib/feed-api-client";
+import type { Feed, FeedItem, ReaderViewResponse } from "@/types";
 import { Logger } from "@/utils/logger";
 import type { FeedFetcherConfig } from "./interfaces/feed-fetcher.interface";
 
@@ -17,34 +16,7 @@ export async function fetchFeeds(
   try {
     Logger.debug(`Fetching feeds for URLs: ${urls.length}`);
     Logger.debug("Feed URLs", urls);
-
-    // Use custom API URL if provided, otherwise use default
-    // Normalize base URL by trimming trailing slashes to prevent double slashes
-    const apiUrl = config?.apiBaseUrl
-      ? `${config.apiBaseUrl.replace(/\/+$/, "")}/parse`
-      : getApiUrl("/parse");
-
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ urls }),
-    });
-
-    Logger.debug("API Response status:", response.status);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = (await response.json()) as FetchFeedsResponse;
-    Logger.debug("API Response data:", JSON.stringify(data, null, 2));
-
-    if (!data || !Array.isArray(data.feeds)) {
-      throw new Error("Invalid response from API");
-    }
-
-    return transformFeedResponse(data);
+    return fetchParseFeeds(urls, config?.apiBaseUrl);
   } catch (error) {
     console.error("Error fetching feeds:", error);
     throw error;
@@ -63,34 +35,7 @@ export async function fetchReaderView(
 ): Promise<ReaderViewResponse[]> {
   try {
     Logger.debug("Fetching reader view for URLs:", urls);
-
-    // Use custom API URL if provided, otherwise use default
-    // Normalize base URL by trimming trailing slashes to prevent double slashes
-    const apiUrl = config?.apiBaseUrl
-      ? `${config.apiBaseUrl.replace(/\/+$/, "")}/getreaderview`
-      : getApiUrl("/getreaderview");
-
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ urls }),
-    });
-
-    Logger.debug("API Response status:", response.status);
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    Logger.debug("API Response data:", JSON.stringify(data, null, 2));
-
-    if (!Array.isArray(data)) {
-      throw new Error("Invalid response from API");
-    }
-
-    return data as ReaderViewResponse[];
+    return fetchReaderViewData(urls, config?.apiBaseUrl);
   } catch (error) {
     console.error("Error fetching reader view:", error);
     throw error;

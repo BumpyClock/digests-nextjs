@@ -3,9 +3,10 @@
 import { useCallback, useEffect, useRef } from "react";
 import { EmptyState } from "@/components/Feed/ArticleReader";
 import { ReaderContent } from "@/components/Feed/ReaderContent";
+import { DetailPaneShell } from "@/components/Feed/shared/DetailPaneShell";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useReaderView } from "@/hooks/queries";
-import { useFeedStore } from "@/store/useFeedStore";
+import { useDelayedMarkAsRead } from "@/hooks/use-delayed-mark-as-read";
 import { type FeedItem } from "@/types";
 
 interface ReaderViewPaneProps {
@@ -13,37 +14,19 @@ interface ReaderViewPaneProps {
 }
 
 export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
-  const { markAsRead } = useFeedStore();
-  const hasMarkedAsReadRef = useRef(false);
+  const { markNow } = useDelayedMarkAsRead(feedItem?.id, Boolean(feedItem), 2000);
   const { readerView, loading, cleanedContent } = useReaderView(feedItem?.link || "");
   const scrollableNodeRef = useRef<HTMLDivElement>(null);
-
-  // Mark as read after viewing
-  useEffect(() => {
-    hasMarkedAsReadRef.current = false;
-
-    if (feedItem) {
-      const timer = setTimeout(() => {
-        if (!hasMarkedAsReadRef.current) {
-          markAsRead(feedItem.id);
-          hasMarkedAsReadRef.current = true;
-        }
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [feedItem, markAsRead]);
 
   // Mark as read on scroll
   const handleScroll = useCallback(
     (e: Event) => {
       const target = e.target as HTMLDivElement;
-      if (target.scrollTop > 100 && feedItem && !hasMarkedAsReadRef.current) {
-        markAsRead(feedItem.id);
-        hasMarkedAsReadRef.current = true;
+      if (target.scrollTop > 100 && feedItem) {
+        markNow();
       }
     },
-    [feedItem, markAsRead]
+    [feedItem, markNow]
   );
 
   // Reset scroll position when switching to a different item.
@@ -58,7 +41,7 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
   }
 
   return (
-    <div className="h-full border rounded-md overflow-hidden bg-card">
+    <DetailPaneShell>
       <ScrollArea
         className="h-full w-full"
         onScroll={handleScroll}
@@ -72,6 +55,6 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
           layout="standard"
         />
       </ScrollArea>
-    </div>
+    </DetailPaneShell>
   );
 }

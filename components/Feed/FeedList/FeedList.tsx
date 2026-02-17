@@ -1,18 +1,15 @@
 "use client";
 
 import { useVirtualizer } from "@tanstack/react-virtual";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 import { Heart } from "lucide-react";
 import Image from "next/image";
 import { type KeyboardEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FeedItemPreviewMeta } from "@/components/Feed/shared/FeedItemPreviewMeta";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFeedStore } from "@/store/useFeedStore";
 import type { FeedItem } from "@/types";
-import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
+import { cleanupTextContent } from "@/utils/htmlUtils";
 import { isValidUrl } from "@/utils/url";
-
-dayjs.extend(relativeTime);
 
 // Approximate height (px) of a single FeedListItem row for the virtualizer.
 // Layout: p-4 (32px vertical padding) + flex row of text vs 70px thumbnail + 1px border.
@@ -37,10 +34,6 @@ const FeedListItem = memo(function FeedListItem({
   onSelect: () => void;
   isRead: boolean;
 }) {
-  const formattedDate = useMemo(() => {
-    return item.published ? dayjs(item.published).fromNow() : "Date unknown";
-  }, [item.published]);
-
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLButtonElement>) => {
       if (event.key === "Enter" || event.key === " ") {
@@ -62,22 +55,10 @@ const FeedListItem = memo(function FeedListItem({
     >
       <div className="grow min-w-0">
         <div className="flex items-center gap-2 mb-1">
-          {item.favicon && isValidUrl(item.favicon) && (
-            <Image
-              src={item.favicon}
-              alt={cleanupTextContent(getSiteDisplayName(item))}
-              width={16}
-              height={16}
-              className="rounded w-4 h-4"
-            />
-          )}
-          <span className="text-caption text-secondary-content truncate">
-            {cleanupTextContent(getSiteDisplayName(item))}
-          </span>
+          <FeedItemPreviewMeta item={item} className="flex w-full items-center justify-between gap-2" />
         </div>
         <h3 className="text-subtitle line-clamp-2 mb-1">{cleanupTextContent(item.title)}</h3>
-        <div className="flex justify-between items-center text-caption text-secondary-content">
-          <span>{formattedDate}</span>
+        <div className="flex justify-end items-center text-caption text-secondary-content">
           {item.favorite && <Heart className="h-3 w-3 fill-red-500 text-red-500" />}
         </div>
       </div>

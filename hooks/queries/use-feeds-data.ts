@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { workerService } from "@/services/worker-service";
 import { useFeedStore } from "@/store/useFeedStore";
 import type { Feed, FeedItem } from "@/types";
-import { sortByDateDesc } from "@/utils/selectors";
+import { sortByDateDesc } from "@/store/selectors/feed-selectors";
 import { feedsKeys, getSubscriptionUrls } from "./feedsKeys";
 
 /**

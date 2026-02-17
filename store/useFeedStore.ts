@@ -7,7 +7,7 @@ import { createJSONStorage, type PersistOptions, persist } from "zustand/middlew
 import { deserializeSet } from "@/lib/serializers/set-serializer";
 import type { Feed } from "@/types";
 import { Logger } from "@/utils/logger";
-import { toSubscription } from "@/utils/selectors";
+import { toSubscription } from "@/store/selectors/feed-selectors";
 import { withPerformanceMonitoring } from "./middleware/performanceMiddleware";
 import { type AudioSlice, createAudioSlice } from "./slices/audioSlice";
 import { createFeedSlice, type FeedSlice } from "./slices/feedSlice";

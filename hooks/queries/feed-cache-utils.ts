@@ -1,5 +1,5 @@
 import type { Feed, FeedItem } from "../../types";
-import { sortByDateDesc } from "../../utils/selectors";
+import { sortByDateDesc } from "@/store/selectors/feed-selectors";
 
 export type CacheData = {
   feeds: Feed[];

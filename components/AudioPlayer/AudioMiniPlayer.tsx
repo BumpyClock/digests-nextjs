@@ -1,13 +1,14 @@
 "use client";
 
-import { Pause, Play, Repeat, SkipBack, SkipForward, X } from "lucide-react";
+import { Repeat, X } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useMemo } from "react";
+import { PlaybackButtons } from "@/components/AudioPlayer/PlaybackButtons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
-import { useFeedStore } from "@/store/useFeedStore";
 import { formatTime } from "@/utils/audio";
+import { useAudioPlaybackState } from "./use-audio-playback-state";
 
 /**
  * Compact audio player that appears minimized at the bottom of the screen
@@ -21,7 +22,7 @@ export function AudioMiniPlayer() {
     duration,
     seek,
     setShowMiniPlayer,
-  } = useFeedStore();
+  } = useAudioPlaybackState();
 
   /**
    * Memoized formatted times to prevent recalculation
@@ -118,27 +119,23 @@ export function AudioMiniPlayer() {
 
             {/* Playback Controls */}
             <div className="flex items-center justify-center gap-4">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Repeat className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <SkipBack className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-12 w-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center hover:bg-primary/90"
-                onClick={memoizedTogglePlayPause} // Use memoized callback
-                aria-label={isPlaying ? "Pause" : "Play"}
-              >
-                {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6 ml-0.5" />}
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <SkipForward className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Repeat className="h-4 w-4 rotate-180" />
-              </Button>
+              <PlaybackButtons
+                isPlaying={isPlaying}
+                onTogglePlayPause={memoizedTogglePlayPause}
+                buttonClassName="h-8 w-8"
+                playButtonClassName="h-12 w-12 bg-primary text-primary-foreground rounded-full flex items-center justify-center hover:bg-primary/90"
+                iconClassName="h-5 w-5"
+                prevSlot={
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Repeat className="h-4 w-4" />
+                  </Button>
+                }
+                nextSlot={
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Repeat className="h-4 w-4 rotate-180" />
+                  </Button>
+                }
+              />
             </div>
           </div>
         </CardContent>

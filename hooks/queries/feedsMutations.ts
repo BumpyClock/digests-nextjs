@@ -8,7 +8,7 @@ import { workerService } from "@/services/worker-service";
 import { useFeedStore } from "@/store/useFeedStore";
 import type { Feed, FeedItem } from "@/types";
 import type { Subscription } from "@/types/subscription";
-import { sortByDateDesc, toSubscription } from "@/utils/selectors";
+import { sortByDateDesc, toSubscription } from "@/store/selectors/feed-selectors";
 import { type CacheData, mergeCacheData } from "./feed-cache-utils";
 import { feedsKeys, getSubscriptionUrls, normalizeFeedUrl } from "./feedsKeys";
 

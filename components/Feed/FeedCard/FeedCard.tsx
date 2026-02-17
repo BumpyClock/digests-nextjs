@@ -12,6 +12,7 @@ import { Ambilight } from "@/components/ui/ambilight";
 import { Button } from "@/components/ui/button";
 import { CardContent, CardFooter as CardFooterUI } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FeedItemPreviewMeta } from "@/components/Feed/shared/FeedItemPreviewMeta";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
 import { useIsItemRead } from "@/hooks/useFeedSelectors";
 import { getFeedAnimationIds } from "@/lib/feed-animation-ids";
@@ -24,7 +25,7 @@ import {
 import type { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
 import { formatDuration } from "@/utils/formatDuration";
-import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
+import { cleanupTextContent } from "@/utils/htmlUtils";
 import { canUseImageKit, getImageKitUrl, IMAGE_PRESETS } from "@/utils/imagekit";
 import { isValidUrl } from "@/utils/url";
 import { useContentActions } from "@/hooks/use-content-actions";
@@ -93,7 +94,6 @@ export const FeedCard = memo(function FeedCard({
   onItemOpenTransitionComplete,
 }: FeedCardProps) {
   const [imageError, setImageError] = useState(false);
-  const [faviconError, setFaviconError] = useState(false);
   const [showPlaceholder, setShowPlaceholder] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [isActive, setIsActive] = useState(false);
@@ -168,10 +168,6 @@ export const FeedCard = memo(function FeedCard({
     setShowPlaceholder(true);
   }, []);
 
-  const handleFaviconError = useCallback(() => {
-    setFaviconError(true);
-  }, []);
-
   const cardShellMotionStyle = {
     "--card-shadow-r": thumbnailColor.r,
     "--card-shadow-g": thumbnailColor.g,
@@ -239,30 +235,12 @@ export const FeedCard = memo(function FeedCard({
               id={`feed-card-header-${feedItem.id}`}
               className="flex flex-wrap items-center justify-between gap-2 font-normal"
             >
-              <div className="flex space-between gap-2 align-center items-center">
-                <div>
-                  {!faviconError && feedItem.favicon && isValidUrl(feedItem.favicon) ? (
-                    <Image
-                      src={feedItem.favicon}
-                      alt={`${cleanupTextContent(getSiteDisplayName(feedItem))} favicon`}
-                      className="w-6 h-6 bg-background rounded-sm"
-                      onError={handleFaviconError}
-                      width={24}
-                      height={24}
-                    />
-                  ) : (
-                    <div className="w-6 h-6 bg-muted rounded-sm flex items-center justify-center text-caption">
-                      {cleanupTextContent(getSiteDisplayName(feedItem)).charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
-                <div className="text-caption line-clamp-1">
-                  {cleanupTextContent(getSiteDisplayName(feedItem))}
-                </div>
-              </div>
-              <div className="text-caption text-secondary-content w-fit">
-                {formatDate(feedItem.published)}
-              </div>
+              <FeedItemPreviewMeta
+                item={feedItem}
+                faviconSize={24}
+                dateLabel={formatDate(feedItem.published)}
+                className="flex w-full items-center justify-between gap-2"
+              />
             </div>
             <motion.h3
               className="text-subtitle"

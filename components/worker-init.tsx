@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { workerService } from "@/services/worker-service";
+import { useApiConfigStore } from "@/store/useApiConfigStore";
 import { Logger } from "@/utils/logger";
 
 /**
@@ -13,6 +14,8 @@ import { Logger } from "@/utils/logger";
  * For non-React hosts, use `workerService.start()` and `workerService.stop()` directly.
  */
 export function WorkerInitializer() {
+  const apiBaseUrl = useApiConfigStore((state) => state.config.baseUrl);
+
   useEffect(() => {
     // Initialize worker service
     Logger.debug("Initializing worker service");
@@ -30,6 +33,10 @@ export function WorkerInitializer() {
       workerService.stop();
     };
   }, []);
+
+  useEffect(() => {
+    workerService.updateApiUrl(apiBaseUrl);
+  }, [apiBaseUrl]);
 
   return null;
 }

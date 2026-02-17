@@ -1,26 +1,18 @@
 "use client";
-import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import { useCallback, useMemo } from "react";
+import { PlaybackButtons } from "@/components/AudioPlayer/PlaybackButtons";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { useFeedStore } from "@/store/useFeedStore";
 import { formatTime } from "@/utils/audio";
+import { useAudioPlaybackState } from "./use-audio-playback-state";
 
 /**
  * Component that renders audio playback controls
  */
 export function AudioControls() {
-  const {
-    isPlaying,
-    currentTime,
-    duration,
-    volume,
-    isMuted,
-    togglePlayPause,
-    seek,
-    setVolume,
-    toggleMute,
-  } = useFeedStore();
+  const { isPlaying, currentTime, duration, volume, isMuted, togglePlayPause, seek, setVolume, toggleMute } =
+    useAudioPlaybackState();
 
   /**
    * Memoized formatted time values to prevent recalculation
@@ -52,15 +44,12 @@ export function AudioControls() {
         <div className="text-caption w-10">{formattedDuration}</div>
       </div>
       <div className="flex items-center space-x-2">
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <SkipBack className="h-4 w-4" />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={togglePlayPause}>
-          {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-        </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <SkipForward className="h-4 w-4" />
-        </Button>
+        <PlaybackButtons
+          isPlaying={isPlaying}
+          onTogglePlayPause={togglePlayPause}
+          buttonClassName="h-8 w-8"
+          iconClassName="h-4 w-4"
+        />
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleMute}>
           {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
         </Button>

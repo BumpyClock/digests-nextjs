@@ -1,7 +1,7 @@
 import { StateCreator } from "zustand";
 import type { Feed } from "@/types";
 import type { Subscription } from "@/types/subscription";
-import { toSubscription } from "@/utils/selectors";
+import { toSubscription } from "@/store/selectors/feed-selectors";
 import { normalizeUrl } from "@/utils/url";
 
 export type FeedInput = Feed | Subscription;

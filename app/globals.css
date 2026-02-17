@@ -591,6 +591,40 @@
     animation-delay: 700ms;
   }
 
+  /* Empty State Entrance Animations */
+  @keyframes empty-state-enter {
+    0% {
+      opacity: 0;
+      transform: scale(0.95) translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  /* Container animation - starts first */
+  .empty-state-enter {
+    animation: empty-state-enter 280ms var(--motion-ease-decelerate, cubic-bezier(0, 0, 0, 1)) forwards;
+  }
+
+  /* Staggered children delays */
+  .empty-state-delay-1 {
+    animation-delay: 40ms;
+  }
+
+  .empty-state-delay-2 {
+    animation-delay: 80ms;
+  }
+
+  .empty-state-delay-3 {
+    animation-delay: 120ms;
+  }
+
+  .empty-state-delay-4 {
+    animation-delay: 160ms;
+  }
+
   html {
     scroll-behavior: smooth;
   }
@@ -678,7 +712,8 @@ html.reader-vt-active [data-masonic-tile].vt-source-tile {
   }
 
   .modal-content,
-  .animate-appear {
+  .animate-appear,
+  .empty-state-enter {
     animation: none !important;
   }
 }

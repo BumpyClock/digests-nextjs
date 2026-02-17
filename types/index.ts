@@ -4,6 +4,7 @@
 
 export * from "./api";
 export * from "./feed";
+export * from "./worker-contracts";
 
 // Add any shared types here
 export interface Timestamp {
