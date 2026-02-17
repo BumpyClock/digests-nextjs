@@ -2,6 +2,7 @@ import { StateCreator } from "zustand";
 import type { Feed } from "@/types";
 import type { Subscription } from "@/types/subscription";
 import { toSubscription } from "@/utils/selectors";
+import { normalizeUrl } from "@/utils/url";
 
 export type FeedInput = Feed | Subscription;
 
@@ -46,8 +47,11 @@ export const createFeedSlice: StateCreator<FeedSlice, [], [], FeedSlice> = (set,
   },
 
   removeFeedSubscription: (feedUrl: string) => {
+    const normalizedFeedUrl = normalizeUrl(feedUrl);
     set({
-      subscriptions: get().subscriptions.filter((subscription) => subscription.feedUrl !== feedUrl),
+      subscriptions: get().subscriptions.filter(
+        (subscription) => normalizeUrl(subscription.feedUrl) !== normalizedFeedUrl
+      ),
     });
   },
 });

@@ -1,76 +1,42 @@
 "use client";
 
-import { Home, Menu, Rss, Settings } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
+import { Home, Rss, Settings } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { ModeToggle } from "@/components/mode-toggle";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import logo192 from "@/public/logo192.png";
+import { HeaderShell, type HeaderShellProps } from "@/components/HeaderShell";
 
 export function AppHeader() {
   const pathname = usePathname();
+  const isFeedsPage = pathname === "/web";
+  const isSettingsPage = pathname === "/web/settings";
 
-  return (
-    <header className="sticky top-0 z-sticky w-full max-w-full border-b bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60 px-4">
-      <div className="container flex h-14 items-center mx-auto">
-        <div className="mr-4 flex">
-          <Link href="/web" className="flex items-center space-x-2">
-            <Image src={logo192} alt="Digests" className="h-6 w-6" />
-            <span className="text-subtitle">Digests</span>
-          </Link>
-        </div>
-        <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-          <nav className="hidden md:flex items-center space-x-4">
-            <Link href="/web">
-              <Button variant={pathname === "/web" ? "default" : "ghost"}>
-                <Rss className="h-4 w-4 mr-2" />
-                Feeds
-              </Button>
-            </Link>
-            <Link href="/web/settings">
-              <Button variant={pathname === "/web/settings" ? "default" : "ghost"}>
-                <Settings className="h-4 w-4 mr-2" />
-                Settings
-              </Button>
-            </Link>
-          </nav>
-          <div className="flex items-center space-x-2">
-            <ModeToggle />
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="md:hidden">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Toggle menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right">
-                <nav className="grid gap-6 text-title">
-                  <Link href="/web" className="flex items-center gap-2 text-title">
-                    <Rss className="h-5 w-5" />
-                    <span>Digests</span>
-                  </Link>
-                  <div className="grid gap-3">
-                    <Link href="/web" className="flex items-center gap-2">
-                      <Rss className="h-5 w-5" />
-                      Feeds
-                    </Link>
-                    <Link href="/web/settings" className="flex items-center gap-2">
-                      <Settings className="h-5 w-5" />
-                      Settings
-                    </Link>
-                    <Link href="/" className="flex items-center gap-2 text-secondary-content">
-                      <Home className="h-5 w-5" />
-                      Back to Home
-                    </Link>
-                  </div>
-                </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
+  const desktopNavItems = [
+    {
+      id: "feeds",
+      href: "/web",
+      label: "Feeds",
+      icon: Rss,
+      desktopButtonVariant: isFeedsPage ? "default" : "ghost",
+    },
+    {
+      id: "settings",
+      href: "/web/settings",
+      label: "Settings",
+      icon: Settings,
+      desktopButtonVariant: isSettingsPage ? "default" : "ghost",
+    },
+  ] satisfies HeaderShellProps["navItems"];
+
+  const mobileNavItems = [
+    { id: "feeds", href: "/web", label: "Feeds", icon: Rss },
+    { id: "settings", href: "/web/settings", label: "Settings", icon: Settings },
+    {
+      id: "home",
+      href: "/",
+      label: "Back to Home",
+      icon: Home,
+      mobileClassName: "text-secondary-content",
+    },
+  ] satisfies HeaderShellProps["navItems"];
+
+  return <HeaderShell brandHref="/web" navItems={desktopNavItems} mobileNavItems={mobileNavItems} />;
 }

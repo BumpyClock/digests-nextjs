@@ -21,6 +21,7 @@ Durable repo learnings only. Keep evergreen; drop incident logs.
 - Wrap transition-bound state flips in `document.startViewTransition(() => flushSync(...))` for reliable snapshots.
 - Shared-element transitions work best with a small shared set (shell/title/thumbnail), not every metadata node.
 - Reuse one settings-tabs content implementation across modal and fallback page to prevent state drift.
+- Extract shared route/detail shells before changing behavior, and keep style-level parity checks local to each consumer.
 
 ## Design Tokens
 
@@ -65,3 +66,6 @@ Durable repo learnings only. Keep evergreen; drop incident logs.
 - Prefer domain-driven component folders (layout, eed, podcast, udio, shared) with extracted shell primitives/hooks to reduce UI drift.
 
 - When validating older architecture reports, classify each finding as confirmed/partial/stale against current code before creating tasks; avoid duplicate epics by adding scoped child beads to the active architecture epic.
+- For `beads 6qd.2`, keep feed query keys centralized in one module (`hooks/queries/feedsKeys.ts`) and always derive both query cache keys and subscription URL lists through shared normalization helpers (`getSubscriptionUrls`/`normalizeFeedUrls`) before cache mutations/invalidation.
+- 2026-02-17: Migrated project-level test execution to Bun with `scripts/run-bun-tests.js` and removed `scripts/pretest.js` + `compiled-tests` usage from runtime test paths. Kept worker-service lifecycle methods idempotent with explicit attach/detach of message handlers and `start/stop` aliases for host-level cleanup.
+- 2026-02-17: Completed `beads 6qd.2` updates by moving feed list key creation + reader keys + URL normalization into `hooks/queries/feedsKeys.ts`, updating all hook consumers, and normalizing `removeFeedSubscription` matching in `store/slices/feedSlice.ts` to keep Zustand state and React Query cache removals aligned.

@@ -99,9 +99,7 @@ class WorkerService {
         type: "module",
       });
 
-      // Set up message handlers for both workers
-      this.rssWorker.addEventListener("message", this.handleWorkerMessage);
-      this.shadowWorker.addEventListener("message", this.handleWorkerMessage);
+      this.attachWorkerHandlers();
 
       // Initialize RSS worker with current API URL
       const apiConfig = getApiConfig();
@@ -117,11 +115,38 @@ class WorkerService {
       this.isInitialized = true;
       Logger.debug("WorkerService: Workers initialized");
     } catch (error) {
+      // Ensure a clean state if worker creation fails partially
+      this.terminate();
       Logger.error(
         "WorkerService: Failed to initialize workers",
         error instanceof Error ? error : undefined
       );
       // Ensure service can still work without workers
+    }
+  }
+
+  /**
+   * Starts workers for host-level lifecycle management (non-React callers).
+   */
+  start(): void {
+    this.initialize();
+  }
+
+  private attachWorkerHandlers(): void {
+    if (this.rssWorker) {
+      this.rssWorker.addEventListener("message", this.handleWorkerMessage);
+    }
+    if (this.shadowWorker) {
+      this.shadowWorker.addEventListener("message", this.handleWorkerMessage);
+    }
+  }
+
+  private detachWorkerHandlers(): void {
+    if (this.rssWorker) {
+      this.rssWorker.removeEventListener("message", this.handleWorkerMessage);
+    }
+    if (this.shadowWorker) {
+      this.shadowWorker.removeEventListener("message", this.handleWorkerMessage);
     }
   }
 
@@ -209,16 +234,18 @@ class WorkerService {
    */
   postMessage(message: WorkerMessage): void {
     if (!this.isInitialized) {
+      this.initialize();
+    }
+
+    const worker = message.type === "GENERATE_SHADOWS" ? this.shadowWorker : this.rssWorker;
+
+    if (!worker) {
       Logger.error("WorkerService: Workers not initialized");
       return;
     }
 
     // Route messages to appropriate worker
-    if (message.type === "GENERATE_SHADOWS") {
-      this.shadowWorker?.postMessage(message);
-    } else {
-      this.rssWorker?.postMessage(message);
-    }
+    worker.postMessage(message);
   }
 
   /**
@@ -536,6 +563,8 @@ class WorkerService {
    * Terminates the worker
    */
   terminate(): void {
+    this.detachWorkerHandlers();
+
     if (this.rssWorker) {
       this.rssWorker.terminate();
       this.rssWorker = null;
@@ -547,6 +576,13 @@ class WorkerService {
     this.messageHandlers.clear();
     this.isInitialized = false;
     Logger.debug("WorkerService: Workers terminated");
+  }
+
+  /**
+   * Stops workers for host-level lifecycle management (non-React callers).
+   */
+  stop(): void {
+    this.terminate();
   }
 }
 

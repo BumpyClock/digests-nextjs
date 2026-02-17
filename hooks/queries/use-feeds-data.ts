@@ -3,7 +3,7 @@ import { workerService } from "@/services/worker-service";
 import { useFeedStore } from "@/store/useFeedStore";
 import type { Feed, FeedItem } from "@/types";
 import { sortByDateDesc } from "@/utils/selectors";
-import { feedsKeys } from "./feedsKeys";
+import { feedsKeys, getSubscriptionUrls } from "./feedsKeys";
 
 /**
  * React Query hook for fetching and managing feeds data
@@ -19,7 +19,7 @@ import { feedsKeys } from "./feedsKeys";
  */
 export function useFeedsData() {
   const subscriptions = useFeedStore((s) => s.subscriptions ?? []);
-  const feedUrls = subscriptions.map((f) => f.feedUrl);
+  const feedUrls = getSubscriptionUrls(subscriptions);
 
   return useQuery({
     queryKey: feedsKeys.list(feedUrls),

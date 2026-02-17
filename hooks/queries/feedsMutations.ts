@@ -10,20 +10,17 @@ import type { Feed, FeedItem } from "@/types";
 import type { Subscription } from "@/types/subscription";
 import { sortByDateDesc, toSubscription } from "@/utils/selectors";
 import { type CacheData, mergeCacheData } from "./feed-cache-utils";
-import { feedsKeys } from "./feedsKeys";
+import { feedsKeys, getSubscriptionUrls, normalizeFeedUrl } from "./feedsKeys";
 
 type FeedMutationContext = {
   previousSubscriptions: Subscription[];
   previousKey: QueryKey;
   previousData?: CacheData;
+  normalizedFeedUrl?: string;
   nextKey?: QueryKey;
 };
 
 const readSubscriptionsSnapshot = () => useFeedStore.getState().subscriptions ?? [];
-const normalizeUrl = (url: string | undefined) => (url || "").trim();
-
-const getSubscriptionUrls = (subscriptions: Subscription[] | undefined) =>
-  Array.from(new Set((subscriptions ?? []).map((s) => normalizeUrl(s.feedUrl)).filter(Boolean)));
 
 const getQueryKey = (subscriptionUrls: string[]) => feedsKeys.list(subscriptionUrls);
 
@@ -123,10 +120,11 @@ export const useRemoveFeedMutation = () => {
     mutationFn: async (feedUrl: string) => ({ feedUrl }),
     onMutate: async (feedUrl) => {
       const previousSubscriptions = [...readSubscriptionsSnapshot()];
+      const normalizedFeedUrl = normalizeFeedUrl(feedUrl);
       const previousUrls = getSubscriptionUrls(previousSubscriptions);
       const previousKey = getQueryKey(previousUrls);
       const nextSubscriptions = previousSubscriptions.filter(
-        (subscription) => subscription.feedUrl !== feedUrl
+        (subscription) => normalizeFeedUrl(subscription.feedUrl) !== normalizedFeedUrl
       );
       const nextUrls = getSubscriptionUrls(nextSubscriptions);
       const nextKey = getQueryKey(nextUrls);
@@ -137,20 +135,25 @@ export const useRemoveFeedMutation = () => {
       const previousData = getFeedCache(queryClient, previousUrls);
       const nextData = previousData
         ? {
-            feeds: previousData.feeds.filter((feed) => feed.feedUrl !== feedUrl),
-            items: previousData.items.filter((item) => item.feedUrl !== feedUrl),
+            feeds: previousData.feeds.filter(
+              (feed) => normalizeFeedUrl(feed.feedUrl) !== normalizedFeedUrl
+            ),
+            items: previousData.items.filter(
+              (item) => normalizeFeedUrl(item.feedUrl) !== normalizedFeedUrl
+            ),
           }
         : { feeds: [], items: [] };
 
       setFeedCache(queryClient, nextUrls, nextData);
-      useFeedStore.getState().removeFeedSubscription(feedUrl);
+      useFeedStore.getState().removeFeedSubscription(normalizedFeedUrl);
 
-      return { previousSubscriptions, previousKey, previousData, nextKey };
+      return { previousSubscriptions, previousKey, previousData, nextKey, normalizedFeedUrl };
     },
-    onSuccess: (_data, feedUrl, context) => {
+    onSuccess: (_data, _feedUrl, context) => {
       const previousSubscriptions = context?.previousSubscriptions ?? [];
       const previousUrls = getSubscriptionUrls(previousSubscriptions);
-      const nextUrls = previousUrls.filter((url) => url !== feedUrl);
+      const normalizedFeedUrl = context?.normalizedFeedUrl ?? "";
+      const nextUrls = previousUrls.filter((url) => url !== normalizedFeedUrl);
 
       if (previousUrls.length !== nextUrls.length) {
         invalidateFeedQuery(queryClient, previousUrls);

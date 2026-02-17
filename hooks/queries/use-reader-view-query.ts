@@ -4,16 +4,11 @@ import { processArticleContent } from "@/components/Feed/ArticleReader";
 import { workerService } from "@/services/worker-service";
 import type { ReaderViewResponse } from "@/types";
 import { hashString } from "@/utils/hash";
+import { readerViewKeys } from "./feedsKeys";
 import { getValidReaderViewOrThrow } from "./reader-view-validation";
 
 const MAX_CACHE_SIZE = 50;
 const readerContentCache = new Map<string, ReturnType<typeof processArticleContent>>();
-
-// Query keys for reader view
-export const readerViewKeys = {
-  all: ["readerView"] as const,
-  byUrl: (url: string) => [...readerViewKeys.all, url] as const,
-} as const;
 
 function setCachedReaderContent(key: string, value: ReturnType<typeof processArticleContent>) {
   if (readerContentCache.size >= MAX_CACHE_SIZE) {

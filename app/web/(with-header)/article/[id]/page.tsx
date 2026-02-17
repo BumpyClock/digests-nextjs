@@ -1,12 +1,13 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Bookmark, ExternalLink, Share2 } from "lucide-react";
+import { Bookmark, ExternalLink, Share2 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { use, useMemo } from "react";
 import { ContentNotFound } from "@/components/ContentNotFound";
+import {
+  ContentDetailShell,
+  ContentDetailToolbar,
+} from "@/components/ContentDetailShell";
 import { ContentPageSkeleton } from "@/components/ContentPageSkeleton";
 import { Button } from "@/components/ui/button";
 import { useFeedsData, useReaderViewQuery } from "@/hooks/queries";
@@ -15,12 +16,12 @@ import { useContentActions } from "@/hooks/use-content-actions";
 import { useToast } from "@/hooks/use-toast";
 import { FeedItem } from "@/types";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
   const queryClient = useQueryClient();
-  const router = useRouter();
-  const { handleBookmark: bookmarkAction, handleShare } = useContentActions("article");
+  const { handleBookmark: bookmarkAction, handleShare } = useContentActions({ contentType: "article" });
   const { toast } = useToast();
 
   // Use React Query to get feeds data
@@ -75,18 +76,13 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
         day: "numeric",
       });
 
+  const linkTitle = readerViewQuery.data?.title || foundArticle.title;
+
   return (
-    <div className="container max-w-3xl py-8">
-      <div className="mb-6">
-        <Button variant="ghost" size="sm" onClick={() => router.back()} className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-        <h1 className="mb-4 text-display-small text-primary-content">
-          {readerViewQuery.data?.title || foundArticle.title}
-        </h1>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-2">
+    <ContentDetailShell title={linkTitle}>
+      <ContentDetailToolbar
+        metadata={
+          <>
             {readerViewQuery.data?.favicon && (
               <Image
                 src={readerViewQuery.data.favicon}
@@ -102,8 +98,10 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
               </p>
               <p className="text-body-small text-secondary-content">{publishedDisplay}</p>
             </div>
-          </div>
-          <div className="flex space-x-2">
+          </>
+        }
+        actions={
+          <>
             <Button variant="ghost" size="icon" onClick={handleBookmark}>
               <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
               <span className="sr-only">Bookmark</span>
@@ -117,50 +115,48 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
               <span className="sr-only">Share</span>
             </Button>
             {foundArticle.link ? (
-              <Link href={foundArticle.link} target="_blank" rel="noopener noreferrer">
-                <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" asChild>
+                <a href={foundArticle.link} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="h-4 w-4" />
                   <span className="sr-only">Open original</span>
-                </Button>
-              </Link>
+                </a>
+              </Button>
             ) : (
               <Button variant="ghost" size="icon" disabled aria-disabled={true} tabIndex={-1}>
                 <ExternalLink className="h-4 w-4" />
                 <span className="sr-only">Open original unavailable</span>
               </Button>
             )}
-          </div>
-        </div>
+          </>
+        }
+      />
 
-        {readerViewQuery.data?.image && (
-          <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-6">
-            <Image
-              src={readerViewQuery.data.image}
-              alt={readerViewQuery.data.title}
-              fill
-              className="object-cover"
-            />
-          </div>
+      {readerViewQuery.data?.image && (
+        <div className="relative aspect-video w-full overflow-hidden rounded-lg mb-6">
+          <Image
+            src={readerViewQuery.data.image}
+            alt={readerViewQuery.data.title}
+            fill
+            className="object-cover"
+          />
+        </div>
+      )}
+
+      <div className="prose prose-sm sm:prose dark:prose-invert w-full md:max-w-4xl">
+        {readerViewQuery.data ? (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: sanitizeReaderContent(readerViewQuery.data.content),
+            }}
+          />
+        ) : (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: sanitizeReaderContent(foundArticle.content || foundArticle.description || ""),
+            }}
+          />
         )}
-
-        <div className="prose prose-sm sm:prose dark:prose-invert w-full md:max-w-4xl">
-          {readerViewQuery.data ? (
-            <div
-              dangerouslySetInnerHTML={{
-                __html: sanitizeReaderContent(readerViewQuery.data.content),
-              }}
-            />
-          ) : (
-            <div
-              dangerouslySetInnerHTML={{
-                __html: sanitizeReaderContent(
-                  foundArticle.content || foundArticle.description || ""
-                ),
-              }}
-            />
-          )}
-        </div>
       </div>
-    </div>
+    </ContentDetailShell>
   );
 }

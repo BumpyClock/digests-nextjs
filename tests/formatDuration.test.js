@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
-import { formatDuration } from "../compiled-tests/formatDuration.js";
+import { formatDuration } from "../utils/formatDuration";
 
 test("handles invalid input", () => {
   assert.strictEqual(formatDuration(-1), "Unknown duration");

@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
-import { mergeCacheData } from "../compiled-tests/hooks/queries/feed-cache-utils.js";
+import { mergeCacheData } from "../hooks/queries/feed-cache-utils";
 
 const baseData = {
   feeds: [

@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { CardContent, CardFooter as CardFooterUI } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
-import { useIsInReadLater, useIsItemRead, useReadLaterActions } from "@/hooks/useFeedSelectors";
+import { useIsItemRead } from "@/hooks/useFeedSelectors";
 import { getFeedAnimationIds } from "@/lib/feed-animation-ids";
 import { motionTokens } from "@/lib/motion-tokens";
 import {
@@ -23,11 +23,11 @@ import {
 } from "@/lib/view-transitions";
 import type { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
-import { handleShare, showReadLaterToast } from "@/utils/content-actions";
 import { formatDuration } from "@/utils/formatDuration";
 import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
 import { canUseImageKit, getImageKitUrl, IMAGE_PRESETS } from "@/utils/imagekit";
 import { isValidUrl } from "@/utils/url";
+import { useContentActions } from "@/hooks/use-content-actions";
 
 dayjs.extend(relativeTime);
 
@@ -47,27 +47,14 @@ export interface FeedCardProps {
  * CardFooter component for displaying action buttons (play, bookmark, share).
  */
 const CardFooter = memo(function CardFooter({ feedItem }: { feedItem: FeedItem }) {
-  const isInReadLaterList = useIsInReadLater(feedItem.id);
-  const { addToReadLater, removeFromReadLater } = useReadLaterActions();
+  const contentType = isPodcast(feedItem) ? "podcast" : "article";
+  const { isInReadLater, toggleReadLater, handleShare } = useContentActions({
+    contentType,
+    itemId: feedItem.id,
+  });
 
-  const onShare = () => {
-    handleShare(
-      feedItem.link,
-      feedItem.title,
-      feedItem.description,
-      isPodcast(feedItem) ? "podcast" : "article"
-    );
-  };
-
-  const onReadLater = () => {
-    const wasInReadLater = isInReadLaterList;
-    if (wasInReadLater) {
-      removeFromReadLater(feedItem.id);
-    } else {
-      addToReadLater(feedItem.id);
-    }
-    showReadLaterToast(wasInReadLater, isPodcast(feedItem) ? "podcast" : "article");
-  };
+  const onShare = () => handleShare(feedItem.link, feedItem.title, feedItem.description);
+  const onReadLater = () => toggleReadLater();
 
   return (
     <CardFooterUI className="p-4 pt-0 flex justify-between">
@@ -77,7 +64,7 @@ const CardFooter = memo(function CardFooter({ feedItem }: { feedItem: FeedItem }
         )}
 
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onReadLater}>
-          <Bookmark className={`h-4 w-4 ${isInReadLaterList ? "fill-red-500 text-red-500" : ""}`} />
+          <Bookmark className={`h-4 w-4 ${isInReadLater ? "fill-red-500 text-red-500" : ""}`} />
           <span className="sr-only">Read Later</span>
         </Button>
 

@@ -13,7 +13,9 @@
     "format:fix": "biome format --write .",
     "generate:themes": "node scripts/generate-theme-css.mjs",
     "generate:design-tokens": "bun scripts/generate-design-tokens-css.mjs",
-    "test": "node scripts/pretest.js && node --test tests/*.js",
+    "test": "node scripts/run-bun-tests.js",
+    "test:node": "node --test tests/*.js",
+    "test:run": "bun test ./tests",
     "check:migration": "node scripts/check-feeditems.js",
     "lint:migration": "bun run check:migration && bun run lint",
     "prebuild": "bun run check:migration && bun run generate:design-tokens"

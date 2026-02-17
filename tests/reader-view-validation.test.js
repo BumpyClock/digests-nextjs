@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
-import { getValidReaderViewOrThrow } from "../compiled-tests/hooks/queries/reader-view-validation.js";
+import { getValidReaderViewOrThrow } from "../hooks/queries/reader-view-validation";
 
 const okResult = {
   success: true,

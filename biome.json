@@ -24,7 +24,6 @@
       "**",
       "!!**/.next",
       "!!**/node_modules",
-      "!!**/compiled-tests",
       "!!**/coverage",
       "!!**/.turbo",
       "!**/pnpm-lock.yaml",

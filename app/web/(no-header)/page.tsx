@@ -1,6 +1,6 @@
 "use client";
 
-import { Columns, LayoutGrid, Settings, X } from "lucide-react";
+import { Columns, LayoutGrid, Settings } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import { FEED_REFRESHED_EVENT, FeedGrid } from "@/components/Feed/FeedGrid/FeedG
 import { FeedMasterDetail } from "@/components/Feed/FeedMasterDetail/FeedMasterDetail";
 import { RefreshButton } from "@/components/RefreshButton";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // React Query imports
 import { useFeedBackgroundSync, useFeedsData, useRefreshFeedsMutation } from "@/hooks/queries";
@@ -20,8 +20,17 @@ import type { FeedItem } from "@/types";
 import { Logger } from "@/utils/logger";
 import { normalizeUrl } from "@/utils/url";
 import { WebSettingsTabs } from "./settings/components/web-settings-tabs";
+import { SettingsShell } from "./settings/components/settings-shell";
 
 const useHydration = () => useHydratedStore(() => true, false);
+type FeedTabKey = "all" | "unread" | "articles" | "podcasts" | "readLater";
+type FeedTabConfig = {
+  value: FeedTabKey;
+  label: string;
+  count: number;
+  items: FeedItem[];
+  triggerClassName?: string;
+};
 
 /**
  * Renders the main feed reader interface with tabbed navigation, search, filtering, and view mode toggling.
@@ -32,7 +41,7 @@ function WebPageContent() {
   const isHydrated = useHydration();
   const [searchQuery, setSearchQuery] = useState("");
   const [appliedSearchQuery, setAppliedSearchQuery] = useState("");
-  const [selectedTab, setSelectedTab] = useState("unread");
+  const [selectedTab, setSelectedTab] = useState<FeedTabKey>("unread");
   const [viewMode, setViewMode] = useState<"grid" | "masterDetail">("grid");
   const isMasterDetailMode = viewMode === "masterDetail";
   const masterDetailContainerClass = isMasterDetailMode ? "h-dvh" : "";
@@ -283,11 +292,39 @@ function WebPageContent() {
   }, [router]);
 
   const handleTabChange = useCallback((value: string) => {
-    setSelectedTab(value);
+    setSelectedTab(value as FeedTabKey);
   }, []);
   const tabsContentClassName = ["mt-0", viewMode === "masterDetail" && "flex-1 min-h-0"]
     .filter(Boolean)
     .join(" ");
+  const tabConfig: FeedTabConfig[] = [
+    { value: "all", label: "All", count: categorized.all.length, items: categorized.all },
+    {
+      value: "unread",
+      label: "Unread",
+      count: filteredUnreadItems.length,
+      items: filteredUnreadItems,
+      triggerClassName: "relative",
+    },
+    {
+      value: "articles",
+      label: "Articles",
+      count: categorized.unreadArticleCount,
+      items: categorized.articles,
+    },
+    {
+      value: "podcasts",
+      label: "Podcasts",
+      count: categorized.unreadPodcastCount,
+      items: categorized.podcasts,
+    },
+    {
+      value: "readLater",
+      label: "Read Later",
+      count: categorized.unreadReadLaterCount,
+      items: categorized.readLater,
+    },
+  ];
 
   return (
     <div
@@ -315,26 +352,12 @@ function WebPageContent() {
               </button>
             )}
             <TabsList className="w-full justify-start overflow-x-auto sm:w-auto">
-              <TabsTrigger value="all">
-                All
-                {categorized.all.length > 0 && ` (${categorized.all.length})`}
-              </TabsTrigger>
-              <TabsTrigger value="unread" className="relative">
-                Unread
-                {filteredUnreadItems.length > 0 && ` (${filteredUnreadItems.length})`}
-              </TabsTrigger>
-              <TabsTrigger value="articles">
-                Articles
-                {categorized.unreadArticleCount > 0 && ` (${categorized.unreadArticleCount})`}
-              </TabsTrigger>
-              <TabsTrigger value="podcasts">
-                Podcasts
-                {categorized.unreadPodcastCount > 0 && ` (${categorized.unreadPodcastCount})`}
-              </TabsTrigger>
-              <TabsTrigger value="readLater">
-                Read Later
-                {categorized.unreadReadLaterCount > 0 && ` (${categorized.unreadReadLaterCount})`}
-              </TabsTrigger>
+              {tabConfig.map((tab) => (
+                <TabsTrigger key={tab.value} value={tab.value} className={tab.triggerClassName}>
+                  {tab.label}
+                  {tab.count > 0 && ` (${tab.count})`}
+                </TabsTrigger>
+              ))}
             </TabsList>
           </div>
 
@@ -378,50 +401,16 @@ function WebPageContent() {
           </div>
         </div>
 
-        <TabsContent value="all" className={tabsContentClassName}>
-          <FeedTabContent
-            items={categorized.all}
-            isLoading={isLoading}
-            viewMode={viewMode}
-            filterKey={filterKey}
-          />
-        </TabsContent>
-
-        <TabsContent value="unread" className={tabsContentClassName}>
-          <FeedTabContent
-            items={filteredUnreadItems}
-            isLoading={isLoading}
-            viewMode={viewMode}
-            filterKey={filterKey}
-          />
-        </TabsContent>
-
-        <TabsContent value="articles" className={tabsContentClassName}>
-          <FeedTabContent
-            items={categorized.articles}
-            isLoading={isLoading}
-            viewMode={viewMode}
-            filterKey={filterKey}
-          />
-        </TabsContent>
-
-        <TabsContent value="podcasts" className={tabsContentClassName}>
-          <FeedTabContent
-            items={categorized.podcasts}
-            isLoading={isLoading}
-            viewMode={viewMode}
-            filterKey={filterKey}
-          />
-        </TabsContent>
-
-        <TabsContent value="readLater" className={tabsContentClassName}>
-          <FeedTabContent
-            items={categorized.readLater}
-            isLoading={isLoading}
-            viewMode={viewMode}
-            filterKey={filterKey}
-          />
-        </TabsContent>
+        {tabConfig.map((tab) => (
+          <TabsContent key={tab.value} value={tab.value} className={tabsContentClassName}>
+            <FeedTabContent
+              items={tab.items}
+              isLoading={isLoading}
+              viewMode={viewMode}
+              filterKey={filterKey}
+            />
+          </TabsContent>
+        ))}
       </Tabs>
 
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
@@ -430,28 +419,9 @@ function WebPageContent() {
           className="h-[92dvh] w-[96vw] max-w-6xl gap-0 overflow-hidden border bg-background p-0 data-[state=open]:duration-200 data-[state=closed]:duration-150 data-[state=open]:ease-out data-[state=closed]:ease-out motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none"
         >
           <DialogTitle className="sr-only">Settings</DialogTitle>
-          <div className="flex h-full min-h-0 flex-col">
-            <div className="flex shrink-0 items-center justify-between border-b bg-card/40 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <Settings className="h-4 w-4 text-secondary-content" />
-                <p className="text-label text-primary-content">Settings</p>
-              </div>
-              <DialogClose asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Close settings dialog"
-                  title="Close settings dialog"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </DialogClose>
-            </div>
-
-            <div className="min-h-0 flex-1 p-3 sm:p-4">
-              <WebSettingsTabs />
-            </div>
-          </div>
+          <SettingsShell variant="modal">
+            <WebSettingsTabs />
+          </SettingsShell>
         </DialogContent>
       </Dialog>
     </div>

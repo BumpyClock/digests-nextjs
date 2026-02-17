@@ -10,12 +10,13 @@ import { Logger } from "@/utils/logger";
  * This component should be included in the application's root layout to ensure the worker service is started when the app loads and terminated when the component unmounts.
  *
  * @remark Registers a service worker from `/sw.js` if supported by the browser. Logs an error to the console if registration fails.
+ * For non-React hosts, use `workerService.start()` and `workerService.stop()` directly.
  */
 export function WorkerInitializer() {
   useEffect(() => {
     // Initialize worker service
     Logger.debug("Initializing worker service");
-    workerService.initialize();
+    workerService.start();
 
     // Register PWA service worker if supported
     if ("serviceWorker" in navigator) {
@@ -26,7 +27,7 @@ export function WorkerInitializer() {
 
     // Cleanup on unmount
     return () => {
-      workerService.terminate();
+      workerService.stop();
     };
   }, []);
 

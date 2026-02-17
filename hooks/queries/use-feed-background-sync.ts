@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { feedsKeys } from "./feedsKeys";
 
 /**
  * Hook for tracking new feed items via React Query cache updates
@@ -26,7 +27,7 @@ export function useFeedBackgroundSync() {
       const key = event.query.queryKey;
 
       // Only track feeds list queries (not details or other query types)
-      if (!(Array.isArray(key) && key[0] === "feeds" && key[1] === "list")) {
+      if (!feedsKeys.isList(key)) {
         return;
       }
 

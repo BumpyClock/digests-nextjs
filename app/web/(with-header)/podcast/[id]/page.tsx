@@ -1,11 +1,15 @@
 "use client";
 
-import { ArrowLeft, Bookmark, Share2 } from "lucide-react";
+import { Bookmark, Share2 } from "lucide-react";
 import Image from "next/image";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { fetchFeedsAction } from "@/app/actions";
 import { ContentNotFound } from "@/components/ContentNotFound";
+import {
+  ContentDetailShell,
+  ContentDetailToolbar,
+} from "@/components/ContentDetailShell";
 import { ContentPageSkeleton } from "@/components/ContentPageSkeleton";
 import { Button } from "@/components/ui/button";
 import { useContentActions } from "@/hooks/use-content-actions";
@@ -20,9 +24,8 @@ export default function PodcastPage() {
   const [podcast, setPodcast] = useState<FeedItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const router = useRouter();
   const { playAudio } = useAudioActions();
-  const { handleBookmark: bookmarkAction, handleShare } = useContentActions("podcast");
+  const { handleBookmark: bookmarkAction, handleShare } = useContentActions({ contentType: "podcast" });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -49,9 +52,7 @@ export default function PodcastPage() {
         }
 
         if (success && items) {
-          const foundPodcast = items.find(
-            (item: FeedItem) => item.id === id && item.type === "podcast"
-          );
+          const foundPodcast = items.find((item: FeedItem) => item.id === id && item.type === "podcast");
 
           if (foundPodcast) {
             setPodcast(foundPodcast);
@@ -117,63 +118,62 @@ export default function PodcastPage() {
     return <ContentNotFound contentType="Podcast" />;
   }
 
+  const publishedDisplay = new Date(podcast.published).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
-    <div className="container max-w-3xl py-8">
-      <div className="mb-6">
-        <Button variant="ghost" size="sm" onClick={() => router.back()} className="mb-4">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-        <div className="flex flex-col md:flex-row gap-6 mb-6">
-          <div className="relative w-full md:w-1/3 aspect-square overflow-hidden rounded-lg">
-            <Image
-              src={podcast.thumbnail || "/placeholder-podcast.svg"}
-              alt={podcast.title}
-              className="object-cover"
-              fill
-              sizes="(max-width: 768px) 100vw, 33vw"
-            />
+    <ContentDetailShell title={podcast.title} titleClassName="mb-2">
+      <div className="flex gap-6 mb-6 flex-col md:flex-row">
+        <div className="relative aspect-square overflow-hidden rounded-lg w-full md:w-1/3">
+          <Image
+            src={podcast.thumbnail || "/placeholder-podcast.svg"}
+            alt={podcast.title}
+            className="object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, 33vw"
+          />
+        </div>
+        <div className="flex-1">
+          <ContentDetailToolbar
+            metadata={
+              <>
+                <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center mr-2">
+                  {publisherInitial}
+                </div>
+                <p className="text-subtitle text-primary-content">{publisher}</p>
+              </>
+            }
+            className="mb-4"
+          />
+          <p className="mb-4 text-body-small text-secondary-content">
+            {publishedDisplay} {podcast.duration ? `• ${podcast.duration}` : ""}
+          </p>
+          <div className="mb-6 flex space-x-2">
+            <Button onClick={handlePlay}>Play Episode</Button>
+            <Button variant="outline" onClick={handleBookmark}>
+              <Bookmark className={`mr-2 h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
+              {isBookmarked ? "Saved" : "Save"}
+            </Button>
+            <Button variant="outline" onClick={() => handleShare(podcast.link, podcast.title)}>
+              <Share2 className="mr-2 h-4 w-4" />
+              Share
+            </Button>
           </div>
-          <div className="flex-1">
-            <h1 className="mb-2 text-display-small text-primary-content">{podcast.title}</h1>
-            <div className="flex items-center mb-4">
-              <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center mr-2">
-                {publisherInitial}
-              </div>
-              <p className="text-subtitle text-primary-content">{publisher}</p>
-            </div>
-            <p className="mb-4 text-body-small text-secondary-content">
-              {new Date(podcast.published).toLocaleDateString(undefined, {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}{" "}
-              {podcast.duration ? `• ${podcast.duration}` : ""}
-            </p>
-            <div className="flex space-x-2 mb-6">
-              <Button onClick={handlePlay}>Play Episode</Button>
-              <Button variant="outline" onClick={handleBookmark}>
-                <Bookmark className={`mr-2 h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
-                {isBookmarked ? "Saved" : "Save"}
-              </Button>
-              <Button variant="outline" onClick={() => handleShare(podcast.link, podcast.title)}>
-                <Share2 className="mr-2 h-4 w-4" />
-                Share
-              </Button>
-            </div>
-            <div className="space-y-4">
-              <h2 className="text-title-large text-primary-content">Episode Description</h2>
-              <div className="prose prose-sm dark:prose-invert">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: sanitizeReaderContent(podcast.content || podcast.description || ""),
-                  }}
-                />
-              </div>
+          <div className="space-y-4">
+            <h2 className="text-title-large text-primary-content">Episode Description</h2>
+            <div className="prose prose-sm dark:prose-invert">
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: sanitizeReaderContent(podcast.content || podcast.description || ""),
+                }}
+              />
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </ContentDetailShell>
   );
 }

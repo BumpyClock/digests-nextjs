@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import test from "node:test";
-import { normalizeUrl } from "../compiled-tests/url.js";
+import { normalizeUrl } from "../utils/url";
 
 test("removes protocol and trailing slash", () => {
   assert.strictEqual(normalizeUrl("https://example.com/"), "example.com");

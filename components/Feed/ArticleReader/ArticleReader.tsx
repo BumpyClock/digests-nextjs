@@ -14,7 +14,7 @@ import { ArticleContent } from "./ArticleContent";
 // Import extracted components
 import { ArticleHeader } from "./ArticleHeader";
 import { ArticleMetadata } from "./ArticleMetadata";
-import { useArticleActions } from "./hooks/use-article-actions";
+import { useContentActions } from "@/hooks/use-content-actions";
 
 interface ArticleReaderProps {
   feedItem: FeedItem;
@@ -30,7 +30,8 @@ interface ArticleReaderProps {
  */
 export const ArticleReader = memo<ArticleReaderProps>(
   ({ feedItem, readerView, layout = "standard", loading = false }) => {
-    const { isInReadLater, toggleReadLater, markAsRead } = useArticleActions({
+    const { handleShare, isInReadLater, markAsRead, toggleReadLater } = useContentActions({
+      contentType: "article",
       itemId: feedItem.id,
     });
 
@@ -48,11 +49,9 @@ export const ArticleReader = memo<ArticleReaderProps>(
     const actionsComponent = (
       <ArticleActions
         item={{
-          id: feedItem.id,
-          title: feedItem.title,
-          description: feedItem.description,
           link: feedItem.link,
         }}
+        onShare={() => handleShare(feedItem.link, feedItem.title, feedItem.description)}
         isInReadLater={isInReadLater}
         onReadLaterToggle={toggleReadLater}
         layout={layout}

@@ -3,14 +3,10 @@
 import { Bookmark, ExternalLink, Share2 } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { handleShare, showReadLaterToast } from "@/utils/content-actions";
 
 interface ArticleActionsProps {
   /** The article/feed item */
   item: {
-    id: string;
-    title: string;
-    description?: string;
     link: string;
   };
   /** Whether the item is in read later list */
@@ -21,6 +17,8 @@ interface ArticleActionsProps {
   className?: string;
   /** Layout variant */
   layout?: "standard" | "compact" | "modal";
+  /** Share callback */
+  onShare: () => void;
 }
 
 /**
@@ -31,17 +29,12 @@ export const ArticleActions: React.FC<ArticleActionsProps> = ({
   item,
   isInReadLater,
   onReadLaterToggle,
+  onShare,
   className = "",
   layout = "standard",
 }) => {
-  const onShare = () => {
-    handleShare(item.link, item.title, item.description, "article");
-  };
-
   const onReadLaterClick = () => {
-    const wasInReadLater = isInReadLater; // Capture state before toggle
     onReadLaterToggle();
-    showReadLaterToast(wasInReadLater, "article");
   };
 
   const isCompact = layout === "compact";
