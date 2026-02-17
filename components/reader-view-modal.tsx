@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { ReaderContent } from "@/components/Feed/ReaderContent";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { AdaptiveDetailContainer } from "@/components/Feed/shared/AdaptiveDetailContainer";
 import { useReaderView } from "@/hooks/queries";
 import { useDelayedMarkAsRead } from "@/hooks/use-delayed-mark-as-read";
 import { useScrollShadow } from "@/hooks/use-scroll-shadow";
 import { FeedItem } from "@/types";
-import { BaseModal } from "./base-modal";
 import { ScrollShadow } from "./ui/scroll-shadow";
 
 const OPEN_TRANSITION_DELAY_MS = 300;
@@ -87,11 +87,12 @@ export function ReaderViewModal({
   }, [isOpen]);
 
   return (
-    <BaseModal
+    <AdaptiveDetailContainer
+      mode="modal"
       isOpen={isOpen}
       onClose={onClose}
       title={readerView?.title || "Loading..."}
-      className=""
+      itemId={feedItem.id}
       useViewTransition={useViewTransition}
       viewTransitionBackdropSettled={viewTransitionBackdropSettled}
       viewTransitionBackdropSettleMs={useViewTransition ? OPEN_TRANSITION_DELAY_MS : undefined}
@@ -116,6 +117,6 @@ export function ReaderViewModal({
 
         <ScrollShadow visible={!transitionInProgress && isBottomVisible} position="bottom" />
       </div>
-    </BaseModal>
+    </AdaptiveDetailContainer>
   );
 }

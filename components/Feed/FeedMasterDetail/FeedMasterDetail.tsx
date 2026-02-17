@@ -92,11 +92,11 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
           ) : (
             <div className={`mobile-reader-view ${getAnimationClass()}`}>
               <div className="mobile-reader-back-button">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleBackToList}
-                  className="flex items-center gap-1"
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleBackToList}
+                    className="flex items-center gap-1"
                 >
                   <ArrowLeft className="h-4 w-4" />
                   Back to list
@@ -104,9 +104,9 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
               </div>
               <div className="mobile-reader-content">
                 {selectedItem && isPodcast(selectedItem) ? (
-                  <PodcastDetailsPane feedItem={selectedItem} />
+                  <PodcastDetailsPane feedItem={selectedItem} onClose={handleBackToList} />
                 ) : (
-                  <ReaderViewPane feedItem={selectedItem} />
+                  <ReaderViewPane feedItem={selectedItem} onClose={handleBackToList} />
                 )}
               </div>
             </div>
@@ -134,9 +134,9 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
 
           <ResizablePanel defaultSize="70%">
             {selectedItem && isPodcast(selectedItem) ? (
-              <PodcastDetailsPane feedItem={selectedItem} />
+              <PodcastDetailsPane feedItem={selectedItem} onClose={handleBackToList} />
             ) : (
-              <ReaderViewPane feedItem={selectedItem} />
+              <ReaderViewPane feedItem={selectedItem} onClose={handleBackToList} />
             )}
           </ResizablePanel>
         </ResizablePanelGroup>

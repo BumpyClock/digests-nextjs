@@ -3,17 +3,24 @@
 import { useCallback, useEffect, useRef } from "react";
 import { EmptyState } from "@/components/Feed/ArticleReader";
 import { ReaderContent } from "@/components/Feed/ReaderContent";
-import { DetailPaneShell } from "@/components/Feed/shared/DetailPaneShell";
+import { AdaptiveDetailContainer } from "@/components/Feed/shared/AdaptiveDetailContainer";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useReaderView } from "@/hooks/queries";
 import { useDelayedMarkAsRead } from "@/hooks/use-delayed-mark-as-read";
 import { type FeedItem } from "@/types";
+import { useIsMobile } from "@/hooks/use-media-query";
 
 interface ReaderViewPaneProps {
   feedItem: FeedItem | null;
+  onClose?: () => void;
 }
 
-export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
+const noop = () => {
+  // Intentionally empty: close callback is optional for pane mode.
+};
+
+export function ReaderViewPane({ feedItem, onClose = noop }: ReaderViewPaneProps) {
+  const isMobile = useIsMobile();
   const { markNow } = useDelayedMarkAsRead(feedItem?.id, Boolean(feedItem), 2000);
   const { readerView, loading, cleanedContent } = useReaderView(feedItem?.link || "");
   const scrollableNodeRef = useRef<HTMLDivElement>(null);
@@ -41,7 +48,13 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
   }
 
   return (
-    <DetailPaneShell>
+    <AdaptiveDetailContainer
+      isOpen
+      onClose={onClose}
+      title={feedItem.title}
+      itemId={feedItem.id}
+      mode="adaptive"
+    >
       <ScrollArea
         className="h-full w-full"
         onScroll={handleScroll}
@@ -52,9 +65,9 @@ export function ReaderViewPane({ feedItem }: ReaderViewPaneProps) {
           readerView={readerView}
           loading={loading}
           cleanedContent={cleanedContent}
-          layout="standard"
+          layout={isMobile ? "modal" : "standard"}
         />
       </ScrollArea>
-    </DetailPaneShell>
+    </AdaptiveDetailContainer>
   );
 }

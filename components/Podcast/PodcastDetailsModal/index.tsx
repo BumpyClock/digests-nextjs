@@ -1,7 +1,7 @@
 "use client";
 import { Download, ExternalLink, Share2 } from "lucide-react";
 import { toast } from "sonner";
-import { BaseModal } from "@/components/base-modal";
+import { AdaptiveDetailContainer } from "@/components/Feed/shared/AdaptiveDetailContainer";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import type { FeedItem } from "@/types";
@@ -67,7 +67,13 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast }: PodcastDetails
   );
 
   return (
-    <BaseModal isOpen={isOpen} onClose={onClose} title={podcast.title} itemId={podcast.id}>
+    <AdaptiveDetailContainer
+      isOpen={isOpen}
+      onClose={onClose}
+      title={podcast.title}
+      itemId={podcast.id}
+      mode="modal"
+    >
       <ScrollArea variant="modal" className="h-full sm:h-[calc(95vh-2rem)]">
         <div className="p-4 sm:p-6 md:p-8 lg:p-10">
           <PodcastDetailsContent
@@ -78,6 +84,6 @@ export function PodcastDetailsModal({ isOpen, onClose, podcast }: PodcastDetails
           />
         </div>
       </ScrollArea>
-    </BaseModal>
+    </AdaptiveDetailContainer>
   );
 }
