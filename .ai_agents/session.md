@@ -12,6 +12,7 @@
 - Updated `docs/feed-pipeline-namespace-plan.md` to finalize shim-free boundaries and make stale path references explicit.
 - Confirmed no further docs changes are required in `docs/architecture-boundaries-and-refactor-rules.md`.
 - Added this session summary and finalization note for continuity.
+- Commit: `640f4dc` (docs update finalizing feed pipeline shim cleanup status).
 
 ### Learnings
 - Historical migration notes can become inconsistent after execution; a final docs pass should normalize wording from "compatibility shim" language to "shim-free steady state".

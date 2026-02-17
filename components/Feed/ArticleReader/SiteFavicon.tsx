@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { memo } from "react";
-import { getImageProps } from "@/utils/image-config";
-import { isValidImageUrl, normalizeImageUrl } from "@/utils/image-url";
+import { getImageProps } from "@/utils/images/image-config";
+import { isValidImageUrl, normalizeImageUrl } from "@/utils/images/image-url";
 
 interface SiteFaviconProps {
   favicon: string;

@@ -27,7 +27,7 @@ import type { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
 import { formatDuration } from "@/utils/formatDuration";
 import { cleanupTextContent } from "@/utils/htmlUtils";
-import { canUseImageKit, getImageKitUrl, IMAGE_PRESETS } from "@/utils/imagekit";
+import { canUseImageKit, getImageKitUrl, IMAGE_PRESETS } from "@/utils/images/imagekit";
 import { isValidUrl } from "@/utils/url";
 import { useContentActions } from "@/hooks/use-content-actions";
 

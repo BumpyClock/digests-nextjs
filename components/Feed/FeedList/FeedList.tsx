@@ -188,7 +188,7 @@ export function FeedList({
       >
         <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
           {virtualizer.getVirtualItems().map((virtualItem) => {
-            const item = items[virtualItem.index];
+            const item = normalizedItems[virtualItem.index];
             if (!item) {
               return null;
             }

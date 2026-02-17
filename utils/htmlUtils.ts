@@ -1,4 +1,4 @@
-import { deduplicateHtmlImages } from "@/utils/imageDeduplicator";
+import { deduplicateHtmlImages } from "@/utils/images";
 
 // Simple cache for text cleanup (only the function that's still widely used)
 const textCleanupCache = new Map<string, string>();

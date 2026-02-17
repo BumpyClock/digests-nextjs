@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Ambilight } from "@/components/ui/ambilight";
 import { ProgressiveImage } from "@/components/ui/progressive-image";
 import { cn } from "@/lib/utils";
-import { getImageProps } from "@/utils/image-config";
+import { getImageProps } from "@/utils/images/image-config";
 
 interface PodcastArtworkProps {
   src?: string;

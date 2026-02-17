@@ -3,8 +3,8 @@
 import Image from "next/image";
 import React, { memo } from "react";
 import { ProgressiveImage } from "@/components/ui/progressive-image";
-import { isValidImageUrl, normalizeImageUrl } from "@/utils/image-url";
-import { canUseImageKit } from "@/utils/imagekit";
+import { isValidImageUrl, normalizeImageUrl } from "@/utils/images/image-url";
+import { canUseImageKit } from "@/utils/images/imagekit";
 
 interface ArticleImageProps {
   src: string;

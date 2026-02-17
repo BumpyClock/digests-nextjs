@@ -40,8 +40,7 @@ export function AdaptiveDetailContainer({
     return null;
   }
 
-  const useModal =
-    mode === "modal" || (mode === "adaptive" && isMobile);
+  const useModal = mode === "modal" || (mode === "adaptive" && isMobile);
 
   if (useModal) {
     return (
@@ -62,4 +61,3 @@ export function AdaptiveDetailContainer({
 
   return <DetailPaneShell className={className}>{children}</DetailPaneShell>;
 }
-

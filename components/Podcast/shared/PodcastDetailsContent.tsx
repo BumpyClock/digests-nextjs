@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { FeedItem } from "@/types";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
 import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
-import { getImageProps } from "@/utils/image-config";
+import { getImageProps } from "@/utils/images/image-config";
 import { isValidUrl } from "@/utils/url";
 import { PodcastArtwork } from "../PodcastArtwork";
 import { PodcastMetadata } from "../PodcastMetadata";

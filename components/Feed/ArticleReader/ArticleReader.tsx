@@ -8,7 +8,7 @@ import { useIsMobile } from "@/hooks/use-media-query";
 import { motionTokens } from "@/lib/motion-tokens";
 import type { FeedItem, ReaderViewResponse } from "@/types";
 import { cleanupModalContent } from "@/utils/htmlUtils";
-import { cleanupMarkdownContent } from "@/utils/imageDeduplicator";
+import { cleanupMarkdownContent } from "@/utils/images/imageDeduplicator";
 import { ArticleActions } from "./ArticleActions";
 import { ArticleContent } from "./ArticleContent";
 // Import extracted components

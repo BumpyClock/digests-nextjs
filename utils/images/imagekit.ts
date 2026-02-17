@@ -157,3 +157,5 @@ export function canUseImageKit(url: string): boolean {
   // For now, we'll assume all HTTPS images can be proxied
   return url.startsWith("https://");
 }
+
+export type { ImageKitTransformOptions };
