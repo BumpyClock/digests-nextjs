@@ -9,8 +9,12 @@
  */
 
 import { useShallow } from "zustand/react/shallow";
+import { useMemo } from "react";
 import { useFeedStore } from "@/store/useFeedStore";
+import { useFeedsData } from "@/hooks/queries/use-feeds-data";
 import type { FeedItem } from "@/types";
+import type { Feed } from "@/types";
+import type { Subscription } from "@/types/subscription";
 
 /**
  * Hook to check if a specific item is read
@@ -64,8 +68,17 @@ export const useReadLaterActions = (): {
   );
 };
 
-export const useSubscriptions = () => {
-  return useFeedStore((state) => state.subscriptions ?? []);
+export const useSubscriptions = (): Array<Feed | Subscription> => {
+  const storedSubscriptions = useFeedStore((state) => state.subscriptions ?? []);
+  const { data } = useFeedsData();
+
+  return useMemo(() => {
+    if (data?.feeds && data.feeds.length > 0) {
+      return data.feeds;
+    }
+
+    return storedSubscriptions;
+  }, [data?.feeds, storedSubscriptions]);
 };
 
 /**
