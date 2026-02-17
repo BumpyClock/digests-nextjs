@@ -49,11 +49,10 @@ export type { FeedFetcherConfig, IFeedFetcher } from "./contracts/fetcher.interf
 
 2. Move shared contracts first
    - Move `lib/interfaces/feed-fetcher.interface.ts`.
-   - Update any direct contract consumers (currently `lib/feed-fetcher.ts`, `lib/rss.ts`, `services/worker-service/service.ts`).
+   - Update direct contract consumers (`services/worker-service/service.ts`) to consume the namespace contract path.
 
 3. Move data API client and transformation
    - Move `lib/feed-api-client.ts` into namespace and update imports from:
-     - `lib/rss.ts`
      - `workers/rss-worker.ts` (currently imports only API fetchers)
    - Move `lib/feed-transformer.ts` into namespace and replace internal path references.
 
@@ -63,6 +62,7 @@ export type { FeedFetcherConfig, IFeedFetcher } from "./contracts/fetcher.interf
 
 5. Move validation helper
    - Move `utils/feed-validator.ts` into namespace and update any current/new usage.
+   - Verify no compatibility shim remains at the old path.
 
 6. Update orchestrators
    - Update `services/worker-service/service.ts` and `workers/rss-worker.ts` imports to namespace index.
@@ -79,5 +79,5 @@ export type { FeedFetcherConfig, IFeedFetcher } from "./contracts/fetcher.interf
 ## Suggested acceptance checks
 - All feed pipeline orchestration imports resolve from `lib/feed-pipeline/*`.
 - Worker layer (`workers/rss-worker.ts`) still depends only on `types`, `lib`, and standard utilities.
-- No new direct dependency from worker/service into `utils/feed-validator.ts`.
+- No direct dependency from worker/service into removed old paths (`lib/feed-api-client.ts`, `lib/rss.ts`, `lib/feed-fetcher.ts`, `lib/interfaces/feed-fetcher.interface.ts`, `lib/feed-transformer.ts`, `utils/feed-validator.ts`).
 - No feed pipeline code lives outside the namespace except docs/tests and worker entrypoints.
