@@ -42,7 +42,7 @@ export function WebSettingsTabs({
 
       <div className={cn("min-h-0 flex-1 overflow-auto", contentWrapperClassName)}>
         {SETTINGS_TABS.map(({ value, Content }) => (
-          <TabsContent key={value} value={value} className={value === "feeds" ? "mt-0 h-full" : "mt-0"}>
+          <TabsContent key={value} value={value} className="mt-0">
             <Content />
           </TabsContent>
         ))}
