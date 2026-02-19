@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useRef } from "react";
 import { ReaderContent } from "@/components/Feed/ReaderContent";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useReaderView } from "@/hooks/queries";
@@ -50,6 +50,7 @@ export function ReaderViewModal({
     isOpen
   );
   const [transitionInProgress, dispatchTransition] = useReducer(transitionReducer, isOpen);
+  const wasOpenRef = useRef(isOpen);
   const { isBottomVisible, handleScroll, hasScrolled } = useScrollShadow();
   const markAsRead = useFeedStore(selectMarkAsRead);
   const feedItemId = feedItem.id;
@@ -71,18 +72,23 @@ export function ReaderViewModal({
   }, [isOpen, feedItemId, markAsRead]);
 
   useEffect(() => {
-    if (isOpen === transitionInProgress) {
-      return;
+    const wasOpen = wasOpenRef.current;
+    wasOpenRef.current = isOpen;
+
+    if (isOpen && !wasOpen) {
+      const frameId = window.requestAnimationFrame(() => {
+        dispatchTransition({ type: "sync_open_state", isOpen: true });
+      });
+
+      return () => {
+        window.cancelAnimationFrame(frameId);
+      };
     }
 
-    const frameId = window.requestAnimationFrame(() => {
-      dispatchTransition({ type: "sync_open_state", isOpen });
-    });
-
-    return () => {
-      window.cancelAnimationFrame(frameId);
-    };
-  }, [isOpen, transitionInProgress]);
+    if (!isOpen && wasOpen) {
+      dispatchTransition({ type: "sync_open_state", isOpen: false });
+    }
+  }, [isOpen]);
 
   // Keep first paint light, then mount heavy reader content after open transition settles.
   useEffect(() => {

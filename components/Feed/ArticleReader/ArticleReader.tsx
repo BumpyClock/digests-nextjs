@@ -2,7 +2,7 @@
 
 import { memo, useEffect } from "react";
 import "./ArticleReader.css";
-import { motion } from "motion/react";
+import { LazyMotion, domAnimation, m } from "motion/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/use-media-query";
 import { motionTokens } from "@/lib/motion-tokens";
@@ -76,23 +76,25 @@ export const ArticleReader = memo<ArticleReaderProps>(
           {loading ? (
             <Skeleton className="h-4 w-32 mb-6" />
           ) : (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{
-                duration: motionTokens.duration.slow,
-                delay: motionTokens.duration.normal,
-              }}
-            >
-              <ArticleMetadata
-                author={extractedAuthor}
-                published={feedItem.published}
-                content={htmlContent}
-                markdown={markdownContent}
-                layout={layout}
-                className="mb-6"
-              />
-            </motion.div>
+            <LazyMotion features={domAnimation}>
+              <m.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{
+                  duration: motionTokens.duration.slow,
+                  delay: motionTokens.duration.normal,
+                }}
+              >
+                <ArticleMetadata
+                  author={extractedAuthor}
+                  published={feedItem.published}
+                  content={htmlContent}
+                  markdown={markdownContent}
+                  layout={layout}
+                  className="mb-6"
+                />
+              </m.div>
+            </LazyMotion>
           )}
 
           {/* Content Section */}

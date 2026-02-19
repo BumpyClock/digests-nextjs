@@ -1,11 +1,18 @@
 "use client";
-
-import { useVirtualizer } from "@tanstack/react-virtual";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Heart } from "lucide-react";
 import Image from "next/image";
-import { type KeyboardEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type KeyboardEvent,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useFeedStore } from "@/store/useFeedStore";
 import type { FeedItem } from "@/types";
@@ -13,10 +20,6 @@ import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
 import { isValidUrl } from "@/utils/url";
 
 dayjs.extend(relativeTime);
-
-// Approximate height (px) of a single FeedListItem row for the virtualizer.
-// Layout: p-4 (32px vertical padding) + flex row of text vs 70px thumbnail + 1px border.
-const ESTIMATED_ROW_HEIGHT_PX = 120;
 
 interface FeedListProps {
   items: FeedItem[];
@@ -30,25 +33,31 @@ const FeedListItem = memo(function FeedListItem({
   item,
   isSelected,
   onSelect,
+  itemIndex,
   isRead,
 }: {
   item: FeedItem;
   isSelected: boolean;
-  onSelect: () => void;
+  onSelect: (index: number) => void;
+  itemIndex: number;
   isRead: boolean;
 }) {
   const formattedDate = useMemo(() => {
     return item.published ? dayjs(item.published).fromNow() : "Date unknown";
   }, [item.published]);
 
+  const handleSelect = useCallback(() => {
+    onSelect(itemIndex);
+  }, [itemIndex, onSelect]);
+
   const handleKeyDown = useCallback(
     (event: KeyboardEvent<HTMLButtonElement>) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
-        onSelect();
+        handleSelect();
       }
     },
-    [onSelect]
+    [handleSelect]
   );
 
   return (
@@ -57,7 +66,7 @@ const FeedListItem = memo(function FeedListItem({
       className={`p-4 border-b cursor-pointer transition-colors flex gap-3 text-left w-full ${
         isSelected ? "bg-primary/10 border-l-4 border-l-primary" : "hover:bg-secondary/20"
       } ${isRead ? "opacity-70" : ""}`}
-      onClick={onSelect}
+      onClick={handleSelect}
       onKeyDown={handleKeyDown}
     >
       <div className="grow min-w-0">
@@ -105,7 +114,11 @@ export function FeedList({
 }: FeedListProps) {
   const scrollableNodeRef = useRef<HTMLDivElement>(null);
   const [currentScrollTop, setCurrentScrollTop] = useState(0);
-  const readItems = useFeedStore((state) => state.readItems);
+  const readItems = useSyncExternalStore(
+    useFeedStore.subscribe,
+    () => useFeedStore.getState().readItems,
+    () => useFeedStore.getState().readItems
+  );
 
   // readItems is always a Set post-hydration (guaranteed by onRehydrateStorage)
   const readItemsSet = readItems instanceof Set ? readItems : new Set(readItems || []);
@@ -116,13 +129,6 @@ export function FeedList({
       scrollableNodeRef.current.scrollTop = savedScrollPosition;
     }
   }, [savedScrollPosition]);
-
-  const virtualizer = useVirtualizer({
-    count: items.length,
-    getScrollElement: () => scrollableNodeRef.current,
-    estimateSize: () => ESTIMATED_ROW_HEIGHT_PX,
-    overscan: 5,
-  });
 
   const handleScroll = useCallback((e: Event) => {
     const target = e.target as HTMLDivElement;
@@ -143,7 +149,7 @@ export function FeedList({
 
   const skeletonKeys = useMemo(() => Array.from({ length: 10 }, (_, i) => `skeleton-${i}`), []);
 
-  const renderSkeletons = useCallback(() => {
+  const skeletonRows = useMemo(() => {
     return skeletonKeys.map((key) => (
       <div key={key} className="p-4 border-b animate-pulse">
         <div className="flex gap-3">
@@ -163,7 +169,7 @@ export function FeedList({
     return (
       <div className="border rounded-md overflow-hidden h-full">
         <ScrollArea variant="list" className="h-full">
-          {renderSkeletons()}
+          {skeletonRows}
         </ScrollArea>
       </div>
     );
@@ -185,34 +191,16 @@ export function FeedList({
         onScroll={handleScroll}
         scrollableNodeRef={scrollableNodeRef}
       >
-        <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
-          {virtualizer.getVirtualItems().map((virtualItem) => {
-            const item = items[virtualItem.index];
-            if (!item) {
-              return null;
-            }
-
-            return (
-              <div
-                key={item.id}
-                style={{
-                  transform: `translateY(${virtualItem.start}px)`,
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                }}
-              >
-                <FeedListItem
-                  item={item}
-                  isSelected={selectedItem?.id === item.id}
-                  isRead={readItemsSet.has(item.id)}
-                  onSelect={() => handleItemSelect(virtualItem.index)}
-                />
-              </div>
-            );
-          })}
-        </div>
+        {items.map((item, index) => (
+          <FeedListItem
+            key={item.id}
+            item={item}
+            isSelected={selectedItem?.id === item.id}
+            isRead={readItemsSet.has(item.id)}
+            itemIndex={index}
+            onSelect={handleItemSelect}
+          />
+        ))}
       </ScrollArea>
     </div>
   );

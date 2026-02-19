@@ -1,6 +1,7 @@
 "use client";
 
 import { BookOpenText, Cookie, FileTextIcon, Headphones, Rss } from "lucide-react";
+import Script from "next/script";
 import { Hero } from "@/components/hero";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { BentoCard, BentoGrid } from "@/components/ui/bento-grid";
@@ -111,11 +112,11 @@ export default function Home() {
             </div>
             <div className="flex flex-wrap justify-center gap-4 w-full">
               <div className="w-full">
-                <script
+                <Script
                   type="module"
                   src="https://get.microsoft.com/badge/ms-store-badge.bundled.js"
-                  async
-                ></script>
+                  strategy="lazyOnload"
+                />
                 <ms-store-badge
                   productid="9p8m0cvk7fqq"
                   productname="Digests - RSS & Podcasts"

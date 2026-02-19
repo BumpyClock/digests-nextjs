@@ -1,13 +1,14 @@
 "use client";
 
 import { ArrowLeft } from "lucide-react";
-import { useCallback, useReducer } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import { FeedList } from "@/components/Feed/FeedList/FeedList";
 import { ReaderViewPane } from "@/components/Feed/ReaderViewPane/ReaderViewPane";
 import { PodcastDetailsPane } from "@/components/Podcast/PodcastDetailsPane";
 import { Button } from "@/components/ui/button";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useIsMobile } from "@/hooks/use-media-query";
+import { useFeedStore } from "@/store/useFeedStore";
 import { FeedItem } from "@/types";
 import { isPodcast } from "@/types/podcast";
 import "./FeedMasterDetail.css";
@@ -79,25 +80,44 @@ function feedMasterDetailReducer(
 
 export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
   const [state, dispatch] = useReducer(feedMasterDetailReducer, initialState);
+  const { markAsRead } = useFeedStore();
   const isMobile = useIsMobile();
+  const markAsReadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { selectedItem, showList, isAnimating, animationDirection, scrollPosition } = state;
   const effectiveShowList = !selectedItem || showList;
 
+  const clearMarkAsReadTimeout = useCallback(() => {
+    if (!markAsReadTimeoutRef.current) return;
+    clearTimeout(markAsReadTimeoutRef.current);
+    markAsReadTimeoutRef.current = null;
+  }, []);
+
   const handleItemSelect = useCallback(
     (item: FeedItem, scrollTop: number) => {
+      clearMarkAsReadTimeout();
       dispatch({ type: "select-item", item, scrollTop, isMobile });
+
+      if (isPodcast(item)) {
+        markAsReadTimeoutRef.current = setTimeout(() => {
+          markAsRead(item.id);
+          markAsReadTimeoutRef.current = null;
+        }, 2000);
+      }
 
       if (isMobile) {
         setTimeout(() => dispatch({ type: "animation-complete" }), MOBILE_SLIDE_MS);
       }
     },
-    [isMobile]
+    [clearMarkAsReadTimeout, isMobile, markAsRead]
   );
 
   const handleBackToList = useCallback(() => {
+    clearMarkAsReadTimeout();
     dispatch({ type: "back-to-list" });
     setTimeout(() => dispatch({ type: "animation-complete" }), MOBILE_SLIDE_MS);
-  }, []);
+  }, [clearMarkAsReadTimeout]);
+
+  useEffect(() => clearMarkAsReadTimeout, [clearMarkAsReadTimeout]);
 
   const getAnimationClass = useCallback(() => {
     if (!isAnimating) return "";

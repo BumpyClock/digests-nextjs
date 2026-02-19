@@ -4,6 +4,7 @@ import "./globals.css";
 import "./generated-themes.css";
 import "./generated-design-tokens.css";
 import "./typography.css";
+import "../public/prism-tomorrow.css";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AudioPlayer } from "@/components/AudioPlayer";
@@ -48,7 +49,6 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         <link rel="apple-touch-icon" sizes="192x192" href="/logo192.png" />
         <link rel="manifest" href="/manifest.json" />
-        <link rel="stylesheet" href="/prism-tomorrow.css" />
         <meta name="theme-color" content="#43A1AB" />
       </head>
       <body className={notoSans.className}>

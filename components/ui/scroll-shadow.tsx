@@ -12,7 +12,7 @@ interface ScrollShadowProps {
 // Performance‑optimized scroll shadow used in ReaderView.
 // Key changes:
 // - Fixed height (no height animations) to avoid re-layout and repaints.
-// - Opacity only transitions and will-change hint for GPU compositing.
+// - Opacity-only transition keeps animation cost low.
 // - Reduced blur radius (12px) + strong gradient mask for perceived softness.
 // - Fallback: if backdrop-filter is expensive/unsupported, the gradient still looks good.
 export function ScrollShadow({ visible, position, heightPx = 64 }: ScrollShadowProps) {
@@ -36,7 +36,6 @@ export function ScrollShadow({ visible, position, heightPx = 64 }: ScrollShadowP
         maskImage: `linear-gradient(to ${isTop ? "bottom" : "top"}, hsl(var(--foreground) / 1) 0%, hsl(var(--foreground) / 0.85) 40%, hsl(var(--foreground) / 0.4) 75%, hsl(var(--foreground) / 0) 100%)`,
         WebkitMaskImage: `linear-gradient(to ${isTop ? "bottom" : "top"}, hsl(var(--foreground) / 1) 0%, hsl(var(--foreground) / 0.85) 40%, hsl(var(--foreground) / 0.4) 75%, hsl(var(--foreground) / 0) 100%)`,
         opacity: visible ? 1 : 0,
-        willChange: "opacity",
         contain: "layout style paint",
       }}
     />

@@ -123,11 +123,12 @@ export function BaseModal({
       Boolean(viewTransitionBackdropSettleMs && viewTransitionBackdropSettleMs > 0);
     const settleDelayMs = hasSettleDelay ? (viewTransitionBackdropSettleMs as number) : null;
 
-    const nextSettled =
+    const nextSettled = Boolean(
       isOpen &&
-      useViewTransition &&
-      typeof viewTransitionBackdropSettled === "boolean" &&
-      viewTransitionBackdropSettled;
+        useViewTransition &&
+        typeof viewTransitionBackdropSettled === "boolean" &&
+        viewTransitionBackdropSettled
+    );
 
     const syncTimer = window.setTimeout(() => {
       setIsBackdropSettled(nextSettled);

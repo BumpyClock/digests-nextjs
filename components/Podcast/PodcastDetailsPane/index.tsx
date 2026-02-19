@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import { EmptyState } from "@/components/Feed/ArticleReader";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useFeedStore } from "@/store/useFeedStore";
 import { type FeedItem } from "@/types";
 import { PodcastDetailsContent } from "../shared/PodcastDetailsContent";
 
@@ -12,19 +10,6 @@ interface PodcastDetailsPaneProps {
 }
 
 export function PodcastDetailsPane({ feedItem }: PodcastDetailsPaneProps) {
-  const { markAsRead } = useFeedStore();
-
-  // Mark as read after viewing
-  useEffect(() => {
-    if (feedItem) {
-      const timer = setTimeout(() => {
-        markAsRead(feedItem.id);
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [feedItem, markAsRead]);
-
   if (!feedItem) {
     return <EmptyState />;
   }

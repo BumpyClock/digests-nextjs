@@ -1,8 +1,8 @@
 "use client";
 
-import { motion } from "motion/react";
+import { LazyMotion, domAnimation, m } from "motion/react";
 import dynamic from "next/dynamic";
-import { memo, useMemo } from "react";
+import { memo, useEffect, useMemo, useRef } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motionTokens } from "@/lib/motion-tokens";
 import { cn } from "@/lib/utils";
@@ -73,6 +73,18 @@ const ArticleMarkdownRenderer = dynamic(() => import("./ArticleMarkdownRenderer"
   loading: () => <ArticleContentSkeleton extended />,
 });
 
+const SanitizedHtmlContent = memo(function SanitizedHtmlContent({ html }: { html: string }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const element = contentRef.current;
+    if (!element) return;
+    element.innerHTML = html;
+  }, [html]);
+
+  return <div ref={contentRef} />;
+});
+
 interface ArticleContentProps {
   /** HTML content */
   content: string;
@@ -108,7 +120,7 @@ export const ArticleContent = memo<ArticleContentProps>(
     const renderedContent = shouldUseMarkdown ? (
       <ArticleMarkdownRenderer content={markdown} className={contentClassName} />
     ) : (
-      <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+      <SanitizedHtmlContent html={sanitizedHtml} />
     );
 
     if (disableEntranceAnimation) {
@@ -116,14 +128,16 @@ export const ArticleContent = memo<ArticleContentProps>(
     }
 
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: motionTokens.duration.slow, delay: motionTokens.duration.normal }}
-        className={contentClassName}
-      >
-        {renderedContent}
-      </motion.div>
+      <LazyMotion features={domAnimation}>
+        <m.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: motionTokens.duration.slow, delay: motionTokens.duration.normal }}
+          className={contentClassName}
+        >
+          {renderedContent}
+        </m.div>
+      </LazyMotion>
     );
   }
 );

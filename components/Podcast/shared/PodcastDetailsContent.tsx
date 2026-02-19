@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useMemo, useRef } from "react";
 import type { FeedItem } from "@/types";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
 import { cleanupTextContent, getSiteDisplayName } from "@/utils/htmlUtils";
@@ -19,6 +22,18 @@ interface PodcastDetailsContentProps {
   variant?: "modal" | "pane";
 }
 
+function SanitizedHtmlContent({ html, className }: { html: string; className?: string }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const element = contentRef.current;
+    if (!element) return;
+    element.innerHTML = html;
+  }, [html]);
+
+  return <div ref={contentRef} className={className} />;
+}
+
 /**
  * Shared podcast details content component
  * Used by both PodcastDetailsModal and PodcastDetailsPane
@@ -30,6 +45,10 @@ export function PodcastDetailsContent({
   variant = "pane",
 }: PodcastDetailsContentProps) {
   const isModal = variant === "modal";
+  const sanitizedDescription = useMemo(
+    () => sanitizeReaderContent(podcast.content || podcast.description || ""),
+    [podcast.content, podcast.description]
+  );
 
   return (
     <>
@@ -128,11 +147,9 @@ export function PodcastDetailsContent({
       {/* Episode Description */}
       <div className={isModal ? "border-t pt-8" : "space-y-4"}>
         <h2 className="mb-4 text-title-large text-primary-content">Episode Description</h2>
-        <div
+        <SanitizedHtmlContent
           className="prose prose-sm dark:prose-invert max-w-none"
-          dangerouslySetInnerHTML={{
-            __html: sanitizeReaderContent(podcast.content || podcast.description || ""),
-          }}
+          html={sanitizedDescription}
         />
       </div>
     </>

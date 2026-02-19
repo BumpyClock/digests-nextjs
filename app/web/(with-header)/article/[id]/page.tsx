@@ -5,7 +5,7 @@ import { ArrowLeft, Bookmark, ExternalLink, Share2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use, useMemo } from "react";
+import { use, useEffect, useMemo, useRef } from "react";
 import { ContentNotFound } from "@/components/ContentNotFound";
 import { ContentPageSkeleton } from "@/components/ContentPageSkeleton";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,18 @@ import { useContentActions } from "@/hooks/use-content-actions";
 import { useToast } from "@/hooks/use-toast";
 import { FeedItem } from "@/types";
 import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
+
+function SanitizedHtmlContent({ html }: { html: string }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const element = contentRef.current;
+    if (!element) return;
+    element.innerHTML = html;
+  }, [html]);
+
+  return <div ref={contentRef} />;
+}
 
 export default function ArticlePage(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
@@ -34,6 +46,11 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
 
   // Use React Query to get reader view data
   const readerViewQuery = useReaderViewQuery(foundArticle?.link || "");
+  const sanitizedContent = useMemo(() => {
+    const content =
+      readerViewQuery.data?.content || foundArticle?.content || foundArticle?.description || "";
+    return sanitizeReaderContent(content);
+  }, [foundArticle?.content, foundArticle?.description, readerViewQuery.data?.content]);
 
   const handleBookmark = async () => {
     if (!foundArticle) {
@@ -138,27 +155,14 @@ export default function ArticlePage(props: { params: Promise<{ id: string }> }) 
               src={readerViewQuery.data.image}
               alt={readerViewQuery.data.title}
               fill
+              sizes="(max-width: 768px) 100vw, 768px"
               className="object-cover"
             />
           </div>
         )}
 
         <div className="prose prose-sm sm:prose dark:prose-invert w-full md:max-w-4xl">
-          {readerViewQuery.data ? (
-            <div
-              dangerouslySetInnerHTML={{
-                __html: sanitizeReaderContent(readerViewQuery.data.content),
-              }}
-            />
-          ) : (
-            <div
-              dangerouslySetInnerHTML={{
-                __html: sanitizeReaderContent(
-                  foundArticle.content || foundArticle.description || ""
-                ),
-              }}
-            />
-          )}
+          <SanitizedHtmlContent html={sanitizedContent} />
         </div>
       </div>
     </div>

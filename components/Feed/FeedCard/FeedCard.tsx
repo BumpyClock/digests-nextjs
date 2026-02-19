@@ -3,7 +3,7 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { Bookmark, Share2 } from "lucide-react";
-import { LayoutGroup, motion } from "motion/react";
+import { LayoutGroup, LazyMotion, domAnimation, m } from "motion/react";
 import Image from "next/image";
 import type React from "react";
 import { memo, useCallback, useState } from "react";
@@ -195,7 +195,7 @@ export const FeedCard = memo(function FeedCard({
   } as React.CSSProperties;
 
   const cardContentWithShell = (
-    <motion.div
+    <m.div
       whileHover={animationEnabled ? { y: -4 } : undefined}
       whileTap={animationEnabled ? { scale: 0.98 } : undefined}
       initial={animationEnabled ? { opacity: 0, y: 20 } : undefined}
@@ -214,7 +214,7 @@ export const FeedCard = memo(function FeedCard({
       <div id={`feed-card-image-${feedItem.id}`} className="relative z-10 ">
         {((!imageError && feedItem.thumbnail && isValidUrl(feedItem.thumbnail)) ||
           showPlaceholder) && (
-          <motion.div
+          <m.div
             className="relative w-full p-2"
             layoutId={motionLayoutEnabled ? animationIds.thumbnail : undefined}
             style={getViewTransitionStyle(childViewTransitionEnabled, animationIds.thumbnail)}
@@ -243,7 +243,7 @@ export const FeedCard = memo(function FeedCard({
                 loading="lazy"
               />
             </Ambilight>
-          </motion.div>
+          </m.div>
         )}
 
         <CardContent className="p-4">
@@ -277,13 +277,13 @@ export const FeedCard = memo(function FeedCard({
                 {formatDate(feedItem.published)}
               </div>
             </div>
-            <motion.h3
+            <m.h3
               className="text-subtitle"
               layoutId={motionLayoutEnabled ? animationIds.title : undefined}
               style={getViewTransitionStyle(childViewTransitionEnabled, animationIds.title)}
             >
               {cleanupTextContent(feedItem.title)}
-            </motion.h3>
+            </m.h3>
             {feedItem.author && (
               <div className="text-body-small text-secondary-content">
                 By {cleanupTextContent(feedItem.author)}
@@ -297,12 +297,16 @@ export const FeedCard = memo(function FeedCard({
 
         <CardFooter feedItem={feedItem} />
       </div>
-    </motion.div>
+    </m.div>
   );
 
-  return motionLayoutEnabled ? (
-    <LayoutGroup id={feedItem.id}>{cardContentWithShell}</LayoutGroup>
-  ) : (
-    cardContentWithShell
+  return (
+    <LazyMotion features={domAnimation}>
+      {motionLayoutEnabled ? (
+        <LayoutGroup id={feedItem.id}>{cardContentWithShell}</LayoutGroup>
+      ) : (
+        cardContentWithShell
+      )}
+    </LazyMotion>
   );
 });

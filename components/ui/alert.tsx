@@ -27,8 +27,10 @@ const Alert = React.forwardRef<
 Alert.displayName = "Alert";
 
 const AlertTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, ...props }, ref) => (
-    <h5 ref={ref} className={cn("mb-1 text-subtitle", className)} {...props} />
+  ({ className, children, ...props }, ref) => (
+    <h5 ref={ref} className={cn("mb-1 text-subtitle", className)} {...props}>
+      {children ?? <span className="sr-only">Alert</span>}
+    </h5>
   )
 );
 AlertTitle.displayName = "AlertTitle";

@@ -33,6 +33,7 @@ Durable repo learnings only. Keep evergreen; drop incident logs.
 - For Tailwind CSS v4 files with `@config`/`@utility`, add Stylelint `at-rule-no-unknown` allowlist entries so CSS at-rule parsing stays compatible without rewriting hook usage.
 - In migration logic, always guard legacy persisted collections with `Array.isArray(...)` before `.filter/.map`; if invalid, log and clear stale legacy keys to avoid runtime errors and bad rehydration state.
 - For worker cache keys, normalize URL arrays with deterministic ordering and unambiguous serialization (eg `JSON.stringify`) rather than delimiter-joined keys to avoid false collisions.
+- `react-doctor` may default to changed-files mode on dirty trees; for trustworthy full-repo scores, run from a clean snapshot/worktree and confirm it reports `Found 188 source files` (or current repo total).
 - React Compiler currently skips/flags `try/finally` in component paths; keep async control flow in plain `try/catch` plus explicit cleanup calls.
 - React Compiler flags synchronous `setState` inside effects; prefer event/callback updates, render-time derivation, or hydration-safe primitives (`useSyncExternalStore`) for mount gating.
 

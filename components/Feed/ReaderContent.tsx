@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { LazyMotion, domAnimation, m } from "motion/react";
 import { memo } from "react";
 import { ArticleContent, ArticleHeader } from "@/components/Feed/ArticleReader";
 import { useFeedAnimation } from "@/contexts/FeedAnimationContext";
@@ -60,45 +60,47 @@ export const ReaderContent = memo(function ReaderContent({
     layout === "modal" ? "px-2 py-2 md:px-6 md:py-2 lg:px-2" : isCompact ? "px-3 py-4" : "p-2";
 
   return (
-    <motion.article
-      layoutId={motionLayoutEnabled ? animationIds.cardShell : undefined}
-      style={getViewTransitionStyle(viewTransitionsEnabled, animationIds.cardShell)}
-      className={`${containerPadding} ${className} relative`}
-    >
-      <ArticleHeader
-        feedItem={feedItem}
-        readerView={readerView}
-        parallaxOffset={parallaxOffset}
-        layout={layout}
-        loading={loading}
-        extractedAuthor={extractedAuthor}
-        disableTransitionEffectsDuringWindow={transitionInProgress}
-        disableEntranceAnimations={layout === "modal"}
-      />
-      {deferBodyMount ? (
-        <div
-          aria-hidden="true"
-          className={`mt-8 space-y-4 ${isMobile ? "max-w-full" : "md:max-w-4xl"}`}
-        >
-          <div className="h-5 w-4/5 rounded-md bg-muted/70" />
-          <div className="h-4 w-full rounded-md bg-muted/60" />
-          <div className="h-4 w-11/12 rounded-md bg-muted/60" />
-          <div className="h-4 w-10/12 rounded-md bg-muted/60" />
-          <div className="h-4 w-9/12 rounded-md bg-muted/60" />
-        </div>
-      ) : (
-        <ArticleContent
-          content={cleanedContent}
-          markdown={cleanedMarkdown ?? readerView?.markdown}
-          className={cn(
-            "w-full",
-            isMobile ? "max-w-full" : "md:max-w-4xl",
-            layout === "modal" && "no-animation"
-          )}
+    <LazyMotion features={domAnimation}>
+      <m.article
+        layoutId={motionLayoutEnabled ? animationIds.cardShell : undefined}
+        style={getViewTransitionStyle(viewTransitionsEnabled, animationIds.cardShell)}
+        className={`${containerPadding} ${className} relative`}
+      >
+        <ArticleHeader
+          feedItem={feedItem}
+          readerView={readerView}
+          parallaxOffset={parallaxOffset}
+          layout={layout}
           loading={loading}
-          disableEntranceAnimation={layout === "modal"}
+          extractedAuthor={extractedAuthor}
+          disableTransitionEffectsDuringWindow={transitionInProgress}
+          disableEntranceAnimations={layout === "modal"}
         />
-      )}
-    </motion.article>
+        {deferBodyMount ? (
+          <div
+            aria-hidden="true"
+            className={`mt-8 space-y-4 ${isMobile ? "max-w-full" : "md:max-w-4xl"}`}
+          >
+            <div className="h-5 w-4/5 rounded-md bg-muted/70" />
+            <div className="h-4 w-full rounded-md bg-muted/60" />
+            <div className="h-4 w-11/12 rounded-md bg-muted/60" />
+            <div className="h-4 w-10/12 rounded-md bg-muted/60" />
+            <div className="h-4 w-9/12 rounded-md bg-muted/60" />
+          </div>
+        ) : (
+          <ArticleContent
+            content={cleanedContent}
+            markdown={cleanedMarkdown ?? readerView?.markdown}
+            className={cn(
+              "w-full",
+              isMobile ? "max-w-full" : "md:max-w-4xl",
+              layout === "modal" && "no-animation"
+            )}
+            loading={loading}
+            disableEntranceAnimation={layout === "modal"}
+          />
+        )}
+      </m.article>
+    </LazyMotion>
   );
 });
