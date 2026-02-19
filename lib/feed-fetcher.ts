@@ -6,7 +6,7 @@ import { fetchFeeds as fetchFeedsFromApi, fetchReaderView as fetchReaderViewFrom
  * Standard feed fetcher implementation using HTTP API
  * Can be replaced with mock implementation for testing
  */
-export class HttpFeedFetcher implements IFeedFetcher {
+class HttpFeedFetcher implements IFeedFetcher {
   constructor(private config?: FeedFetcherConfig) {}
 
   async fetchFeeds(urls: string[]): Promise<{ feeds: Feed[]; items: FeedItem[] }> {

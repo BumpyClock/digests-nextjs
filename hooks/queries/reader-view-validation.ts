@@ -1,6 +1,6 @@
 import type { ReaderViewResponse } from "@/types";
 
-export const READER_VIEW_SUCCESS_STATUS = "ok";
+const READER_VIEW_SUCCESS_STATUS = "ok";
 
 type ReaderViewFetchResult = {
   success: boolean;

@@ -555,4 +555,3 @@ const workerServiceInstance = new WorkerService();
 export const workerService = workerServiceInstance;
 
 // Also export class for testing with custom fetcher
-export { WorkerService };

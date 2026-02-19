@@ -37,7 +37,7 @@ function formatDate(dateString: string) {
   return dayjs(dateString).fromNow();
 }
 
-export interface FeedCardProps {
+interface FeedCardProps {
   feed: FeedItem;
   onItemOpen?: (item: FeedItem, cleanup?: () => void) => void;
   onItemOpenTransitionComplete?: () => void;

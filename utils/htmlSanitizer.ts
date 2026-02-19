@@ -234,25 +234,6 @@ const SANITIZE_CONFIG = {
 };
 
 /**
- * Sanitizes HTML content using DOMPurify to prevent XSS attacks
- * @param html - The HTML content to sanitize
- * @returns Sanitized HTML string safe for rendering
- */
-export function sanitizeHtml(html: string): string {
-  if (!html || typeof html !== "string") {
-    return "";
-  }
-
-  try {
-    return DOMPurify.sanitize(html, SANITIZE_CONFIG);
-  } catch (error) {
-    console.error("Error sanitizing HTML content:", error);
-    // Return empty string on error to be safe
-    return "";
-  }
-}
-
-/**
  * Sanitizes HTML content specifically for reader view articles
  * This is a more permissive configuration for rich article content
  * @param html - The HTML content to sanitize

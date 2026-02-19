@@ -26,29 +26,3 @@ export function getPodcastAudioUrl(item: FeedItem): string | undefined {
   return audioUrl;
 }
 
-/**
- * Validate if a podcast item has all required data for playback
- */
-export function isValidPodcast(item: FeedItem): boolean {
-  return isPodcast(item) && !!getPodcastAudioUrl(item);
-}
-
-/**
- * Get podcast duration in seconds
- */
-export function getPodcastDuration(item: FeedItem): number | undefined {
-  if (!isPodcast(item)) {
-    return undefined;
-  }
-
-  // Check multiple possible duration sources
-  if (item.duration) {
-    return Number(item.duration);
-  }
-
-  if (item.enclosures?.[0]?.length) {
-    return Number(item.enclosures[0].length);
-  }
-
-  return undefined;
-}

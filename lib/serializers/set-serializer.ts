@@ -3,19 +3,6 @@
  */
 
 /**
- * Serializes a Set to an Array for JSON storage
- * @param set - Set to serialize
- * @returns Array representation
- */
-export function serializeSet<T>(set: Set<T> | undefined | null): T[] {
-  if (!set) return [];
-  if (set instanceof Set) return Array.from(set);
-  // If already an array (shouldn't happen but defensive)
-  if (Array.isArray(set)) return set;
-  return [];
-}
-
-/**
  * Deserializes storage data back to a Set
  * Handles arrays, existing Sets, and null/undefined
  * @param data - Data from storage (could be array, Set, or null)
@@ -31,34 +18,3 @@ export function deserializeSet<T>(data: unknown): Set<T> {
   // Null, undefined, or invalid
   return new Set();
 }
-
-/**
- * Zustand persist middleware helpers for Set fields
- */
-export const setSerializerMiddleware = {
-  /**
-   * Called during store.persist() - converts Sets to Arrays
-   */
-  serialize: <T extends object>(state: T, setFields: (keyof T)[]): T => {
-    const serialized = { ...state } as T;
-    for (const field of setFields) {
-      const value = state[field];
-      if (value instanceof Set) {
-        (serialized as Record<string, unknown>)[field as string] = Array.from(value);
-      }
-    }
-    return serialized;
-  },
-
-  /**
-   * Called during store.rehydrate() - converts Arrays back to Sets
-   */
-  deserialize: <T extends object>(state: T, setFields: (keyof T)[]): T => {
-    const deserialized = { ...state } as T;
-    for (const field of setFields) {
-      const value = state[field];
-      (deserialized as Record<string, unknown>)[field as string] = deserializeSet(value);
-    }
-    return deserialized;
-  },
-};

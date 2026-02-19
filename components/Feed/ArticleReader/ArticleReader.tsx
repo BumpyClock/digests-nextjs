@@ -28,7 +28,7 @@ interface ArticleReaderProps {
  * Coordinates child components and manages high-level state
  * Refactored to follow Single Responsibility Principle
  */
-export const ArticleReader = memo<ArticleReaderProps>(
+const ArticleReader = memo<ArticleReaderProps>(
   ({ feedItem, readerView, layout = "standard", loading = false }) => {
     const { isInReadLater, toggleReadLater, markAsRead } = useArticleActions({
       itemId: feedItem.id,
@@ -148,7 +148,7 @@ export function processArticleContent(readerView: ReaderViewResponse | null): {
  * Loading skeleton for article reader
  * @param compact - Whether to use compact layout
  */
-export const LoadingSkeleton = memo(({ compact }: { compact?: boolean }) => (
+const LoadingSkeleton = memo(({ compact }: { compact?: boolean }) => (
   <div className="space-y-4 p-4">
     <div className="flex justify-between items-center mb-6">
       <Skeleton className="h-5 w-32" />

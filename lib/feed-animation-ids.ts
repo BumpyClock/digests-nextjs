@@ -1,6 +1,6 @@
 import { hashString } from "@/utils/hash";
 
-export interface FeedAnimationIds {
+interface FeedAnimationIds {
   cardShell: string;
   thumbnail: string;
   title: string;

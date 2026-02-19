@@ -1,7 +1,7 @@
 import { toast } from "sonner";
 import { Logger } from "@/utils/logger";
 
-export interface AudioError {
+interface AudioError {
   code: string;
   message: string;
   originalError?: Error;
@@ -61,52 +61,6 @@ export function handleAudioError(error: unknown, audioTitle?: string): AudioErro
     message: errorMessage,
     originalError: error instanceof Error ? error : undefined,
   };
-}
-
-/**
- * Validates if an audio URL is valid and accessible
- */
-export async function validateAudioUrl(url: string): Promise<boolean> {
-  if (!url) {
-    return false;
-  }
-
-  try {
-    new URL(url); // Validate URL format
-
-    // Optionally check if the URL is accessible (HEAD request)
-    const response = await fetch(url, {
-      method: "HEAD",
-      signal: AbortSignal.timeout(5000), // 5 second timeout
-    });
-
-    return response.ok;
-  } catch (error) {
-    Logger.warn("Invalid audio URL", { url, error });
-    return false;
-  }
-}
-
-/**
- * Gets a user-friendly error message for common audio errors
- */
-export function getAudioErrorMessage(error: AudioError): string {
-  switch (error.code) {
-    case "NETWORK_ERROR":
-      return "Check your internet connection and try again";
-    case "PERMISSION_ERROR":
-      return "Click play to start audio playback";
-    case "FORMAT_ERROR":
-      return "This audio format is not supported by your browser";
-    case "NOT_FOUND":
-      return "The audio file could not be found";
-    case "ABORTED":
-      return "Playback was stopped";
-    case "MEDIA_ERROR":
-      return "There was a problem playing this audio";
-    default:
-      return "An unexpected error occurred";
-  }
 }
 
 /**

@@ -45,34 +45,6 @@ export async function fetchFeedsAction(url: string): Promise<FeedActionResult> {
   }
 }
 
-export async function refreshFeedsAction(feedUrls: string[]): Promise<FeedActionResult> {
-  if (!feedUrls.length) {
-    return {
-      success: true,
-      message: "No feeds to refresh",
-      feeds: [],
-      items: [],
-    };
-  }
-
-  try {
-    const { feeds, items } = await fetchFeeds(feedUrls);
-    revalidatePath("/web");
-
-    return {
-      success: true,
-      message: `Refreshed ${feeds.length} feeds`,
-      feeds,
-      items,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : "Failed to refresh feeds",
-    };
-  }
-}
-
 export async function toggleFavoriteAction(itemId: string) {
   try {
     revalidatePath("/web");

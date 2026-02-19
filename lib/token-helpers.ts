@@ -10,7 +10,7 @@ export const rem = (value: number): string => `${value}rem`;
 
 export const ms = (value: number): string => `${value}ms`;
 
-export function toKebabCase(value: string): string {
+function toKebabCase(value: string): string {
   return value
     .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
     .replace(/[_\s]+/g, "-")
@@ -21,7 +21,7 @@ function isTokenTree(value: TokenValue | TokenTree): value is TokenTree {
   return typeof value === "object" && value !== null;
 }
 
-export function flattenTokens(
+function flattenTokens(
   tokens: TokenTree,
   path: readonly string[] = []
 ): Array<[string, TokenValue]> {

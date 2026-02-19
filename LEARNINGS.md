@@ -36,6 +36,7 @@ Durable repo learnings only. Keep evergreen; drop incident logs.
 - `react-doctor` may default to changed-files mode on dirty trees; for trustworthy full-repo scores, run from a clean snapshot/worktree and confirm it reports `Found 188 source files` (or current repo total).
 - React Compiler currently skips/flags `try/finally` in component paths; keep async control flow in plain `try/catch` plus explicit cleanup calls.
 - React Compiler flags synchronous `setState` inside effects; prefer event/callback updates, render-time derivation, or hydration-safe primitives (`useSyncExternalStore`) for mount gating.
+- When removing dead exported symbols, follow up by deleting now-unreferenced local helpers/types; otherwise `biome lint` can replace dead-export warnings with `noUnusedVariables` warnings.
 
 ## Performance Patterns
 

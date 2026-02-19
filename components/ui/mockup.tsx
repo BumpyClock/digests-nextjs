@@ -17,7 +17,7 @@ const mockupVariants = cva(
   }
 );
 
-export interface MockupProps
+interface MockupProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof mockupVariants> {}
 
@@ -40,7 +40,7 @@ const frameVariants = cva("bg-accent/5 flex relative z-10 overflow-hidden rounde
   },
 });
 
-export interface MockupFrameProps
+interface MockupFrameProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof frameVariants> {}
 

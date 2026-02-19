@@ -7,7 +7,7 @@ export const APP_MDX_DIR = path.join(process.cwd(), "app/pages");
 export const CONTENT_MDX_DIR = path.join(process.cwd(), "content/pages");
 const DIRECT_MDX_PAGES = ["terms"]; // Add direct MDX pages here that aren't in the dynamic route
 
-export interface MdxMetadata {
+interface MdxMetadata {
   title: string;
   description: string;
   content: string;
@@ -17,7 +17,7 @@ export interface MdxMetadata {
 /**
  * Find MDX file by slug
  */
-export function findMdxFile(slug: string) {
+function findMdxFile(slug: string) {
   const possiblePaths = [
     path.join(APP_MDX_DIR, `${slug}.mdx`),
     path.join(APP_MDX_DIR, `${slug}.md`),
@@ -31,7 +31,7 @@ export function findMdxFile(slug: string) {
 /**
  * Format a slug as a title
  */
-export function formatTitle(slug: string) {
+function formatTitle(slug: string) {
   return slug
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

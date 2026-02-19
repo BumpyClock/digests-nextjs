@@ -5,7 +5,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 // Font size scale: 0-4 (0 = smallest, 4 = largest)
 export const FONT_SIZE_MIN = 0;
 export const FONT_SIZE_MAX = 4;
-export const FONT_SIZE_DEFAULT = 2;
+const FONT_SIZE_DEFAULT = 2;
 
 interface UiPreferencesState {
   animationsEnabled: boolean;
@@ -59,17 +59,3 @@ export const useUiPreferencesStore = create<UiPreferencesState>()(
   )
 );
 
-// Helper function to get animation preference without hook
-export function getAnimationsEnabled(): boolean {
-  return useUiPreferencesStore.getState().animationsEnabled;
-}
-
-// Helper function to get compact view preference without hook
-export function getCompactView(): boolean {
-  return useUiPreferencesStore.getState().compactView;
-}
-
-// Helper function to get font size preference without hook
-export function getFontSize(): number {
-  return useUiPreferencesStore.getState().fontSize;
-}

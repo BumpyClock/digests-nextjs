@@ -2,7 +2,7 @@ import tinycolor from "tinycolor2";
 
 const easeInQuad = (x: number) => x * x;
 
-export function adjustColorLuminosity(
+function adjustColorLuminosity(
   color: { r: number; g: number; b: number },
   isDarkMode: boolean
 ) {
@@ -26,7 +26,7 @@ export function adjustColorLuminosity(
   return tinycolor(hsl);
 }
 
-export function generateLayeredShadows(
+function generateLayeredShadows(
   color: { r: number; g: number; b: number },
   elevation: number = 20,
   opacity: number = 0.05,

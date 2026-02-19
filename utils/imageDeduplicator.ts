@@ -227,7 +227,7 @@ function escapeRegExp(string: string): string {
 /**
  * Removes duplicate images from markdown content based on sophisticated URL analysis
  */
-export function deduplicateMarkdownImages(markdown: string, thumbnailUrl?: string): string {
+function deduplicateMarkdownImages(markdown: string, thumbnailUrl?: string): string {
   if (!markdown) return markdown;
 
   // Find all markdown images: ![alt](url) or ![alt](url "title")
@@ -406,4 +406,3 @@ export function cleanupMarkdownContent(
 /**
  * Export the metadata cleanup function for standalone use
  */
-export { cleanupMarkdownMetadata };

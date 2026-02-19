@@ -8,7 +8,7 @@ import SimpleBar from "simplebar-react";
 import { cn } from "@/lib/utils";
 import "simplebar-react/dist/simplebar.min.css";
 
-export interface ScrollAreaProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onScroll"> {
+interface ScrollAreaProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "onScroll"> {
   children: React.ReactNode;
   // Custom props for different use cases
   variant?: "default" | "modal" | "list";
@@ -65,10 +65,5 @@ const ScrollArea = ({
   );
 };
 // No displayName needed since not using forwardRef
-
-// Export a hook to access SimpleBar instance methods
-export const useScrollAreaRef = <T = HTMLDivElement>() => {
-  return React.useRef<T>(null);
-};
 
 export { ScrollArea };

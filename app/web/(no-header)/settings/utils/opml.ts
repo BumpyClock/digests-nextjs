@@ -20,7 +20,7 @@ function escapeXml(value: string): string {
     .replaceAll("'", "&apos;");
 }
 
-export function generateOPML(feeds: Array<Feed | Subscription>): string {
+function generateOPML(feeds: Array<Feed | Subscription>): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <opml version="1.0">
   <head>
@@ -47,7 +47,7 @@ export function generateOPML(feeds: Array<Feed | Subscription>): string {
 </opml>`;
 }
 
-export function downloadBlob(content: string, filename: string, contentType: string): void {
+function downloadBlob(content: string, filename: string, contentType: string): void {
   const blob = new Blob([content], { type: contentType });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -88,7 +88,7 @@ export function parseFeedsFromDocument(doc: Document, existingUrls: Set<string>)
   return Array.from(uniqueFeeds.values());
 }
 
-export interface DeduplicateUrlsResult {
+interface DeduplicateUrlsResult {
   urls: string[];
   invalidCount: number;
   duplicateCount: number;

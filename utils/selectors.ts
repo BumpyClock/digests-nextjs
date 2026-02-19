@@ -23,34 +23,6 @@ export function sortByDateDesc(a: FeedItem, b: FeedItem): number {
 }
 
 /**
- * Filter items to only include unread ones
- *
- * @param items - Array of feed items
- * @param read - Set of read item IDs
- * @returns Array of unread items
- */
-export function filterUnread(items: FeedItem[], read: Set<string>): FeedItem[] {
-  // Ensure read is a proper Set (handle hydration edge cases)
-  const readSet = read instanceof Set ? read : new Set<string>();
-  return items.filter((item) => item?.id && !readSet.has(item.id));
-}
-
-/**
- * Filter items by specific feed URL
- *
- * @param items - Array of feed items
- * @param normalizedFeedUrl - The feed URL to filter by (optional)
- * @returns Array of items from the specified feed, or all items if no feed specified
- */
-export function filterByFeed(items: FeedItem[], normalizedFeedUrl?: string): FeedItem[] {
-  if (!normalizedFeedUrl) return items;
-
-  return items.filter(
-    (item) => item?.feedUrl && item.feedUrl.length > 0 && item.feedUrl.includes(normalizedFeedUrl)
-  );
-}
-
-/**
  * Transform a full Feed object into a lightweight Subscription
  *
  * This is used when migrating from storing full Feed objects

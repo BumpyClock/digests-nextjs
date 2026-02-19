@@ -17,7 +17,7 @@ export function getViewTransitionStyle(
   return { viewTransitionName: transitionName } as CSSProperties;
 }
 
-export function supportsViewTransitions(): boolean {
+function supportsViewTransitions(): boolean {
   if (typeof document === "undefined") {
     return false;
   }

@@ -199,5 +199,3 @@ export const designTokens = {
     overlay: "rgb(0 0 0 / 0.8)",
   },
 } as const satisfies TokenTree;
-
-export type DesignTokens = typeof designTokens;

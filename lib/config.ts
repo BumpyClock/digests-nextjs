@@ -41,7 +41,7 @@ export function getApiUrl(endpoint: string): string {
  * This is a placeholder that will be replaced by the actual implementation in useApiConfigStore.ts
  * To avoid circular dependencies, we define this here and override it in the store
  */
-export function getApiConfig(): APIConfig {
+function getApiConfig(): APIConfig {
   // This will be overridden by the store's implementation
   return DEFAULT_API_CONFIG;
 }
