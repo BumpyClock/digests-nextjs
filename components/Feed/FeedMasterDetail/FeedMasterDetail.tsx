@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useReducer } from "react";
 import { FeedList } from "@/components/Feed/FeedList/FeedList";
 import { ReaderViewPane } from "@/components/Feed/ReaderViewPane/ReaderViewPane";
 import { PodcastDetailsPane } from "@/components/Podcast/PodcastDetailsPane";
@@ -19,64 +19,99 @@ interface FeedMasterDetailProps {
 
 const MOBILE_SLIDE_MS = 220;
 
-export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
-  const [selectedItem, setSelectedItem] = useState<FeedItem | null>(null);
-  const isMobile = useIsMobile();
-  const [showList, setShowList] = useState(true);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [animationDirection, setAnimationDirection] = useState<"to-reader" | "to-list">(
-    "to-reader"
-  );
-  const [scrollPosition, setScrollPosition] = useState(0);
+type AnimationDirection = "to-reader" | "to-list";
 
-  // Reset to show list when navigating back to a mobile view without a selection
-  useEffect(() => {
-    if (isMobile && !selectedItem) {
-      setShowList(true);
-    }
-  }, [isMobile, selectedItem]);
+interface FeedMasterDetailState {
+  selectedItem: FeedItem | null;
+  showList: boolean;
+  isAnimating: boolean;
+  animationDirection: AnimationDirection;
+  scrollPosition: number;
+}
+
+type FeedMasterDetailAction =
+  | { type: "select-item"; item: FeedItem; scrollTop: number; isMobile: boolean }
+  | { type: "back-to-list" }
+  | { type: "animation-complete" };
+
+const initialState: FeedMasterDetailState = {
+  selectedItem: null,
+  showList: true,
+  isAnimating: false,
+  animationDirection: "to-reader",
+  scrollPosition: 0,
+};
+
+function feedMasterDetailReducer(
+  state: FeedMasterDetailState,
+  action: FeedMasterDetailAction
+): FeedMasterDetailState {
+  switch (action.type) {
+    case "select-item":
+      return {
+        ...state,
+        selectedItem: action.item,
+        scrollPosition: action.scrollTop,
+        ...(action.isMobile
+          ? {
+              animationDirection: "to-reader" as const,
+              isAnimating: true,
+              showList: false,
+            }
+          : {}),
+      };
+    case "back-to-list":
+      return {
+        ...state,
+        animationDirection: "to-list",
+        isAnimating: true,
+        showList: true,
+      };
+    case "animation-complete":
+      return {
+        ...state,
+        isAnimating: false,
+      };
+    default:
+      return state;
+  }
+}
+
+export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
+  const [state, dispatch] = useReducer(feedMasterDetailReducer, initialState);
+  const isMobile = useIsMobile();
+  const { selectedItem, showList, isAnimating, animationDirection, scrollPosition } = state;
+  const effectiveShowList = !selectedItem || showList;
 
   const handleItemSelect = useCallback(
     (item: FeedItem, scrollTop: number) => {
-      setSelectedItem(item);
-      // Save the current scroll position before navigating
-      setScrollPosition(scrollTop);
+      dispatch({ type: "select-item", item, scrollTop, isMobile });
 
       if (isMobile) {
-        setAnimationDirection("to-reader");
-        setIsAnimating(true);
-        setShowList(false);
-        // Reset animation state after animation completes
-        setTimeout(() => setIsAnimating(false), MOBILE_SLIDE_MS);
+        setTimeout(() => dispatch({ type: "animation-complete" }), MOBILE_SLIDE_MS);
       }
     },
     [isMobile]
   );
 
   const handleBackToList = useCallback(() => {
-    setAnimationDirection("to-list");
-    setIsAnimating(true);
-    setShowList(true);
-    // Reset animation state after animation completes
-    setTimeout(() => setIsAnimating(false), MOBILE_SLIDE_MS);
+    dispatch({ type: "back-to-list" });
+    setTimeout(() => dispatch({ type: "animation-complete" }), MOBILE_SLIDE_MS);
   }, []);
 
-  // Determine animation classes based on direction
   const getAnimationClass = useCallback(() => {
     if (!isAnimating) return "";
 
     if (animationDirection === "to-reader") {
-      return showList ? "slide-out-left" : "slide-in-right";
-    } else {
-      return showList ? "slide-in-left" : "slide-out-right";
+      return effectiveShowList ? "slide-out-left" : "slide-in-right";
     }
-  }, [isAnimating, animationDirection, showList]);
+    return effectiveShowList ? "slide-in-left" : "slide-out-right";
+  }, [isAnimating, animationDirection, effectiveShowList]);
 
-  // On mobile: show either the list or the detail view
   if (isMobile) {
     return (
       <div className="h-full mobile-feed-master-detail" id="feed-master-detail">
-        {showList ? (
+        {effectiveShowList ? (
           <div className={`mobile-feed-list ${getAnimationClass()}`}>
             <FeedList
               items={items}
@@ -112,7 +147,6 @@ export function FeedMasterDetail({ items, isLoading }: FeedMasterDetailProps) {
     );
   }
 
-  // On desktop: show the resizable panel group
   return (
     <div className="h-full min-h-0" id="feed-master-detail">
       <ResizablePanelGroup direction="horizontal" className="h-full min-h-0 rounded-lg border">

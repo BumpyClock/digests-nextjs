@@ -4,7 +4,7 @@
 
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, LazyMotion, domAnimation, m } from "motion/react";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,6 @@ export function BaseModal({
   viewTransitionBackdropSettled,
 }: BaseModalProps) {
   const isMobile = useIsMobile();
-  // Store the initial mobile state when modal opens to prevent resize issues
   const [initialIsMobile, setInitialIsMobile] = useState<boolean | null>(null);
   const [isBackdropSettled, setIsBackdropSettled] = useState(false);
   const isResizing = useRef(false);
@@ -68,15 +67,21 @@ export function BaseModal({
   useEffect(() => {
     if (isOpen) {
       Logger.debug(`[BaseModal] title: ${title}`);
-      // Lock the mobile state when modal opens
-      if (initialIsMobile === null) {
-        setInitialIsMobile(isMobile);
-      }
-    } else {
-      // Reset when modal closes
-      setInitialIsMobile(null);
+      const lockTimer = window.setTimeout(() => {
+        setInitialIsMobile((current) => (current === null ? isMobile : current));
+      }, 0);
+      return () => {
+        window.clearTimeout(lockTimer);
+      };
     }
-  }, [isOpen, title, isMobile, initialIsMobile]);
+
+    const resetTimer = window.setTimeout(() => {
+      setInitialIsMobile(null);
+    }, 0);
+    return () => {
+      window.clearTimeout(resetTimer);
+    };
+  }, [isOpen, title, isMobile]);
 
   // Use the locked mobile state to prevent modal from closing on resize
   const effectiveIsMobile = initialIsMobile !== null ? initialIsMobile : isMobile;
@@ -111,28 +116,34 @@ export function BaseModal({
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen || !useViewTransition) {
-      setIsBackdropSettled(false);
-      return;
-    }
+    const hasSettleDelay =
+      isOpen &&
+      useViewTransition &&
+      typeof viewTransitionBackdropSettled !== "boolean" &&
+      Boolean(viewTransitionBackdropSettleMs && viewTransitionBackdropSettleMs > 0);
+    const settleDelayMs = hasSettleDelay ? (viewTransitionBackdropSettleMs as number) : null;
 
-    if (typeof viewTransitionBackdropSettled === "boolean") {
-      setIsBackdropSettled(viewTransitionBackdropSettled);
-      return;
-    }
+    const nextSettled =
+      isOpen &&
+      useViewTransition &&
+      typeof viewTransitionBackdropSettled === "boolean" &&
+      viewTransitionBackdropSettled;
 
-    if (!viewTransitionBackdropSettleMs || viewTransitionBackdropSettleMs <= 0) {
-      setIsBackdropSettled(false);
-      return;
-    }
+    const syncTimer = window.setTimeout(() => {
+      setIsBackdropSettled(nextSettled);
+    }, 0);
 
-    setIsBackdropSettled(false);
-    const settleTimer = window.setTimeout(() => {
-      setIsBackdropSettled(true);
-    }, viewTransitionBackdropSettleMs);
+    const settleTimer = settleDelayMs
+      ? window.setTimeout(() => {
+          setIsBackdropSettled(true);
+        }, settleDelayMs)
+      : null;
 
     return () => {
-      window.clearTimeout(settleTimer);
+      window.clearTimeout(syncTimer);
+      if (settleTimer) {
+        window.clearTimeout(settleTimer);
+      }
     };
   }, [isOpen, useViewTransition, viewTransitionBackdropSettleMs, viewTransitionBackdropSettled]);
 
@@ -147,19 +158,18 @@ export function BaseModal({
       <DialogPrimitive.Portal>
         {/* Custom backdrop with 40px blur + translucent overlay */}
         <DialogPrimitive.Overlay asChild>
-          <motion.div
+          <m.div
             className={`fixed inset-0 z-overlay bg-background/45 ${backdropBlurClass}`}
             initial={useViewTransition ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: motionTokens.duration.normal, ease: "easeOut" }}
-            style={{ willChange: "opacity" }}
           />
         </DialogPrimitive.Overlay>
 
         {/* Modal content */}
         <DialogPrimitive.Content asChild>
-          <motion.div
+          <m.div
             className={
               effectiveIsMobile
                 ? "fixed z-modal w-full h-full left-0 top-0 overflow-hidden"
@@ -203,7 +213,6 @@ export function BaseModal({
                     ease: motionTokens.ease.standard,
                   }),
             }}
-            style={{ willChange: "transform, opacity" }}
           >
             <div
               className={`relative w-full h-full bg-background shadow-2xl overflow-hidden ${
@@ -216,7 +225,7 @@ export function BaseModal({
               </DialogPrimitive.Title>
 
               {/* Close button */}
-              <motion.div
+              <m.div
                 className="absolute top-4 right-4 z-modal"
                 initial={useViewTransition ? false : { opacity: 0, scale: 0.8 }}
                 animate={useViewTransition ? { opacity: 1 } : { opacity: 1, scale: 1 }}
@@ -235,10 +244,10 @@ export function BaseModal({
                   <X className="h-4 w-4" />
                   <span className="sr-only">Close</span>
                 </Button>
-              </motion.div>
+              </m.div>
 
               {/* Content area with proper scrolling */}
-              <motion.div
+              <m.div
                 className="h-full w-full overflow-auto"
                 initial={useViewTransition ? false : { opacity: 0, y: 20 }}
                 animate={useViewTransition ? { opacity: 1 } : { opacity: 1, y: 0 }}
@@ -249,17 +258,25 @@ export function BaseModal({
                 }
               >
                 {children}
-              </motion.div>
+              </m.div>
             </div>
-          </motion.div>
+          </m.div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </Dialog>
   );
 
   if (useViewTransition) {
-    return isOpen ? modalContent : null;
+    return (
+      <LazyMotion features={domAnimation}>
+        {isOpen ? modalContent : null}
+      </LazyMotion>
+    );
   }
 
-  return <AnimatePresence>{isOpen ? modalContent : null}</AnimatePresence>;
+  return (
+    <LazyMotion features={domAnimation}>
+      <AnimatePresence>{isOpen ? modalContent : null}</AnimatePresence>
+    </LazyMotion>
+  );
 }

@@ -1,28 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export function SmoothScroll() {
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-
   useEffect(() => {
-    // Check for reduced motion preference
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setPrefersReducedMotion(mediaQuery.matches);
-
-    const handleChange = (e: MediaQueryListEvent) => {
-      setPrefersReducedMotion(e.matches);
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-
-    return () => {
-      mediaQuery.removeEventListener("change", handleChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    const scrollBehavior = prefersReducedMotion ? "auto" : "smooth";
+    const getScrollBehavior = () => (mediaQuery.matches ? "auto" : "smooth");
 
     const handleAnchorClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -37,12 +20,9 @@ export function SmoothScroll() {
         const element = document.getElementById(targetId);
 
         if (element) {
-          // Update URL without triggering scroll
           window.history.pushState({}, "", anchor.hash);
-
-          // Scroll to element (respects reduced motion)
           element.scrollIntoView({
-            behavior: scrollBehavior,
+            behavior: getScrollBehavior(),
             block: "start",
           });
         }
@@ -55,17 +35,15 @@ export function SmoothScroll() {
         const targetId = hash.slice(1);
         const element = document.getElementById(targetId);
         if (element) {
-          if (scrollBehavior === "auto") {
-            // Skip delay for reduced motion
+          if (getScrollBehavior() === "auto") {
             element.scrollIntoView({
-              behavior: scrollBehavior,
+              behavior: getScrollBehavior(),
               block: "start",
             });
           } else {
-            // Small delay to ensure proper scrolling after page load
             setTimeout(() => {
               element.scrollIntoView({
-                behavior: scrollBehavior,
+                behavior: getScrollBehavior(),
                 block: "start",
               });
             }, 100);
@@ -75,13 +53,12 @@ export function SmoothScroll() {
     };
 
     document.addEventListener("click", handleAnchorClick);
-    // Handle initial load with hash
     handleInitialScroll();
 
     return () => {
       document.removeEventListener("click", handleAnchorClick);
     };
-  }, [prefersReducedMotion]);
+  }, []);
 
   return null;
 }

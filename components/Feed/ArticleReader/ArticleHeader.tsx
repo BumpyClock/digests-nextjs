@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, LazyMotion, domAnimation, m } from "motion/react";
 import Image from "next/image";
 import { memo, useEffect, useState } from "react";
 import { Ambilight } from "@/components/ui/ambilight";
@@ -58,7 +58,8 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
     const viewTransitionsEnabled = animationEnabled && isModal && vtSupported;
     const motionLayoutEnabled = animationEnabled && isModal && !viewTransitionsEnabled;
     const childViewTransitionEnabled = false;
-    const disableHeavyEffects = disableTransitionEffectsDuringWindow && isTransitionWindow;
+    const disableHeavyEffects =
+      isModal && disableTransitionEffectsDuringWindow && isTransitionWindow;
     const disableMountAnimations = disableEntranceAnimations && isModal;
     const disableImageFadeIn = disableMountAnimations || disableHeavyEffects;
 
@@ -71,17 +72,24 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
 
     useEffect(() => {
       if (!isModal || !disableTransitionEffectsDuringWindow) {
-        setIsTransitionWindow(false);
         return;
       }
 
-      setIsTransitionWindow(true);
-      const t = setTimeout(() => setIsTransitionWindow(false), 450);
-      return () => clearTimeout(t);
+      const startTimer = window.setTimeout(() => {
+        setIsTransitionWindow(true);
+      }, 0);
+      const endTimer = window.setTimeout(() => {
+        setIsTransitionWindow(false);
+      }, 450);
+
+      return () => {
+        window.clearTimeout(startTimer);
+        window.clearTimeout(endTimer);
+      };
     }, [isModal, disableTransitionEffectsDuringWindow]);
 
     return (
-      <>
+      <LazyMotion features={domAnimation}>
         {/* Thumbnail Section */}
         {showThumbnail && (
           <div className="mb-6">
@@ -96,14 +104,14 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                   className={`w-full ${isModal ? "h-[450px]" : "h-[200px] md:h-[250px]"}`}
                 />
               ) : feedItem.thumbnail && feedItem.thumbnail.trim() !== "" ? (
-                <motion.div
+                <m.div
                   layoutId={motionLayoutEnabled ? animationIds.thumbnail : undefined}
                   style={getViewTransitionStyle(childViewTransitionEnabled, animationIds.thumbnail)}
                 >
                   {/* Skeleton placeholder - positioned behind image */}
                   <AnimatePresence>
                     {!imageLoaded && (
-                      <motion.div
+                      <m.div
                         initial={disableMountAnimations ? false : { opacity: 1 }}
                         exit={disableMountAnimations ? undefined : { opacity: 0 }}
                         transition={
@@ -114,7 +122,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                         className="absolute inset-0 z-10"
                       >
                         <Skeleton className="w-full h-full" />
-                      </motion.div>
+                      </m.div>
                     )}
                   </AnimatePresence>
 
@@ -124,8 +132,8 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                     isActive={ambilightReady && !disableHeavyEffects}
                     opacity={{ rest: 0.5, hover: 0.7 }}
                   >
-                    {/* biome-ignore lint/performance/noImgElement: motion.img keeps animation + layout control here */}
-                    <motion.img
+                    {/* biome-ignore lint/performance/noImgElement: m.img keeps animation + layout control here */}
+                    <m.img
                       src={feedItem.thumbnail}
                       alt={feedItem.title}
                       className={`w-full max-h-[450px] object-cover ${
@@ -147,7 +155,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                       }
                     />
                   </Ambilight>
-                </motion.div>
+                </m.div>
               ) : null}
             </div>
           </div>
@@ -166,7 +174,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                 </div>
               ) : (
                 readerView?.title && (
-                  <motion.h1
+                  <m.h1
                     initial={disableMountAnimations ? false : { opacity: 0 }}
                     animate={disableMountAnimations ? undefined : { opacity: 1 }}
                     transition={
@@ -177,7 +185,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                     className="text-fluid-xl font-bold mb-2 text-left leading-fluid-tight"
                   >
                     {readerView.title}
-                  </motion.h1>
+                  </m.h1>
                 )
               )}
 
@@ -238,7 +246,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                     <Skeleton className="h-8 w-8" />
                   </div>
                 ) : (
-                  <motion.div
+                  <m.div
                     initial={disableMountAnimations ? false : { opacity: 0 }}
                     animate={disableMountAnimations ? undefined : { opacity: 1 }}
                     transition={
@@ -247,11 +255,11 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                         : {
                             duration: motionTokens.duration.slow,
                             delay: motionTokens.duration.fast,
-                          }
+                        }
                     }
                   >
                     {actions}
-                  </motion.div>
+                  </m.div>
                 )}
               </div>
             </div>
@@ -319,7 +327,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                     <Skeleton className="h-8 w-20" />
                   </div>
                 ) : (
-                  <motion.div
+                  <m.div
                     initial={disableMountAnimations ? false : { opacity: 0 }}
                     animate={disableMountAnimations ? undefined : { opacity: 1 }}
                     transition={
@@ -333,7 +341,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                     className="flex gap-2"
                   >
                     {actions}
-                  </motion.div>
+                  </m.div>
                 )}
               </div>
 
@@ -345,7 +353,7 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                 </div>
               ) : (
                 modalTitle && (
-                  <motion.h1
+                  <m.h1
                     initial={disableMountAnimations ? false : { opacity: 0, y: 10 }}
                     animate={disableMountAnimations ? undefined : { opacity: 1, y: 0 }}
                     transition={
@@ -366,13 +374,13 @@ export const ArticleHeader = memo<ArticleHeaderProps>(
                     id={isModal ? "reader-view-title" : undefined}
                   >
                     {modalTitle}
-                  </motion.h1>
+                  </m.h1>
                 )
               )}
             </>
           )}
         </div>
-      </>
+      </LazyMotion>
     );
   }
 );

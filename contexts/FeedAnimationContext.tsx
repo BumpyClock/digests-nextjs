@@ -14,23 +14,27 @@ const FeedAnimationContext = createContext<AnimationContextValue>({
 
 export function FeedAnimationProvider({ children }: { children: ReactNode }) {
   const userPreference = useUiPreferencesStore((state) => state.animationsEnabled);
-  const [animationEnabled, setAnimationEnabled] = useState(userPreference);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() =>
+    typeof window !== "undefined"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false
+  );
 
   useEffect(() => {
-    // Check both user preference and reduced motion preference
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (typeof window === "undefined") {
+      return;
+    }
 
-    setAnimationEnabled(userPreference && !prefersReducedMotion);
-
-    // Listen for reduced motion changes
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const handleChange = (e: MediaQueryListEvent) => {
-      setAnimationEnabled(userPreference && !e.matches);
+      setPrefersReducedMotion(e.matches);
     };
 
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [userPreference]);
+  }, []);
+
+  const animationEnabled = userPreference && !prefersReducedMotion;
 
   return (
     <FeedAnimationContext.Provider value={{ animationEnabled }}>

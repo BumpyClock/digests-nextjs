@@ -2,8 +2,8 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { Masonry } from "masonic";
-import { motion } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { LazyMotion, domAnimation, m } from "motion/react";
+import { useCallback, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import ErrorBoundary from "@/components/error-boundary";
 import { FeedCard } from "@/components/Feed/FeedCard/FeedCard";
 import { PodcastDetailsModal } from "@/components/Podcast/PodcastDetailsModal";
@@ -19,6 +19,7 @@ import { isPodcast } from "@/types/podcast";
 
 // Custom event for feed refresh
 export const FEED_REFRESHED_EVENT = "feed-refreshed";
+const subscribeToHydration = () => () => {};
 
 interface FeedGridProps {
   items: FeedItem[];
@@ -53,7 +54,7 @@ const EmptyState = () => {
  * Displays a responsive masonry grid of feed items with loading and periodic update checking.
  */
 export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(subscribeToHydration, () => true, () => false);
   const [openItem, setOpenItem] = useState<FeedItem | null>(null);
   const [readerTransitionSettled, setReaderTransitionSettled] = useState(false);
   const { width: windowWidth } = useWindowSize();
@@ -61,10 +62,6 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
   const { animationEnabled } = useFeedAnimation();
   const vtSupported = useViewTransitionsSupported();
   const viewTransitionsEnabled = animationEnabled && vtSupported;
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const columnWidth = 320;
   const columnGutter = 24;
@@ -178,18 +175,20 @@ export function FeedGrid({ items, isLoading, filterKey }: FeedGridProps) {
         </div>
       }
     >
-      <motion.div id="feed-grid" className="pt-6" initial={false} animate={false} layout={false}>
-        <Masonry
-          key={filterKey ?? "default"}
-          items={memoizedItems}
-          maxColumnCount={columnCount}
-          columnGutter={columnGutter}
-          columnWidth={columnWidth}
-          render={renderItem}
-          overscanBy={2}
-          itemKey={itemKey}
-        />
-      </motion.div>
+      <LazyMotion features={domAnimation}>
+        <m.div id="feed-grid" className="pt-6" initial={false} animate={false} layout={false}>
+          <Masonry
+            key={filterKey ?? "default"}
+            items={memoizedItems}
+            maxColumnCount={columnCount}
+            columnGutter={columnGutter}
+            columnWidth={columnWidth}
+            render={renderItem}
+            overscanBy={2}
+            itemKey={itemKey}
+          />
+        </m.div>
+      </LazyMotion>
 
       {openItem && isOpenItemPodcast && (
         <PodcastDetailsModal isOpen={true} onClose={handleClose} podcast={openItem} />

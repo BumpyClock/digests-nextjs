@@ -3,8 +3,9 @@
 import { ArrowLeft, Bookmark, Share2 } from "lucide-react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { fetchFeedsAction } from "@/app/actions";
+import ArticleMarkdownRenderer from "@/components/Feed/ArticleReader/ArticleMarkdownRenderer";
 import { ContentNotFound } from "@/components/ContentNotFound";
 import { ContentPageSkeleton } from "@/components/ContentPageSkeleton";
 import { Button } from "@/components/ui/button";
@@ -13,59 +14,99 @@ import { useToast } from "@/hooks/use-toast";
 import { useAudioActions } from "@/hooks/useFeedSelectors";
 import type { FeedItem } from "@/types/feed";
 import { getPodcastAudioUrl } from "@/types/podcast";
-import { sanitizeReaderContent } from "@/utils/htmlSanitizer";
+
+interface PodcastPageState {
+  podcast: FeedItem | null;
+  loading: boolean;
+  isBookmarked: boolean;
+}
+
+type PodcastPageAction =
+  | { type: "loading_started" }
+  | { type: "loading_finished" }
+  | { type: "podcast_loaded"; podcast: FeedItem }
+  | { type: "bookmark_changed"; value: boolean };
+
+const initialPodcastPageState: PodcastPageState = {
+  podcast: null,
+  loading: true,
+  isBookmarked: false,
+};
+
+function podcastPageReducer(state: PodcastPageState, action: PodcastPageAction): PodcastPageState {
+  switch (action.type) {
+    case "loading_started":
+      return { ...state, loading: true };
+    case "loading_finished":
+      return { ...state, loading: false };
+    case "podcast_loaded":
+      return {
+        ...state,
+        podcast: action.podcast,
+        isBookmarked: action.podcast.favorite || false,
+      };
+    case "bookmark_changed":
+      return { ...state, isBookmarked: action.value };
+    default:
+      return state;
+  }
+}
 
 export default function PodcastPage() {
   const params = useParams<{ id?: string }>();
-  const [podcast, setPodcast] = useState<FeedItem | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [state, dispatch] = useReducer(podcastPageReducer, initialPodcastPageState);
   const router = useRouter();
   const { playAudio } = useAudioActions();
   const { handleBookmark: bookmarkAction, handleShare } = useContentActions("podcast");
   const { toast } = useToast();
+  const podcast = state.podcast;
+  const isBookmarked = state.isBookmarked;
 
   useEffect(() => {
     let isMounted = true;
+    const finishLoading = () => {
+      if (isMounted) {
+        dispatch({ type: "loading_finished" });
+      }
+    };
 
     async function loadPodcast() {
       const id = params?.id as string | undefined;
       if (!id) {
-        if (isMounted) {
-          setLoading(false);
-        }
+        finishLoading();
         return;
       }
 
       if (isMounted) {
-        setLoading(true);
+        dispatch({ type: "loading_started" });
       }
 
-      try {
-        const { success, items } = await fetchFeedsAction(id);
+      const result = await fetchFeedsAction(id)
+        .then((value) => ({ ok: true as const, value }))
+        .catch((err: unknown) => {
+          const errorMessage = err instanceof Error ? err.message : String(err);
+          console.error("Failed to load podcast:", { err, errorMessage });
+          return { ok: false as const };
+        });
 
-        if (!isMounted) {
-          return;
-        }
+      if (!isMounted) {
+        return;
+      }
 
+      if (result.ok) {
+        const { success, items } = result.value;
         if (success && items) {
           const foundPodcast = items.find(
             (item: FeedItem) => item.id === id && item.type === "podcast"
           );
 
           if (foundPodcast) {
-            setPodcast(foundPodcast);
-            setIsBookmarked(foundPodcast.favorite || false);
+            dispatch({ type: "podcast_loaded", podcast: foundPodcast });
           }
         }
-      } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        console.error("Failed to load podcast:", { err, errorMessage });
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
       }
+
+      finishLoading();
     }
 
     loadPodcast();
@@ -77,7 +118,9 @@ export default function PodcastPage() {
 
   const handleBookmark = async () => {
     if (!podcast) return;
-    await bookmarkAction(podcast.id, isBookmarked, setIsBookmarked);
+    await bookmarkAction(podcast.id, isBookmarked, (value) =>
+      dispatch({ type: "bookmark_changed", value })
+    );
   };
 
   const handlePlay = () => {
@@ -109,7 +152,7 @@ export default function PodcastPage() {
   const publisher = podcast?.feedTitle || podcast?.author || podcast?.link || "Unknown publisher";
   const publisherInitial = publisher.charAt(0).toUpperCase();
 
-  if (loading) {
+  if (state.loading) {
     return <ContentPageSkeleton />;
   }
 
@@ -163,13 +206,10 @@ export default function PodcastPage() {
             </div>
             <div className="space-y-4">
               <h2 className="text-title-large text-primary-content">Episode Description</h2>
-              <div className="prose prose-sm dark:prose-invert">
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: sanitizeReaderContent(podcast.content || podcast.description || ""),
-                  }}
-                />
-              </div>
+              <ArticleMarkdownRenderer
+                content={podcast.content || podcast.description || ""}
+                className="prose prose-sm dark:prose-invert max-w-none"
+              />
             </div>
           </div>
         </div>

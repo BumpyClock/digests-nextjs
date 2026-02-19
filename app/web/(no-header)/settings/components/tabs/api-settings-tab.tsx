@@ -32,7 +32,13 @@ export const ApiSettingsTab = memo(function ApiSettingsTab() {
 
   // Initialize input field when component mounts
   useEffect(() => {
-    setInputUrl(config.baseUrl);
+    const syncTimer = window.setTimeout(() => {
+      setInputUrl(config.baseUrl);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(syncTimer);
+    };
   }, [config.baseUrl]);
 
   // Test connection function
@@ -53,6 +59,15 @@ export const ApiSettingsTab = memo(function ApiSettingsTab() {
     const timeoutId = window.setTimeout(() => {
       controller.abort();
     }, 10_000);
+    const finishConnectionTest = () => {
+      window.clearTimeout(timeoutId);
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
+      if (isMountedRef.current) {
+        setIsTestingConnection(false);
+      }
+    };
 
     try {
       // Use the parse endpoint with a known valid RSS feed to test connection
@@ -91,15 +106,9 @@ export const ApiSettingsTab = memo(function ApiSettingsTab() {
             : `Connection failed: ${error instanceof Error ? error.message : String(error)}`,
         });
       }
-    } finally {
-      window.clearTimeout(timeoutId);
-      if (abortControllerRef.current === controller) {
-        abortControllerRef.current = null;
-      }
-      if (isMountedRef.current) {
-        setIsTestingConnection(false);
-      }
     }
+
+    finishConnectionTest();
   };
 
   // Save API URL

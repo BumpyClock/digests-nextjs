@@ -2,7 +2,7 @@
 
 import { AlertCircle } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,88 @@ interface OPMLImportDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface OPMLImportState {
+  selectedFeeds: Set<string>;
+  feeds: FeedItem[];
+  loading: boolean;
+}
+
+type OPMLImportAction =
+  | { type: "sync_initial_feeds"; feeds: FeedItem[] }
+  | { type: "set_loading"; loading: boolean }
+  | { type: "mark_invalid_urls" }
+  | { type: "set_feeds"; feeds: FeedItem[] }
+  | { type: "select_all_available" }
+  | { type: "toggle_feed_selection"; url: string }
+  | { type: "clear_selection" };
+
+function createInitialState(feeds: FeedItem[]): OPMLImportState {
+  return {
+    selectedFeeds: new Set(),
+    feeds,
+    loading: true,
+  };
+}
+
+function opmlImportReducer(state: OPMLImportState, action: OPMLImportAction): OPMLImportState {
+  switch (action.type) {
+    case "sync_initial_feeds":
+      return {
+        ...state,
+        feeds: action.feeds,
+        selectedFeeds: new Set(),
+      };
+    case "set_loading":
+      return {
+        ...state,
+        loading: action.loading,
+      };
+    case "mark_invalid_urls":
+      return {
+        ...state,
+        feeds: state.feeds.map((feed) =>
+          isHttpUrl(feed.url.trim())
+            ? feed
+            : {
+                ...feed,
+                error: "Invalid feed URL. Skipped during validation.",
+              }
+        ),
+      };
+    case "set_feeds":
+      return {
+        ...state,
+        feeds: action.feeds,
+      };
+    case "select_all_available":
+      return {
+        ...state,
+        selectedFeeds: new Set(
+          state.feeds.filter((feed) => !feed.isSubscribed && !feed.error).map((feed) => feed.url)
+        ),
+      };
+    case "toggle_feed_selection": {
+      const nextSelectedFeeds = new Set(state.selectedFeeds);
+      if (nextSelectedFeeds.has(action.url)) {
+        nextSelectedFeeds.delete(action.url);
+      } else {
+        nextSelectedFeeds.add(action.url);
+      }
+      return {
+        ...state,
+        selectedFeeds: nextSelectedFeeds,
+      };
+    }
+    case "clear_selection":
+      return {
+        ...state,
+        selectedFeeds: new Set(),
+      };
+    default:
+      return state;
+  }
+}
+
 function FeedIcon({ feed, error }: { feed?: Feed; error?: string }) {
   if (error) {
     return (
@@ -60,22 +142,25 @@ export function OPMLImportDialog({
   open,
   onOpenChange,
 }: OPMLImportDialogProps) {
-  const [selectedFeeds, setSelectedFeeds] = useState<Set<string>>(new Set());
-  const [feeds, setFeeds] = useState<FeedItem[]>(initialFeeds);
-  const [loading, setLoading] = useState(true);
+  const [state, dispatch] = useReducer(opmlImportReducer, initialFeeds, createInitialState);
+  const { selectedFeeds, feeds, loading } = state;
 
   useEffect(() => {
-    setFeeds(initialFeeds);
-    setSelectedFeeds(new Set());
+    dispatch({ type: "sync_initial_feeds", feeds: initialFeeds });
   }, [initialFeeds]);
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
     let isMounted = true;
+    const finishLoading = () => {
+      if (isMounted) {
+        dispatch({ type: "set_loading", loading: false });
+      }
+    };
 
     const fetchFeedDetails = async () => {
-      setLoading(true);
-      try {
+      dispatch({ type: "set_loading", loading: true });
+      const runResult = await (async () => {
         // Partition feed URLs into valid and invalid in a single pass
         const feedUrls: string[] = [];
         const feedErrors = new Set<string>();
@@ -89,21 +174,11 @@ export function OPMLImportDialog({
         }
 
         if (feedErrors.size > 0) {
-          setFeeds((prev) =>
-            prev.map((feed) =>
-              isHttpUrl(feed.url.trim())
-                ? feed
-                : {
-                    ...feed,
-                    error: "Invalid feed URL. Skipped during validation.",
-                  }
-            )
-          );
+          dispatch({ type: "mark_invalid_urls" });
         }
 
         if (feedUrls.length === 0) {
-          setLoading(false);
-          return;
+          return null;
         }
 
         // Initialize worker if not already
@@ -131,7 +206,7 @@ export function OPMLImportDialog({
         });
 
         if (!isMounted) {
-          return;
+          return null;
         }
 
         if (result.success) {
@@ -150,20 +225,22 @@ export function OPMLImportDialog({
             }
             return { ...feed, error: "Feed not found in response" };
           });
-          setFeeds(updatedFeeds);
+          dispatch({ type: "set_feeds", feeds: updatedFeeds });
         } else {
           // If the entire request failed, mark all feeds as errored
           const updatedFeeds = initialFeeds.map((feed) => ({
             ...feed,
             error: result.message || "Failed to fetch feeds",
           }));
-          setFeeds(updatedFeeds);
+          dispatch({ type: "set_feeds", feeds: updatedFeeds });
         }
-      } catch (error: unknown) {
+
+        return null;
+      })().catch((error: unknown) => {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error("Error fetching feeds:", { error, errorMessage });
         if (!isMounted) {
-          return;
+          return { skipped: true as const };
         }
 
         // If there's an error, mark all feeds as errored
@@ -171,12 +248,15 @@ export function OPMLImportDialog({
           ...feed,
           error: `Failed to fetch feeds: ${errorMessage}`,
         }));
-        setFeeds(updatedFeeds);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        dispatch({ type: "set_feeds", feeds: updatedFeeds });
+        return { skipped: false as const };
+      });
+
+      if (runResult?.skipped) {
+        return;
       }
+
+      finishLoading();
     };
 
     if (open) {
@@ -191,28 +271,16 @@ export function OPMLImportDialog({
   }, [initialFeeds, open]);
 
   const handleSelectAll = () => {
-    const newSelected = new Set<string>();
-    feeds.forEach((feed) => {
-      if (!feed.isSubscribed && !feed.error) {
-        newSelected.add(feed.url);
-      }
-    });
-    setSelectedFeeds(newSelected);
+    dispatch({ type: "select_all_available" });
   };
 
   const handleToggleFeed = (url: string) => {
-    const newSelected = new Set(selectedFeeds);
-    if (newSelected.has(url)) {
-      newSelected.delete(url);
-    } else {
-      newSelected.add(url);
-    }
-    setSelectedFeeds(newSelected);
+    dispatch({ type: "toggle_feed_selection", url });
   };
 
   const handleImport = () => {
     onImport(Array.from(selectedFeeds));
-    setSelectedFeeds(new Set());
+    dispatch({ type: "clear_selection" });
   };
 
   return (

@@ -5,16 +5,14 @@ import remarkGfm from "remark-gfm";
 import { getMDXComponents } from "@/mdx-components";
 import { APP_MDX_DIR, CONTENT_MDX_DIR, getMdxMetadata } from "@/utils/mdx-utils";
 
-export default async function Page(props: { params: Promise<{ slug: string }> }) {
-  const params = await props.params;
-  const slug = params.slug;
+async function loadPageData(slug: string) {
   const components = getMDXComponents({});
 
   try {
     const { title, content } = getMdxMetadata(slug);
 
     // Compile the MDX content without frontmatter
-    const { content: Content } = await compileMDX({
+    const { content: compiledContent } = await compileMDX({
       source: content,
       components,
       options: {
@@ -26,16 +24,28 @@ export default async function Page(props: { params: Promise<{ slug: string }> })
       },
     });
 
-    return (
-      <article className="prose prose-lg dark:prose-invert max-w-none">
-        {title && <h1 className="mb-6 text-display-small text-primary-content">{title}</h1>}
-        {Content}
-      </article>
-    );
+    return { title, compiledContent };
   } catch (error) {
     console.error(`Error rendering page for slug: ${slug}`, error);
+    return null;
+  }
+}
+
+export default async function Page(props: { params: Promise<{ slug: string }> }) {
+  const params = await props.params;
+  const slug = params.slug;
+  const pageData = await loadPageData(slug);
+
+  if (!pageData) {
     notFound();
   }
+
+  return (
+    <article className="prose prose-lg dark:prose-invert max-w-none">
+      {pageData.title && <h1 className="mb-6 text-display-small text-primary-content">{pageData.title}</h1>}
+      {pageData.compiledContent}
+    </article>
+  );
 }
 
 export async function generateStaticParams() {

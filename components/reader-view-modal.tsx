@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import { ReaderContent } from "@/components/Feed/ReaderContent";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useReaderView } from "@/hooks/queries";
@@ -14,6 +14,21 @@ import { ScrollShadow } from "./ui/scroll-shadow";
 const selectMarkAsRead = (s: ReturnType<typeof useFeedStore.getState>) => s.markAsRead;
 const OPEN_TRANSITION_DELAY_MS = 300;
 const OPEN_TRANSITION_IDLE_TIMEOUT_MS = 340;
+
+type TransitionAction =
+  | { type: "sync_open_state"; isOpen: boolean }
+  | { type: "finish_open_transition" };
+
+function transitionReducer(state: boolean, action: TransitionAction): boolean {
+  switch (action.type) {
+    case "sync_open_state":
+      return action.isOpen;
+    case "finish_open_transition":
+      return false;
+    default:
+      return state;
+  }
+}
 
 interface ReaderViewModalProps {
   isOpen: boolean;
@@ -34,7 +49,7 @@ export function ReaderViewModal({
     feedItem.link,
     isOpen
   );
-  const [transitionInProgress, setTransitionInProgress] = useState(false);
+  const [transitionInProgress, dispatchTransition] = useReducer(transitionReducer, isOpen);
   const { isBottomVisible, handleScroll, hasScrolled } = useScrollShadow();
   const markAsRead = useFeedStore(selectMarkAsRead);
   const feedItemId = feedItem.id;
@@ -55,14 +70,25 @@ export function ReaderViewModal({
     return () => clearTimeout(t);
   }, [isOpen, feedItemId, markAsRead]);
 
-  // Keep first paint light, then mount heavy reader content after open transition settles.
   useEffect(() => {
-    if (!isOpen) {
-      setTransitionInProgress(false);
+    if (isOpen === transitionInProgress) {
       return;
     }
 
-    setTransitionInProgress(true);
+    const frameId = window.requestAnimationFrame(() => {
+      dispatchTransition({ type: "sync_open_state", isOpen });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [isOpen, transitionInProgress]);
+
+  // Keep first paint light, then mount heavy reader content after open transition settles.
+  useEffect(() => {
+    if (!isOpen || !transitionInProgress) {
+      return;
+    }
 
     const start = performance.now();
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -71,7 +97,10 @@ export function ReaderViewModal({
     const finishTransition = () => {
       const elapsed = performance.now() - start;
       const remaining = Math.max(0, OPEN_TRANSITION_DELAY_MS - elapsed);
-      timeoutId = setTimeout(() => setTransitionInProgress(false), remaining);
+      timeoutId = setTimeout(
+        () => dispatchTransition({ type: "finish_open_transition" }),
+        remaining
+      );
     };
 
     if (typeof window !== "undefined" && "requestIdleCallback" in window) {
@@ -79,7 +108,10 @@ export function ReaderViewModal({
         timeout: OPEN_TRANSITION_IDLE_TIMEOUT_MS,
       });
     } else {
-      timeoutId = setTimeout(() => setTransitionInProgress(false), OPEN_TRANSITION_DELAY_MS);
+      timeoutId = setTimeout(
+        () => dispatchTransition({ type: "finish_open_transition" }),
+        OPEN_TRANSITION_DELAY_MS
+      );
     }
 
     return () => {
@@ -94,7 +126,7 @@ export function ReaderViewModal({
         window.cancelIdleCallback(idleCallbackId);
       }
     };
-  }, [isOpen]);
+  }, [isOpen, transitionInProgress]);
 
   return (
     <BaseModal
