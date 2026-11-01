@@ -7,9 +7,6 @@ const projectRoot = dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   reactStrictMode: true,
   reactCompiler: true,
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   transpilePackages: ["next-mdx-remote"],
   images: {
     remotePatterns: [
