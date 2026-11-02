@@ -5,7 +5,8 @@
   "packageManager": "bun@1.2.19",
   "scripts": {
     "dev": "next dev ",
-    "build": "next build",
+    "build": "bun run typecheck && next build",
+    "typecheck": "next typegen && tsc --noEmit --incremental false",
     "start": "next start",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
